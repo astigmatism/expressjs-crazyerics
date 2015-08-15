@@ -10,7 +10,7 @@ body {
 	width: 100%;
 	margin: 0;
 	padding: 0;
-	font-family: "Helvetica Neue","Trebuchet MS",Verdana, Arial, "sans-serif";
+	font-family: 'Open Sans', sans-serif;
 	font-size: 12px;
 	color: #ccc;
 	text-align: left;
@@ -53,13 +53,11 @@ body {
 
 #titlebanner {
 	color: #fff;
-	padding: 30px 20px;
 	height: 112px;
 	/* background - see layout.jade. a random number defines bg */
 	background-repeat: no-repeat;
 }
 #titlebanner a {
-	padding: 0;
 	background: none;
 	text-decoration: none;
 }
@@ -69,6 +67,17 @@ body {
 #titlebanner a:hover {
 	color: #989898;
 }
-#titlebanner h2 {
-	font-size: 1.5em;
+#titlebanner div.titlewrapper {
+	position: relative;
+	top: 50%;
+	transform: translateY(-50%);
+	padding: 0px 20px;
+	margin: 0;
+}
+#titlebanner h1 {
+	font-size: 32px;
+}
+#titlebanner h1, #titlebanner h4  {
+	padding: 0;
+	margin: 0;
 }

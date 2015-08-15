@@ -5,12 +5,14 @@ html
         script(src='https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js')
         link(rel='shortcut icon', href='favicon.ico', type='image/x-icon')
         link(rel='stylesheet', href='/stylesheets/style.css')
+        link(rel='stylesheet', type='text/css', href='http://fonts.googleapis.com/css?family=Open+Sans')
     body
         div#container
             div#maincolumn
                 - titlebanner = Math.floor((Math.random() * 10) + 1);
                 div#titlebanner(style='background:url(/images/titlebanners/' + titlebanner + '.jpg)')
-                    h1 Crazyerics.com
-                    h2 retro gaming commmunity
+                    div(class='titlewrapper')
+                        h1 Crazyerics.com
+                        h4 retro gaming commmunity
                 block content
             div#menucolumn
