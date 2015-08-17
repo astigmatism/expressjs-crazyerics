@@ -138,7 +138,7 @@ crazyerics.prototype._bootstrapnesboxflash = function(title, file) {
         
         if (emulator) {
             
-            var w = 520;
+            var w = 516;
             var h = w * 0.9375;
 
             var flashvars = {
