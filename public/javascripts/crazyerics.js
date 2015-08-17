@@ -13,7 +13,7 @@ var crazyerics = function() {
                 });
             },
             renderItem: function (item, search){
-                var html = '<div class="autocomplete-suggestion" data-title="' + item[0] + '" data-file="' + item[1] + '"><img name="' + item[0] + '"> ' + item[0] + '</div>';
+                var html = '<div class="autocomplete-suggestion" data-title="' + item[0] + '" data-file="' + item[1] + '"><img name="' + item[0] + '"><div>' + item[0] + '</div></div>';
                 self.googleimagesearch('nes ' + item[0] + ' box', 'img[name="' + item[0] + '"]');
                 return html;
             },

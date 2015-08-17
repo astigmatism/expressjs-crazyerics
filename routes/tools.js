@@ -35,101 +35,7 @@ router.get('/nes', function(req, res, next) {
 
 				result[item].games = games;
 
-				//find playable rom
-				
-				var us_reg = new RegExp('\\(u\\)', 'ig');
-				var w_reg = new RegExp('\\(w\\)', 'ig');
-				var e_reg = new RegExp('\\(e\\)', 'ig');
-				var pl_reg = new RegExp('\\[!\\]', 'ig');
-				var nob_reg = new RegExp('\\[', 'ig');
-				
-				var playable = null;
-
-				for (j = 0; j < files.length; ++j) {
-					
-					//if u and !
-					if ((files[j]).match(us_reg) && (files[j]).match(pl_reg)) {
-						playable = files[j];
-						break;
-					}
-				}
-				if (!playable) {
-					// w and !
-					for (j = 0; j < files.length; ++j) {
-						if ((files[j]).match(w_reg) && (files[j]).match(pl_reg)) {
-							playable = files[j];
-							break;
-						}
-					}
-				}
-				if (!playable) {
-					// [!] //playable
-					for (j = 0; j < files.length; ++j) {
-						if ((files[j]).match(pl_reg)) {
-							playable = files[j];
-							break;
-						}
-					}
-				}
-				if (!playable) {
-					// u and no brackets
-					for (j = 0; j < files.length; ++j) {
-						if ((files[j]).match(us_reg) && !(files[j]).match(nob_reg)) {
-							playable = files[j];
-							break;
-						}
-					}
-				}
-				if (!playable) {
-					// w and no brackets
-					for (j = 0; j < files.length; ++j) {
-						if ((files[j]).match(w_reg) && !(files[j]).match(nob_reg)) {
-							playable = files[j];
-							break;
-						}
-					}
-				}
-				if (!playable) {
-					// u 
-					for (j = 0; j < files.length; ++j) {
-						if ((files[j]).match(us_reg)) {
-							playable = files[j];
-							break;
-						}
-					}
-				}
-				if (!playable) {
-					// w
-					for (j = 0; j < files.length; ++j) {
-						if ((files[j]).match(w_reg)) {
-							playable = files[j];
-							break;
-						}
-					}
-				}
-				if (!playable) {
-					// e
-					for (j = 0; j < files.length; ++j) {
-						if ((files[j]).match(e_reg)) {
-							playable = files[j];
-							break;
-						}
-					}
-				}
-				if (!playable) {
-					//no brackets
-					for (j = 0; j < files.length; ++j) {
-						if (!(files[j]).match(nob_reg)) {
-							playable = files[j];
-							break;
-						}
-					}
-				}
-				if (!playable) {
-					playable = files[0];
-				}
-				result[item].playable = playable;
-
+				result[item].playable = _goodromsfilter(files, 'nes');
 
 				callback();
 			});
@@ -169,8 +75,8 @@ router.get('/snes', function(req, res, next) {
 
 		        if (stats.isFile()) {
 		        	
-		        	
-		        	
+
+
 		        	callback();
 
 		        }
@@ -192,101 +98,7 @@ router.get('/snes', function(req, res, next) {
 
 						result[item].games = games;
 
-						//find playable rom
-						
-						var us_reg = new RegExp('\\(u\\)', 'ig');
-						var w_reg = new RegExp('\\(w\\)', 'ig');
-						var e_reg = new RegExp('\\(e\\)', 'ig');
-						var pl_reg = new RegExp('\\[!\\]', 'ig');
-						var nob_reg = new RegExp('\\[', 'ig');
-						
-						var playable = null;
-
-						for (j = 0; j < files.length; ++j) {
-							
-							//if u and !
-							if ((files[j]).match(us_reg) && (files[j]).match(pl_reg)) {
-								playable = files[j];
-								break;
-							}
-						}
-						if (!playable) {
-							// w and !
-							for (j = 0; j < files.length; ++j) {
-								if ((files[j]).match(w_reg) && (files[j]).match(pl_reg)) {
-									playable = files[j];
-									break;
-								}
-							}
-						}
-						if (!playable) {
-							// [!] //playable
-							for (j = 0; j < files.length; ++j) {
-								if ((files[j]).match(pl_reg)) {
-									playable = files[j];
-									break;
-								}
-							}
-						}
-						if (!playable) {
-							// u and no brackets
-							for (j = 0; j < files.length; ++j) {
-								if ((files[j]).match(us_reg) && !(files[j]).match(nob_reg)) {
-									playable = files[j];
-									break;
-								}
-							}
-						}
-						if (!playable) {
-							// w and no brackets
-							for (j = 0; j < files.length; ++j) {
-								if ((files[j]).match(w_reg) && !(files[j]).match(nob_reg)) {
-									playable = files[j];
-									break;
-								}
-							}
-						}
-						if (!playable) {
-							// u 
-							for (j = 0; j < files.length; ++j) {
-								if ((files[j]).match(us_reg)) {
-									playable = files[j];
-									break;
-								}
-							}
-						}
-						if (!playable) {
-							// w
-							for (j = 0; j < files.length; ++j) {
-								if ((files[j]).match(w_reg)) {
-									playable = files[j];
-									break;
-								}
-							}
-						}
-						if (!playable) {
-							// e
-							for (j = 0; j < files.length; ++j) {
-								if ((files[j]).match(e_reg)) {
-									playable = files[j];
-									break;
-								}
-							}
-						}
-						if (!playable) {
-							//no brackets
-							for (j = 0; j < files.length; ++j) {
-								if (!(files[j]).match(nob_reg)) {
-									playable = files[j];
-									break;
-								}
-							}
-						}
-						if (!playable) {
-							playable = files[0];
-						}
-						result[item].playable = playable;
-
+						result[item].playable = _goodromsfilter(files, 'smc');
 
 						callback();
 					});
@@ -304,5 +116,131 @@ router.get('/snes', function(req, res, next) {
 		});
 	});
 });
+
+var _goodromsfilter = function(files, ext) {
+
+	var us_reg = new RegExp('\\(u\\)', 'ig');
+	var us_alt_reg = new RegExp('\\[u\\]', 'ig');
+	var w_reg = new RegExp('\\(w\\)', 'ig');
+	var e_reg = new RegExp('\\(e\\)', 'ig');
+	var pl_reg = new RegExp('\\[!\\]', 'ig');
+	var nob_reg = new RegExp('\\[', 'ig');
+	var ends = new RegExp('\\.' + ext + '$', 'ig');
+	
+	var playable = null;
+
+	for (j = 0; j < files.length; ++j) {
+		
+		//if u and !
+		if ((files[j]).match(us_reg) && (files[j]).match(pl_reg) && (files[j]).match(ends)) {
+			playable = files[j];
+			break;
+		}
+	}
+	if (!playable) {
+		// u alt and !
+		for (j = 0; j < files.length; ++j) {
+			if ((files[j]).match(us_alt_reg) && (files[j]).match(pl_reg) && (files[j]).match(ends)) {
+				playable = files[j];
+				break;
+			}
+		}
+	}
+	if (!playable) {
+		// w and !
+		for (j = 0; j < files.length; ++j) {
+			if ((files[j]).match(w_reg) && (files[j]).match(pl_reg) && (files[j]).match(ends)) {
+				playable = files[j];
+				break;
+			}
+		}
+	}
+	if (!playable) {
+		// [!] //playable
+		for (j = 0; j < files.length; ++j) {
+			if ((files[j]).match(pl_reg) && (files[j]).match(ends)) {
+				playable = files[j];
+				break;
+			}
+		}
+	}
+	if (!playable) {
+		// u and no brackets
+		for (j = 0; j < files.length; ++j) {
+			if ((files[j]).match(us_reg) && !(files[j]).match(nob_reg) && (files[j]).match(ends)) {
+				playable = files[j];
+				break;
+			}
+		}
+	}
+	if (!playable) {
+		// u alt and no brackets
+		for (j = 0; j < files.length; ++j) {
+			if ((files[j]).match(us_alt_reg) && !(files[j]).match(nob_reg) && (files[j]).match(ends)) {
+				playable = files[j];
+				break;
+			}
+		}
+	}
+	if (!playable) {
+		// w and no brackets
+		for (j = 0; j < files.length; ++j) {
+			if ((files[j]).match(w_reg) && !(files[j]).match(nob_reg) && (files[j]).match(ends)) {
+				playable = files[j];
+				break;
+			}
+		}
+	}
+	if (!playable) {
+		// u 
+		for (j = 0; j < files.length; ++j) {
+			if ((files[j]).match(us_reg) && (files[j]).match(ends)) {
+				playable = files[j];
+				break;
+			}
+		}
+	}
+	if (!playable) {
+		// u alt
+		for (j = 0; j < files.length; ++j) {
+			if ((files[j]).match(us_alt_reg) && (files[j]).match(ends)) {
+				playable = files[j];
+				break;
+			}
+		}
+	}
+	if (!playable) {
+		// w
+		for (j = 0; j < files.length; ++j) {
+			if ((files[j]).match(w_reg) && (files[j]).match(ends)) {
+				playable = files[j];
+				break;
+			}
+		}
+	}
+	if (!playable) {
+		// e
+		for (j = 0; j < files.length; ++j) {
+			if ((files[j]).match(e_reg) && (files[j]).match(ends)) {
+				playable = files[j];
+				break;
+			}
+		}
+	}
+	if (!playable) {
+		//no brackets
+		for (j = 0; j < files.length; ++j) {
+			if (!(files[j]).match(nob_reg) && (files[j]).match(ends)) {
+				playable = files[j];
+				break;
+			}
+		}
+	}
+	if (!playable) {
+		playable = files[0];
+	}
+
+	return playable;
+};
 
 module.exports = router;
