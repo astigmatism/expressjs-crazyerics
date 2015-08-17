@@ -75,9 +75,17 @@ router.get('/snes', function(req, res, next) {
 
 		        if (stats.isFile()) {
 		        	
+		        	console.log(item + ' ---> ' + item.replace(/\..{3}$/i,'').replace(/\(.{1}\)/g,'').replace(/\[.*\]/g,''));
 
+		   //      	var dirname = item.replace(/\..{3}$/i,'').replace(/\(.{1}\)/g,'').replace(/\[.*\]/g,'');
 
-		        	callback();
+		   // 			fs.mkdirSync(__dirname + '/../public/roms/snes2/' + dirname);
+		   //       	fs.rename(__dirname + '/../public/roms/snes/' + item, __dirname + '/../public/roms/snes2/' + dirname + '/' + item, function(err){
+					//  	if(err)
+					//  		throw err;
+					// });
+
+		   //      	callback();
 
 		        }
 
@@ -123,6 +131,7 @@ var _goodromsfilter = function(files, ext) {
 	var us_alt_reg = new RegExp('\\[u\\]', 'ig');
 	var w_reg = new RegExp('\\(w\\)', 'ig');
 	var e_reg = new RegExp('\\(e\\)', 'ig');
+	var ju_reg = new RegExp('\\(ju\\)', 'ig');
 	var pl_reg = new RegExp('\\[!\\]', 'ig');
 	var nob_reg = new RegExp('\\[', 'ig');
 	var ends = new RegExp('\\.' + ext + '$', 'ig');
@@ -135,6 +144,15 @@ var _goodromsfilter = function(files, ext) {
 		if ((files[j]).match(us_reg) && (files[j]).match(pl_reg) && (files[j]).match(ends)) {
 			playable = files[j];
 			break;
+		}
+	}
+	if (!playable) {
+		// ju and !
+		for (j = 0; j < files.length; ++j) {
+			if ((files[j]).match(ju_reg) && (files[j]).match(pl_reg) && (files[j]).match(ends)) {
+				playable = files[j];
+				break;
+			}
 		}
 	}
 	if (!playable) {
@@ -174,6 +192,15 @@ var _goodromsfilter = function(files, ext) {
 		}
 	}
 	if (!playable) {
+		// ju and no brackets
+		for (j = 0; j < files.length; ++j) {
+			if ((files[j]).match(ju_reg) && !(files[j]).match(nob_reg) && (files[j]).match(ends)) {
+				playable = files[j];
+				break;
+			}
+		}
+	}
+	if (!playable) {
 		// u alt and no brackets
 		for (j = 0; j < files.length; ++j) {
 			if ((files[j]).match(us_alt_reg) && !(files[j]).match(nob_reg) && (files[j]).match(ends)) {
@@ -195,6 +222,15 @@ var _goodromsfilter = function(files, ext) {
 		// u 
 		for (j = 0; j < files.length; ++j) {
 			if ((files[j]).match(us_reg) && (files[j]).match(ends)) {
+				playable = files[j];
+				break;
+			}
+		}
+	}
+	if (!playable) {
+		// ju 
+		for (j = 0; j < files.length; ++j) {
+			if ((files[j]).match(ju_reg) && (files[j]).match(ends)) {
 				playable = files[j];
 				break;
 			}

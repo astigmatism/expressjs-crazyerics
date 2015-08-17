@@ -191,7 +191,7 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#e5e5e5', end
 	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#2e353d', endColorstr='#101921',GradientType=0 ); /* IE6-9 */
 }
 #gametitlewrapper img {
-	height: 70px;
+	height: 100px;
 	padding: 0px 10px;
 	display: inline-block;
   	vertical-align: middle;
