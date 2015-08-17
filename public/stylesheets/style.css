@@ -15,6 +15,7 @@ body {
 	color: #ccc;
 	text-align: left;
 	word-wrap: break-word;
+	background-repeat: repeat-x;
 	
 	background: rgb(52,63,74,1); /* Old browsers */
 	background: -moz-linear-gradient(top, rgba(81,97,112,1) 0%, rgba(52,63,74,1) 100px); /* FF3.6+ */
@@ -47,7 +48,8 @@ input[type='text'] {
 	margin: 0 auto;
 	position: relative;
 	height: 100%;
-	width: 800px;
+	/* width: 800px; */
+	width: 650px;
 }
 
 #maincolumn
@@ -91,6 +93,7 @@ input[type='text'] {
 	position: absolute;
 	width: 100%;
 	height: 100%;
+	z-index: 1;
 
 	background: -moz-linear-gradient(top,  rgba(0,0,0,0) 0%, rgba(0,0,0,0.65) 100%); /* FF3.6+ */
 	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(0,0,0,0)), color-stop(100%,rgba(0,0,0,0.65))); /* Chrome,Safari4+ */
@@ -101,9 +104,10 @@ input[type='text'] {
 	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#00000000', endColorstr='#a6000000',GradientType=0 ); /* IE6-9 */
 }
 #titlebanner div.titlewrapper {
-	position: relative;
-	top: 50%;
-	transform: translateY(-50%);
+	position: absolute;
+	height: 55px;
+	top: 25%;
+	z-index: 2;
 	padding: 0px 20px;
 	margin: 0;
 }
@@ -146,10 +150,22 @@ input[type='text'] {
 	font-size: 14px;
 	padding: 3px 5px;
 	line-height: 18px;
-	width: 250px;
+	width: 500px;
 	border-radius: 3px;
   	outline: none;
   	color: #000;
+}
+
+#emulatorwrapper {
+	height: 70px;
+	background: rgb(46,53,61); /* Old browsers */
+	background: -moz-linear-gradient(top,  rgba(46,53,61,1) 0%, rgba(16,25,33,1) 100%); /* FF3.6+ */
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(46,53,61,1)), color-stop(100%,rgba(16,25,33,1))); /* Chrome,Safari4+ */
+	background: -webkit-linear-gradient(top,  rgba(46,53,61,1) 0%,rgba(16,25,33,1) 100%); /* Chrome10+,Safari5.1+ */
+	background: -o-linear-gradient(top,  rgba(46,53,61,1) 0%,rgba(16,25,33,1) 100%); /* Opera 11.10+ */
+	background: -ms-linear-gradient(top,  rgba(46,53,61,1) 0%,rgba(16,25,33,1) 100%); /* IE10+ */
+	background: linear-gradient(to bottom,  rgba(46,53,61,1) 0%,rgba(16,25,33,1) 100%); /* W3C */
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#2e353d', endColorstr='#101921',GradientType=0 ); /* IE6-9 */	
 }
 
 #gametitlewrapper {

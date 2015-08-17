@@ -1,6 +1,9 @@
 extends layout
 
 block content
-	div#emulatorborder
-		div#emulatorcentered
-			include ./emulators/jsnes.jade
+    div#searchform
+        div(class='scopebadge') All Consoles
+        input(type='text', name='search', data-hotkey='q', placeholder='Search')
+    - //input#jsnes(type='button', value='jsnes')
+    - //input#nesboxflash(type='button', value='nesboxflash')
+    div#emulatorwrapper

@@ -4,8 +4,10 @@ html
         title='Crazyerics.com'
         script(src='https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js')
         script(src='/javascripts/crazyerics.js', type='text/javascript')
+        script(src='/javascripts/jquery.auto-complete.min.js')
         link(rel='shortcut icon', href='favicon.ico', type='image/x-icon')
         link(rel='stylesheet', href='/stylesheets/style.css')
+        link(rel='stylesheet', href='/stylesheets/jquery.auto-complete.css')
         link(rel='stylesheet', type='text/css', href='http://fonts.googleapis.com/css?family=Open+Sans|Montserrat')
     body
         div#container
@@ -16,11 +18,5 @@ html
                     div(class='titlewrapper')
                         h1 crazyerics.com
                         h4 retro gaming commmunity
-                div#searchform
-                    div(class='scopebadge') All Consoles
-                    input(type='text', name='search', data-hotkey='q', placeholder='Search')
-                div#gametitlewrapper
-                    img
-                    div Blaster Master
                 block content
-            div#menucolumn
+            - //div#menucolumn (until I have something for this space)
