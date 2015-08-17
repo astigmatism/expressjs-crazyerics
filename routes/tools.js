@@ -37,9 +37,9 @@ router.get('/nes', function(req, res, next) {
 
 				//find playable rom
 				
-				var us_reg = new RegExp('(u)', 'ig');
-				var w_reg = new RegExp('(w)', 'ig');
-				var pl_reg = new RegExp('[!]', 'ig');
+				var us_reg = new RegExp('\\(u\\)', 'ig');
+				var w_reg = new RegExp('\\(w\\)', 'ig');
+				var pl_reg = new RegExp('\\[!\\]', 'ig');
 				var nob_reg = new RegExp('\\[', 'ig');
 				
 				var playable = null;

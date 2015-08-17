@@ -48,8 +48,7 @@ input[type='text'] {
 	margin: 0 auto;
 	position: relative;
 	height: 100%;
-	/* width: 800px; */
-	width: 650px;
+	width: 800px;
 }
 
 #maincolumn

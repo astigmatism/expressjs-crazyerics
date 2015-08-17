@@ -22,7 +22,7 @@ var crazyerics = function() {
                 self.state.title = item.data('title');
                 self.state.file = item.data('file');
 
-                self._bootstrapjsnes(self.state.title, self.state.file);
+                self._bootstrapnesboxflash(self.state.title, self.state.file);
             }
         });
 
@@ -138,6 +138,9 @@ crazyerics.prototype._bootstrapnesboxflash = function(title, file) {
         
         if (emulator) {
             
+            var w = 520;
+            var h = w * 0.9375;
+
             var flashvars = {
                 system : 'nes',
                 url : romPath
@@ -149,7 +152,7 @@ crazyerics.prototype._bootstrapnesboxflash = function(title, file) {
             params.allowFullScreen = 'true';
             params.allowFullScreenInteractive = 'true';
 
-            swfobject.embedSWF('/emulators/nesboxflash/bin/Nesbox.swf', 'emulator', '640', '480', '11.2.0', 'flash/expressInstall.swf', flashvars, params, attributes);
+            swfobject.embedSWF('/emulators/nesboxflash/bin/Nesbox.swf', 'emulator', w, h, '11.2.0', 'flash/expressInstall.swf', flashvars, params, attributes);
         }
 
         self.state.emulator = 'nesboxflash';
