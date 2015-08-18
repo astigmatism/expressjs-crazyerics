@@ -171,7 +171,8 @@ input[type='text'] {
     outline-offset: -2px;
 }
 #emulatorwrapper {
-	height: 70px;
+	display: none;
+	margin-top: 10px;
 	background: rgb(46,53,61); /* Old browsers */
 	background: -moz-linear-gradient(top,  rgba(46,53,61,1) 0%, rgba(16,25,33,1) 100%); /* FF3.6+ */
 	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(46,53,61,1)), color-stop(100%,rgba(16,25,33,1))); /* Chrome,Safari4+ */

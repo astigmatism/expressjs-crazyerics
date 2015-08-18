@@ -182,6 +182,8 @@ crazyerics.prototype._bootstrapnesboxflash = function(system, title, file) {
             swfobject.embedSWF('/emulators/nesboxflash/bin/Nesbox.swf', 'emulator', w, h, '11.2.0', 'flash/expressInstall.swf', flashvars, params, attributes);
         }
 
+        $('#emulatorwrapper').slideDown();
+
         self.state.emulator = 'nesboxflash';
     };
 
@@ -206,7 +208,9 @@ crazyerics.prototype._bootstrapnesboxflash = function(system, title, file) {
             self.state.emulatorhandle = {};
             self.state.emulatorhandle.unload = function() {
                 self.state.emulatorhandle = null;
-                $('#emulatorwrapper').empty();
+                $('#emulatorwrapper').slideUp(function() {
+                    $('#emulatorwrapper').empty();
+                });
             };
         });
     }
