@@ -125,6 +125,83 @@ router.get('/snes', function(req, res, next) {
 	});
 });
 
+router.get('/all', function(req, res, next) {
+    
+	var result = {};
+
+	fs.readdir(__dirname + '/../public/roms/', function (err, systems) { 
+		if (err) {
+			return res.json(err);
+		}
+
+		async.each(systems, function(system, callbacksystem) {
+
+			if (system.indexOf('.') === 0) {
+				return callbacksystem();
+			}
+
+			fs.readdir(__dirname + '/../public/roms/' + system, function (err, games) {
+				if (err) {
+					return res.json(err);
+				}
+
+				async.each(games, function(game, callback) {
+
+					if (game.indexOf('.') === 0) {
+						return callback();
+					}
+
+					result[game] = {};
+
+					fs.readdir(__dirname + '/../public/roms/' + system + '/' + game, function (err, files) {
+						if (err) {
+							return res.json(err);
+						}
+
+						var games = [];
+
+						for (var j = 0; j < files.length; ++j) {
+							games.push(files[j])
+						}
+
+						result[game].games = games;
+
+						var ext = '';
+						switch(system) {
+							case 'nes':
+								ext = 'nes';
+								break;
+							case 'snes':
+								ext = 'smc';
+								break;
+						}
+
+						result[game].playable = _goodromsfilter(files, ext);
+
+						result[game].system = system;
+
+						callback();
+					});
+
+
+				}, function(err) {
+					if (err) {
+						return res.json(err);
+					}
+
+					callbacksystem();
+				});
+			});
+		}, function(err) {
+			if (err) {
+				return res.json(err);
+			}
+
+			res.json(result);
+		});
+	});
+});
+
 var _goodromsfilter = function(files, ext) {
 
 	var us_reg = new RegExp('\\(u\\)', 'ig');

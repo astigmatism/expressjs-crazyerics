@@ -32,10 +32,17 @@
 	height: 40px;
 	padding-left: 5px;
 }
-
 .autocomplete-suggestion img {
-	height: 40px;
-	width: 30px;
 	display: inline-block;
 	vertical-align: middle;
+}
+
+.autocomplete-suggestion img.nes {
+	height: 40px;
+	width: 30px;
+}
+
+.autocomplete-suggestion img.snes {
+	height: 40px;
+	width: 56.8px;
 }

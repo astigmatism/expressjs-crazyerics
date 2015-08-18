@@ -4,25 +4,36 @@ var crazyerics = function() {
     
     $(document).ready(function() {
 
+        //console select
+        $('#searchform select').selectOrDie({
+            customID: 'selectordie',
+            onChange: function() {
+                self.state.search = $(this).val();
+            }
+        });
+
+        //search field
         $('#searchform input').autoComplete({
-            minChars: 2,
+            minChars: 3,
+            cache: false,
             source: function(term, response){
-                try { xhr.abort(); } catch(e){}
-                xhr = $.getJSON('/search/nes', { q: term }, function(data) { 
+                $.getJSON('/search/' + self.state.search, { q: term }, function(data) { 
                     response(data);
                 });
             },
             renderItem: function (item, search){
-                var html = '<div class="autocomplete-suggestion" data-title="' + item[0] + '" data-file="' + item[1] + '"><img name="' + item[0] + '"><div>' + item[0] + '</div></div>';
-                self.googleimagesearch('nes ' + item[0] + ' box', 'img[name="' + item[0] + '"]');
+                
+                var html = '<div class="autocomplete-suggestion" data-title="' + item[0] + '" data-file="' + item[1] + '" data-system="' + item[2] + '"><img class="' + item[2] + '" name="' + item[0] + '"><div>' + item[0] + '</div></div>';
+                self.googleimagesearch(item[2] + ' ' + item[0] + ' box', 'img[name="' + item[0] + '"]');
                 return html;
             },
             onSelect: function(e, term, item){
                 
                 self.state.title = item.data('title');
                 self.state.file = item.data('file');
+                self.state.system = item.data('system');
 
-                self._bootstrapnesboxflash(self.state.title, self.state.file);
+                self._bootstrapnesboxflash(self.state.system, self.state.title, self.state.file);
             }
         });
 
@@ -31,7 +42,7 @@ var crazyerics = function() {
                 return;
             }
             self.state.emulatorhandle.unload();
-            self._bootstrapjsnes(self.state.title, self.state.file);
+            self._bootstrapjsnes(self.state.system, self.state.title, self.state.file);
         });
 
         $('#nesboxflash').click(function() {
@@ -39,13 +50,14 @@ var crazyerics = function() {
                 return;
             }
             self.state.emulatorhandle.unload();
-            self._bootstrapnesboxflash(self.state.title, self.state.file);
+            self._bootstrapnesboxflash(self.state.system, self.state.title, self.state.file);
         });
 
     });
 };
 
 crazyerics.prototype.state = {
+    search: 'all',
     emulator: null,
     system: 'nes',
     title: '',
@@ -73,12 +85,13 @@ crazyerics.prototype.googleimagesearch = function(searchterm, selector) {
     });
 };
 
-crazyerics.prototype._bootstrapjsnes = function(title, file) {
+crazyerics.prototype._bootstrapjsnes = function(system, title, file) {
 
     var self = this;
     var romPath = '/roms/nes/' + title + '/' + file;
     var jsnesReady = function() {
 
+        $('#gametitlewrapper img').removeClass().addClass(system);
         self.googleimagesearch('nes ' + title + ' box', '#gametitlewrapper img');
         $('#gametitlewrapper div').text(title);
 
@@ -123,14 +136,15 @@ crazyerics.prototype._bootstrapjsnes = function(title, file) {
     }
 };
 
-crazyerics.prototype._bootstrapnesboxflash = function(title, file) {
+crazyerics.prototype._bootstrapnesboxflash = function(system, title, file) {
 
     var self = this;
-    var romPath = '/roms/nes/' + title + '/' + file;
+    var romPath = '/roms/' + system + '/' + title + '/' + file;
 
     var nesboxflashReady = function() {
         
-        self.googleimagesearch('nes ' + title + ' box', '#gametitlewrapper img');
+        $('#gametitlewrapper img').removeClass().addClass(system);
+        self.googleimagesearch(system + ' ' + title + ' box', '#gametitlewrapper img');
         $('#gametitlewrapper div').text(title);
 
         $('#emulator').empty();
@@ -138,11 +152,24 @@ crazyerics.prototype._bootstrapnesboxflash = function(title, file) {
         
         if (emulator) {
             
-            var w = 516;
-            var h = w * 0.9375;
+            var w = 512;
+            var h = 448;
+
+            switch (system) {
+                case 'nes':
+                    //w = 516;
+                    //h = w * 0.9375;                    
+                    w = 512;
+                    h = 448;
+                    break;
+                case 'snes':
+                    w = 512;
+                    h = 448;
+                    break;
+            }
 
             var flashvars = {
-                system : 'nes',
+                system : system,
                 url : romPath
             };
             var params = {};
