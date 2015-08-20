@@ -152,20 +152,30 @@ crazyerics.prototype._bootstrapnesboxflash = function(system, title, file) {
         
         if (emulator) {
             
-            var w = 512;
-            var h = 448;
+            var w = 640;
+            var h = 480;
 
             switch (system) {
                 case 'nes':
-                    //w = 516;
-                    //h = w * 0.9375;                    
-                    w = 512;
-                    h = 448;
+                    w = 256 * 2;
+                    h = 240 * 2;
                     break;
                 case 'snes':
-                    w = 512;
-                    h = 448;
+                    w = 256 * 2;
+                    h = 224 * 2;
                     break;
+                case 'gb':
+                    w = 160 * 2;
+                    h = 144 * 2;
+                    break;
+                case 'gen':
+                    w = 320 * 2;
+                    h = 224 * 2;
+                    break;
+            }
+
+            if (system === 'gen') {
+                system = 'sega';
             }
 
             var flashvars = {

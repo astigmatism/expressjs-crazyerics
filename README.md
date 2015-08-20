@@ -12,6 +12,12 @@ Not included in this repository are the cloned GitHub projects of console emulat
 
 To get the emulators to function correctly, I had to make some changes while I will detail here for future reference:
 
+Good source for current GoodMerged sets of roms: http://tv-games.ru/download/nes.html
+
+NESBOXFLASH:
+
+none. I use this by default since it handles nes, snes, gb, gbc, gba and gen
+
 JSNES:
 
 This was a node project, so read its README.md file for what to do. It uses grunt for building so I used that and then did an npm install on the project. The build process produces a jsnes.js file which essentially comprises the emulator. This file also includes a lame ui object which is tied to loading roms and various functionality. Instead of heavily modifying the jsnes.js file I ended up using css to hide and javascript to interact with the ui dynamically. I also changed the zoom values (start zoomed and to the width of my main). By default the jsnes.js file was listening to all keyboard events on the document. I added a tabindex to the emulator window and listened for events on it instead.
