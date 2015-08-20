@@ -71,7 +71,6 @@ input[type='text'] {
 }
 
 #titlebanner {
-	display: none;
 	position: relative;
 	color: #fff;
 	height: 112px;
