@@ -14,6 +14,13 @@ To get the emulators to function correctly, I had to make some changes while I w
 
 Good source for current GoodMerged sets of roms: http://tv-games.ru/download/nes.html
 
+Good sets used in this project. As of this writing (8/19/15) these are the most up to date sets (I believe):
+
+GoodNES 3.23b 	- valid since 04/14
+GoodSNES 3.23 	- valid since 04/14
+GoodGen 3.21 	- valid since 10/12
+GoodGBx 3.14 	- valid since 10/07
+
 NESBOXFLASH:
 
 none. I use this by default since it handles nes, snes, gb, gbc, gba and gen

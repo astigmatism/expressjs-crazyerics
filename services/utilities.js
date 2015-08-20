@@ -18,6 +18,7 @@ UtilitiesService = function() {
 UtilitiesService.search = function(manifest, term, system, maximum) {
 
     maximum = maximum || 20; //return 20 results unless otherwise stated
+    term = term || '';
     term = term.replace(/\s+/g,' ').trim().replace(/[^a-zA-Z0-9\s]/gi,''); //sanitize term by trimming, removing invalid characters
     var result = [];
     var i;
@@ -28,6 +29,13 @@ UtilitiesService.search = function(manifest, term, system, maximum) {
     //pass over all entries just once
     for (game in manifest) {
 
+        /**
+         * search scoring
+         * hundreds digit: the strength of the regex scoring
+         * tens digit: the order of the search query words (first is more relevant)
+         * ones digit: the length of the game's title. a smaller title more closely matches the search making it more revelant
+         * precision: the playability score of the game. this elevates games that are (U) and [!] over ones that are hacks etc.
+         */
         //the higher the search score, the more likely it is to show at the top of the auto complete list
         var searchscore = 0;
 
@@ -38,28 +46,32 @@ UtilitiesService.search = function(manifest, term, system, maximum) {
             var wordinside = new RegExp('\\s' + words[i] + '($|\\s)', 'i');     //word is a whole word someplace in the result (space either side or line end)
             var partof     = new RegExp(words[i], 'i');                         //word is partial word anyplace in the result
 
-            var worddepthscore = (words.length - i); //word path score gives highest score to first term in entry (most likely what user is searching for)
+            var termdepthscore = (words.length - i) * 10; //word path score gives highest score to first term in entry (most likely what user is searching for)
 
             //check each word against possible location in game and give score based on position
             //continue at each check to prevent same word scoring mutliple times
             if (game.match(beginswith)) {
-                searchscore += (5 + worddepthscore); //most points awarded to first work in query
+                searchscore += (300 + termdepthscore); //most points awarded to first work in query
                 continue;
             }
             if (game.match(wordinside)) {
-                searchscore += (3 + worddepthscore); //most points awarded to first work in query
+                searchscore += (200 + termdepthscore); //most points awarded to first work in query
                 continue;
             }
             if (game.match(partof)) {
-                searchscore += (1 + worddepthscore); //most points awarded to first work in query
+                searchscore += (100 + termdepthscore); //most points awarded to first work in query
                 continue;
             }
         }
 
         if (searchscore > 0) {
 
+            //the one's digit is a score based on how many words the game's title is. The fewer, the beter the match given the terms
+            var gamewords = game.split(' ');
+            searchscore += (10 - gamewords.length);
+
             //the decimal places in the score represent the "playability" of the game. This way, games with (U) and [!] will rank higher than those that are hacks or have brackets
-            searchscore += (manifest[game].r * 0.01); //between .99 and .0
+            searchscore += (manifest[game].r * 0.1); //between 9.9 and 0.0
 
             result.push([game, manifest[game].g, system || manifest[game].s, searchscore]);
         }

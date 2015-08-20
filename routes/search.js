@@ -62,11 +62,11 @@ router.get('/all', function(req, res, next) {
 
     var term = req.query.q;
 
-    DataService.getFile('/data/all.json', function(err, data) {
+    DataService.getFile('/data/all/search.json', function(err, data) {
         if (err) {
             return res.json(err);
         }
-        res.json(_searchmanifest(data, term));
+        res.json(UtilitiesService.search(data, term));
     });
 });
 

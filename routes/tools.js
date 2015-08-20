@@ -54,71 +54,47 @@ router.get('/gen', function(req, res, next) {
 
 router.get('/all', function(req, res, next) {
 
-    var result = {};
+    result = {};
 
-    fs.readdir(__dirname + '/../public/roms/', function (err, systems) {
+    //open the data dir
+    fs.readdir(__dirname + '/../data', function(err, systems) {
         if (err) {
-            return res.json(err);
+            callback(err);
         }
 
+        //loop over each system
         async.each(systems, function(system, nextsystem) {
 
-            if (system.indexOf('.') === 0) {
-                return nextsystem();
+            //pass over "all" folder
+            if (system === 'all') {
+                nextsystem();
             }
 
-            fs.readdir(__dirname + '/../public/roms/' + system, function (err, games) {
-                if (err) {
-                    return res.json(err);
+            //read the genreated search.json file
+            fs.readFile(__dirname + '/../data/' + system + '/search.json', 'utf8', function(err, content) {
+
+                try {
+                    content = JSON.parse(content);
+                } catch (e) {
+                    return res.json(e);
                 }
 
-                async.each(games, function(game, nextgame) {
+                //add each game to the result, add a system property
+                for (game in content) {
+                    
+                    var temp = content[game];
+                    temp.s = system;
+                    result[game] = temp;
+                }
+                
+                nextsystem();
 
-                    if (game.indexOf('.') === 0) {
-                        return nextgame();
-                    }
-
-                    result[game] = {};
-
-                    fs.readdir(__dirname + '/../public/roms/' + system + '/' + game, function (err, roms) {
-                        if (err) {
-                            return res.json(err);
-                        }
-
-                        var ext = '';
-                        switch(system) {
-                            case 'nes':
-                                ext = '\.nes$';
-                                break;
-                            case 'snes':
-                                ext = '\.smc$';
-                                break;
-                        }
-
-                        var details = UtilitiesService.findBestPlayableGame(roms, ext); //returns index of playable game returns object with "game", "index" and "rank"
-
-                        result[game] = {
-                            g: details.game,
-                            s: system
-                        }
-
-                        nextgame();
-                    });
-
-
-                }, function(err) {
-                    if (err) {
-                        return res.json(err);
-                    }
-
-                    nextsystem();
-                });
             });
+
         }, function(err) {
             if (err) {
-                return res.json(err);
+                res.json(err);
             }
-
             res.json(result);
         });
     });
