@@ -16,6 +16,7 @@ var crazyerics = function() {
         $('#searchform input').autoComplete({
             minChars: 3,
             cache: false,
+            delay: 300,
             source: function(term, response){
                 $.getJSON('/search/' + self.state.search, { q: term }, function(data) { 
                     response(data);
