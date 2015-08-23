@@ -205,6 +205,9 @@ input[type='text'] {
 #gametitlewrapper img.gb {
 	height: 60px;
 }
+#gametitlewrapper img.gba {
+	height: 60px;
+}
 #gametitlewrapper div {
 	display: inline-block;
 	vertical-align: top;

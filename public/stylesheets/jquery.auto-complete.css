@@ -52,6 +52,11 @@
 	width: 30px;
 }
 
+.autocomplete-suggestion img.gba {
+	height: 30px;
+	width: 30px;
+}
+
 .autocomplete-suggestion img.snes {
 	height: 40px;
 	width: 56.8px;

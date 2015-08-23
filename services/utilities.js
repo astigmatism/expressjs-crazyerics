@@ -164,7 +164,7 @@ UtilitiesService.buildData = function(system, operation, callback) {
                     //         throw err;
                     //     }
                     // });
-                    nextgame();
+                    return nextgame();
                 }
 
                 //if directory filled with roms as expected
@@ -201,13 +201,14 @@ UtilitiesService.buildData = function(system, operation, callback) {
 
                             //create a manifest of all roms for this game
                             default:
-                                var games = [];
                                 for (var j = 0; j < roms.length; ++j) {
-                                    games.push(roms[j]);
+                                    var arr = [[roms[j]]];
+                                    var details = UtilitiesService.findBestPlayableGame.apply(UtilitiesService, arr.concat(args));
+
+                                    result[game][roms[j]] = details.rank;
                                 }
-                                result[game] = games;
                         }
-                        nextgame();
+                        return nextgame();
                     });
                 }
             });
@@ -242,7 +243,8 @@ UtilitiesService.findBestPlayableGame = function(files) {
         c:      new RegExp('\\(c\\)', 'ig'),        //Canada release
         a:      new RegExp('\\(a\\)', 'ig'),        //Ausrilia release
         eng:    new RegExp('Eng', 'ig'),            //English translation
-        e:      new RegExp('\\(e\\)', 'ig')         //Europe release (last ditch check as can be english sometimes)
+        e:      new RegExp('\\(e\\)', 'ig'),        //Europe release (last ditch check as can be english sometimes)
+        j:      new RegExp('\\(j\\)', 'ig')         //so sometimes a japanese relese IS important because we don't want it ranking as long as a hacked game
     };
 
     var reOption = {

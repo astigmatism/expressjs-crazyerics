@@ -69,21 +69,21 @@ crazyerics.prototype.loadedscripts  = {};
 
 crazyerics.prototype.googleimagesearch = function(searchterm, selector) {
 
-    $.ajax({
-        url: 'https://ajax.googleapis.com/ajax/services/search/images',
-        dataType: "jsonp",
-        data: {
-            v: "1.0",
-            rsz: 8,
-            start: 0,
-            q: searchterm
-        },
-        success: function(response) {
-            if (response && response.responseData && response.responseData.results && response.responseData.results[0].tbUrl) {
-                $(selector).attr('src', response.responseData.results[0].tbUrl);
-            }
-        }
-    });
+    // $.ajax({
+    //     url: 'https://ajax.googleapis.com/ajax/services/search/images',
+    //     dataType: "jsonp",
+    //     data: {
+    //         v: "1.0",
+    //         rsz: 8,
+    //         start: 0,
+    //         q: searchterm
+    //     },
+    //     success: function(response) {
+    //         if (response && response.responseData && response.responseData.results && response.responseData.results[0].tbUrl) {
+    //             $(selector).attr('src', response.responseData.results[0].tbUrl);
+    //         }
+    //     }
+    // });
 };
 
 crazyerics.prototype._bootstrapjsnes = function(system, title, file) {
@@ -173,6 +173,9 @@ crazyerics.prototype._bootstrapnesboxflash = function(system, title, file) {
                     w = 320 * 2;
                     h = 224 * 2;
                     break;
+                case 'gba':
+                    w = 240 * 2;
+                    h = 160 * 2;
             }
 
             if (system === 'gen') {

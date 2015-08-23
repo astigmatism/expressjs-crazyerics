@@ -40,6 +40,18 @@ router.get('/gb', function(req, res, next) {
     }, '\.gb$', '\.gbc$');
 });
 
+router.get('/gba', function(req, res, next) {
+
+    var operation = req.query.op;
+
+    UtilitiesService.buildData('gba', operation, function(err, data) {
+        if (err) {
+            return res.json(err);
+        }
+        res.json(data);
+    }, '\.gba$');
+});
+
 router.get('/gen', function(req, res, next) {
 
     var operation = req.query.op;
@@ -59,15 +71,15 @@ router.get('/all', function(req, res, next) {
     //open the data dir
     fs.readdir(__dirname + '/../data', function(err, systems) {
         if (err) {
-            callback(err);
+            return callback(err);
         }
 
         //loop over each system
-        async.each(systems, function(system, nextsystem) {
+        async.eachSeries(systems, function(system, nextsystem) {
 
             //pass over "all" folder
             if (system === 'all') {
-                nextsystem();
+                return nextsystem();
             }
 
             //read the genreated search.json file
@@ -87,7 +99,7 @@ router.get('/all', function(req, res, next) {
                     result[game] = temp;
                 }
                 
-                nextsystem();
+                return nextsystem();
 
             });
 

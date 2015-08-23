@@ -14,6 +14,18 @@ To get the emulators to function correctly, I had to make some changes while I w
 
 Good source for current GoodMerged sets of roms: http://tv-games.ru/download/nes.html
 
+CDN: 
+
+Let's store the site's images on Google Drive. rsync them at each update:
+
+rsync -avz  ~/Projects/expressjs-crazyerics/public/images ~/Google\ Drive/expressjs-crazyerics/public
+
+Rom Storage:
+
+The collection of roms was too large to store on the server itself so I put them on the Synology and shared the folder. Symbolically
+link that folder to the public/roms folder:
+ln -s /Volumes/Crazyerics.com/public/roms/ ~/Projects/Production/expressjs-crazyerics/public/roms
+
 Good sets used in this project. As of this writing (8/19/15) these are the most up to date sets (I believe):
 
 GoodNES 3.23b 	- valid since 04/14
