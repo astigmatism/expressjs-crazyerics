@@ -32,7 +32,7 @@ router.get('/suggestions', function(req, res, next) {
     
     var system = req.query.system;
     var items = req.query.items || 10;
-    var result = [];
+    var result = {};
 
     fs.readFile(__dirname + '/../data/' + system + '/search.json', 'utf8', function (err, data) {
         if (err) {
@@ -46,8 +46,17 @@ router.get('/suggestions', function(req, res, next) {
 
         var games = Object.keys(data);
 
+        //run over all games
         for (var i = 0; i < items; ++i) {
-            result.push(games[games.length * Math.random() << 0]);
+            
+            //randomly select a game
+            var randomgame = games[games.length * Math.random() << 0];
+                
+            //in the result, use the game as the key and its values the file and rank
+            result[randomgame] = {
+                g: data[randomgame].g,
+                r: data[randomgame].r
+            }
         }
         
         res.json(result);

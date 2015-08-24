@@ -39,7 +39,7 @@ var crazyerics = function() {
         });
 
         //slick carosels
-        $('#nescarosel').slick({
+        $('#nescarousel').slick({
             slidesToShow: 5,
             slidesToScroll: 5
         });
@@ -47,7 +47,7 @@ var crazyerics = function() {
         $.get('suggestions?system=nes&items=20', function(response) {
             console.log(response);
             for (var i = 0; i < response.length; ++i) {
-                $('#nescarosel').slick('slickAdd', '<div>' + response[i] + '</div>');
+                $('#nescarousel').slick('slickAdd', '<div><img src="/images/nes/' + response[i] + '/100.jpg" /></div>');
             }
         });
 

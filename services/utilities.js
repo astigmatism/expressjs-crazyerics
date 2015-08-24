@@ -199,21 +199,25 @@ UtilitiesService.buildData = function(system, operation, callback) {
                                 }
                                 break;
 
+                            case '99':
+
+                                var details = UtilitiesService.findBestPlayableGame.apply(UtilitiesService, [roms].concat(args)); //returns index of playable game returns object with "game", "index" and "rank"
+                                
+                                if (details.rank >= 88) {
+                                    result[game] = {
+                                        g: details.game,
+                                        r: details.rank
+                                    }
+                                }
+                                break;
+
                             //create a manifest of all roms for this game
                             default:
-                                
-                                var details = UtilitiesService.findBestPlayableGame.apply(UtilitiesService, [roms].concat(args));
-
-                                result[game].highestrank = details.rank;
-
-                                result[game].games = {};
-
-                                //each game
                                 for (var j = 0; j < roms.length; ++j) {
                                     var arr = [[roms[j]]];
                                     var details = UtilitiesService.findBestPlayableGame.apply(UtilitiesService, arr.concat(args));
 
-                                    result[game].games[roms[j]] = details.rank;
+                                    result[game][roms[j]] = details.rank;
                                 }
                         }
                         return nextgame();
@@ -252,7 +256,7 @@ UtilitiesService.findBestPlayableGame = function(files) {
         a:      new RegExp('\\(a\\)', 'ig'),        //Ausrilia release
         eng:    new RegExp('Eng', 'ig'),            //English translation
         e:      new RegExp('\\(e\\)', 'ig'),        //Europe release (last ditch check as can be english sometimes)
-        j:      new RegExp('\\(j\\)', 'ig')         //so sometimes a japanese relese IS important because we don't want it ranking as low as a hacked game
+        j:      new RegExp('\\(j\\)', 'ig')         //so sometimes a japanese relese IS important because we don't want it ranking as long as a hacked game
     };
 
     var reOption = {
