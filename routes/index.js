@@ -28,4 +28,31 @@ router.get('/loademulator', function(req, res, next) {
     });
 });
 
+router.get('/suggestions', function(req, res, next) {
+    
+    var system = req.query.system;
+    var items = req.query.items || 10;
+    var result = [];
+
+    fs.readFile(__dirname + '/../data/' + system + '/search.json', 'utf8', function (err, data) {
+        if (err) {
+            return res.send(err);
+        }
+        try {
+            data = JSON.parse(data);
+        } catch (e) {
+            return res.json(e);
+        }
+
+        var games = Object.keys(data);
+
+        for (var i = 0; i < items; ++i) {
+            result.push(games[games.length * Math.random() << 0]);
+        }
+        
+        res.json(result);
+    });
+
+});
+
 module.exports = router;

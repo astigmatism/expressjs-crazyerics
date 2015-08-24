@@ -38,6 +38,20 @@ var crazyerics = function() {
             }
         });
 
+        //slick carosels
+        $('#nescarosel').slick({
+            slidesToShow: 5,
+            slidesToScroll: 5
+        });
+
+        $.get('suggestions?system=nes&items=20', function(response) {
+            console.log(response);
+            for (var i = 0; i < response.length; ++i) {
+                $('#nescarosel').slick('slickAdd', '<div>' + response[i] + '</div>');
+            }
+        });
+
+
         $('#jsnes').click(function() {
             if (self.state.emulator === 'jsnes') {
                 return;

@@ -71,6 +71,7 @@ input[type='text'] {
 }
 
 #titlebanner {
+	display: none;
 	position: relative;
 	color: #fff;
 	height: 112px;
@@ -234,4 +235,9 @@ input[type='text'] {
 
 #emulator {
 	outline: none;
+}
+
+div.carosel {
+	width: 580px;
+	margin: 0px auto;
 }
