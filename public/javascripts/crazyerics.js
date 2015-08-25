@@ -43,6 +43,7 @@ var crazyerics = function() {
         for(var i = 0; i < systems.length; ++i) {
 
             $('#' + systems[i] + '-carousel').slick({
+                lazyLoad: 'ondemand',
                 slidesToShow: 5,
                 slidesToScroll: 5
             });
@@ -51,7 +52,7 @@ var crazyerics = function() {
         $.getJSON('/suggest/all/20', function(response) {
             for (system in response) {
                 for (game in response[system]) {
-                    $('#' + system + '-carousel').slick('slickAdd', '<div class="carouselitem" data-title="' + game + '" data-file="' + response[system][game].g + '" data-system="' + system + '"><img src="/images/' + system + '/' + game + '/100.jpg" /></div>');
+                    $('#' + system + '-carousel').slick('slickAdd', '<div class="carouselitem" data-title="' + game + '" data-file="' + response[system][game].g + '" data-system="' + system + '"><img data-lazy="/images/' + system + '/' + game + '/100.jpg" /></div>');
                 }
             }
         });
