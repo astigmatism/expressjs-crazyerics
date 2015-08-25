@@ -18,7 +18,7 @@ var crazyerics = function() {
             cache: false,
             delay: 300,
             source: function(term, response){
-                $.getJSON('/search/' + self.state.search, { q: term }, function(data) { 
+                $.getJSON('/search/' + self.state.search + '/' + term, function(data) { 
                     response(data);
                 });
             },
@@ -37,20 +37,22 @@ var crazyerics = function() {
                 self._bootstrapnesboxflash(self.state.system, self.state.title, self.state.file);
             }
         });
+    
+        var systems = ['nes', 'snes', 'gba', 'gb', 'gen'];
+        
+        for(var i = 0; i < systems.length; ++i) {
 
-        //slick carosels
-        $('#nescarousel').slick({
-            slidesToShow: 5,
-            slidesToScroll: 5
-        });
-        $('#gbcarousel').slick({
-            slidesToShow: 5,
-            slidesToScroll: 5
-        });
+            $('#' + systems[i] + '-carousel').slick({
+                slidesToShow: 5,
+                slidesToScroll: 5
+            });
+        }
 
-        $.get('suggestions?system=gb&items=20', function(response) {
-            for (game in response) {
-                $('#gbcarousel').slick('slickAdd', '<div class="carouselitem" data-title="' + game + '" data-file="' + response[game].g + '" data-system="gb"><img src="/images/gb/' + game + '/100.jpg" /></div>');
+        $.getJSON('/suggest/all/20', function(response) {
+            for (system in response) {
+                for (game in response[system]) {
+                    $('#' + system + '-carousel').slick('slickAdd', '<div class="carouselitem" data-title="' + game + '" data-file="' + response[system][game].g + '" data-system="' + system + '"><img src="/images/' + system + '/' + game + '/100.jpg" /></div>');
+                }
             }
         });
 
@@ -66,21 +68,21 @@ var crazyerics = function() {
         });
 
 
-        $('#jsnes').click(function() {
-            if (self.state.emulator === 'jsnes') {
-                return;
-            }
-            self.state.emulatorhandle.unload();
-            self._bootstrapjsnes(self.state.system, self.state.title, self.state.file);
-        });
+        // $('#jsnes').click(function() {
+        //     if (self.state.emulator === 'jsnes') {
+        //         return;
+        //     }
+        //     self.state.emulatorhandle.unload();
+        //     self._bootstrapjsnes(self.state.system, self.state.title, self.state.file);
+        // });
 
-        $('#nesboxflash').click(function() {
-            if (self.state.emulator === 'nesboxflash') {
-                return;
-            }
-            self.state.emulatorhandle.unload();
-            self._bootstrapnesboxflash(self.state.system, self.state.title, self.state.file);
-        });
+        // $('#nesboxflash').click(function() {
+        //     if (self.state.emulator === 'nesboxflash') {
+        //         return;
+        //     }
+        //     self.state.emulatorhandle.unload();
+        //     self._bootstrapnesboxflash(self.state.system, self.state.title, self.state.file);
+        // });
 
     });
 };
@@ -94,25 +96,6 @@ crazyerics.prototype.state = {
     emulatorhandle: null
 };
 crazyerics.prototype.loadedscripts  = {};
-
-crazyerics.prototype.googleimagesearch = function(searchterm, selector) {
-
-    // $.ajax({
-    //     url: 'https://ajax.googleapis.com/ajax/services/search/images',
-    //     dataType: "jsonp",
-    //     data: {
-    //         v: "1.0",
-    //         rsz: 8,
-    //         start: 0,
-    //         q: searchterm
-    //     },
-    //     success: function(response) {
-    //         if (response && response.responseData && response.responseData.results && response.responseData.results[0].tbUrl) {
-    //             $(selector).attr('src', response.responseData.results[0].tbUrl);
-    //         }
-    //     }
-    // });
-};
 
 crazyerics.prototype._bootstrapjsnes = function(system, title, file) {
 

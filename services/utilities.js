@@ -1,6 +1,7 @@
 
 var fs = require('fs');
 var async = require('async');
+var DataService = require('../services/data.js');
 
 /**
  * UtilitiesService Constructor
@@ -10,12 +11,12 @@ UtilitiesService = function() {
 
 /**
  * Given a search term, searches and returns the most valid games
- * @param  {Object} manifest
- * @param  {string} term
  * @param  {string} system
+ * @param  {string} term
+ * @param  {number} maximum number of results returned
  * @return {Array}
  */
-UtilitiesService.search = function(manifest, term, system, maximum) {
+UtilitiesService.search = function(system, term, maximum, callback) {
 
     maximum = maximum || 20; //return 20 results unless otherwise stated
     term = term || '';
@@ -23,79 +24,86 @@ UtilitiesService.search = function(manifest, term, system, maximum) {
     var result = [];
     var i;
     var game;
-
     var words = term.split(' '); //split all search terms
 
-    //pass over all entries just once
-    for (game in manifest) {
+    DataService.getFile('/data/' + system + '/search.json', function(err, data) {
+        if (err) {
+            return callback(err);
+        }
 
-        /**
-         * search scoring
-         * hundreds digit: the strength of the regex scoring
-         * tens digit: the order of the search query words (first is more relevant)
-         * ones digit: the length of the game's title. a smaller title more closely matches the search making it more revelant
-         * precision: the playability score of the game. this elevates games that are (U) and [!] over ones that are hacks etc.
-         */
-        //the higher the search score, the more likely it is to show at the top of the auto complete list
-        var searchscore = 0;
+        //pass over all entries just once
+        for (game in data) {
 
-        //pass over all search terms
-        for (i = 0; i < words.length; ++i) {
+            /**
+             * search scoring
+             * hundreds digit: the strength of the regex scoring
+             * tens digit: the order of the search query words (first is more relevant)
+             * ones digit: the length of the game's title. a smaller title more closely matches the search making it more revelant
+             * precision: the playability score of the game. this elevates games that are (U) and [!] over ones that are hacks etc.
+             */
+            //the higher the search score, the more likely it is to show at the top of the auto complete list
+            var searchscore = 0;
 
-            var beginswith = new RegExp('^' + words[i],'i');                    //word is a whole or partial word at at the beginning of the result
-            var wordinside = new RegExp('\\s' + words[i] + '($|\\s)', 'i');     //word is a whole word someplace in the result (space either side or line end)
-            var partof     = new RegExp(words[i], 'i');                         //word is partial word anyplace in the result
+            //pass over all search terms
+            for (i = 0; i < words.length; ++i) {
 
-            var termdepthscore = (words.length - i) * 10; //word path score gives highest score to first term in entry (most likely what user is searching for)
+                var beginswith = new RegExp('^' + words[i],'i');                    //word is a whole or partial word at at the beginning of the result
+                var wordinside = new RegExp('\\s' + words[i] + '($|\\s)', 'i');     //word is a whole word someplace in the result (space either side or line end)
+                var partof     = new RegExp(words[i], 'i');                         //word is partial word anyplace in the result
 
-            //check each word against possible location in game and give score based on position
-            //continue at each check to prevent same word scoring mutliple times
-            if (game.match(beginswith)) {
-                searchscore += (300 + termdepthscore); //most points awarded to first work in query
-                continue;
+                var termdepthscore = (words.length - i) * 10; //word path score gives highest score to first term in entry (most likely what user is searching for)
+
+                //check each word against possible location in game and give score based on position
+                //continue at each check to prevent same word scoring mutliple times
+                if (game.match(beginswith)) {
+                    searchscore += (300 + termdepthscore); //most points awarded to first work in query
+                    continue;
+                }
+                if (game.match(wordinside)) {
+                    searchscore += (200 + termdepthscore); //most points awarded to first work in query
+                    continue;
+                }
+                if (game.match(partof)) {
+                    searchscore += (100 + termdepthscore); //most points awarded to first work in query
+                    continue;
+                }
             }
-            if (game.match(wordinside)) {
-                searchscore += (200 + termdepthscore); //most points awarded to first work in query
-                continue;
+
+            if (searchscore > 0) {
+
+                //the one's digit is a score based on how many words the game's title is. The fewer, the beter the match given the terms
+                var gamewords = game.split(' ');
+                searchscore += (10 - gamewords.length);
+
+                //the decimal places in the score represent the "playability" of the game. This way, games with (U) and [!] will rank higher than those that are hacks or have brackets
+                searchscore += (data[game].r * 0.1); //between 9.9 and 0.0
+
+                result.push([game, data[game].g, data[game].s || system, searchscore]);
             }
-            if (game.match(partof)) {
-                searchscore += (100 + termdepthscore); //most points awarded to first work in query
-                continue;
+        }
+
+        //return result; //use for debugging all results
+
+        //sort according to score
+        result.sort(function(a, b) {
+            if (a[3] > b[3]) {
+                return -1;
             }
+            if (a[3] < b[3]) {
+                return 1;
+            }
+            return 0;
+        });
+
+        //if over max, splice out
+        if (result.length > maximum) {
+            result.splice(maximum, result.length - 1);
         }
 
-        if (searchscore > 0) {
-
-            //the one's digit is a score based on how many words the game's title is. The fewer, the beter the match given the terms
-            var gamewords = game.split(' ');
-            searchscore += (10 - gamewords.length);
-
-            //the decimal places in the score represent the "playability" of the game. This way, games with (U) and [!] will rank higher than those that are hacks or have brackets
-            searchscore += (manifest[game].r * 0.1); //between 9.9 and 0.0
-
-            result.push([game, manifest[game].g, system || manifest[game].s, searchscore]);
-        }
-    }
-
-    //return result; //use for debugging all results
-
-    //sort according to score
-    result.sort(function(a, b) {
-        if (a[3] > b[3]) {
-            return -1;
-        }
-        if (a[3] < b[3]) {
-            return 1;
-        }
-        return 0;
+        return callback(null, result);
     });
 
-    //if over max, splice out
-    if (result.length > maximum) {
-        result.splice(maximum, result.length - 1);
-    }
-
-    return result;
+    
 };
 
 /**
@@ -493,5 +501,31 @@ UtilitiesService.findBestPlayableGame = function(files) {
         official: ((99 - resultrank) > 87)
     };
 };
+
+UtilitiesService.findSuggestions = function(system, items, callback) {
+
+    var result = {};
+
+    DataService.getFile('/data/' + system + '/searchofficial.json', function(err, data) {
+        if (err) {
+            return callback(err);
+        }
+        var games = Object.keys(data);
+        
+        //run over all games
+        for (var i = 0; i < items; ++i) {
+            
+            //randomly select a game
+            var randomgame = games[games.length * Math.random() << 0];
+                
+            //in the result, use the game as the key and its values the file and rank
+            result[randomgame] = {
+                g: data[randomgame].g,
+                r: data[randomgame].r
+            }
+        }
+        callback(null, result);
+    });
+};  
 
 module.exports = UtilitiesService;
