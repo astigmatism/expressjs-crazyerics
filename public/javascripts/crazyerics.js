@@ -43,12 +43,26 @@ var crazyerics = function() {
             slidesToShow: 5,
             slidesToScroll: 5
         });
+        $('#gbcarousel').slick({
+            slidesToShow: 5,
+            slidesToScroll: 5
+        });
 
-        $.get('suggestions?system=nes&items=20', function(response) {
-            console.log(response);
-            for (var i = 0; i < response.length; ++i) {
-                $('#nescarousel').slick('slickAdd', '<div><img src="/images/nes/' + response[i] + '/100.jpg" /></div>');
+        $.get('suggestions?system=gb&items=20', function(response) {
+            for (game in response) {
+                $('#gbcarousel').slick('slickAdd', '<div class="carouselitem" data-title="' + game + '" data-file="' + response[game].g + '" data-system="gb"><img src="/images/gb/' + game + '/100.jpg" /></div>');
             }
+        });
+
+        $('.carousel').on('click', '.carouselitem', function() {
+            
+            console.log(this);
+
+            self.state.title = this.dataset.title;
+            self.state.file = this.dataset.file;
+            self.state.system = this.dataset.system;
+
+            self._bootstrapnesboxflash(self.state.system, self.state.title, self.state.file);
         });
 
 

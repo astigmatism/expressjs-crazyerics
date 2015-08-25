@@ -34,7 +34,7 @@ router.get('/suggestions', function(req, res, next) {
     var items = req.query.items || 10;
     var result = {};
 
-    fs.readFile(__dirname + '/../data/' + system + '/search.json', 'utf8', function (err, data) {
+    fs.readFile(__dirname + '/../data/' + system + '/searchofficial.json', 'utf8', function (err, data) {
         if (err) {
             return res.send(err);
         }

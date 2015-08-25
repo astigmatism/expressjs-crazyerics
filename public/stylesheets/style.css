@@ -237,9 +237,14 @@ input[type='text'] {
 	outline: none;
 }
 
-div.carosel {
+div.carousel {
 	width: 580px;
 	margin: 0px auto;
+}
+
+div.carouselitem {
+	margin: auto;
+	cursor: pointer;
 }
 
 #nescarousel div.slick-slide {
