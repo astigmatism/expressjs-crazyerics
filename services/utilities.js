@@ -109,19 +109,21 @@ UtilitiesService.shuffle = function(o) {
 };
 
 /**
- * utility function which opens a rom's folder and performs any type of operation specified by "operation" and generates a json manifest of the results
- * @param  {string} system
- * @param  {string} operation
- * @param  {string} fileext
- * @return {Object}
+ * takes a folder of single rom files and puts them in an appropriately named folder
+ * this was important with some GoodMerged sets as unzipping some yielded in single files instead of a folder
+ * for crazyerics we want to build search querys from the name of the game (its folder name) so this function
+ * converts those files into game name folders
+ * @param  {sting}   system
+ * @param  {Function} callback
+ * @return {}
  */
-UtilitiesService.buildData = function(system, operation, callback) {
+UtilitiesService.buildRomFolders = function(system, callback) {
 
     var result = {};
 
     //when regex strings attached to end, group them for use later
     var args = [];
-    for (i = 3; i < arguments.length; ++i) {
+    for (i = 2; i < arguments.length; ++i) {
         args.push(arguments[i]);
     }
 
@@ -157,13 +159,167 @@ UtilitiesService.buildData = function(system, operation, callback) {
 
                     console.log('File found in system directory: ' + game + ' ---> ' + dirname);
 
-                    // var newdir = __dirname + '/../public/roms/' + system + '/' + dirname;
-                    // fs.mkdirSync(newdir);
-                    // fs.rename(__dirname + '/../public/roms/' + system + '/' + game, newdir + '/' + game, function(err){
-                    //     if(err) {
-                    //         throw err;
-                    //     }
-                    // });
+                    var newdir = __dirname + '/../public/roms/' + system + '/' + dirname;
+                    fs.mkdirSync(newdir);
+                    fs.rename(__dirname + '/../public/roms/' + system + '/' + game, newdir + '/' + game, function(err){
+                        if(err) {
+                            throw err;
+                        }
+                    });
+                    return nextgame();
+                }
+            });
+
+        }, function(err) {
+            if (err) {
+                return callback(err);
+            }
+            callback(null, result);
+        });
+    });
+};
+
+/**
+ * build system's search.json
+ * @param  {string}   system
+ * @param  {Function} callback
+ * @return {}
+ */
+UtilitiesService.buildSearch = function(system, callback) {
+
+    var result = {};            //all games ranked
+    var officialrelease = {};   //only games which rank with a [!]
+
+    //when regex strings attached to end, group them for use later
+    var args = [];
+    for (i = 2; i < arguments.length; ++i) {
+        args.push(arguments[i]);
+    }
+
+    //read all directory's from roms/system (each game is a dir)
+    fs.readdir(__dirname + '/../public/roms/' + system, function(err, games) {
+        if (err) {
+            callback(err);
+        }
+
+        async.each(games, function(game, nextgame) {
+
+            //if the game begins with a ., then pass over (this is because of .DS_STORE)
+            if (game.indexOf('.') === 0) {
+                return nextgame();
+            }
+
+            //analyize file
+            fs.stat(__dirname + '/../public/roms/' + system + '/' + game, function (err, stats) {
+                if (err) {
+                    return nextgame();
+                }
+
+                //if file, mistake?
+                if (stats.isFile()) {
+                    console.log('File found in system directory: ' + game + ' ---> ' + dirname);
+                    return nextgame();
+                }
+
+                //if directory filled with roms as expected
+                if (stats.isDirectory()) {
+
+                    result[game] = {}; //create object for game
+
+                    //open the game's directory and read each of the rom files
+                    fs.readdir(__dirname + '/../public/roms/' + system + '/' + game, function(err, roms) {
+                        if (err) {
+                            return nextgame(err);
+                        }
+                        
+                        var details = UtilitiesService.findBestPlayableGame.apply(UtilitiesService, [roms].concat(args)); //returns index of playable game returns object with "game", "index" and "rank"
+
+                        //for detailed results in debugging
+                        // result[game] = {
+                        //     roms: roms,
+                        //     game: details.game,
+                        //     index: details.index,
+                        //     rank: details.rank
+                        // }
+
+                        result[game] = {
+                            g: details.game,
+                            r: details.rank
+                        };
+
+                        if (details.official) {
+                            officialrelease[game] = {
+                                g: details.game,
+                                r: details.rank
+                            };
+                        }
+
+                        return nextgame();
+                    });
+                }
+            });
+
+        }, function(err) {
+            if (err) {
+                return callback(err);
+            }
+
+            var path = __dirname + '/../data/' + system + '/search.json';
+            var path2 = __dirname + '/../data/' + system + '/searchofficial.json';
+
+            fs.writeFile(path, JSON.stringify(result), function(error) {
+                if (err) {
+                    return callback(err);
+                }
+                fs.writeFile(path2, JSON.stringify(officialrelease), function(error) {
+                    if (err) {
+                        return callback(err);
+                    }
+                    callback(null, 'File ' + path + ' and ' + path2 + ' written')
+                });
+            });
+        });
+    });
+};
+
+/**
+ * builds system games.json file
+ * @param  {string}   system
+ * @param  {Function} callback
+ * @return {}
+ */
+UtilitiesService.buildGames = function(system, callback) {
+
+    var result = {};
+
+    //when regex strings attached to end, group them for use later
+    var args = [];
+    for (i = 2; i < arguments.length; ++i) {
+        args.push(arguments[i]);
+    }
+
+    //read all directory's from roms/system (each game is a dir)
+    fs.readdir(__dirname + '/../public/roms/' + system, function(err, games) {
+        if (err) {
+            callback(err);
+        }
+
+        async.each(games, function(game, nextgame) {
+
+            //if the game begins with a ., then pass over (this is because of .DS_STORE)
+            if (game.indexOf('.') === 0) {
+                return nextgame();
+            }
+
+            //analyize file
+            fs.stat(__dirname + '/../public/roms/' + system + '/' + game, function (err, stats) {
+                if (err) {
+                    return nextgame();
+                }
+
+                //if file, mistake?
+                if (stats.isFile()) {
+                    console.log('File found in system directory: ' + game);
                     return nextgame();
                 }
 
@@ -178,48 +334,13 @@ UtilitiesService.buildData = function(system, operation, callback) {
                             return nextgame(err);
                         }
 
-                        //operations -->
-                        switch (operation) {
+                        for (var j = 0; j < roms.length; ++j) {
+                            var arr = [[roms[j]]];
+                            var details = UtilitiesService.findBestPlayableGame.apply(UtilitiesService, arr.concat(args));
 
-                            //find best playable game for search engine manifest
-                            case 'search':
-                                var details = UtilitiesService.findBestPlayableGame.apply(UtilitiesService, [roms].concat(args)); //returns index of playable game returns object with "game", "index" and "rank"
-
-                                //for detailed results in debugging
-                                // result[game] = {
-                                //     roms: roms,
-                                //     game: details.game,
-                                //     index: details.index,
-                                //     rank: details.rank
-                                // }
-
-                                result[game] = {
-                                    g: details.game,
-                                    r: details.rank
-                                }
-                                break;
-
-                            case '99':
-
-                                var details = UtilitiesService.findBestPlayableGame.apply(UtilitiesService, [roms].concat(args)); //returns index of playable game returns object with "game", "index" and "rank"
-                                
-                                if (details.rank >= 88) {
-                                    result[game] = {
-                                        g: details.game,
-                                        r: details.rank
-                                    }
-                                }
-                                break;
-
-                            //create a manifest of all roms for this game
-                            default:
-                                for (var j = 0; j < roms.length; ++j) {
-                                    var arr = [[roms[j]]];
-                                    var details = UtilitiesService.findBestPlayableGame.apply(UtilitiesService, arr.concat(args));
-
-                                    result[game][roms[j]] = details.rank;
-                                }
+                            result[game][roms[j]] = details.rank;
                         }
+
                         return nextgame();
                     });
                 }
@@ -227,10 +348,16 @@ UtilitiesService.buildData = function(system, operation, callback) {
 
         }, function(err) {
             if (err) {
-                callback(err);
+                return callback(err);
             }
 
-            callback(null, result);
+            var path = __dirname + '/../data/' + system + '/games.json';
+            fs.writeFile(path, JSON.stringify(result), function(error) {
+                if (err) {
+                    return callback(err);
+                }
+                callback(null, 'File ' + path + ' written')
+            });
         });
     });
 };
@@ -358,10 +485,12 @@ UtilitiesService.findBestPlayableGame = function(files) {
         resultindex = 0;
     }
 
+    //if the game ranks with a [!] or higher (at this time 87), we assume an "offical" release. will help provide better searching
     return {
         game: result,
         index: resultindex,
-        rank: (99 - resultrank)
+        rank: (99 - resultrank),
+        official: ((99 - resultrank) > 87)
     };
 };
 

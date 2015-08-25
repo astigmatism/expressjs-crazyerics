@@ -6,62 +6,137 @@ var UtilitiesService = require('../services/utilities');
 
 router.get('/nes', function(req, res, next) {
 
-    var operation = req.query.op;
-
-    UtilitiesService.buildData('nes', operation, function(err, data) {
+    async.series([
+        function(callback){
+            UtilitiesService.buildGames('nes', function(err, data) {
+                if (err) {
+                    return callback(err);
+                }
+                callback(null, data);
+            }, '\.nes$');
+        },
+        function(callback){
+            UtilitiesService.buildSearch('nes', function(err, data) {
+                if (err) {
+                    return callback(err);
+                }
+                callback(null, data);
+            }, '\.nes$');
+        }
+    ], function(err, results) {
         if (err) {
             return res.json(err);
         }
-        res.json(data);
-    }, '\.nes$');
+        res.json(results);
+    });
 });
 
 router.get('/snes', function(req, res, next) {
 
-    var operation = req.query.op;
-
-    UtilitiesService.buildData('snes', operation, function(err, data) {
+    async.series([
+        function(callback){
+            UtilitiesService.buildGames('snes', function(err, data) {
+                if (err) {
+                    return callback(err);
+                }
+                callback(null, data);
+            }, '\.smc$');
+        },
+        function(callback){
+            UtilitiesService.buildSearch('snes', function(err, data) {
+                if (err) {
+                    return callback(err);
+                }
+                callback(null, data);
+            }, '\.smc$');
+        }
+    ], function(err, results) {
         if (err) {
             return res.json(err);
         }
-        res.json(data);
-    }, '\.smc$');
+        res.json(results);
+    });
 });
 
 router.get('/gb', function(req, res, next) {
 
-    var operation = req.query.op;
-
-    UtilitiesService.buildData('gb', operation, function(err, data) {
+    async.series([
+        function(callback){
+            UtilitiesService.buildGames('gb', function(err, data) {
+                if (err) {
+                    return callback(err);
+                }
+                callback(null, data);
+            }, '\.gb$', '\.gbc$');
+        },
+        function(callback){
+            UtilitiesService.buildSearch('gb', function(err, data) {
+                if (err) {
+                    return callback(err);
+                }
+                callback(null, data);
+            }, '\.gb$', '\.gbc$');
+        }
+    ], function(err, results) {
         if (err) {
             return res.json(err);
         }
-        res.json(data);
-    }, '\.gb$', '\.gbc$');
+        res.json(results);
+    });
 });
 
 router.get('/gba', function(req, res, next) {
 
-    var operation = req.query.op;
-
-    UtilitiesService.buildData('gba', operation, function(err, data) {
+    async.series([
+        function(callback){
+            UtilitiesService.buildGames('gba', function(err, data) {
+                if (err) {
+                    return callback(err);
+                }
+                callback(null, data);
+            }, '\.gba$');
+        },
+        function(callback){
+            UtilitiesService.buildSearch('gba', function(err, data) {
+                if (err) {
+                    return callback(err);
+                }
+                callback(null, data);
+            }, '\.gba$');
+        }
+    ], function(err, results) {
         if (err) {
             return res.json(err);
         }
-        res.json(data);
-    }, '\.gba$');
+        res.json(results);
+    });
 });
 
 router.get('/gen', function(req, res, next) {
 
-    var operation = req.query.op;
-
-    UtilitiesService.buildData('gen', operation, function(err, data) {
+    async.series([
+        function(callback){
+            UtilitiesService.buildGames('gen', function(err, data) {
+                if (err) {
+                    return callback(err);
+                }
+                callback(null, data);
+            }, '\.bin$', '\.32x$');
+        },
+        function(callback){
+            UtilitiesService.buildSearch('gen', function(err, data) {
+                if (err) {
+                    return callback(err);
+                }
+                callback(null, data);
+            }, '\.bin$', '\.32x$');
+        }
+    ], function(err, results) {
         if (err) {
             return res.json(err);
         }
-        res.json(data);
-    }, '\.bin$', '\.32x$');
+        res.json(results);
+    });
 });
 
 router.get('/all', function(req, res, next) {
@@ -83,7 +158,7 @@ router.get('/all', function(req, res, next) {
             }
 
             //read the genreated search.json file
-            fs.readFile(__dirname + '/../data/' + system + '/search.json', 'utf8', function(err, content) {
+            fs.readFile(__dirname + '/../data/' + system + '/searchofficial.json', 'utf8', function(err, content) {
 
                 try {
                     content = JSON.parse(content);
@@ -107,7 +182,13 @@ router.get('/all', function(req, res, next) {
             if (err) {
                 res.json(err);
             }
-            res.json(result);
+            var path = __dirname + '/../data/all/search.json';
+            fs.writeFile(path, JSON.stringify(result), function(error) {
+                if (err) {
+                    return res.json(err);
+                }
+                res.json('File ' + path + ' written');
+            });
         });
     });
 });
