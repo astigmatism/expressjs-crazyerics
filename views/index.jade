@@ -15,5 +15,21 @@ block content
     - //input#nesboxflash(type='button', value='nesboxflash')
     div#emulatorwrapper
 
-    each game in suggestions
-        img(class="lazy tooltip" data-title="#{game.t}" data-file="#{game.f}" data-system="#{game.s}" data-original="/images/#{game.s}/#{game.t}/100.jpg" title="#{game.t}")
+
+    div#suggestionswrapper
+        - var i = 0
+        div(class="column")
+            - for (i; i < suggestions.length/5; ++i)
+                img(class="lazy tooltip" data-title="#{suggestions[i].t}" data-file="#{suggestions[i].f}" data-system="#{suggestions[i].s}" data-original="/images/#{suggestions[i].s}/#{suggestions[i].t}/100.jpg" title="#{suggestions[i].t}")
+        div(class="column")
+            - for (i; i < suggestions.length/5 * 2; ++i)
+                img(class="lazy tooltip" data-title="#{suggestions[i].t}" data-file="#{suggestions[i].f}" data-system="#{suggestions[i].s}" data-original="/images/#{suggestions[i].s}/#{suggestions[i].t}/100.jpg" title="#{suggestions[i].t}")
+        div(class="column")
+            - for (i; i < suggestions.length/5 * 3; ++i)
+                img(class="lazy tooltip" data-title="#{suggestions[i].t}" data-file="#{suggestions[i].f}" data-system="#{suggestions[i].s}" data-original="/images/#{suggestions[i].s}/#{suggestions[i].t}/100.jpg" title="#{suggestions[i].t}")
+        div(class="column")
+            - for (i; i < suggestions.length/5 * 4; ++i)
+                img(class="lazy tooltip" data-title="#{suggestions[i].t}" data-file="#{suggestions[i].f}" data-system="#{suggestions[i].s}" data-original="/images/#{suggestions[i].s}/#{suggestions[i].t}/100.jpg" title="#{suggestions[i].t}")
+        div(class="column")
+            - for (i; i < suggestions.length; ++i)
+                img(class="lazy tooltip" data-title="#{suggestions[i].t}" data-file="#{suggestions[i].f}" data-system="#{suggestions[i].s}" data-original="/images/#{suggestions[i].s}/#{suggestions[i].t}/100.jpg" title="#{suggestions[i].t}")
