@@ -6,6 +6,7 @@ block content
             option(value='all') All Consoles
             option(value='nes') Nes
             option(value='snes') Snes
+            option(value='gba') Game Boy Advance
             option(value='gb') Game Boy
             option(value='gen') Genesis
         - //div(class='scopebadge') All Consoles
@@ -14,4 +15,5 @@ block content
     - //input#nesboxflash(type='button', value='nesboxflash')
     div#emulatorwrapper
 
-    div#nescarousel(class='carosel')
+    each game in suggestions
+        img(class="lazy tooltip" data-title="#{game.t}" data-file="#{game.f}" data-system="#{game.s}" data-original="/images/#{game.s}/#{game.t}/100.jpg" title="#{game.t}")

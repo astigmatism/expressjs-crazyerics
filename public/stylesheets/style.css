@@ -237,13 +237,10 @@ input[type='text'] {
 	outline: none;
 }
 
-div.carosel {
-	width: 580px;
-	margin: 0px auto;
-}
-
-#nescarousel div.slick-slide {
-	width: 100px;
-	height: 400px;
-	border: solid 1px white;
+#maincolumn img.lazy {
+	cursor: pointer;
+	padding: 2px;
+	-webkit-box-shadow: 2px 2px 5px 0px rgba(0,0,0,0.75);
+	-moz-box-shadow: 2px 2px 5px 0px rgba(0,0,0,0.75);
+	box-shadow: 2px 2px 5px 0px rgba(0,0,0,0.75);
 }
