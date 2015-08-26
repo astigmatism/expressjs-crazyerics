@@ -35,29 +35,5 @@
 .autocomplete-suggestion img {
 	display: inline-block;
 	vertical-align: middle;
-}
-
-.autocomplete-suggestion img.nes {
-	height: 40px;
-	width: 30px;
-}
-
-.autocomplete-suggestion img.gen {
-	height: 40px;
-	width: 30px;
-}
-
-.autocomplete-suggestion img.gb {
-	height: 30px;
-	width: 30px;
-}
-
-.autocomplete-suggestion img.gba {
-	height: 30px;
-	width: 30px;
-}
-
-.autocomplete-suggestion img.snes {
-	height: 40px;
-	width: 56.8px;
+	width: 50px;
 }

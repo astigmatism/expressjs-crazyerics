@@ -2,7 +2,7 @@ extends layout
 
 block content
     div#searchform
-        select
+        select(title="Filter your search to a specific system")
             option(value='all') All Consoles
             option(value='nes') Nes
             option(value='snes') Snes
@@ -10,26 +10,14 @@ block content
             option(value='gb') Game Boy
             option(value='gen') Genesis
         - //div(class='scopebadge') All Consoles
-        input(type='text', name='search', data-hotkey='q', placeholder='Search')
+        input(class="tooltip" title="Begin typing a name to see a list of results" type='text', name='search', data-hotkey='q', placeholder='Search')
     - //input#jsnes(type='button', value='jsnes')
     - //input#nesboxflash(type='button', value='nesboxflash')
-    div#emulatorwrapper
-
+    div#emulatorwrapper 
+        span(class="startmessage")
+            h2 Welcome!
+            p Get started by searching for a game or selecting a suggestion below.
 
     div#suggestionswrapper
-        - var i = 0
-        div(class="column")
-            - for (i; i < suggestions.length/5; ++i)
-                img(class="lazy tooltip" data-title="#{suggestions[i].t}" data-file="#{suggestions[i].g}" data-system="#{suggestions[i].s}" data-original="/images/#{suggestions[i].s}/#{suggestions[i].t}/100.jpg" title="#{suggestions[i].t}")
-        div(class="column")
-            - for (i; i < suggestions.length/5 * 2; ++i)
-                img(class="lazy tooltip" data-title="#{suggestions[i].t}" data-file="#{suggestions[i].g}" data-system="#{suggestions[i].s}" data-original="/images/#{suggestions[i].s}/#{suggestions[i].t}/100.jpg" title="#{suggestions[i].t}")
-        div(class="column")
-            - for (i; i < suggestions.length/5 * 3; ++i)
-                img(class="lazy tooltip" data-title="#{suggestions[i].t}" data-file="#{suggestions[i].g}" data-system="#{suggestions[i].s}" data-original="/images/#{suggestions[i].s}/#{suggestions[i].t}/100.jpg" title="#{suggestions[i].t}")
-        div(class="column")
-            - for (i; i < suggestions.length/5 * 4; ++i)
-                img(class="lazy tooltip" data-title="#{suggestions[i].t}" data-file="#{suggestions[i].g}" data-system="#{suggestions[i].s}" data-original="/images/#{suggestions[i].s}/#{suggestions[i].t}/100.jpg" title="#{suggestions[i].t}")
-        div(class="column")
-            - for (i; i < suggestions.length; ++i)
-                img(class="lazy tooltip" data-title="#{suggestions[i].t}" data-file="#{suggestions[i].g}" data-system="#{suggestions[i].s}" data-original="/images/#{suggestions[i].s}/#{suggestions[i].t}/100.jpg" title="#{suggestions[i].t}")
+        - for (i = 0; i < suggestions.length; ++i)
+            img(class="tooltip" data-title="#{suggestions[i].t}" data-file="#{suggestions[i].g}" data-system="#{suggestions[i].s}" src="/images/#{suggestions[i].s}/#{suggestions[i].t}/114.jpg" title="#{suggestions[i].t}")

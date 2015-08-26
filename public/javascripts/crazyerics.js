@@ -7,6 +7,7 @@ var crazyerics = function() {
         //console select
         $('#searchform select').selectOrDie({
             customID: 'selectordie',
+            customClass: 'tooltip',
             onChange: function() {
                 self.state.search = $(this).val();
                 self.replaceSuggestions(self.state.search);
@@ -25,7 +26,7 @@ var crazyerics = function() {
             },
             renderItem: function (item, search){
                 
-                var html = '<div class="autocomplete-suggestion" data-title="' + item[0] + '" data-file="' + item[1] + '" data-system="' + item[2] + '"><img class="' + item[2] + '" name="' + item[0] + '"><div>' + item[0] + '</div></div>';
+                var html = '<div class="autocomplete-suggestion" data-title="' + item[0] + '" data-file="' + item[1] + '" data-system="' + item[2] + '"><img class="' + item[2] + '" src="/images/' + item[2] + '/' + item[0] + '/50.jpg"><div>' + item[0] + '</div></div>';
                 //self.googleimagesearch(item[2] + ' ' + item[0] + ' box', 'img[name="' + item[0] + '"]');
                 return html;
             },
@@ -38,11 +39,7 @@ var crazyerics = function() {
             }
         });
 
-        $('img.lazy').lazyload({
-            effect : 'fadeIn'
-        });
-
-        $('#maincolumn').on('click', 'img.lazy', function() {
+        $('#suggestionswrapper').on('click', 'img', function() {
 
             self.state.title = this.dataset.title;
             self.state.file = this.dataset.file;
@@ -86,10 +83,11 @@ crazyerics.prototype.replaceSuggestions = function(system) {
 
     $.getJSON('/suggest/' + system + '/100', function(response) {
 
-        $('#maincolumn img.lazy').remove();
+        $('#suggestionswrapper img').remove();
         for (var i = 0; i < response.length; ++i) {
-            $('#maincolumn').append('<img class="lazy tooltip" data-title="' + response[i].t + '" data-file="' + response[i].g + '" data-system="' + system + '" data-original="/images/' + system + '/' + response[i].t + '/100.jpg" title="' + response[i].t + '" />');
+            $('#suggestionswrapper').append('<img class="tooltip" style="float:left" data-title="' + response[i].t + '" data-file="' + response[i].g + '" data-system="' + system + '" src="/images/' + system + '/' + response[i].t + '/114.jpg" title="' + response[i].t + '" />');
         }
+        $('.tooltip').tooltipster();
     });
 };
 
@@ -100,7 +98,7 @@ crazyerics.prototype._bootstrapjsnes = function(system, title, file) {
     var jsnesReady = function() {
 
         $('#gametitlewrapper img').removeClass().addClass(system);
-        //self.googleimagesearch('nes ' + title + ' box', '#gametitlewrapper img');
+        $('#gametitlewrapper img').attr('src', '/images/' + system + '/' + title + '/150.jpg');
         $('#gametitlewrapper div').text(title);
 
         $('#emulator select>optgroup>option').prop('selected', true);
@@ -120,7 +118,7 @@ crazyerics.prototype._bootstrapjsnes = function(system, title, file) {
             url: '/loademulator?emulator=jsnes'
         }).done(function(html) {
             
-            $('#emulatorwrapper').append(html);
+            $('#emulatorwrapper').empty().append(html);
 
             var scripts = [
                 '/emulators/jsnes/build/jsnes.js',
@@ -152,7 +150,7 @@ crazyerics.prototype._bootstrapnesboxflash = function(system, title, file) {
     var nesboxflashReady = function() {
         
         $('#gametitlewrapper img').removeClass().addClass(system);
-        //self.googleimagesearch(system + ' ' + title + ' box', '#gametitlewrapper img');
+        $('#gametitlewrapper img').attr('src', '/images/' + system + '/' + title + '/150.jpg');
         $('#gametitlewrapper div').text(title);
 
         $('#emulator').empty();
@@ -203,8 +201,6 @@ crazyerics.prototype._bootstrapnesboxflash = function(system, title, file) {
             swfobject.embedSWF('/emulators/nesboxflash/bin/Nesbox.swf', 'emulator', w, h, '11.2.0', 'flash/expressInstall.swf', flashvars, params, attributes);
         }
 
-        $('#emulatorwrapper').slideDown();
-
         self.state.emulator = 'nesboxflash';
     };
 
@@ -216,7 +212,7 @@ crazyerics.prototype._bootstrapnesboxflash = function(system, title, file) {
             url: '/loademulator?emulator=nesboxflash'
         }).done(function(html) {
 
-            $('#emulatorwrapper').append(html);
+            $('#emulatorwrapper').empty().append(html);
 
             var scripts = [
                 '//ajax.googleapis.com/ajax/libs/swfobject/2.2/swfobject.js'
@@ -229,9 +225,7 @@ crazyerics.prototype._bootstrapnesboxflash = function(system, title, file) {
             self.state.emulatorhandle = {};
             self.state.emulatorhandle.unload = function() {
                 self.state.emulatorhandle = null;
-                $('#emulatorwrapper').slideUp(function() {
-                    $('#emulatorwrapper').empty();
-                });
+                $('#emulatorwrapper').empty();
             };
         });
     }
