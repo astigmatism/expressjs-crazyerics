@@ -88,7 +88,7 @@ crazyerics.prototype.replaceSuggestions = function(system) {
 
         $('#maincolumn img.lazy').remove();
         for (var i = 0; i < response.length; ++i) {
-            $('#maincolumn').append('<img class="lazy tooltip" data-title="' + response[i].t + '" data-file="' + response[i].f + '" data-system="' + system + '" data-original="/images/' + system + '/' + response[i].t + '/100.jpg" title="' + response[i].t + '" />');
+            $('#maincolumn').append('<img class="lazy tooltip" data-title="' + response[i].t + '" data-file="' + response[i].g + '" data-system="' + system + '" data-original="/images/' + system + '/' + response[i].t + '/100.jpg" title="' + response[i].t + '" />');
         }
     });
 };
