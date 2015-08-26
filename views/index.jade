@@ -14,9 +14,10 @@ block content
     - //input#jsnes(type='button', value='jsnes')
     - //input#nesboxflash(type='button', value='nesboxflash')
     div#emulatorwrapper 
-        span(class="startmessage")
-            h2 Welcome!
-            p Get started by searching for a game or selecting a suggestion below.
+        div#emulatorborder
+            span(class="startmessage")
+                h2 Welcome!
+                p Get started by searching for a game or selecting a suggestion below.
 
     div#suggestionswrapper
         - for (i = 0; i < suggestions.length; ++i)
