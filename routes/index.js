@@ -1,6 +1,8 @@
 var express = require('express');
 var fs = require('fs');
 var jade = require('jade');
+var config = require('../config.js');
+var async = require('async');
 var UtilitiesService = require('../services/utilities.js');
 var router = express.Router();
 
@@ -47,13 +49,55 @@ router.get('/suggest/:system/:items', function(req, res, next) {
     var system = req.params.system;
     var items = req.params.items || 10;
 
-    UtilitiesService.findSuggestions(system, items, function(err, suggestions) {
-        if (err) {
-            return res.json(err);
-        }
-        res.json(suggestions);
-    });
+    if (config && config.data && config.data.systems && config.data.systems[system]) {
+
+        UtilitiesService.findSuggestions(system, items, function(err, suggestions) {
+            if (err) {
+                return res.json(err);
+            }
+            res.json(suggestions);
+        });
+    } else {
+        res.json(system + ' is not found the config and is not a valid system'); 
+    }
 });
+
+router.get('/build/:system', function(req, res, next) {
+
+    var system = req.params.system;
+
+    if (config && config.data && config.data.systems && config.data.systems[system]) {
+
+        var systemconfig = config.data.systems[system];
+        
+        async.series([
+            function(callback){
+                UtilitiesService.buildGames(system, function(err, data) {
+                    if (err) {
+                        return callback(err);
+                    }
+                    callback(null, data);
+                }, systemconfig.romfileextentions);
+            },
+            function(callback){
+                UtilitiesService.buildSearch(system, function(err, data) {
+                    if (err) {
+                        return callback(err);
+                    }
+                    callback(null, data);
+                }, systemconfig.romfileextentions);
+            }
+        ], function(err, results) {
+            if (err) {
+                return res.json(err);
+            }
+            res.json(results);
+        });
+    } else {
+        res.json(system + ' is not found the config and is not a valid system');
+    }
+});
+
 
 router.get('/loademulator', function(req, res, next) {
 

@@ -130,12 +130,6 @@ UtilitiesService.buildRomFolders = function(system, callback) {
 
     var result = {};
 
-    //when regex strings attached to end, group them for use later
-    var args = [];
-    for (i = 2; i < arguments.length; ++i) {
-        args.push(arguments[i]);
-    }
-
     //read all directory's from roms/system (each game is a dir)
     fs.readdir(__dirname + '/../public/roms/' + system, function(err, games) {
         if (err) {
@@ -192,18 +186,13 @@ UtilitiesService.buildRomFolders = function(system, callback) {
  * build system's search.json
  * @param  {string}   system
  * @param  {Function} callback
+ * @param {Array} exts array of allowable file extentions
  * @return {}
  */
-UtilitiesService.buildSearch = function(system, callback) {
+UtilitiesService.buildSearch = function(system, callback, exts) {
 
     var result = {};            //all games ranked
     var officialrelease = {};   //only games which rank with a [!]
-
-    //when regex strings attached to end, group them for use later
-    var args = [];
-    for (i = 2; i < arguments.length; ++i) {
-        args.push(arguments[i]);
-    }
 
     //read all directory's from roms/system (each game is a dir)
     fs.readdir(__dirname + '/../public/roms/' + system, function(err, games) {
@@ -241,7 +230,7 @@ UtilitiesService.buildSearch = function(system, callback) {
                             return nextgame(err);
                         }
                         
-                        var details = UtilitiesService.findBestPlayableGame.apply(UtilitiesService, [roms].concat(args)); //returns index of playable game returns object with "game", "index" and "rank"
+                        var details = UtilitiesService.findBestPlayableGame([roms], exts); //returns index of playable game returns object with "game", "index" and "rank"
 
                         //for detailed results in debugging
                         // result[game] = {
@@ -295,17 +284,12 @@ UtilitiesService.buildSearch = function(system, callback) {
  * builds system games.json file
  * @param  {string}   system
  * @param  {Function} callback
+ * @param {Array} exts array of allowable file extentions
  * @return {}
  */
-UtilitiesService.buildGames = function(system, callback) {
+UtilitiesService.buildGames = function(system, callback, exts) {
 
     var result = {};
-
-    //when regex strings attached to end, group them for use later
-    var args = [];
-    for (i = 2; i < arguments.length; ++i) {
-        args.push(arguments[i]);
-    }
 
     //read all directory's from roms/system (each game is a dir)
     fs.readdir(__dirname + '/../public/roms/' + system, function(err, games) {
@@ -344,8 +328,8 @@ UtilitiesService.buildGames = function(system, callback) {
                         }
 
                         for (var j = 0; j < roms.length; ++j) {
-                            var arr = [[roms[j]]];
-                            var details = UtilitiesService.findBestPlayableGame.apply(UtilitiesService, arr.concat(args));
+                            
+                            var details = UtilitiesService.findBestPlayableGame([[roms[j]]], exts);
 
                             result[game][roms[j]] = details.rank;
                         }
@@ -374,10 +358,13 @@ UtilitiesService.buildGames = function(system, callback) {
 /**
  * Given an array of roms files, matches Good Roms data to find the most likely playable game
  * @param  {Array} files
- * @param  {string} all additional arguments are regex strings that require passing
+ * @param {Array} exts array of allowable file extentions
+ * @param {number} officialscore the score at which the game is considered an official release
  * @return {string}
  */
-UtilitiesService.findBestPlayableGame = function(files) {
+UtilitiesService.findBestPlayableGame = function(files, exts, officialscore) {
+
+    officialscore = officialscore || 90;
 
     //regular exp for region. order of importance. we're seeking a game which is probably in english
     var reRegion = {
@@ -406,8 +393,8 @@ UtilitiesService.findBestPlayableGame = function(files) {
 
     //must additionally pass these incoming regex's as further arguments
     var reExtra = [];
-    for (i = 1; i < arguments.length; ++i) {
-        reExtra.push(new RegExp(arguments[i], 'gi'));
+    for (i = 1; i < exts.length; ++i) {
+        reExtra.push(new RegExp('\.' + exts[i] + '$', 'gi'));
     }
 
     var result = null;      //the resulting file by name
@@ -499,7 +486,7 @@ UtilitiesService.findBestPlayableGame = function(files) {
         game: result,
         index: resultindex,
         rank: (99 - resultrank),
-        official: ((99 - resultrank) > 89)
+        official: ((99 - resultrank) >= officialscore)
     };
 };
 
