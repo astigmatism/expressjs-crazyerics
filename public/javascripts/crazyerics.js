@@ -85,7 +85,7 @@ crazyerics.prototype.replaceSuggestions = function(system) {
 
         $('#suggestionswrapper img').remove();
         for (var i = 0; i < response.length; ++i) {
-            $('#suggestionswrapper').append('<img class="tooltip" style="float:left" data-title="' + response[i].t + '" data-file="' + response[i].g + '" data-system="' + system + '" src="/images/' + system + '/' + response[i].t + '/114.jpg" title="' + response[i].t + '" />');
+            $('#suggestionswrapper').append('<img class="tooltip" style="float:left" data-title="' + response[i].t + '" data-file="' + response[i].g + '" data-system="' + response[i].s + '" src="/images/' + response[i].s + '/' + response[i].t + '/114.jpg" title="' + response[i].t + '" />');
         }
         $('.tooltip').tooltipster();
     });

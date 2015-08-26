@@ -390,8 +390,8 @@ UtilitiesService.findBestPlayableGame = function(files) {
         uk:     new RegExp('\\(uk\\)', 'ig'),       //UK release
         c:      new RegExp('\\(c\\)', 'ig'),        //Canada release
         a:      new RegExp('\\(a\\)', 'ig'),        //Ausrilia release
-        eng:    new RegExp('Eng', 'ig'),            //English translation
         e:      new RegExp('\\(e\\)', 'ig'),        //Europe release (last ditch check as can be english sometimes)
+        eng:    new RegExp('Eng', 'ig'),            //English translation
         j:      new RegExp('\\(j\\)', 'ig')         //so sometimes a japanese relese IS important because we don't want it ranking as long as a hacked game
     };
 
@@ -499,7 +499,7 @@ UtilitiesService.findBestPlayableGame = function(files) {
         game: result,
         index: resultindex,
         rank: (99 - resultrank),
-        official: ((99 - resultrank) > 87)
+        official: ((99 - resultrank) > 89)
     };
 };
 
@@ -557,7 +557,8 @@ UtilitiesService.findSuggestions = function(system, items, callback) {
             results.push({
                 t: randomgame,
                 g: data[randomgame].g,
-                r: data[randomgame].r
+                r: data[randomgame].r,
+                s: system
             });
         }
         callback(null, results);
