@@ -1,14 +1,19 @@
 var express = require('express');
 var fs = require('fs');
 var jade = require('jade');
-var config = require('../config.js');
-var async = require('async');
 var UtilitiesService = require('../services/utilities.js');
 var router = express.Router();
 
 router.get('/', function(req, res, next) {
-    res.render('index', {
-        layout: 'layout'
+    
+    UtilitiesService.findSuggestionsAll(100, function(err, suggestions) {
+        if (err) {
+            return res.json(err);
+        }
+        res.render('index', {
+            layout: 'layout',
+            suggestions: suggestions
+        });
     });
 });
 
@@ -28,24 +33,12 @@ router.get('/search/:system/:query', function(req, res, next) {
 router.get('/suggest/all/:items', function(req, res, next) {
 
     var items = req.params.items;
-    var result = {};
-    var systems = Object.keys(config.data.systems);
 
-    async.each(systems, function(system, nextsystem) {
-
-        UtilitiesService.findSuggestions(system, items, function(err, suggestions) {
-            if (err) {
-                return nextsystem(err);
-            }
-            result[system] = suggestions;
-            nextsystem();
-        });
-
-    }, function(err) {
+    UtilitiesService.findSuggestionsAll(items, function(err, suggestions) {
         if (err) {
             return res.json(err);
         }
-        res.json(result);
+        res.json(suggestions);
     });
 });
 
@@ -58,7 +51,7 @@ router.get('/suggest/:system/:items', function(req, res, next) {
         if (err) {
             return res.json(err);
         }
-        res.json(suggestions);    
+        res.json(suggestions);
     });
 });
 

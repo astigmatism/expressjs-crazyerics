@@ -1,6 +1,7 @@
 
 var fs = require('fs');
 var async = require('async');
+var config = require('../config.js');
 var DataService = require('../services/data.js');
 
 /**
@@ -502,9 +503,43 @@ UtilitiesService.findBestPlayableGame = function(files) {
     };
 };
 
+UtilitiesService.findSuggestionsAll = function(items, callback) {
+
+    var aggrigation = [];
+    var systems = Object.keys(config.data.systems);
+
+    async.each(systems, function(system, nextsystem) {
+
+        UtilitiesService.findSuggestions(system, (items / systems.length), function(err, suggestions) {
+            if (err) {
+                return nextsystem(err);
+            }
+            for (var i = 0; i < suggestions.length; ++i) {
+                aggrigation.push({
+                    t: suggestions[i].t,
+                    g: suggestions[i].g,
+                    r: suggestions[i].r,
+                    s: system
+                });
+            }
+            nextsystem();
+        });
+
+    }, function(err) {
+        if (err) {
+            callback(err);
+        }
+
+        //randomize 
+        aggrigation = UtilitiesService.shuffle(aggrigation);
+
+        callback(null, aggrigation);
+    });
+};
+
 UtilitiesService.findSuggestions = function(system, items, callback) {
 
-    var result = {};
+    var results = [];
 
     DataService.getFile('/data/' + system + '/searchofficial.json', function(err, data) {
         if (err) {
@@ -519,12 +554,13 @@ UtilitiesService.findSuggestions = function(system, items, callback) {
             var randomgame = games[games.length * Math.random() << 0];
                 
             //in the result, use the game as the key and its values the file and rank
-            result[randomgame] = {
+            results.push({
+                t: randomgame,
                 g: data[randomgame].g,
                 r: data[randomgame].r
-            }
+            });
         }
-        callback(null, result);
+        callback(null, results);
     });
 };  
 

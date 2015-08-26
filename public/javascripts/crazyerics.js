@@ -9,6 +9,7 @@ var crazyerics = function() {
             customID: 'selectordie',
             onChange: function() {
                 self.state.search = $(this).val();
+                self.replaceSuggestions(self.state.search);
             }
         });
 
@@ -25,7 +26,7 @@ var crazyerics = function() {
             renderItem: function (item, search){
                 
                 var html = '<div class="autocomplete-suggestion" data-title="' + item[0] + '" data-file="' + item[1] + '" data-system="' + item[2] + '"><img class="' + item[2] + '" name="' + item[0] + '"><div>' + item[0] + '</div></div>';
-                self.googleimagesearch(item[2] + ' ' + item[0] + ' box', 'img[name="' + item[0] + '"]');
+                //self.googleimagesearch(item[2] + ' ' + item[0] + ' box', 'img[name="' + item[0] + '"]');
                 return html;
             },
             onSelect: function(e, term, item){
@@ -33,40 +34,23 @@ var crazyerics = function() {
                 self.state.title = item.data('title');
                 self.state.file = item.data('file');
                 self.state.system = item.data('system');
-
                 self._bootstrapnesboxflash(self.state.system, self.state.title, self.state.file);
             }
         });
-    
-        var systems = ['nes', 'snes', 'gba', 'gb', 'gen'];
-        
-        for(var i = 0; i < systems.length; ++i) {
 
-            $('#' + systems[i] + '-carousel').slick({
-                lazyLoad: 'ondemand',
-                slidesToShow: 5,
-                slidesToScroll: 5
-            });
-        }
-
-        $.getJSON('/suggest/all/20', function(response) {
-            for (system in response) {
-                for (game in response[system]) {
-                    $('#' + system + '-carousel').slick('slickAdd', '<div class="carouselitem" data-title="' + game + '" data-file="' + response[system][game].g + '" data-system="' + system + '"><img data-lazy="/images/' + system + '/' + game + '/100.jpg" /></div>');
-                }
-            }
+        $('img.lazy').lazyload({
+            effect : 'fadeIn'
         });
 
-        $('.carousel').on('click', '.carouselitem', function() {
-            
-            console.log(this);
+        $('#maincolumn').on('click', 'img.lazy', function() {
 
             self.state.title = this.dataset.title;
             self.state.file = this.dataset.file;
             self.state.system = this.dataset.system;
-
             self._bootstrapnesboxflash(self.state.system, self.state.title, self.state.file);
         });
+
+        $('.tooltip').tooltipster();
 
 
         // $('#jsnes').click(function() {
@@ -98,6 +82,17 @@ crazyerics.prototype.state = {
 };
 crazyerics.prototype.loadedscripts  = {};
 
+crazyerics.prototype.replaceSuggestions = function(system) {
+
+    $.getJSON('/suggest/' + system + '/100', function(response) {
+
+        $('#maincolumn img.lazy').remove();
+        for (var i = 0; i < response.length; ++i) {
+            $('#maincolumn').append('<img class="lazy tooltip" data-title="' + response[i].t + '" data-file="' + response[i].f + '" data-system="' + system + '" data-original="/images/' + system + '/' + response[i].t + '/100.jpg" title="' + response[i].t + '" />');
+        }
+    });
+};
+
 crazyerics.prototype._bootstrapjsnes = function(system, title, file) {
 
     var self = this;
@@ -105,7 +100,7 @@ crazyerics.prototype._bootstrapjsnes = function(system, title, file) {
     var jsnesReady = function() {
 
         $('#gametitlewrapper img').removeClass().addClass(system);
-        self.googleimagesearch('nes ' + title + ' box', '#gametitlewrapper img');
+        //self.googleimagesearch('nes ' + title + ' box', '#gametitlewrapper img');
         $('#gametitlewrapper div').text(title);
 
         $('#emulator select>optgroup>option').prop('selected', true);
@@ -157,7 +152,7 @@ crazyerics.prototype._bootstrapnesboxflash = function(system, title, file) {
     var nesboxflashReady = function() {
         
         $('#gametitlewrapper img').removeClass().addClass(system);
-        self.googleimagesearch(system + ' ' + title + ' box', '#gametitlewrapper img');
+        //self.googleimagesearch(system + ' ' + title + ' box', '#gametitlewrapper img');
         $('#gametitlewrapper div').text(title);
 
         $('#emulator').empty();

@@ -15,12 +15,5 @@ block content
     - //input#nesboxflash(type='button', value='nesboxflash')
     div#emulatorwrapper
 
-    div#nes-carousel(class='carousel')
-
-    div#snes-carousel(class='carousel')
-
-    div#gba-carousel(class='carousel')
-
-    div#gb-carousel(class='carousel')
-
-    div#gen-carousel(class='carousel')
+    each game in suggestions
+        img(class="lazy tooltip" data-title="#{game.t}" data-file="#{game.f}" data-system="#{game.s}" data-original="/images/#{game.s}/#{game.t}/100.jpg" title="#{game.t}")

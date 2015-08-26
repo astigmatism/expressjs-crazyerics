@@ -71,6 +71,7 @@ input[type='text'] {
 }
 
 #titlebanner {
+	display: none;
 	position: relative;
 	color: #fff;
 	height: 112px;
@@ -236,18 +237,10 @@ input[type='text'] {
 	outline: none;
 }
 
-div.carousel {
-	width: 580px;
-	margin: 0px auto;
-}
-
-div.carouselitem {
-	margin: auto;
+#maincolumn img.lazy {
 	cursor: pointer;
-}
-
-#nescarousel div.slick-slide {
-	width: 100px;
-	height: 400px;
-	border: solid 1px white;
+	padding: 2px;
+	-webkit-box-shadow: 2px 2px 5px 0px rgba(0,0,0,0.75);
+	-moz-box-shadow: 2px 2px 5px 0px rgba(0,0,0,0.75);
+	box-shadow: 2px 2px 5px 0px rgba(0,0,0,0.75);
 }
