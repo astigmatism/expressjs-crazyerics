@@ -47,7 +47,10 @@ var crazyerics = function() {
             self._bootstrapnesboxflash(self.state.system, self.state.title, self.state.file);
         });
 
-        $('.tooltip').tooltipster();
+        $('.tooltip').tooltipster({
+            theme: 'tooltipster-shadow',
+            animation: 'grow'
+        });
 
 
         // $('#jsnes').click(function() {
@@ -87,7 +90,9 @@ crazyerics.prototype.replaceSuggestions = function(system) {
         for (var i = 0; i < response.length; ++i) {
             $('#suggestionswrapper').append('<img class="tooltip" style="float:left" data-title="' + response[i].t + '" data-file="' + response[i].g + '" data-system="' + response[i].s + '" src="/images/' + response[i].s + '/' + response[i].t + '/114.jpg" title="' + response[i].t + '" />');
         }
-        $('.tooltip').tooltipster();
+        $('.tooltip').tooltipster({
+            theme: 'tooltipster-shadow'
+        });
     });
 };
 
