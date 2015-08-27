@@ -22,5 +22,6 @@ block content
         - for (i = 0; i < suggestions.length; ++i)
             img(class="tooltip" data-title="#{suggestions[i].t}" data-file="#{suggestions[i].g}" data-system="#{suggestions[i].s}" src="/images/#{suggestions[i].s}/#{suggestions[i].t}/114.jpg" title="#{suggestions[i].t}")
 
-    div#loading 
-        h2 Loading
+    div#loading
+        div(class="loadingicon")
+        div(class="loadingtext") Loading

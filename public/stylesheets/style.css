@@ -71,6 +71,7 @@ input[type='text'] {
 }
 
 #titlebanner {
+	display: none;
 	position: relative;
 	color: #fff;
 	height: 112px;
@@ -255,9 +256,26 @@ input[type='text'] {
 
 #loading {
 	margin-top: 20px;
-	height: 200px;	
+
+	transition:All 200ms ease-in;
+	-webkit-transition:All 200ms ease-in;
+	-moz-transition:All 200ms ease-in;
+	-o-transition:All 200ms ease-in;
+}
+#loading .loadingicon {
+	height: 90px;	
 	width: 100%;
 	background: url('/images/triangle.svg') no-repeat center 0px;
+}
+#loading .loadingtext {
 	text-align: center;
-	line-height: 200px;
+	font-size: 1.5em;
+}
+#loading.close {
+	opacity: 0;
+	transform: scale(0, 0);
+	-webkit-transform: scale(0, 0);
+	-moz-transform: scale(0, 0);
+	-o-transform: scale(0, 0);
+	-ms-transform: scale(0, 0);
 }

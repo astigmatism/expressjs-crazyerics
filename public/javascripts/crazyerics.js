@@ -55,7 +55,7 @@ var crazyerics = function() {
         $('#suggestionswrapper').waitForImages(function() {
             // All descendant images have loaded, now slide up.
             $(this).slideDown();
-            $('#loading').slideUp();
+            $('#loading').addClass('close');
         });
 
 
@@ -91,7 +91,7 @@ crazyerics.prototype.loadedscripts  = {};
 crazyerics.prototype.replaceSuggestions = function(system) {
 
     $('#suggestionswrapper').hide();
-    $('#loading').slideDown();
+    $('#loading').removeClass('close');
 
     $.getJSON('/suggest/' + system + '/100', function(response) {
 
@@ -102,7 +102,7 @@ crazyerics.prototype.replaceSuggestions = function(system) {
         $('#suggestionswrapper').waitForImages(function() {
             // All descendant images have loaded, now slide up.
             $(this).slideDown();
-            $('#loading').slideUp();
+            $('#loading').addClass('close');
         });
         $('#suggestionswrapper .tooltip').tooltipster({
             theme: 'tooltipster-shadow',
