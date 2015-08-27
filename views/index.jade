@@ -10,7 +10,7 @@ block content
             option(value='gb') Game Boy
             option(value='gen') Genesis
         - //div(class='scopebadge') All Consoles
-        input(class="tooltip" title="Begin typing a name to see a list of results" type='text', name='search', data-hotkey='q', placeholder='Search')
+        input(class="tooltip" title="Begin typing a name to see a list of results.<br/>For foreign or hacks, select a system filter first." type='text', name='search', data-hotkey='q', placeholder='Search')
     - //input#jsnes(type='button', value='jsnes')
     - //input#nesboxflash(type='button', value='nesboxflash')
     div#emulatorwrapper 
@@ -22,3 +22,6 @@ block content
     div#suggestionswrapper
         - for (i = 0; i < suggestions.length; ++i)
             img(class="tooltip" data-title="#{suggestions[i].t}" data-file="#{suggestions[i].g}" data-system="#{suggestions[i].s}" src="/images/#{suggestions[i].s}/#{suggestions[i].t}/114.jpg" title="#{suggestions[i].t}")
+
+    div#loading 
+        h2 Loading

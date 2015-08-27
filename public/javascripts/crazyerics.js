@@ -52,6 +52,12 @@ var crazyerics = function() {
             animation: 'grow'
         });
 
+        $('#suggestionswrapper').waitForImages(function() {
+            // All descendant images have loaded, now slide up.
+            $(this).slideDown();
+            $('#loading').slideUp();
+        });
+
 
         // $('#jsnes').click(function() {
         //     if (self.state.emulator === 'jsnes') {
@@ -84,15 +90,24 @@ crazyerics.prototype.loadedscripts  = {};
 
 crazyerics.prototype.replaceSuggestions = function(system) {
 
+    $('#suggestionswrapper').hide();
+    $('#loading').slideDown();
+
     $.getJSON('/suggest/' + system + '/100', function(response) {
 
         $('#suggestionswrapper img').remove();
         for (var i = 0; i < response.length; ++i) {
             $('#suggestionswrapper').append('<img class="tooltip" style="float:left" data-title="' + response[i].t + '" data-file="' + response[i].g + '" data-system="' + response[i].s + '" src="/images/' + response[i].s + '/' + response[i].t + '/114.jpg" title="' + response[i].t + '" />');
         }
+        $('#suggestionswrapper').waitForImages(function() {
+            // All descendant images have loaded, now slide up.
+            $(this).slideDown();
+            $('#loading').slideUp();
+        });
         $('.tooltip').tooltipster({
             theme: 'tooltipster-shadow'
         });
+
     });
 };
 
