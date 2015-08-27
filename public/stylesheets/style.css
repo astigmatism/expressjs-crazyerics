@@ -181,7 +181,7 @@ input[type='text'] {
 }
 
 #gametitlewrapper {
-	padding-bottom: 20px;
+	padding: 0px 10px 20px 10px;
 	line-height: 70px;
 	background: rgba(0,0,0,1);
 }
