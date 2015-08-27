@@ -112,7 +112,8 @@ crazyerics.prototype.replaceSuggestions = function(system, items) {
         //apply tooltips
         $('#suggestionswrapper .tooltip').tooltipster({
             theme: 'tooltipster-shadow',
-            animation: 'grow'
+            animation: 'grow',
+            delay: 100
         });
 
     });
