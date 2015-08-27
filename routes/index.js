@@ -8,14 +8,8 @@ var router = express.Router();
 
 router.get('/', function(req, res, next) {
     
-    UtilitiesService.findSuggestionsAll(100, function(err, suggestions) {
-        if (err) {
-            return res.json(err);
-        }
-        res.render('index', {
-            layout: 'layout',
-            suggestions: suggestions
-        });
+    res.render('index', {
+        layout: 'layout'
     });
 });
 

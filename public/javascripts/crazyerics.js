@@ -39,6 +39,8 @@ var crazyerics = function() {
             }
         });
 
+        self.replaceSuggestions('all');
+
         $('#suggestionswrapper').on('click', 'img', function() {
 
             self.state.title = this.dataset.title;
@@ -51,13 +53,6 @@ var crazyerics = function() {
             theme: 'tooltipster-shadow',
             animation: 'grow'
         });
-
-        $('#suggestionswrapper').waitForImages(function() {
-            // All descendant images have loaded, now slide up.
-            $(this).slideDown();
-            $('#loading').addClass('close');
-        });
-
 
         // $('#jsnes').click(function() {
         //     if (self.state.emulator === 'jsnes') {
@@ -88,22 +83,33 @@ crazyerics.prototype.state = {
 };
 crazyerics.prototype.loadedscripts  = {};
 
-crazyerics.prototype.replaceSuggestions = function(system) {
+crazyerics.prototype.replaceSuggestions = function(system, items) {
 
+    items = items || 100;
+
+    //show loading icon
     $('#suggestionswrapper').hide();
     $('#loading').removeClass('close');
 
-    $.getJSON('/suggest/' + system + '/100', function(response) {
+    $.getJSON('/suggest/' + system + '/' + items, function(response) {
 
+        //remove all current images
         $('#suggestionswrapper img').remove();
+
+        var columns = $('#suggestionswrapper .column');
+
+        //use modulus to evenly disperse across all columns
         for (var i = 0; i < response.length; ++i) {
-            $('#suggestionswrapper').append('<img class="tooltip" style="float:left" data-title="' + response[i].t + '" data-file="' + response[i].g + '" data-system="' + response[i].s + '" src="/images/' + response[i].s + '/' + response[i].t + '/114.jpg" title="' + response[i].t + '" />');
+            $(columns[i % columns.length]).append('<img class="tooltip" style="float:left" data-title="' + response[i].t + '" data-file="' + response[i].g + '" data-system="' + response[i].s + '" src="/images/' + response[i].s + '/' + response[i].t + '/114.jpg" title="' + response[i].t + '" />');
         }
+
+        //when all images have loaded, show suggestions
         $('#suggestionswrapper').waitForImages(function() {
-            // All descendant images have loaded, now slide up.
             $(this).slideDown();
             $('#loading').addClass('close');
         });
+
+        //apply tooltips
         $('#suggestionswrapper .tooltip').tooltipster({
             theme: 'tooltipster-shadow',
             animation: 'grow'

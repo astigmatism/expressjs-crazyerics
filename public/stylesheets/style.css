@@ -71,7 +71,6 @@ input[type='text'] {
 }
 
 #titlebanner {
-	display: none;
 	position: relative;
 	color: #fff;
 	height: 112px;
@@ -222,29 +221,19 @@ input[type='text'] {
 }
 
 #suggestionswrapper {
-	display: none;
-	margin: 10px;
 	padding: 10px;
-	overflow: hidden;
+}
 
-	/* Prevent vertical gaps */
-	line-height: 0;
-
-	-webkit-column-count: 5;
-	-webkit-column-gap:   10px;
-	-moz-column-count:    5;
-	-moz-column-gap:      10px;
-	column-count:         5;
-	column-gap:           10px; 
+#suggestionswrapper .column {
+	width: 114px;
+	display: inline-block;
+	margin: 0px 5px;
+	vertical-align: top;
 }
 
 #suggestionswrapper img {
 	cursor: pointer;
 	margin: 5px 0px;
-
-	/* Just in case there are inline attributes */
-	width: 100% !important;
-	height: auto !important;
 }
 
 #suggestionswrapper img:hover {
