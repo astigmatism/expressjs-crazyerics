@@ -6,7 +6,7 @@ var router = express.Router();
 
 router.get('/', function(req, res, next) {
     
-    UtilitiesService.findSuggestionsAll(200, function(err, suggestions) {
+    UtilitiesService.findSuggestionsAll(100, function(err, suggestions) {
         if (err) {
             return res.json(err);
         }
