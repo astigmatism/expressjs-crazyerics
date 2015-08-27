@@ -181,19 +181,19 @@ input[type='text'] {
 }
 
 #gametitlewrapper {
-	padding: 0px 10px 20px 10px;
 	line-height: 70px;
 	background: rgba(0,0,0,1);
+	width: 100%;
+	padding-bottom: 20px;
+	display: table;
 }
 #gametitlewrapper img {
-	padding: 0px 10px;
-	display: inline-block;
-  	vertical-align: middle;
-  	line-height: normal;
-  	width: 150px;
+	display: table-cell;
+	padding: 0px 20px;
 }
 #gametitlewrapper div {
-	display: inline-block;
+	display: table-cell;
+	width: 100%;
 	vertical-align: top;
 	font-size: 24px;
 	line-height: normal;
