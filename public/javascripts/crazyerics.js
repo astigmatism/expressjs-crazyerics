@@ -104,8 +104,9 @@ crazyerics.prototype.replaceSuggestions = function(system) {
             $(this).slideDown();
             $('#loading').slideUp();
         });
-        $('.tooltip').tooltipster({
-            theme: 'tooltipster-shadow'
+        $('#suggestionswrapper .tooltip').tooltipster({
+            theme: 'tooltipster-shadow',
+            animation: 'grow'
         });
 
     });
