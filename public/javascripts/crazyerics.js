@@ -104,9 +104,14 @@ crazyerics.prototype.replaceSuggestions = function(system, items) {
         }
 
         //when all images have loaded, show suggestions
-        $('#suggestionswrapper').waitForImages(function() {
-            $(this).slideDown();
-            $('#loading').addClass('close');
+        $('#suggestionswrapper').waitForImages().progress(function(loaded, count, success) {
+            
+            $('#loading .loadingtext').text(loaded + '%');
+
+            if (loaded === (count - 1)) {
+                $('#suggestionswrapper').slideDown();
+                $('#loading').addClass('close');
+            }
         });
 
         //apply tooltips
