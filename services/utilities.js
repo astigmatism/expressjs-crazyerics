@@ -131,7 +131,7 @@ UtilitiesService.buildRomFolders = function(system, callback) {
     var result = {};
 
     //read all directory's from roms/system (each game is a dir)
-    fs.readdir(__dirname + '/../public/roms/' + system, function(err, games) {
+    fs.readdir(__dirname + '/../public/' + system, function(err, games) {
         if (err) {
             callback(err);
         }
@@ -144,7 +144,7 @@ UtilitiesService.buildRomFolders = function(system, callback) {
             }
 
             //analyize file
-            fs.stat(__dirname + '/../public/roms/' + system + '/' + game, function (err, stats) {
+            fs.stat(__dirname + '/../public/' + system + '/' + game, function (err, stats) {
                 if (err) {
                     return nextgame();
                 }
@@ -162,9 +162,9 @@ UtilitiesService.buildRomFolders = function(system, callback) {
 
                     console.log('File found in system directory: ' + game + ' ---> ' + dirname);
 
-                    var newdir = __dirname + '/../public/roms/' + system + '/' + dirname;
+                    var newdir = __dirname + '/../public/' + system + '/' + dirname;
                     fs.mkdirSync(newdir);
-                    fs.rename(__dirname + '/../public/roms/' + system + '/' + game, newdir + '/' + game, function(err){
+                    fs.rename(__dirname + '/../public/' + system + '/' + game, newdir + '/' + game, function(err){
                         if(err) {
                             throw err;
                         }
@@ -230,7 +230,7 @@ UtilitiesService.buildSearch = function(system, callback, exts) {
                             return nextgame(err);
                         }
                         
-                        var details = UtilitiesService.findBestPlayableGame([roms], exts); //returns index of playable game returns object with "game", "index" and "rank"
+                        var details = UtilitiesService.findBestPlayableGame(roms, exts); //returns index of playable game returns object with "game", "index" and "rank"
 
                         //for detailed results in debugging
                         // result[game] = {
@@ -329,7 +329,7 @@ UtilitiesService.buildGames = function(system, callback, exts) {
 
                         for (var j = 0; j < roms.length; ++j) {
                             
-                            var details = UtilitiesService.findBestPlayableGame([[roms[j]]], exts);
+                            var details = UtilitiesService.findBestPlayableGame([roms[j]], exts);
 
                             result[game][roms[j]] = details.rank;
                         }
@@ -393,7 +393,7 @@ UtilitiesService.findBestPlayableGame = function(files, exts, officialscore) {
 
     //must additionally pass these incoming regex's as further arguments
     var reExtra = [];
-    for (i = 1; i < exts.length; ++i) {
+    for (i = 0; i < exts.length; ++i) {
         reExtra.push(new RegExp('\.' + exts[i] + '$', 'gi'));
     }
 
@@ -428,7 +428,7 @@ UtilitiesService.findBestPlayableGame = function(files, exts, officialscore) {
             ++runningrank;
         }
 
-        //playable (9)
+        //playable (87)
         if (item.match(reOption.p) && resultrank > runningrank) {
             result = item;
             resultindex = i;
@@ -481,7 +481,7 @@ UtilitiesService.findBestPlayableGame = function(files, exts, officialscore) {
         resultindex = 0;
     }
 
-    //if the game ranks with a [!] or higher (at this time 87), we assume an "offical" release. will help provide better searching
+    //if the game ranks with a [!] or higher (at this time 90), we assume an "offical" release. will help provide better searching
     return {
         game: result,
         index: resultindex,

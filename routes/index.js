@@ -92,6 +92,18 @@ router.get('/build/:system', function(req, res, next) {
     }
 });
 
+router.get('/folders/:system', function(req, res, next) {
+
+    var system = req.params.system;
+        
+    UtilitiesService.buildRomFolders(system, function(err, data) {
+        if (err) {
+            return res.json(err);
+        }
+        res.json(null, data);
+    });
+});
+
 
 router.get('/loademulator', function(req, res, next) {
 
