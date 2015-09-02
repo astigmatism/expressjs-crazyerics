@@ -26,7 +26,24 @@ var crazyerics = function() {
             },
             renderItem: function (item, search){
                 
-                var html = '<div class="autocomplete-suggestion" data-title="' + item[0] + '" data-file="' + item[1] + '" data-system="' + item[2] + '"><img class="' + item[2] + '" src="/images/' + item[2] + '/' + item[0] + '/50.jpg"><div>' + item[0] + '</div></div>';
+                /*
+                item: [
+                    game name,
+                    rom file name,
+                    system,
+                    search score,
+                    game rank
+                ]
+                 */
+
+                var src = '/images/blanks/' + item[2] + '_50.png';
+
+                //have image, see sitescraper project for rank in which we downloaded an image
+                if (item[4] >= 87) {
+                    src = '/images/' + item[2] + '/' + item[0] + '/50.jpg';
+                }
+
+                var html = '<div class="autocomplete-suggestion" data-title="' + item[0] + '" data-file="' + item[1] + '" data-system="' + item[2] + '" data-searchscore="' + item[3] + '" data-rank="' + item[4] + '"><img class="' + item[2] + '" src="' + src + '"><div>' + item[0] + '</div></div>';
                 //self.googleimagesearch(item[2] + ' ' + item[0] + ' box', 'img[name="' + item[0] + '"]');
                 return html;
             },
@@ -35,7 +52,8 @@ var crazyerics = function() {
                 self.state.title = item.data('title');
                 self.state.file = item.data('file');
                 self.state.system = item.data('system');
-                self._bootstrapnesboxflash(self.state.system, self.state.title, self.state.file);
+                self.state.rank = item.data('rank');
+                self._bootstrapnesboxflash(self.state.system, self.state.title, self.state.file, self.state.rank);
             }
         });
 
@@ -46,7 +64,8 @@ var crazyerics = function() {
             self.state.title = this.dataset.title;
             self.state.file = this.dataset.file;
             self.state.system = this.dataset.system;
-            self._bootstrapnesboxflash(self.state.system, self.state.title, self.state.file);
+            self.state.rank = this.dataset.rank;
+            self._bootstrapnesboxflash(self.state.system, self.state.title, self.state.file, self.state.rank);
         });
 
         $('.tooltip').tooltipster({
@@ -79,6 +98,7 @@ crazyerics.prototype.state = {
     system: 'nes',
     title: '',
     file: '',
+    rank: 0,
     emulatorhandle: null
 };
 crazyerics.prototype.loadedscripts  = {};
@@ -100,7 +120,7 @@ crazyerics.prototype.replaceSuggestions = function(system, items) {
 
         //use modulus to evenly disperse across all columns
         for (var i = 0; i < response.length; ++i) {
-            $(columns[i % columns.length]).append('<img class="tooltip" style="float:left" data-title="' + response[i].t + '" data-file="' + response[i].g + '" data-system="' + response[i].s + '" src="/images/' + response[i].s + '/' + response[i].t + '/114.jpg" title="' + response[i].t + '" />');
+            $(columns[i % columns.length]).append('<img class="tooltip" style="float:left" data-title="' + response[i].t + '" data-file="' + response[i].g + '" data-system="' + response[i].s + '" data-rank="' + response[i].r + '" src="/images/' + response[i].s + '/' + response[i].t + '/114.jpg" title="' + response[i].t + '" />');
         }
 
         //when all images have loaded, show suggestions
@@ -124,15 +144,26 @@ crazyerics.prototype.replaceSuggestions = function(system, items) {
     });
 };
 
-crazyerics.prototype._bootstrapjsnes = function(system, title, file) {
+crazyerics.prototype._buildgametitlewrapper = function(system, title, rank) {
+
+    var src = '/images/blanks/' + system + '_150.png';
+
+    if (rank >= 87) {
+        src = '/images/' + system + '/' + title + '/150.jpg';
+    }
+
+    $('#gametitlewrapper img').removeClass().addClass(system);
+    $('#gametitlewrapper img').attr('src', src);
+    $('#gametitlewrapper div').text(title);
+};
+
+crazyerics.prototype._bootstrapjsnes = function(system, title, file, rank) {
 
     var self = this;
     var romPath = '/roms/nes/' + title + '/' + file;
     var jsnesReady = function() {
 
-        $('#gametitlewrapper img').removeClass().addClass(system);
-        $('#gametitlewrapper img').attr('src', '/images/' + system + '/' + title + '/150.jpg');
-        $('#gametitlewrapper div').text(title);
+        self._buildgametitlewrapper(system, title, rank);
 
         $('#emulator select>optgroup>option').prop('selected', true);
         $('#emulator select').change();
@@ -175,16 +206,14 @@ crazyerics.prototype._bootstrapjsnes = function(system, title, file) {
     }
 };
 
-crazyerics.prototype._bootstrapnesboxflash = function(system, title, file) {
+crazyerics.prototype._bootstrapnesboxflash = function(system, title, file, rank) {
 
     var self = this;
     var romPath = '/roms/' + system + '/' + title + '/' + file;
 
     var nesboxflashReady = function() {
         
-        $('#gametitlewrapper img').removeClass().addClass(system);
-        $('#gametitlewrapper img').attr('src', '/images/' + system + '/' + title + '/150.jpg');
-        $('#gametitlewrapper div').text(title);
+        self._buildgametitlewrapper(system, title, rank);
 
         $('#emulator').empty();
         var emulator = $('#emulator');

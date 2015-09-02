@@ -79,7 +79,7 @@ UtilitiesService.search = function(system, term, maximum, callback) {
                 //the decimal places in the score represent the "playability" of the game. This way, games with (U) and [!] will rank higher than those that are hacks or have brackets
                 searchscore += (data[game].r * 0.1); //between 9.9 and 0.0
 
-                result.push([game, data[game].g, data[game].s || system, searchscore]);
+                result.push([game, data[game].g, data[game].s || system, searchscore, data[game].r]);
             }
         }
 
