@@ -552,4 +552,27 @@ UtilitiesService.findSuggestions = function(system, items, callback) {
     });
 };  
 
+UtilitiesService.loadGame = function(system, folder, file, callback) {
+
+    if (config && config.data && config.data.systems && config.data.systems[system]) {
+
+        DataService.getFile('/public/roms/' + system + '/' + folder + '/' + file, function(err, buffer) {
+            if (err) {
+                return callback(err);
+            }
+
+            var ab = new ArrayBuffer(buffer.length);
+            var view = new Uint8Array(ab);
+            for (var i = 0; i < buffer.length; ++i) {
+                view[i] = buffer[i];
+            }
+            callback(null, ab);
+        }, 0, false, true);
+        
+    } else {
+        callback(system + ' is not found the config and is not a valid system');
+    }
+
+};
+
 module.exports = UtilitiesService;

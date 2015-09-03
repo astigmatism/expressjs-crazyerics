@@ -104,6 +104,20 @@ router.get('/folders/:system', function(req, res, next) {
     });
 });
 
+router.get('/loadgame/:system/:folder/:file', function(req, res, next) {
+
+    var system = req.params.system;
+    var folder = req.params.folder;
+    var file = req.params.file;
+
+    UtilitiesService.loadGame(system, folder, file, function(err, data) {
+        if (err) {
+            return res.json(err);
+        }
+        res.send(null, data);
+    });
+});
+
 
 router.get('/loademulator', function(req, res, next) {
 

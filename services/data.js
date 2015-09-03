@@ -22,10 +22,11 @@ DataService = function() {
  * @param  {number}   cacheLifetime 	when cached, optionally define how long, default is forever
  * @return {Function}
  */
-DataService.getFile = function(path, callback, forceLoad, cacheLifetime) {
+DataService.getFile = function(path, callback, forceLoad, cacheLifetime, buffer) {
 
     cacheLifetime    = cacheLifetime || 0; //how long should this file's content persist in cache? 0 = forever, -1 = don't put in cache at all
     forceLoad        = forceLoad || false; //ignore cache attempt and load data from source
+    buffer           = buffer || false; //false attempts to format file contents as JSON.
 
     //attempt to retireve file contents. cachekey is file path
     nodecache.get(path, function(err, data) {
@@ -43,16 +44,17 @@ DataService.getFile = function(path, callback, forceLoad, cacheLifetime) {
 
         //no successful cache hit, find in file system and add to cache
         fs.readFile(fullPath, 'utf8', function(err, content) {
-
             if (err) {
                 return callback(err);
             }
 
             //JSON parse file contents, comes in as string
-            try {
-                content = JSON.parse(content);
-            } catch (e) {
-                return callback(e);
+            if (!buffer) {
+                try {
+                    content = JSON.parse(content);
+                } catch (e) {
+                    return callback(e);
+                }
             }
 
             nodecache.set(path, content, cacheLifetime, function() {
