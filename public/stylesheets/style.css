@@ -71,6 +71,7 @@ input[type='text'] {
 }
 
 #titlebanner {
+	display: none;
 	position: relative;
 	color: #fff;
 	height: 112px;
@@ -217,7 +218,9 @@ input[type='text'] {
 }
 
 #emulator {
+	display: none;
 	outline: none;
+	width: 100%;
 }
 
 #suggestionswrapper {

@@ -49,11 +49,7 @@ var crazyerics = function() {
             },
             onSelect: function(e, term, item){
                 
-                self.state.title = item.data('title');
-                self.state.file = item.data('file');
-                self.state.system = item.data('system');
-                self.state.rank = item.data('rank');
-                self._bootstrapnesboxflash(self.state.system, self.state.title, self.state.file, self.state.rank);
+                self._bootstrap(item.data('system'), item.data('title'), item.data('file'), item.data('rank'));
             }
         });
 
@@ -61,16 +57,16 @@ var crazyerics = function() {
 
         $('#suggestionswrapper').on('click', 'img', function() {
 
-            self.state.title = this.dataset.title;
-            self.state.file = this.dataset.file;
-            self.state.system = this.dataset.system;
-            self.state.rank = this.dataset.rank;
-            self._bootstrapnesboxflash(self.state.system, self.state.title, self.state.file, self.state.rank);
+            self._bootstrap(this.dataset.system, this.dataset.title, this.dataset.file, this.dataset.rank);
         });
 
         $('.tooltip').tooltipster({
             theme: 'tooltipster-shadow',
             animation: 'grow'
+        });
+
+        $('#upload').change(function(event) {
+            self._onupload(event.target.files);
         });
 
         // $('#jsnes').click(function() {
@@ -92,15 +88,6 @@ var crazyerics = function() {
     });
 };
 
-crazyerics.prototype.state = {
-    search: 'all',
-    emulator: null,
-    system: 'nes',
-    title: '',
-    file: '',
-    rank: 0,
-    emulatorhandle: null
-};
 crazyerics.prototype.loadedscripts  = {};
 
 crazyerics.prototype.replaceSuggestions = function(system, items) {
@@ -157,158 +144,119 @@ crazyerics.prototype._buildgametitlewrapper = function(system, title, rank) {
     $('#gametitlewrapper div').text(title);
 };
 
-crazyerics.prototype._bootstrapjsnes = function(system, title, file, rank) {
-
+crazyerics.prototype._bootstrap = function(system, title, file, rank) {
+    
     var self = this;
-    var romPath = '/roms/nes/' + title + '/' + file;
-    var jsnesReady = function() {
+
+    //overrides 
+    system = 'gba';
+    title = 'Advance Wars';
+    file = 'Advance Wars (U) (V1.0) [!].gba';
+
+    // system = 'snes';
+    // title = 'ActRaiser';
+    // file = 'ActRaiser (U) [!].smc';
+
+    //build all code in an iframe for separate context and returns emulator module
+    this._loademulator(system, function(Module) {
 
         self._buildgametitlewrapper(system, title, rank);
 
-        $('#emulator select>optgroup>option').prop('selected', true);
-        $('#emulator select').change();
-        $('#emulator').focus();
+        self._loadGame('/loadgame/' + system + '/' + title + '/' + file, function(data) {
 
-        self.state.emulator = 'jsnes';
-    };
-
-    if (self.state.emulator === 'jsnes') {
-        $('#emulator select>optgroup>option').val(romPath);
-        jsnesReady();
-    } else {
-
-        //load everything
-        $.ajax({
-            url: '/loademulator?emulator=jsnes'
-        }).done(function(html) {
+            self._initGame(Module, file, data);
             
-            $('#emulatorwrapper').empty().append(html);
-
-            var scripts = [
-                '/emulators/jsnes/build/jsnes.js',
-                '/emulators/jsnes/lib/dynamicaudio-min.js'
-            ];
-            self._loadScripts(scripts).done(function() {
-                
-                self.state.emulatorhandle = new JSNES({
-                    'ui': $('#emulator').JSNESUI({
-                        'working': [['1', romPath]]
-                    })
-                });
-                self.state.emulatorhandle.unload = function() {
-                    self.state.emulatorhandle.stop();
-                    self.state.emulatorhandle = null;
-                    $('#emulatorwrapper').empty();
-                };
-                jsnesReady();
-            });
+            $('#emulator').slideDown();
         });
-    }
-};
-
-crazyerics.prototype._bootstrapnesboxflash = function(system, title, file, rank) {
-
-    var self = this;
-    var romPath = '/roms/' + system + '/' + title + '/' + file;
-
-    var nesboxflashReady = function() {
-        
-        self._buildgametitlewrapper(system, title, rank);
-
-        $('#emulator').empty();
-        var emulator = $('#emulator');
-        
-        if (emulator) {
-            
-            var w = 640;
-            var h = 480;
-
-            switch (system) {
-                case 'nes':
-                    w = 256 * 2;
-                    h = 240 * 2;
-                    break;
-                case 'snes':
-                    w = 256 * 2;
-                    h = 224 * 2;
-                    break;
-                case 'gb':
-                    w = 160 * 2;
-                    h = 144 * 2;
-                    break;
-                case 'gen':
-                    w = 320 * 2;
-                    h = 224 * 2;
-                    break;
-                case 'gba':
-                    w = 240 * 2;
-                    h = 160 * 2;
-            }
-
-            if (system === 'gen') {
-                system = 'sega';
-            }
-
-            var flashvars = {
-                system : system,
-                url : romPath
-            };
-            var params = {};
-            var attributes = {};
-
-            params.allowscriptaccess = 'sameDomain';
-            params.allowFullScreen = 'true';
-            params.allowFullScreenInteractive = 'true';
-
-            swfobject.embedSWF('/emulators/nesboxflash/bin/Nesbox.swf', 'emulator', w, h, '11.2.0', 'flash/expressInstall.swf', flashvars, params, attributes);
-        }
-
-        self.state.emulator = 'nesboxflash';
-    };
-
-    if (self.state.emulator === 'nesboxflash') {
-        nesboxflashReady();
-    } else {
-
-        $.ajax({
-            url: '/loademulator?emulator=nesboxflash'
-        }).done(function(html) {
-
-            $('#emulatorwrapper').empty().append(html);
-
-            var scripts = [
-                '//ajax.googleapis.com/ajax/libs/swfobject/2.2/swfobject.js'
-            ];
-
-            self._loadScripts(scripts).done(function() {
-                nesboxflashReady();
-            });
-
-            self.state.emulatorhandle = {};
-            self.state.emulatorhandle.unload = function() {
-                self.state.emulatorhandle = null;
-                $('#emulatorwrapper').empty();
-            };
-        });
-    }
-};
-
-crazyerics.prototype._loadScripts = function (arr) {
-
-    var self = this;
-    var _arr = $.map(arr, function(script) {
-        if (self.loadedscripts[script]) {
-            return;
-        }
-        self.loadedscripts[script] = true;
-        return $.getScript(script);
     });
-
-    _arr.push($.Deferred(function( deferred ){
-        $( deferred.resolve );
-    }));
-
-    return $.when.apply($, _arr);
 };
+
+crazyerics.prototype._loademulator = function(system, callback) {
+    
+    if (self.emulatorframe) {
+        self.emulatorframe.remove();
+    }
+
+    self.emulatorframe = $('<iframe/>', {
+        src:'/emulator/' + system,
+        style:'display:none',
+        load: function(){
+
+            //find module to run games
+            var Module = this.contentWindow.Module;
+            callback(Module);
+        }
+    });
+    $('body').append(self.emulatorframe);
+};
+
+/**
+ * jQuery does not support the a response datatype of "arraybuffer" so we're going to use the old XHLHttpRequest object
+ * see docs here: https://dvcs.w3.org/hg/xhr/raw-file/tip/Overview.html#the-response-attribute
+ * its part of the "XHR2" solution and jQuery does not support it yet. you can google "jquery ajax arraybuffer" at some point to clean this up maybe
+ * @param  {string}   url
+ * @param  {Function} callback
+ * @return {undef}
+ */
+crazyerics.prototype._loadGame = function(url, callback) {
+
+    var xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function(){
+        if (this.readyState == 4 && this.status == 200){
+            
+            //response comes back as arraybuffer. convery to uint8array
+            var dataView = new Uint8Array(this.response);
+            callback(dataView);
+        }
+    }
+    xhr.open('GET', url);
+    xhr.responseType = 'arraybuffer';
+    xhr.send();
+};
+
+crazyerics.prototype._onupload = function(files) {
+    var self = this;
+    var count = files.length;
+
+    self._buildModule();
+
+    this._loademulator('gba', function() {
+
+        for (var i = 0; i < files.length; i++) {
+            filereader = new FileReader();
+            filereader.file_name = files[i].name;
+            filereader.onload = function(){
+                var dataView = new Uint8Array(this.result);
+                self._initGame(this.file_name, dataView);
+            };
+            filereader.readAsArrayBuffer(files[i]);
+        }
+    });
+};
+
+crazyerics.prototype._initGame = function(Module, file, data) {
+
+    Module.FS_createDataFile('/', file, data, true, true);
+    Module.arguments = ['-v', '/' + file];
+
+    Module.FS_createFolder('/', 'etc', true, true);
+    var config = 'input_player1_select = shift\n';
+    var latency = 96; //parseInt(document.getElementById('latency').value, 10);
+    //if (isNaN(latency)) latency = 96;
+    config += 'audio_latency = ' + latency + '\n'
+    //if (document.getElementById('vsync').checked)
+    //config += 'video_vsync = true\n';
+    //else
+    config += 'video_vsync = false\n';
+    Module.FS_createDataFile('/etc', 'retroarch.cfg', config, true, true);
+    // document.getElementById('canvas_div').style.display = 'block';
+    // document.getElementById('vsync').disabled = true;
+    // document.getElementById('vsync-label').style.color = 'gray';
+    // document.getElementById('latency').disabled = true;
+    // document.getElementById('latency-label').style.color = 'gray';
+    
+    Module['callMain'](Module['arguments']);
+};
+
 
 var crazyerics = new crazyerics();

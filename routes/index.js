@@ -114,27 +114,31 @@ router.get('/loadgame/:system/:folder/:file', function(req, res, next) {
         if (err) {
             return res.json(err);
         }
-        res.send(null, data);
+        res.send(new Buffer(data, 'binary'));
     });
+
+    // var options = {
+    //     root: __dirname + '/../public/',
+    //     dotfiles: 'deny',
+    //     headers: {
+    //         'x-timestamp': Date.now(),
+    //         'x-sent': true
+    //     }
+    // };
+
+    // res.sendFile('/roms/' + system + '/' + folder + '/' + file, options, function (err) {
+    //     if (err) {
+    //         console.log(err);
+    //         res.status(err.status).end();
+    //     }
+    // });
 });
 
+router.get('/emulator/:system', function(req, res, next) {
+        
+    var system = req.params.system;
 
-router.get('/loademulator', function(req, res, next) {
-
-	var emulator = req.query.emulator;
-	var title = req.query.title;
-
-	fs.readFile(__dirname + '/../views/emulators/' + emulator + '.jade', 'utf8', function (err, data) {
-        if (err) {
-        	console.log(err);
-        	return res.send();
-        }
-        var fn = jade.compile(data);
-        var html = fn({
-        	title: title
-        });
-        res.send(html);
-    });
+    res.render('emulators/' + system);
 });
 
 module.exports = router;
