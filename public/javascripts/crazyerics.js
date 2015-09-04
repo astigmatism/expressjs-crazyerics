@@ -74,22 +74,6 @@ var crazyerics = function() {
             $('#emulator').focus();
         });
 
-        // $('#jsnes').click(function() {
-        //     if (self.state.emulator === 'jsnes') {
-        //         return;
-        //     }
-        //     self.state.emulatorhandle.unload();
-        //     self._bootstrapjsnes(self.state.system, self.state.title, self.state.file);
-        // });
-
-        // $('#nesboxflash').click(function() {
-        //     if (self.state.emulator === 'nesboxflash') {
-        //         return;
-        //     }
-        //     self.state.emulatorhandle.unload();
-        //     self._bootstrapnesboxflash(self.state.system, self.state.title, self.state.file);
-        // });
-
     });
 };
 
@@ -144,12 +128,14 @@ crazyerics.prototype._buildGameTitle = function(system, title, rank) {
         src = '/images/' + system + '/' + title + '/150.jpg';
     }
 
-    $('#gametitle img')
-        .attr('src', src)
-        .waitForImages(function() {
-            $(this).removeClass();
-        });
-    $('#gametitle div')
+    
+    var img = $('<img class="close" src="' + src + '" />');
+    img.load(function(){
+        $(this).removeClass();
+    });
+    $('#gametitleimagewrapper').empty().append(img);
+    
+    $('#gametitlecontent')
         .text(title)
         .fadeIn(1000);
 };
@@ -159,8 +145,8 @@ crazyerics.prototype._bootstrap = function(system, title, file, rank) {
     var self = this;
 
     $('#gameloadingname').text(title);
-    $('#gametitle img').addClass('close');
-    $('#gametitle div').fadeOut();
+    $('#gametitleimagewrapper img').addClass('close');
+    $('#gametitlecontent').fadeOut();
 
     $('#startmessage').slideUp(1000);
     $('#emulatorwrapper').slideDown(1000);
@@ -184,6 +170,7 @@ crazyerics.prototype._bootstrap = function(system, title, file, rank) {
                 self._initGame(Module, file, data);
                 
                 $('#gametitlewrapper').slideDown(1000);
+                
                 $('#gameloadingoverlaycontent').addClass('close');
                 $('#gameloadingoverlay').fadeOut(1000, function() {
 

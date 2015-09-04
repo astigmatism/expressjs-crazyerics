@@ -36,6 +36,16 @@ exports.data = {
 				'bin',
 				'32x'
 			]
+		},
+		sms: {
+			name: "Sega Master System",
+			shortname: "Master System",
+			romfileextentions: []
+		},
+		lynx: {
+			name: "Atari Lynx",
+			shortname: "Lynx",
+			romfileextentions: []
 		}
 	}
 };

@@ -56,54 +56,6 @@ router.get('/suggest/:system/:items', function(req, res, next) {
     }
 });
 
-router.get('/build/:system', function(req, res, next) {
-
-    var system = req.params.system;
-
-    if (config && config.data && config.data.systems && config.data.systems[system]) {
-
-        var systemconfig = config.data.systems[system];
-        
-        async.series([
-            function(callback){
-                UtilitiesService.buildGames(system, function(err, data) {
-                    if (err) {
-                        return callback(err);
-                    }
-                    callback(null, data);
-                }, systemconfig.romfileextentions);
-            },
-            function(callback){
-                UtilitiesService.buildSearch(system, function(err, data) {
-                    if (err) {
-                        return callback(err);
-                    }
-                    callback(null, data);
-                }, systemconfig.romfileextentions);
-            }
-        ], function(err, results) {
-            if (err) {
-                return res.json(err);
-            }
-            res.json(results);
-        });
-    } else {
-        res.json(system + ' is not found the config and is not a valid system');
-    }
-});
-
-router.get('/folders/:system', function(req, res, next) {
-
-    var system = req.params.system;
-        
-    UtilitiesService.buildRomFolders(system, function(err, data) {
-        if (err) {
-            return res.json(err);
-        }
-        res.json(null, data);
-    });
-});
-
 router.get('/loadgame/:system/:folder/:file', function(req, res, next) {
 
     var system = req.params.system;
@@ -116,22 +68,6 @@ router.get('/loadgame/:system/:folder/:file', function(req, res, next) {
         }
         res.send(new Buffer(data, 'binary'));
     });
-
-    // var options = {
-    //     root: __dirname + '/../public/',
-    //     dotfiles: 'deny',
-    //     headers: {
-    //         'x-timestamp': Date.now(),
-    //         'x-sent': true
-    //     }
-    // };
-
-    // res.sendFile('/roms/' + system + '/' + folder + '/' + file, options, function (err) {
-    //     if (err) {
-    //         console.log(err);
-    //         res.status(err.status).end();
-    //     }
-    // });
 });
 
 router.get('/emulator/:system', function(req, res, next) {

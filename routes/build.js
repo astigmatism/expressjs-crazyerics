@@ -5,7 +5,7 @@ var router = express.Router();
 var config = require('../config.js');
 var UtilitiesService = require('../services/utilities');
 
-router.get('/all', function(req, res, next) {
+router.get('/data/all', function(req, res, next) {
 
     result = {};
 
@@ -56,6 +56,54 @@ router.get('/all', function(req, res, next) {
                 res.json('File ' + path + ' written');
             });
         });
+    });
+});
+
+router.get('/data/:system', function(req, res, next) {
+
+    var system = req.params.system;
+
+    if (config && config.data && config.data.systems && config.data.systems[system]) {
+
+        var systemconfig = config.data.systems[system];
+        
+        async.series([
+            function(callback){
+                UtilitiesService.buildGames(system, function(err, data) {
+                    if (err) {
+                        return callback(err);
+                    }
+                    callback(null, data);
+                }, systemconfig.romfileextentions);
+            },
+            function(callback){
+                UtilitiesService.buildSearch(system, function(err, data) {
+                    if (err) {
+                        return callback(err);
+                    }
+                    callback(null, data);
+                }, systemconfig.romfileextentions);
+            }
+        ], function(err, results) {
+            if (err) {
+                return res.json(err);
+            }
+            res.json(results);
+        });
+    } else {
+        res.json(system + ' is not found the config and is not a valid system');
+    }
+});
+
+router.get('/folders/:system', function(req, res, next) {
+
+    var system = req.params.system;
+        
+    UtilitiesService.buildRomFolders(system, function(err, data) {
+        if (err) {
+            return res.json(err);
+        }
+        res.json(data);
     });
 });
 

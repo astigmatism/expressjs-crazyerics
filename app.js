@@ -7,7 +7,7 @@ var bodyParser = require('body-parser');
 var favicon = require('serve-favicon');
 
 var routes = require('./routes/index');
-var tools = require('./routes/tools');
+var build = require('./routes/build');
 
 var app = express();
 
@@ -24,7 +24,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(favicon(__dirname + '/public/favicon.ico'));
 
 app.use('/', routes);
-app.use('/tools', tools);
+app.use('/build', build);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
