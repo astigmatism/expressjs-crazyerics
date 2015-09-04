@@ -71,7 +71,7 @@ input[type='text'] {
 }
 
 #titlebanner {
-	display: none;
+
 	position: relative;
 	color: #fff;
 	height: 112px;
@@ -128,16 +128,7 @@ input[type='text'] {
 	position: relative;
 
 }
-#searchform .scopebadge { /* not in use atm */
-	display: inline-block;
-	padding: 0 5px;
-	line-height: 22px;
-	font-size: 14px;
-	font-weight: normal;
-	color: #767676;
-	background-color: #ddd;
-	border-radius: 2px;
-}
+
 #selectordie {
 	padding: 14px 10px;
 	border: none;
@@ -171,38 +162,55 @@ input[type='text'] {
     outline: 0;
     outline-offset: -2px;
 }
-#emulatorwrapper {
-	min-height: 100px;
-	width: 100%;
+
+#gameloadingwrapper {
+	position: relative;
+	min-height: 120px;
 }
 
-#emulatorwrapper .startmessage {
+#gameloadingoverlay {
+	position: absolute;
+	top: 0;
+	left: 0;
+	height: 100%;
+	width: 100%;
+  	background-color: rgba(0,0,0,0.8);
+  	display: none;
+}
+
+#gameloadingoverlayicon {
+	height: 100%;	
+	width: 100%;
+	background: url('/images/triangle.svg') no-repeat center center;
+
+	transition:All 200ms ease-in;
+	-webkit-transition:All 200ms ease-in;
+	-moz-transition:All 200ms ease-in;
+	-o-transition:All 200ms ease-in;
+}
+
+#gameloadingoverlayicon.close {
+	opacity: 0;
+	transform: scale(0, 0);
+	-webkit-transform: scale(0, 0);
+	-moz-transform: scale(0, 0);
+	-o-transform: scale(0, 0);
+	-ms-transform: scale(0, 0);
+}
+
+#emulatorandtitle {
+	display: none;
+}
+
+#startmessage {
+	padding: 10px 0px;
+	height: 100%;
+	width: 100%;
 	text-align: center;
 	vertical-align: middle;
 }
 
-#gametitlewrapper {
-	line-height: 70px;
-	background: rgba(0,0,0,1);
-	width: 100%;
-	padding-bottom: 20px;
-	display: table;
-}
-#gametitlewrapper img {
-	display: table-cell;
-	padding: 0px 20px;
-}
-#gametitlewrapper div {
-	display: table-cell;
-	width: 100%;
-	vertical-align: top;
-	font-size: 24px;
-	line-height: normal;
-}
-
-#emulatorborder {
-	padding: 15px 0px;
-
+.darkgrad {
 	background: -moz-linear-gradient(top,  rgba(0,0,0,1) 0%, rgba(0,0,0,0) 50%, rgba(0,0,0,1) 100%); /* FF3.6+ */
 	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(0,0,0,1)), color-stop(50%,rgba(0,0,0,0)), color-stop(100%,rgba(0,0,0,1))); /* Chrome,Safari4+ */
 	background: -webkit-linear-gradient(top,  rgba(0,0,0,1) 0%,rgba(0,0,0,0) 50%,rgba(0,0,0,1) 100%); /* Chrome10+,Safari5.1+ */
@@ -212,15 +220,74 @@ input[type='text'] {
 	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#000000', endColorstr='#000000',GradientType=0 ); /* IE6-9 */
 }
 
-#emulatorcentered {
-	display: table;
-    margin: 0 auto;
+#emulatorwrapper {
+	background-color: #000;
+	padding-top: 10px;
+	position: relative;
+	visibility: visible;
+}
+
+#emulatorwrapper.hidden {
+	visibility: hidden;
+}
+
+#emulatorwrapperoverlay{
+	display: none;
+	position: absolute;
+	top: 0;
+	left: 0;
+	height: 100%;
+	width: 100%;
+  	background-color: rgba(0,0,0,0.8);
+  	cursor: pointer;
+}
+
+#emulatorwrapperoverlay div {
+	position: relative;
+  	top: 50%;
+  	transform: translateY(-50%);
+  	text-align: center;
+	vertical-align: middle;
 }
 
 #emulator {
-	display: none;
 	outline: none;
 	width: 100%;
+}
+
+#gametitlewrapper {
+	padding: 20px 0px;
+}
+
+#gametitle {
+	line-height: 70px;
+	width: 100%;
+	display: table;
+}
+#gametitle img {
+	display: table-cell;
+	margin: 0px 15px;
+
+	transition:All 200ms ease-in;
+	-webkit-transition:All 200ms ease-in;
+	-moz-transition:All 200ms ease-in;
+	-o-transition:All 200ms ease-in;
+}
+#gametitle img.hidden {
+	transform: scale(0, 0);
+	-webkit-transform: scale(0, 0);
+	-moz-transform: scale(0, 0);
+	-o-transform: scale(0, 0);
+	-ms-transform: scale(0, 0);
+
+}
+
+#gametitle div {
+	display: table-cell;
+	width: 100%;
+	vertical-align: top;
+	font-size: 24px;
+	line-height: normal;
 }
 
 #suggestionswrapper {
@@ -281,4 +348,9 @@ input[type='text'] {
 	-moz-transform: scale(0, 0);
 	-o-transform: scale(0, 0);
 	-ms-transform: scale(0, 0);
+}
+
+#output {
+	display: none;
+	width: 100%
 }

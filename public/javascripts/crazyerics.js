@@ -9,8 +9,7 @@ var crazyerics = function() {
             customID: 'selectordie',
             customClass: 'tooltip',
             onChange: function() {
-                self.state.search = $(this).val();
-                self.replaceSuggestions(self.state.search);
+                self.replaceSuggestions($(this).val());
             }
         });
 
@@ -20,7 +19,8 @@ var crazyerics = function() {
             cache: false,
             delay: 300,
             source: function(term, response){
-                $.getJSON('/search/' + self.state.search + '/' + term, function(data) { 
+                var system = $('#searchform select').val();
+                $.getJSON('/search/' + system + '/' + term, function(data) { 
                     response(data);
                 });
             },
@@ -67,6 +67,10 @@ var crazyerics = function() {
 
         $('#upload').change(function(event) {
             self._onupload(event.target.files);
+        });
+
+        $('#emulatorwrapperoverlay').click(function() {
+            $('#emulator').focus();
         });
 
         // $('#jsnes').click(function() {
@@ -131,7 +135,7 @@ crazyerics.prototype.replaceSuggestions = function(system, items) {
     });
 };
 
-crazyerics.prototype._buildgametitlewrapper = function(system, title, rank) {
+crazyerics.prototype._buildGameTitle = function(system, title, rank) {
 
     var src = '/images/blanks/' + system + '_150.png';
 
@@ -139,55 +143,77 @@ crazyerics.prototype._buildgametitlewrapper = function(system, title, rank) {
         src = '/images/' + system + '/' + title + '/150.jpg';
     }
 
-    $('#gametitlewrapper img').removeClass().addClass(system);
-    $('#gametitlewrapper img').attr('src', src);
-    $('#gametitlewrapper div').text(title);
+    $('#gametitle img').attr('src', src);
+    $('#gametitle div').text(title);
 };
 
 crazyerics.prototype._bootstrap = function(system, title, file, rank) {
     
     var self = this;
+    
+    $('#gameloadingoverlay').fadeIn(500, function() {
 
-    //overrides 
-    system = 'gba';
-    title = 'Advance Wars';
-    file = 'Advance Wars (U) (V1.0) [!].gba';
+        $('#gameloadingoverlayicon').removeClass();
+        $('#emulatorwrapper').addClass('hidden');
+        $('#gametitle img').addClass('hidden');
+        $('#gametitle div').fadeOut();
 
-    // system = 'snes';
-    // title = 'ActRaiser';
-    // file = 'ActRaiser (U) [!].smc';
+        //kill current emulator iframe
+        if (self.emulatorframe) {
+            self.emulatorframe.remove();
+        }
 
-    //build all code in an iframe for separate context and returns emulator module
-    this._loademulator(system, function(Module) {
+        //build all code in an iframe for separate context and returns emulator module
+        self._loademulator(system, function(Module, frame) {
 
-        self._buildgametitlewrapper(system, title, rank);
+            self.emulatorframe = frame; //handle to iframe
 
-        self._loadGame('/loadgame/' + system + '/' + title + '/' + file, function(data) {
+            self._loadGame('/loadgame/' + system + '/' + title + '/' + file, function(data) {
 
-            self._initGame(Module, file, data);
-            
-            $('#emulator').slideDown();
+                self._initGame(Module, file, data);
+
+                self._buildGameTitle(system, title, rank);
+                
+                $('#startmessage').slideUp(500);
+                $('#emulatorandtitle').slideDown(500, function() {
+                    
+                    $('#gametitle img').removeClass();
+                    $('#gametitle div').fadeIn();
+
+                    $('#gameloadingoverlay').fadeOut();
+                    $('#gameloadingoverlayicon').addClass('close');
+                    $('#emulatorwrapper').removeClass('hidden');
+
+                });
+
+                $('#emulator')
+                    .focus()
+                    .focusout(function() {
+                        Module.pauseMainLoop();
+                        $('#emulatorwrapperoverlay').fadeIn();
+                    })
+                    .focus(function() {
+                        Module.resumeMainLoop();
+                        $('#emulatorwrapperoverlay').hide();
+                    });
+            });
         });
     });
 };
 
 crazyerics.prototype._loademulator = function(system, callback) {
-    
-    if (self.emulatorframe) {
-        self.emulatorframe.remove();
-    }
 
-    self.emulatorframe = $('<iframe/>', {
+    var frame  = $('<iframe/>', {
         src:'/emulator/' + system,
         style:'display:none',
         load: function(){
 
             //find module to run games
             var Module = this.contentWindow.Module;
-            callback(Module);
+            callback(Module, frame);
         }
     });
-    $('body').append(self.emulatorframe);
+    $('body').append(frame);
 };
 
 /**
