@@ -43,11 +43,6 @@ exports.data = {
 			romfileextentions: [
 				'sms'
 			]
-		},
-		lynx: {
-			name: "Atari Lynx",
-			shortname: "Lynx",
-			romfileextentions: []
 		}
 	}
 };
