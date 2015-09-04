@@ -258,9 +258,8 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#000000', end
 }
 
 #gameloadingoverlaycontent {
-	height: 150px;	
+	height: 185px;	
 	width: 100%;
-	background: url('/images/triangle.svg') no-repeat center center;
 	text-align: center;
 	position: relative;
 
@@ -268,6 +267,10 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#000000', end
 	-webkit-transition:All 200ms ease-in;
 	-moz-transition:All 200ms ease-in;
 	-o-transition:All 200ms ease-in;
+}
+
+#gameloadingoverlaycontent img {
+	height: 100px;
 }
 
 #gameloadingoverlaycontent p {
@@ -300,12 +303,13 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#000000', end
 }
 #gametitleimagewrapper {
 	display: table-cell;
+	min-width: 150px;
 }
 
 #gametitleimagewrapper img {
 
 	margin: 0px 15px;
-	
+
 	transition:All 200ms ease-in;
 	-webkit-transition:All 200ms ease-in;
 	-moz-transition:All 200ms ease-in;
@@ -388,4 +392,32 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#000000', end
 #output {
 	display: none;
 	width: 100%
+}
+
+.animated { 
+    -webkit-animation-duration: 5s; 
+    animation-duration: 5s; 
+    -webkit-animation-fill-mode: both; 
+    animation-fill-mode: both; 
+    animation-iteration-count:infinite; 
+    -webkit-animation-iteration-count:infinite; 
+} 
+
+@-webkit-keyframes tada { 
+    0% {-webkit-transform: scale(1);} 
+    10%, 20% {-webkit-transform: scale(0.9) rotate(-3deg);} 
+    30%, 50%, 70%, 90% {-webkit-transform: scale(1.1) rotate(3deg);} 
+    40%, 60%, 80% {-webkit-transform: scale(1.1) rotate(-3deg);} 
+    100% {-webkit-transform: scale(1) rotate(0);} 
+} 
+@keyframes tada { 
+    0% {transform: scale(1);} 
+    10%, 20% {transform: scale(0.9) rotate(-3deg);} 
+    30%, 50%, 70%, 90% {transform: scale(1.1) rotate(3deg);} 
+    40%, 60%, 80% {transform: scale(1.1) rotate(-3deg);} 
+    100% {transform: scale(1) rotate(0);} 
+} 
+.tada { 
+    -webkit-animation-name: tada; 
+    animation-name: tada; 
 }

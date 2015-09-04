@@ -150,6 +150,8 @@ crazyerics.prototype._bootstrap = function(system, title, file, rank) {
 
     $('#startmessage').slideUp(1000);
     $('#emulatorwrapper').slideDown(1000);
+
+    $('#gameloadingoverlaycontent img').attr('src', '/images/' + system + '/' + title + '/150.jpg');
     $('#gameloadingoverlay').fadeIn(500, function() {
 
         $('#gameloadingoverlaycontent').removeClass();
