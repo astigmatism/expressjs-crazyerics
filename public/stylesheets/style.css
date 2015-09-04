@@ -271,6 +271,13 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#000000', end
 
 #gameloadingoverlaycontent img {
 	height: 100px;
+
+	-webkit-animation-duration: 5s; 
+    animation-duration: 5s; 
+    -webkit-animation-fill-mode: both; 
+    animation-fill-mode: both; 
+    animation-iteration-count:infinite; 
+    -webkit-animation-iteration-count:infinite;
 }
 
 #gameloadingoverlaycontent p {
@@ -393,15 +400,6 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#000000', end
 	display: none;
 	width: 100%
 }
-
-.animated { 
-    -webkit-animation-duration: 5s; 
-    animation-duration: 5s; 
-    -webkit-animation-fill-mode: both; 
-    animation-fill-mode: both; 
-    animation-iteration-count:infinite; 
-    -webkit-animation-iteration-count:infinite; 
-} 
 
 @-webkit-keyframes tada { 
     0% {-webkit-transform: scale(1);} 
