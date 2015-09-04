@@ -9,15 +9,16 @@ block content
             option(value='gba') Game Boy Advance
             option(value='gb') Game Boy
             option(value='gen') Genesis
-        input(class="tooltip" title="Begin typing a name to see a list of results" type='text', name='search', data-hotkey='q', placeholder='Search')
+        div
+            input(class="tooltip" title="Begin typing a name to see a list of results" type='text', name='search', data-hotkey='q', placeholder='Search')
 
-    div#emulatorandtitle
+    div(class="rel")
         
         div#startmessage(class="darkgrad")
             div(class="centered")
                 h2 Welcome!
                 p Get started by searching for a game or selecting a suggestion below.
-        
+
         div#emulatorwrapper
             canvas#emulator(tabindex='0')
             textarea#output(rows="8")
@@ -27,13 +28,17 @@ block content
                     h2 Game Paused
                     p Click here to continue
 
-        div#gameloadingoverlay
-                div(class="close")
-
         div#gametitlewrapper(class="darkgrad")
             div#gametitle
                 img
                 div
+
+        div#gameloadingoverlay(class="darkgrad")
+            div#gameloadingoverlaytable
+                div#gameloadingoverlaycell
+                    div#gameloadingoverlaycontent(class="close")
+                        h2 Now Loading
+                        p#gameloadingname
 
     div#suggestionswrapper
         div(class="column")

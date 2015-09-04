@@ -58,6 +58,7 @@ var crazyerics = function() {
         $('#suggestionswrapper').on('click', 'img', function() {
 
             self._bootstrap(this.dataset.system, this.dataset.title, this.dataset.file, this.dataset.rank);
+            window.scrollTo(0,0);
         });
 
         $('.tooltip').tooltipster({
@@ -143,25 +144,35 @@ crazyerics.prototype._buildGameTitle = function(system, title, rank) {
         src = '/images/' + system + '/' + title + '/150.jpg';
     }
 
-    $('#gametitle img').attr('src', src);
-    $('#gametitle div').text(title);
+    $('#gametitle img')
+        .attr('src', src)
+        .waitForImages(function() {
+            $(this).removeClass();
+        });
+    $('#gametitle div')
+        .text(title)
+        .fadeIn(1000);
 };
 
 crazyerics.prototype._bootstrap = function(system, title, file, rank) {
     
     var self = this;
-    
+
+    $('#gameloadingname').text(title);
+    $('#gametitle img').addClass('close');
+    $('#gametitle div').fadeOut();
+
+    $('#startmessage').slideUp(1000);
+    $('#emulatorwrapper').slideDown(1000);
     $('#gameloadingoverlay').fadeIn(500, function() {
 
-        $('#gameloadingoverlayicon').removeClass();
-        $('#emulatorwrapper').addClass('hidden');
-        $('#gametitle img').addClass('hidden');
-        $('#gametitle div').fadeOut();
+        $('#gameloadingoverlaycontent').removeClass();
 
         //kill current emulator iframe
         if (self.emulatorframe) {
             self.emulatorframe.remove();
         }
+        $('#emulator').unbind(); //kill all events attached (keyboard, focus, etc)
 
         //build all code in an iframe for separate context and returns emulator module
         self._loademulator(system, function(Module, frame) {
@@ -171,23 +182,15 @@ crazyerics.prototype._bootstrap = function(system, title, file, rank) {
             self._loadGame('/loadgame/' + system + '/' + title + '/' + file, function(data) {
 
                 self._initGame(Module, file, data);
-
-                self._buildGameTitle(system, title, rank);
                 
-                $('#startmessage').slideUp(500);
-                $('#emulatorandtitle').slideDown(500, function() {
-                    
-                    $('#gametitle img').removeClass();
-                    $('#gametitle div').fadeIn();
+                $('#gametitlewrapper').slideDown(1000);
+                $('#gameloadingoverlaycontent').addClass('close');
+                $('#gameloadingoverlay').fadeOut(1000, function() {
 
-                    $('#gameloadingoverlay').fadeOut();
-                    $('#gameloadingoverlayicon').addClass('close');
-                    $('#emulatorwrapper').removeClass('hidden');
-
+                    self._buildGameTitle(system, title, rank);
                 });
 
                 $('#emulator')
-                    .focus()
                     .focusout(function() {
                         Module.pauseMainLoop();
                         $('#emulatorwrapperoverlay').fadeIn();
@@ -195,7 +198,8 @@ crazyerics.prototype._bootstrap = function(system, title, file, rank) {
                     .focus(function() {
                         Module.resumeMainLoop();
                         $('#emulatorwrapperoverlay').hide();
-                    });
+                    })
+                    .focus();
             });
         });
     });
