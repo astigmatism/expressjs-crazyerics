@@ -280,6 +280,7 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#000000', end
 
 #gameloadingoverlaycontentimage img {
 	height: 100px;
+	display: none;
 
 	-webkit-animation-duration: 5s; 
     animation-duration: 5s; 

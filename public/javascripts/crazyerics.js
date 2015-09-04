@@ -153,9 +153,10 @@ crazyerics.prototype._bootstrap = function(system, title, file, rank) {
     $('#emulatorwrapper').slideDown(1000);
 
     //before fading in loading overlay
-    var img = $('<img class="tada close" src="/images/' + system + '/' + title + '/150.jpg" />');
+    $('#gameloadingoverlaycontentimage').empty();
+    var img = $('<img class="tada" src="/images/' + system + '/' + title + '/150.jpg" />');
     img.load(function(){
-        $(this).removeClass('close');
+        $(this).fadeIn(200);
     });
     $('#gameloadingoverlaycontentimage').append(img);
 
@@ -185,7 +186,6 @@ crazyerics.prototype._bootstrap = function(system, title, file, rank) {
                 $('#gameloadingoverlay').fadeOut(1000, function() {
 
                     self._buildGameTitle(system, title, rank);
-                    $('#gameloadingoverlaycontentimage').empty();
                 });
 
                 $('#emulator')
