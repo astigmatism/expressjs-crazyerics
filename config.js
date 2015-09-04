@@ -40,7 +40,9 @@ exports.data = {
 		sms: {
 			name: "Sega Master System",
 			shortname: "Master System",
-			romfileextentions: []
+			romfileextentions: [
+				'sms'
+			]
 		},
 		lynx: {
 			name: "Atari Lynx",
