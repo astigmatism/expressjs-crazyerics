@@ -148,10 +148,18 @@ crazyerics.prototype._bootstrap = function(system, title, file, rank) {
     $('#gametitleimagewrapper img').addClass('close');
     $('#gametitlecontent').fadeOut();
 
+    //move welcome and emulator into view (first time only)
     $('#startmessage').slideUp(1000);
     $('#emulatorwrapper').slideDown(1000);
 
-    $('#gameloadingoverlaycontent img').attr('src', '/images/' + system + '/' + title + '/150.jpg');
+    //before fading in loading overlay
+    var img = $('<img class="tada close" src="/images/' + system + '/' + title + '/150.jpg" />');
+    img.load(function(){
+        $(this).removeClass('close');
+    });
+    $('#gameloadingoverlaycontentimage').append(img);
+
+    //fade in overla
     $('#gameloadingoverlay').fadeIn(500, function() {
 
         $('#gameloadingoverlaycontent').removeClass();
@@ -177,6 +185,7 @@ crazyerics.prototype._bootstrap = function(system, title, file, rank) {
                 $('#gameloadingoverlay').fadeOut(1000, function() {
 
                     self._buildGameTitle(system, title, rank);
+                    $('#gameloadingoverlaycontentimage').empty();
                 });
 
                 $('#emulator')

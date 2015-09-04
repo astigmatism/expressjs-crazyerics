@@ -200,6 +200,15 @@ background: linear-gradient(to bottom,  rgba(0,0,0,1) 0%,rgba(27,32,38,1) 50%,rg
 filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#000000', endColorstr='#000000',GradientType=0 ); /* IE6-9 */
 }
 
+.close {
+	opacity: 0;
+	transform: scale(0, 0);
+	-webkit-transform: scale(0, 0);
+	-moz-transform: scale(0, 0);
+	-o-transform: scale(0, 0);
+	-ms-transform: scale(0, 0);
+}
+
 #emulatorwrapper {
 	background-color: #000;
 	padding-top: 10px;
@@ -269,7 +278,7 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#000000', end
 	-o-transition:All 200ms ease-in;
 }
 
-#gameloadingoverlaycontent img {
+#gameloadingoverlaycontentimage img {
 	height: 100px;
 
 	-webkit-animation-duration: 5s; 
@@ -285,15 +294,6 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#000000', end
 	bottom: 0;
 	text-align: center;
 	width: 100%;
-}
-
-#gameloadingoverlaycontent.close {
-	opacity: 0;
-	transform: scale(0, 0);
-	-webkit-transform: scale(0, 0);
-	-moz-transform: scale(0, 0);
-	-o-transform: scale(0, 0);
-	-ms-transform: scale(0, 0);
 }
 
 #gametitlewrapper {
@@ -321,15 +321,6 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#000000', end
 	-webkit-transition:All 200ms ease-in;
 	-moz-transition:All 200ms ease-in;
 	-o-transition:All 200ms ease-in;
-}
-
-#gametitleimagewrapper img.close {
-	transform: scale(0, 0);
-	-webkit-transform: scale(0, 0);
-	-moz-transform: scale(0, 0);
-	-o-transform: scale(0, 0);
-	-ms-transform: scale(0, 0);
-
 }
 
 #gametitlecontent {
@@ -386,14 +377,6 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#000000', end
 #loading .loadingtext {
 	text-align: center;
 	font-size: 1.5em;
-}
-#loading.close {
-	opacity: 0;
-	transform: scale(0, 0);
-	-webkit-transform: scale(0, 0);
-	-moz-transform: scale(0, 0);
-	-o-transform: scale(0, 0);
-	-ms-transform: scale(0, 0);
 }
 
 #output {
