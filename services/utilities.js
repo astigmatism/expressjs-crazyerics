@@ -79,7 +79,16 @@ UtilitiesService.search = function(system, term, maximum, callback) {
                 //the decimal places in the score represent the "playability" of the game. This way, games with (U) and [!] will rank higher than those that are hacks or have brackets
                 searchscore += (data[game].r * 0.1); //between 9.9 and 0.0
 
-                result.push([game, data[game].g, data[game].s || system, searchscore, data[game].r]);
+                //if we're looking over the "all" search file, system info is on the "s" property
+                var sys = (system === 'all') ? data[game].s : system;
+
+                //we append the system name to the game name for unique enries (ie "Sonic the Hedgehog" exists twice and we can't use it as a key without its system name)
+                var regex = new RegExp('\.' + sys + '$', 'gi');
+                var name = game.replace(regex,'');
+
+                console.log(sys + ' ' + name + ' ' + game);
+
+                result.push([name, data[game].g, sys, searchscore, data[game].r]);
             }
         }
 
@@ -192,7 +201,6 @@ UtilitiesService.buildRomFolders = function(system, callback) {
 UtilitiesService.buildSearch = function(system, callback, exts) {
 
     var result = {};            //all games ranked
-    var officialrelease = {};   //only games which rank with a [!]
 
     //read all directory's from roms/system (each game is a dir)
     fs.readdir(__dirname + '/../public/roms/' + system, function(err, games) {
@@ -245,13 +253,6 @@ UtilitiesService.buildSearch = function(system, callback, exts) {
                             r: details.rank
                         };
 
-                        if (details.official) {
-                            officialrelease[game] = {
-                                g: details.game,
-                                r: details.rank
-                            };
-                        }
-
                         return nextgame();
                     });
                 }
@@ -263,18 +264,12 @@ UtilitiesService.buildSearch = function(system, callback, exts) {
             }
 
             var path = __dirname + '/../data/' + system + '/search.json';
-            var path2 = __dirname + '/../data/' + system + '/searchofficial.json';
 
             fs.writeFile(path, JSON.stringify(result), function(error) {
                 if (err) {
                     return callback(err);
                 }
-                fs.writeFile(path2, JSON.stringify(officialrelease), function(error) {
-                    if (err) {
-                        return callback(err);
-                    }
-                    callback(null, 'File ' + path + ' and ' + path2 + ' written')
-                });
+                callback(null, 'File ' + path + ' and ' + path2 + ' written')
             });
         });
     });
@@ -363,8 +358,6 @@ UtilitiesService.buildGames = function(system, callback, exts) {
  * @return {string}
  */
 UtilitiesService.findBestPlayableGame = function(files, exts, officialscore) {
-
-    officialscore = config.data.search.searchThreshold;
 
     //regular exp for region. order of importance. we're seeking a game which is probably in english
     var reRegion = {
@@ -488,8 +481,7 @@ UtilitiesService.findBestPlayableGame = function(files, exts, officialscore) {
     return {
         game: result,
         index: resultindex,
-        rank: (99 - resultrank),
-        official: ((99 - resultrank) >= officialscore)
+        rank: (99 - resultrank)
     };
 };
 
@@ -517,7 +509,7 @@ UtilitiesService.findSuggestionsAll = function(items, callback) {
 
     }, function(err) {
         if (err) {
-            callback(err);
+            return callback(err);
         }
 
         //randomize 
@@ -530,18 +522,27 @@ UtilitiesService.findSuggestionsAll = function(items, callback) {
 UtilitiesService.findSuggestions = function(system, items, callback) {
 
     var results = [];
+    var suggestions = [];
 
-    DataService.getFile('/data/' + system + '/searchofficial.json', function(err, data) {
+    DataService.getFile('/data/' + system + '/search.json', function(err, data) {
         if (err) {
             return callback(err);
         }
-        var games = Object.keys(data);
+
+        //narrow down our list of random games to choose based on the theshold
+        for (game in data) {
+            if (data[game].r >= config.data.search.suggestionThreshold) {
+                suggestions.push(game);
+            }
+        }
         
         //run over all games
-        for (var i = 0; i < items; ++i) {
-            
+        for (var i = 0; i < items; ++i) {            
+
             //randomly select a game
-            var randomgame = games[games.length * Math.random() << 0];
+            var randomgame = suggestions[suggestions.length * Math.random() << 0];
+
+            console.log(randomgame);
                 
             //in the result, use the game as the key and its values the file and rank
             results.push({

@@ -24,7 +24,7 @@ router.get('/data/all', function(req, res, next) {
             }
 
             //read the genreated search.json file
-            fs.readFile(__dirname + '/../data/' + system + '/searchofficial.json', 'utf8', function(err, content) {
+            fs.readFile(__dirname + '/../data/' + system + '/search.json', 'utf8', function(err, content) {
 
                 try {
                     content = JSON.parse(content);
@@ -34,10 +34,13 @@ router.get('/data/all', function(req, res, next) {
 
                 //add each game to the result, add a system property
                 for (game in content) {
+
+                    var item = content[game];
                     
-                    var temp = content[game];
-                    temp.s = system;
-                    result[game] = temp;
+                    if (item.r >= config.data.search.searchAllThreshold) {
+                        item.s = system;
+                        result[game + '.' + system] = item;
+                    }
                 }
                 
                 return nextsystem();
