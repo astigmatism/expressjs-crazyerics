@@ -70,14 +70,46 @@ var crazyerics = function() {
             self._onupload(event.target.files);
         });
 
-        $('#emulatorwrapperoverlay').click(function() {
+        $('#emulatorwrapperoverlay')
+        .on('click', function() {
+            $('#emulator').focus();
+        })
+        .on('mouseenter', function() {
+            event.preventDefault();
+        });
+
+        $('#emulatorcontrolswrapper').on('mousedown mouseup click', function(event) {
+            event.preventDefault();
             $('#emulator').focus();
         });
 
+        $('#emulatorwrapper')
+        .on('mouseenter', function(event) {
+            $('#emulatorcontrolswrapper').slideToggle({ direction: "up" }, 300);
+        })
+        .on('mouseleave', function(event) {
+            $('#emulatorcontrolswrapper').slideToggle({ direction: "down" }, 300);
+        });
+
+        $('#emulatorcontrolswrapper li.fullscreen').click(function() {
+            self._Module.requestFullScreen(true, true);
+        });
+
+        var toolbarbutons = {
+            'savestate': 113,
+            'loadstate': 115,
+            'mute': 120
+        }
+        for (li in toolbarbutons) {
+            $('#emulatorcontrolswrapper li.' + li).click(function() {
+                self._emulatorKeypress(toolbarbutons[li]); //F2
+            });
+        }
     });
 };
 
-crazyerics.prototype.loadedscripts  = {};
+crazyerics.prototype._Module = null; //handle the emulator Module
+crazyerics.prototype._ModuleLoading = false; //oldskool way to prevent double loading
 
 crazyerics.prototype.replaceSuggestions = function(system, items) {
 
@@ -144,6 +176,9 @@ crazyerics.prototype._bootstrap = function(system, title, file, rank) {
     
     var self = this;
 
+    if (self._ModuleLoading) return;
+    self._ModuleLoading = true;
+
     $('#gameloadingname').text(title);
     $('#gametitleimagewrapper img').addClass('close');
     $('#gametitlecontent').fadeOut();
@@ -164,17 +199,19 @@ crazyerics.prototype._bootstrap = function(system, title, file, rank) {
     $('#gameloadingoverlay').fadeIn(500, function() {
 
         $('#gameloadingoverlaycontent').removeClass();
+        $('#emulatorcontrolswrapper').show(); //show controls initially to reveal their presence
 
-        //kill current emulator iframe
-        if (self.emulatorframe) {
-            self.emulatorframe.remove();
-        }
-        $('#emulator').unbind(); //kill all events attached (keyboard, focus, etc)
+        
+        self._cleanupEmulator();
+
+        //create new canvas
+        $('#emulatorcanvas').append('<canvas tabindex="0" id="emulator"></canvas>');
 
         //build all code in an iframe for separate context and returns emulator module
         self._loademulator(system, function(Module, frame) {
 
             self.emulatorframe = frame; //handle to iframe
+            self._Module = Module; //handle to Module
 
             self._loadGame('/loadgame/' + system + '/' + title + '/' + file, function(data) {
 
@@ -185,6 +222,12 @@ crazyerics.prototype._bootstrap = function(system, title, file, rank) {
                 $('#gameloadingoverlaycontent').addClass('close');
                 $('#gameloadingoverlay').fadeOut(1000, function() {
 
+                    //show controls initially to reveal their presence
+                    setTimeout(function() { 
+                        self._ModuleLoading = false;
+                        $('#emulatorcontrolswrapper').slideToggle({ direction: "down" }, 300);
+                    }, 1000);
+                    
                     self._buildGameTitle(system, title, rank);
                 });
 
@@ -201,6 +244,54 @@ crazyerics.prototype._bootstrap = function(system, title, file, rank) {
             });
         });
     });
+};
+
+crazyerics.prototype._cleanupEmulator = function() {
+
+    var self = this;
+
+    //since each Module attached an event to the parent document, we need to clean those up too:    
+    $(document).unbind('fullscreenchange');
+    $(document).unbind('mozfullscreenchange');
+    $(document).unbind('webkitfullscreenchange');
+    $(document).unbind('pointerlockchange');
+    $(document).unbind('mozpointerlockchange');
+    $(document).unbind('webkitpointerlockchange');
+
+    if (self._Module) {
+        try {
+            self._Module.exit(); //calls exit on emulator ending loop (just to be safe)
+        } catch(e) {
+
+        }
+        self._Module = null;
+    }
+    if (self.emulatorframe) {
+        self.emulatorframe.remove();
+        self.emulatorframe = null;
+    }
+    $('#emulator').remove(); //kill all events attached (keyboard, focus, etc)
+};
+
+crazyerics.prototype._emulatorKeypress = function(key) {
+
+    var self = this;
+
+    if (this._Module && this._Module.RI && this._Module.RI.eventHandler) {
+
+        var e;
+        e = $.Event('keydown');
+        e.keyCode = key;
+        e.which = key;
+        this._Module.RI.eventHandler(e); //dispatch keydown
+        setTimeout(function() {
+            e = $.Event('keyup');
+            e.keyCode = key;
+            e.which = key;
+            self._Module.RI.eventHandler(e); //after wait, dispatch keyup
+        }, 10);
+        $('#emulator').focus();
+    }
 };
 
 crazyerics.prototype._loademulator = function(system, callback) {

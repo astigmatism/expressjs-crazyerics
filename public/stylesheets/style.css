@@ -217,6 +217,29 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#000000', end
 	height: auto;
 }
 
+#emulatorcontrolswrapper {
+	position: absolute;
+	left: 0;
+	bottom: 0;
+	width: 100%;
+	background-color: rgba(0,0,0,0.8);
+	height: 32px;
+	display: none;
+}
+
+#emulatorcontrolswrapper ul {
+	padding: 0;
+	margin: 0;
+	float: right;
+}
+
+#emulatorcontrolswrapper li {
+	list-style: none;
+	display: inline;
+	padding: 0px 5px;
+	cursor: pointer;
+}
+
 #emulatorwrapperoverlay{
 	display: none;
 	position: absolute;
@@ -234,6 +257,10 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#000000', end
   	transform: translateY(-50%);
   	text-align: center;
 	vertical-align: middle;
+}
+
+#emulatorcanvas {
+	min-height: 487px; /* when the emulator resizes from 800x600 into the maincolumn, this is the height */
 }
 
 #emulator {

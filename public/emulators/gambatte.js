@@ -5001,19 +5001,19 @@ function copyTempDouble(ptr) {
         canvas.requestPointerLock = canvas['requestPointerLock'] ||
                                     canvas['mozRequestPointerLock'] ||
                                     canvas['webkitRequestPointerLock'];
-        canvas.exitPointerLock = document['exitPointerLock'] ||
-                                 document['mozExitPointerLock'] ||
-                                 document['webkitExitPointerLock'] ||
+        canvas.exitPointerLock = parent.window.document['exitPointerLock'] ||
+                                 parent.window.document['mozExitPointerLock'] ||
+                                 parent.window.document['webkitExitPointerLock'] ||
                                  function(){}; // no-op if function does not exist
-        canvas.exitPointerLock = canvas.exitPointerLock.bind(document);
+        canvas.exitPointerLock = canvas.exitPointerLock.bind(parent.window.document);
         function pointerLockChange() {
-          Browser.pointerLock = document['pointerLockElement'] === canvas ||
-                                document['mozPointerLockElement'] === canvas ||
-                                document['webkitPointerLockElement'] === canvas;
+          Browser.pointerLock = parent.window.document['pointerLockElement'] === canvas ||
+                                parent.window.document['mozPointerLockElement'] === canvas ||
+                                parent.window.document['webkitPointerLockElement'] === canvas;
         }
-        document.addEventListener('pointerlockchange', pointerLockChange, false);
-        document.addEventListener('mozpointerlockchange', pointerLockChange, false);
-        document.addEventListener('webkitpointerlockchange', pointerLockChange, false);
+        parent.window.document.addEventListener('pointerlockchange', pointerLockChange, false);
+        parent.window.document.addEventListener('mozpointerlockchange', pointerLockChange, false);
+        parent.window.document.addEventListener('webkitpointerlockchange', pointerLockChange, false);
         if (Module['elementPointerLock']) {
           canvas.addEventListener("click", function(ev) {
             if (!Browser.pointerLock && canvas.requestPointerLock) {
@@ -5060,13 +5060,13 @@ function copyTempDouble(ptr) {
         var canvas = Module['canvas'];
         function fullScreenChange() {
           Browser.isFullScreen = false;
-          if ((document['webkitFullScreenElement'] || document['webkitFullscreenElement'] ||
-               document['mozFullScreenElement'] || document['mozFullscreenElement'] ||
-               document['fullScreenElement'] || document['fullscreenElement']) === canvas) {
-            canvas.cancelFullScreen = document['cancelFullScreen'] ||
-                                      document['mozCancelFullScreen'] ||
-                                      document['webkitCancelFullScreen'];
-            canvas.cancelFullScreen = canvas.cancelFullScreen.bind(document);
+          if ((parent.window.document['webkitFullScreenElement'] || parent.window.document['webkitFullscreenElement'] ||
+               parent.window.document['mozFullScreenElement'] || parent.window.document['mozFullscreenElement'] ||
+               parent.window.document['fullScreenElement'] || parent.window.document['fullscreenElement']) === canvas) {
+            canvas.cancelFullScreen = parent.window.document['cancelFullScreen'] ||
+                                      parent.window.document['mozCancelFullScreen'] ||
+                                      parent.window.document['webkitCancelFullScreen'];
+            canvas.cancelFullScreen = canvas.cancelFullScreen.bind(parent.window.document);
             if (Browser.lockPointer) canvas.requestPointerLock();
             Browser.isFullScreen = true;
             if (Browser.resizeCanvas) Browser.setFullScreenCanvasSize();
@@ -5077,9 +5077,9 @@ function copyTempDouble(ptr) {
         }
         if (!Browser.fullScreenHandlersInstalled) {
           Browser.fullScreenHandlersInstalled = true;
-          document.addEventListener('fullscreenchange', fullScreenChange, false);
-          document.addEventListener('mozfullscreenchange', fullScreenChange, false);
-          document.addEventListener('webkitfullscreenchange', fullScreenChange, false);
+          parent.window.document.addEventListener('fullscreenchange', fullScreenChange, false);
+          parent.window.document.addEventListener('mozfullscreenchange', fullScreenChange, false);
+          parent.window.document.addEventListener('webkitfullscreenchange', fullScreenChange, false);
         }
         canvas.requestFullScreen = canvas['requestFullScreen'] ||
                                    canvas['mozRequestFullScreen'] ||
@@ -5299,7 +5299,9 @@ function copyTempDouble(ptr) {
                  }
                  break;
            }
-        }};function _RWebInputDestroy(context) {
+        }};
+        Module.RI = RI;
+        function _RWebInputDestroy(context) {
         if (context === RI.contexts.length) {
            RI.contexts.pop();
            if (RI.contexts.length === 0) {
