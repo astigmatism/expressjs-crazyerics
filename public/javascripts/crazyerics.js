@@ -75,7 +75,10 @@ var crazyerics = function() {
             $('#emulator').focus();
         })
         .on('mouseenter', function() {
-            event.preventDefault();
+            event.stopPropagation();
+        })
+        .on('mouseleave', function() {
+            event.stopPropagation();
         });
 
         $('#emulatorcontrolswrapper').on('mousedown mouseup click', function(event) {
@@ -85,10 +88,10 @@ var crazyerics = function() {
 
         $('#emulatorwrapper')
         .on('mouseenter', function(event) {
-            $('#emulatorcontrolswrapper').slideToggle({ direction: "up" }, 300);
+            $('#emulatorcontrolswrapper').removeClass();
         })
         .on('mouseleave', function(event) {
-            $('#emulatorcontrolswrapper').slideToggle({ direction: "down" }, 300);
+            $('#emulatorcontrolswrapper').addClass('closed');
         });
 
         $('#emulatorcontrolswrapper li.fullscreen').click(function() {
@@ -227,7 +230,8 @@ crazyerics.prototype._bootstrap = function(system, title, file, rank) {
                     //show controls initially to reveal their presence
                     setTimeout(function() { 
                         self._ModuleLoading = false;
-                        $('#emulatorcontrolswrapper').slideToggle({ direction: "down" }, 300);
+                        //$('#emulatorcontrolswrapper').slideToggle({ direction: "down" }, 300);
+                        $('#emulatorcontrolswrapper').addClass('closed');
                     }, 1000);
                     
                     self._buildGameTitle(system, title, rank);
