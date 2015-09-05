@@ -514,6 +514,9 @@ UtilitiesService.findSuggestionsAll = function(items, callback) {
             return callback(err);
         }
 
+        //retain original amount (possible to go over because we found suggests as items / systems.length)
+        aggrigation = aggrigation.slice(0, items -1);
+
         //randomize 
         aggrigation = UtilitiesService.shuffle(aggrigation);
 
