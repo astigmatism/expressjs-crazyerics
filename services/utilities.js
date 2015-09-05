@@ -364,7 +364,7 @@ UtilitiesService.buildGames = function(system, callback, exts) {
  */
 UtilitiesService.findBestPlayableGame = function(files, exts, officialscore) {
 
-    officialscore = officialscore || 90;
+    officialscore = config.data.search.searchThreshold;
 
     //regular exp for region. order of importance. we're seeking a game which is probably in english
     var reRegion = {
@@ -373,11 +373,15 @@ UtilitiesService.findBestPlayableGame = function(files, exts, officialscore) {
         uj:     new RegExp('\\(uj\\)', 'ig'),       //Japanese and US release (alt)
         ue:     new RegExp('\\(ue\\)', 'ig'),       //Europe and US release
         eu:     new RegExp('\\(eu\\)', 'ig'),       //Europe and US release (alt)
+        ub:     new RegExp('\\(ub\\)', 'ig'),       //Brazil and US
+        ueb:    new RegExp('\\(ueb\\)', 'ig'),      //Brazil, Europe and US
+        jub:    new RegExp('\\(jub\\)', 'ig'),      //Japan, Brazil and US
         w:      new RegExp('\\(w\\)', 'ig'),        //World release
         uk:     new RegExp('\\(uk\\)', 'ig'),       //UK release
         c:      new RegExp('\\(c\\)', 'ig'),        //Canada release
         a:      new RegExp('\\(a\\)', 'ig'),        //Ausrilia release
         e:      new RegExp('\\(e\\)', 'ig'),        //Europe release (last ditch check as can be english sometimes)
+        eb:     new RegExp('\\(eb\\)', 'ig'),        //Europe and Brazil
         eng:    new RegExp('Eng', 'ig'),            //English translation
         j:      new RegExp('\\(j\\)', 'ig')         //so sometimes a japanese relese IS important because we don't want it ranking as long as a hacked game
     };
@@ -428,7 +432,6 @@ UtilitiesService.findBestPlayableGame = function(files, exts, officialscore) {
             ++runningrank;
         }
 
-        //playable (87)
         if (item.match(reOption.p) && resultrank > runningrank) {
             result = item;
             resultindex = i;

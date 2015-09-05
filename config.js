@@ -44,5 +44,9 @@ exports.data = {
 				'sms'
 			]
 		}
+	},
+	search: {
+		boxFrontThreshold: 83,
+		searchThreshold: 86
 	}
 };
