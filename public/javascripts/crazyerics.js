@@ -194,8 +194,14 @@ crazyerics.prototype._bootstrap = function(system, title, file, rank) {
     $('#emulatorwrapper').slideDown(1000);
 
     //before fading in loading overlay
+    
+    //loading image
     $('#gameloadingoverlaycontentimage').empty();
-    var img = $('<img class="tada" src="/images/' + system + '/' + title + '/150.jpg" />');
+    var src = '/images/blanks/' + system + '_150.png';
+    if (rank >= this._boxFrontThreshold) {
+        src = '/images/' + system + '/' + title + '/150.jpg';
+    }
+    var img = $('<img class="tada" src="' + src + '" />');
     img.load(function(){
         $(this).fadeIn(200);
     });
