@@ -86,8 +86,6 @@ UtilitiesService.search = function(system, term, maximum, callback) {
                 var regex = new RegExp('\.' + sys + '$', 'gi');
                 var name = game.replace(regex,'');
 
-                console.log(sys + ' ' + name + ' ' + game);
-
                 result.push([name, data[game].g, sys, searchscore, data[game].r]);
             }
         }
@@ -546,8 +544,6 @@ UtilitiesService.findSuggestions = function(system, items, callback) {
 
             //randomly select a game
             var randomgame = suggestions[suggestions.length * Math.random() << 0];
-
-            console.log(randomgame);
                 
             //in the result, use the game as the key and its values the file and rank
             results.push({
