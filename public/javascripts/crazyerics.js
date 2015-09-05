@@ -95,16 +95,18 @@ var crazyerics = function() {
             self._Module.requestFullScreen(true, true);
         });
 
-        var toolbarbutons = {
-            'savestate': 113,
-            'loadstate': 115,
-            'mute': 120
-        }
-        for (li in toolbarbutons) {
-            $('#emulatorcontrolswrapper li.' + li).click(function() {
-                self._emulatorKeypress(toolbarbutons[li]); //F2
-            });
-        }
+        $('#emulatorcontrolswrapper li.savestate').click(function() {
+            self._emulatorKeypress(113); //F2
+        });
+
+        $('#emulatorcontrolswrapper li.loadstate').click(function() {
+            self._emulatorKeypress(115); //F4
+        });
+
+        $('#emulatorcontrolswrapper li.mute').click(function() {
+            self._emulatorKeypress(120); //F9
+        });
+
     });
 };
 
