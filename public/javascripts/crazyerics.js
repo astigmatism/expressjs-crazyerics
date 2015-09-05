@@ -38,8 +38,8 @@ var crazyerics = function() {
 
                 var src = '/images/blanks/' + item[2] + '_50.png';
 
-                //have image, see sitescraper project for rank in which we downloaded an image
-                if (item[4] >= 87) {
+                //have image, see config for "boxFrontThreshold"
+                if (item[4] >= self._boxFrontThreshold) {
                     src = '/images/' + item[2] + '/' + item[0] + '/50.jpg';
                 }
 
@@ -113,6 +113,7 @@ var crazyerics = function() {
     });
 };
 
+crazyerics.prototype._boxFrontThreshold = 83;
 crazyerics.prototype._Module = null; //handle the emulator Module
 crazyerics.prototype._ModuleLoading = false; //oldskool way to prevent double loading
 
@@ -161,7 +162,7 @@ crazyerics.prototype._buildGameTitle = function(system, title, rank) {
 
     var src = '/images/blanks/' + system + '_150.png';
 
-    if (rank >= 87) {
+    if (rank >= this._boxFrontThreshold) {
         src = '/images/' + system + '/' + title + '/150.jpg';
     }
 

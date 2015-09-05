@@ -269,7 +269,7 @@ UtilitiesService.buildSearch = function(system, callback, exts) {
                 if (err) {
                     return callback(err);
                 }
-                callback(null, 'File ' + path + ' and ' + path2 + ' written')
+                callback(null, 'File ' + path + ' written')
             });
         });
     });
@@ -369,12 +369,14 @@ UtilitiesService.findBestPlayableGame = function(files, exts, officialscore) {
         ub:     new RegExp('\\(ub\\)', 'ig'),       //Brazil and US
         ueb:    new RegExp('\\(ueb\\)', 'ig'),      //Brazil, Europe and US
         jub:    new RegExp('\\(jub\\)', 'ig'),      //Japan, Brazil and US
+        jue:    new RegExp('\\(jue\\)', 'ig'),      //Japan, Europe and US
         w:      new RegExp('\\(w\\)', 'ig'),        //World release
         uk:     new RegExp('\\(uk\\)', 'ig'),       //UK release
         c:      new RegExp('\\(c\\)', 'ig'),        //Canada release
         a:      new RegExp('\\(a\\)', 'ig'),        //Ausrilia release
         e:      new RegExp('\\(e\\)', 'ig'),        //Europe release (last ditch check as can be english sometimes)
         eb:     new RegExp('\\(eb\\)', 'ig'),        //Europe and Brazil
+        jeb:    new RegExp('\\(jeb\\)', 'ig'),      //Japan, Brazil and Europe
         eng:    new RegExp('Eng', 'ig'),            //English translation
         j:      new RegExp('\\(j\\)', 'ig')         //so sometimes a japanese relese IS important because we don't want it ranking as long as a hacked game
     };

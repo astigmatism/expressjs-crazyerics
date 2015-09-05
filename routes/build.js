@@ -5,7 +5,7 @@ var router = express.Router();
 var config = require('../config.js');
 var UtilitiesService = require('../services/utilities');
 
-router.get('/data/all', function(req, res, next) {
+router.get('/data', function(req, res, next) {
 
     result = {};
 
@@ -23,30 +23,62 @@ router.get('/data/all', function(req, res, next) {
                 return nextsystem();
             }
 
-            //read the genreated search.json file
-            fs.readFile(__dirname + '/../data/' + system + '/search.json', 'utf8', function(err, content) {
+            if (config && config.data && config.data.systems && config.data.systems[system]) {
 
-                try {
-                    content = JSON.parse(content);
-                } catch (e) {
-                    return res.json(e);
-                }
+                var systemconfig = config.data.systems[system];
 
-                //add each game to the result, add a system property
-                for (game in content) {
-
-                    var item = content[game];
-                    
-                    if (item.r >= config.data.search.searchAllThreshold) {
-                        item.s = system;
-                        result[game + '.' + system] = item;
+                async.series([
+                    function(systemcallback){
+                        UtilitiesService.buildGames(system, function(err, data) {
+                            if (err) {
+                                return systemcallback(err);
+                            }
+                            systemcallback(null, data);
+                        }, systemconfig.romfileextentions);
+                    },
+                    function(systemcallback){
+                        UtilitiesService.buildSearch(system, function(err, data) {
+                            if (err) {
+                                return systemcallback(err);
+                            }
+                            systemcallback(null, data);
+                        }, systemconfig.romfileextentions);
                     }
-                }
-                
-                return nextsystem();
+                ], function(err, results) {
+                    if (err) {
+                        return callback(err);
+                    }
+                    console.log(results);
+                    
 
-            });
+                    //read the genreated search.json file
+                    fs.readFile(__dirname + '/../data/' + system + '/search.json', 'utf8', function(err, content) {
 
+                        try {
+                            content = JSON.parse(content);
+                        } catch (e) {
+                            return res.json(e);
+                        }
+
+                        //add each game to the result, add a system property
+                        for (game in content) {
+
+                            var item = content[game];
+                            
+                            if (item.r >= config.data.search.searchAllThreshold) {
+                                item.s = system;
+                                result[game + '.' + system] = item;
+                            }
+                        }
+                        
+                        return nextsystem();
+
+                    });
+                });
+
+            } else {
+                return callback(system + ' is not found the config and is not a valid system');
+            }
         }, function(err) {
             if (err) {
                 res.json(err);
@@ -60,42 +92,6 @@ router.get('/data/all', function(req, res, next) {
             });
         });
     });
-});
-
-router.get('/data/:system', function(req, res, next) {
-
-    var system = req.params.system;
-
-    if (config && config.data && config.data.systems && config.data.systems[system]) {
-
-        var systemconfig = config.data.systems[system];
-        
-        async.series([
-            function(callback){
-                UtilitiesService.buildGames(system, function(err, data) {
-                    if (err) {
-                        return callback(err);
-                    }
-                    callback(null, data);
-                }, systemconfig.romfileextentions);
-            },
-            function(callback){
-                UtilitiesService.buildSearch(system, function(err, data) {
-                    if (err) {
-                        return callback(err);
-                    }
-                    callback(null, data);
-                }, systemconfig.romfileextentions);
-            }
-        ], function(err, results) {
-            if (err) {
-                return res.json(err);
-            }
-            res.json(results);
-        });
-    } else {
-        res.json(system + ' is not found the config and is not a valid system');
-    }
 });
 
 router.get('/folders/:system', function(req, res, next) {

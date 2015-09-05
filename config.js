@@ -43,11 +43,18 @@ exports.data = {
 			romfileextentions: [
 				'sms'
 			]
+		},
+		gg: {
+			name: "Sega Game Gear",
+			shortname: "Game Gear",
+			romfileextentions: [
+				'gg'
+			]
 		}
 	},
 	search: {
-		boxFrontThreshold: 83,
-		searchAllThreshold: 86,
-		suggestionThreshold: 86
+		boxFrontThreshold: 81,
+		searchAllThreshold: 84,
+		suggestionThreshold: 84
 	}
 };
