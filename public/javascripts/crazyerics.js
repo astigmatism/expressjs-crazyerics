@@ -36,18 +36,14 @@ var crazyerics = function() {
                 ]
                  */
 
-
                 var src = '/images/blanks/' + item[2] + '_50.png';
+
                 //have image, see config for "boxFrontThreshold"
                 if (item[4] >= self._boxFrontThreshold) {
                     src = '/images/' + item[2] + '/' + item[0] + '/50.jpg';
                 }
-                var img = '<img class="' + item[2] + '" src="' + src + '">';
-                img.load(function(){
-                    $(this).fadeIn(200);
-                });
 
-                var html = '<div class="autocomplete-suggestion" data-title="' + item[0] + '" data-file="' + item[1] + '" data-system="' + item[2] + '" data-searchscore="' + item[3] + '" data-rank="' + item[4] + '">' + img + '<div>' + item[0] + '</div></div>';
+                var html = '<div class="autocomplete-suggestion" data-title="' + item[0] + '" data-file="' + item[1] + '" data-system="' + item[2] + '" data-searchscore="' + item[3] + '" data-rank="' + item[4] + '"><img src="' + src + '"><div>' + item[0] + '</div></div>';
                 //self.googleimagesearch(item[2] + ' ' + item[0] + ' box', 'img[name="' + item[0] + '"]');
                 return html;
             },
