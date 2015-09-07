@@ -250,7 +250,7 @@ crazyerics.prototype._bootstrap = function(system, title, file, rank) {
                         self._ModuleLoading = false;
                         //$('#emulatorcontrolswrapper').slideToggle({ direction: "down" }, 300);
                         $('#emulatorcontrolswrapper').addClass('closed');
-                    }, 1000);
+                    }, 3000);
                     
                     self._buildGameTitle(system, title, rank);
                 });
