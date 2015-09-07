@@ -110,6 +110,17 @@ var crazyerics = function() {
             self._emulatorKeypress(120); //F9
         });
 
+        $('#emulatorcontrolswrapper li.decrementslot').click(function() {
+            self._emulatorKeypress(117); //F6
+        });
+
+        $('#emulatorcontrolswrapper li.incrementslot').click(function() {
+            self._emulatorKeypress(118); //F6
+        });
+
+        $('#emulatorcontrolswrapper li.fastforward').click(function() {
+            self._emulatorKeypress(32); //F6
+        });
     });
 };
 

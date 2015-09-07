@@ -209,6 +209,14 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#000000', end
 	-ms-transform: scale(0, 0);
 }
 
+.fl {
+	float: left;
+}
+
+.fr {
+	float: right;
+}
+
 #emulatorwrapper {
 	background-color: #000;
 	padding-top: 10px;
@@ -237,15 +245,14 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#000000', end
 }
 
 #emulatorcontrolswrapper ul {
-	padding: 0;
+	padding: 0 5px;
 	margin: 0;
-	float: right;
 }
 
 #emulatorcontrolswrapper li {
 	list-style: none;
 	display: inline;
-	padding: 0px 5px;
+	padding: 0px 3px;
 	cursor: pointer;
 }
 

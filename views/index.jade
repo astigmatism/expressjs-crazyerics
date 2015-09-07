@@ -12,7 +12,7 @@ block content
             option(value='gg') Game Gear
             option(value='sms') Master System
         div
-            input(class="tooltip" title="Begin typing a name to see a list of results. Use a filter for foreign or unofficial titles." type='text', name='search', data-hotkey='q', placeholder='Search')
+            input(class="tooltip" title="Begin typing a name to see a list of results. Select a system for foreign or unofficial titles." type='text', name='search', data-hotkey='q', placeholder='Search')
 
     div(class="rel")
         
@@ -24,15 +24,22 @@ block content
         div#emulatorwrapper
             div#emulatorcanvas
             div#emulatorcontrolswrapper
-                ul
-                    li(class="mute")
-                        img(class="tooltip",src="/images/mute.png",title="Toggle Mute (F9)")
-                    li(class="loadstate")
-                        img(class="tooltip",src="/images/loadstate.png",title="Load State (F4)")
-                    li(class="savestate")
-                        img(class="tooltip",src="/images/savestate.png",title="Save State (F2)")
+                ul(class="fl")
                     li(class="fullscreen")
                         img(class="tooltip",src="/images/fullscreen.png",title="Enter Fullscreen")
+                    li(class="mute")
+                        img(class="tooltip",src="/images/mute.png",title="Toggle Mute (F9)")
+                    li(class="fastforward")
+                        img(class="tooltip",src="/images/fastforward.png",title="Toggle Fast Forward (Spacebar)")
+                ul(class="fr")
+                    li(class="loadstate")
+                        img(class="tooltip",src="/images/loadstate.png",title="Load State (F4)")
+                    li(class="decrementslot")
+                        img(class="tooltip",src="/images/decrementslot.png",title="Decrement Save Slot (F6)")
+                    li(class="incrementslot")
+                        img(class="tooltip",src="/images/incrementslot.png",title="Increment Save Slot (F7)")
+                    li(class="savestate")
+                        img(class="tooltip",src="/images/savestate.png",title="Save State (F2)")
             textarea#output(rows="8")
         
             div#emulatorwrapperoverlay
