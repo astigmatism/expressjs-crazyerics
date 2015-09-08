@@ -1,8 +1,12 @@
+var FS = null;
+
 var crazyerics = function() {
     
     var self = this;
     
     $(document).ready(function() {
+
+        self._db = $.indexedDB("crazyerics");
 
         //console select
         $('#searchform select').selectOrDie({
@@ -99,34 +103,47 @@ var crazyerics = function() {
         });
 
         $('#emulatorcontrolswrapper li.savestate').click(function() {
-            self._emulatorKeypress(113); //F2
+            self._simulateEmulatorKeypress(113); //F2
         });
 
         $('#emulatorcontrolswrapper li.loadstate').click(function() {
-            self._emulatorKeypress(115); //F4
+            self._simulateEmulatorKeypress(115); //F4
         });
 
         $('#emulatorcontrolswrapper li.mute').click(function() {
-            self._emulatorKeypress(120); //F9
+            self._simulateEmulatorKeypress(120); //F9
         });
 
         $('#emulatorcontrolswrapper li.decrementslot').click(function() {
-            self._emulatorKeypress(117); //F6
+            self._simulateEmulatorKeypress(117); //F6
         });
 
         $('#emulatorcontrolswrapper li.incrementslot').click(function() {
-            self._emulatorKeypress(118); //F6
+            self._simulateEmulatorKeypress(118); //F6
         });
 
         $('#emulatorcontrolswrapper li.fastforward').click(function() {
-            self._emulatorKeypress(32); //F6
+            self._simulateEmulatorKeypress(32); //F6
+        });
+
+        $('#emulatorcontrolswrapper li.pause').click(function() {
+            self._simulateEmulatorKeypress(80); //P
+        });
+
+        $('#emulatorcontrolswrapper li.reset').click(function() {
+            self._simulateEmulatorKeypress(72); //F6
         });
     });
 };
 
+crazyerics.prototype.LSFS = null; //local storge file system
+
 crazyerics.prototype._boxFrontThreshold = 83;
 crazyerics.prototype._Module = null; //handle the emulator Module
 crazyerics.prototype._ModuleLoading = false; //oldskool way to prevent double loading
+
+crazyerics.prototype._activeFile = null;
+crazyerics.prototype._activeSaveStateSlot = 0;
 
 crazyerics.prototype.replaceSuggestions = function(system, items) {
 
@@ -231,13 +248,15 @@ crazyerics.prototype._bootstrap = function(system, title, file, rank) {
         $('#emulatorcanvas').append('<canvas tabindex="0" id="emulator"></canvas>');
 
         //build all code in an iframe for separate context and returns emulator module
-        self._loademulator(system, function(Module, frame) {
+        self._loademulator(system, function(Module, fs, frame) {
 
             self.emulatorframe = frame; //handle to iframe
             self._Module = Module; //handle to Module
+            FS = fs;
 
             self._loadGame('/loadgame/' + system + '/' + title + '/' + file, function(data) {
 
+                self._setupKeypressInterceptor(system, title, file);
                 self._initGame(Module, file, data);
                 
                 $('#gametitlewrapper').slideDown(1000);
@@ -282,6 +301,12 @@ crazyerics.prototype._cleanupEmulator = function() {
     $(document).unbind('mozpointerlockchange');
     $(document).unbind('webkitpointerlockchange');
 
+    self._activeSaveStateSlot = 0;
+
+    if (FS) {
+        FS = null;
+    }
+
     if (self._Module) {
         try {
             self._Module.exit(); //calls exit on emulator ending loop (just to be safe)
@@ -297,7 +322,7 @@ crazyerics.prototype._cleanupEmulator = function() {
     $('#emulator').remove(); //kill all events attached (keyboard, focus, etc)
 };
 
-crazyerics.prototype._emulatorKeypress = function(key) {
+crazyerics.prototype._simulateEmulatorKeypress = function(key) {
 
     var self = this;
 
@@ -318,6 +343,62 @@ crazyerics.prototype._emulatorKeypress = function(key) {
     }
 };
 
+crazyerics.prototype._setupKeypressInterceptor = function(system, title, file) {
+    
+    var self = this;
+
+    if (this._Module && this._Module.RI && this._Module.RI.eventHandler) {
+
+        var callback = this._Module.RI.eventHandler;
+
+        this._Module.RI.eventHandler = function(event) {
+
+
+            switch (event.type) {
+                case 'keyup':
+                    var key = event.keyCode;
+                    switch(key) {
+                        case 113: //save state
+                            //give time for the emaultor to save the file
+                            setTimeout(function() {
+                                
+                                var activefile = file.replace(new RegExp('\.[a-z]{1,3}$', 'gi'), '');
+                                var filename = '/' + activefile + '.state' + (self._activeSaveStateSlot === 0 ? '' : self._activeSaveStateSlot);
+                                try {
+                                    var statecontent = FS.open(filename);
+                                    if (statecontent && statecontent.node && statecontent.node.contents) {
+
+                                        var objectStore = self._db.objectStore(file, true);
+                                        objectStore.delete(filename);
+                                        objectStore.add(statecontent.node.contents, filename)
+                                            .done(function(result, event){
+                                                console.log(result);
+                                            })
+                                            .fail(function(error, event){
+                                                console.log(error);
+                                            });
+                                    }
+                                } catch(e) {
+                                    console.log('could not write local storage save state', e);
+                                }
+                            },500);
+                            break;
+                        case 117: //decrement state
+                            self._activeSaveStateSlot = self._activeSaveStateSlot === 0 ? 0 : self._activeSaveStateSlot -1;
+                            break;
+                        case 118: //incremenet state
+                            self._activeSaveStateSlot++;
+                            break;
+                    }
+                break;
+            };
+
+            callback(event);
+        }
+
+    }
+};
+
 crazyerics.prototype._loademulator = function(system, callback) {
 
     var frame  = $('<iframe/>', {
@@ -326,8 +407,9 @@ crazyerics.prototype._loademulator = function(system, callback) {
         load: function(){
 
             //find module to run games
+            var FS = this.contentWindow.FS;
             var Module = this.contentWindow.Module;
-            callback(Module, frame);
+            callback(Module, FS, frame);
         }
     });
     $('body').append(frame);
@@ -379,6 +461,8 @@ crazyerics.prototype._onupload = function(files) {
 
 crazyerics.prototype._initGame = function(Module, file, data) {
 
+    var self = this;
+
     Module.FS_createDataFile('/', file, data, true, true);
     Module.arguments = ['-v', '/' + file];
 
@@ -398,8 +482,79 @@ crazyerics.prototype._initGame = function(Module, file, data) {
     // document.getElementById('latency').disabled = true;
     // document.getElementById('latency-label').style.color = 'gray';
     
-    Module['callMain'](Module['arguments']);
+
+    //restore saved states
+    var objectStore = self._db.objectStore(file, true);
+    objectStore.count()
+        .done(function(result, event) {
+
+            console.log('save states for ' + file + ': ' + result);
+
+            var loadGame = function(i, callback) {
+                var activefile = file.replace(new RegExp('\.[a-z]{1,3}$', 'gi'), '');
+                var filename = '/' + activefile + '.state' + (i === 0 ? '' : i);
+
+                objectStore.get(filename)
+                    .done(function(result, event) {
+                        Module.FS_createDataFile('/', filename, result, true, true);
+                        callback();
+                    })
+                    .fail(function(error, event) {
+                        console.log(error);
+                        callback();
+                    });
+            };
+
+            asyncLoop(result, function(loop) {
+                loadGame(loop.iteration(), function(result) {
+                    loop.next();
+                })},
+                function(){
+
+                    console.log('save states restored');
+
+                    //begin game
+                    Module['callMain'](Module['arguments']);
+                }
+            );
+        })
+        .fail(function(error, event) {
+            console.log(error);
+        });
+
 };
+
+function asyncLoop(iterations, func, callback) {
+    var index = 0;
+    var done = false;
+    var loop = {
+        next: function() {
+            if (done) {
+                return;
+            }
+
+            if (index < iterations) {
+                index++;
+                func(loop);
+
+            } else {
+                done = true;
+                callback();
+            }
+        },
+
+        iteration: function() {
+            return index - 1;
+        },
+
+        break: function() {
+            done = true;
+            callback();
+        }
+    };
+    loop.next();
+    return loop;
+}
 
 
 var crazyerics = new crazyerics();
