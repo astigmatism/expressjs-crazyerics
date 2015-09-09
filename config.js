@@ -54,6 +54,6 @@ exports.data = {
 	},
 	search: {
 		boxFrontThreshold: 63,
-		suggestionThreshold: 68
+		suggestionThreshold: 66
 	}
 };

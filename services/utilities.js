@@ -374,13 +374,13 @@ UtilitiesService.findBestPlayableGame = function(files, exts, officialscore) {
         c:      new RegExp('\\(c\\)', 'ig'),        //Canada release
         a:      new RegExp('\\(a\\)', 'ig'),        //Ausrilia release
         e:      new RegExp('\\(e\\)', 'ig'),        //Europe release (last ditch check as can be english sometimes)
-        eb:     new RegExp('\\(eb\\)', 'ig')        //Europe and Brazil
+        eb:     new RegExp('\\(eb\\)', 'ig'),        //Europe and Brazil
+        eng:    new RegExp('Eng', 'ig')             //English translation of japanese game. I'm putting this up here so that it DOES appear in suggestions and searches
     };
 
     //regions not in english are still important so that they arent ranked low
     var reRegion2 = {
-        j:      new RegExp('\\(j\\)', 'ig')         //japanese
-        eng:    new RegExp('Eng', 'ig'),            //English translation of japanese game
+        j:      new RegExp('\\(j\\)', 'ig'),        //japanese
     };
 
 
@@ -420,7 +420,7 @@ UtilitiesService.findBestPlayableGame = function(files, exts, officialscore) {
             continue;
         }
 
-        //pass over all english regions with playable [!] //99-84
+        //pass over all english regions with playable [!] //99-83
         for (re in reRegion) {
             if (item.match(reRegion[re]) && item.match(reOption.p) && resultrank > runningrank) {
                 result = item;
@@ -430,7 +430,7 @@ UtilitiesService.findBestPlayableGame = function(files, exts, officialscore) {
             ++runningrank;
         }
 
-        //pass over all english regions, no brackets (83-68)
+        //pass over all english regions, no brackets (82-66)
         for (re in reRegion) {
             if (item.match(reRegion[re]) && !item.match(reOption.b) && resultrank > runningrank) {
                 result = item;
@@ -442,7 +442,7 @@ UtilitiesService.findBestPlayableGame = function(files, exts, officialscore) {
 
         // cut off "all search" and suggestions here (we want them to return english games only)
 
-        //all non-english regions with playable [!] (67-66)
+        //all non-english regions with playable [!] (65)
         for (re in reRegion2) {
             if (item.match(reRegion2[re]) && item.match(reOption.p) && resultrank > runningrank) {
                 result = item;
@@ -452,7 +452,7 @@ UtilitiesService.findBestPlayableGame = function(files, exts, officialscore) {
             ++runningrank;
         }
 
-        //pass over all non-english regions, no brackets (65-64)
+        //pass over all non-english regions, no brackets (64)
         for (re in reRegion2) {
             if (item.match(reRegion2[re]) && !item.match(reOption.b) && resultrank > runningrank) {
                 result = item;
