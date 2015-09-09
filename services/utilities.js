@@ -379,6 +379,7 @@ UtilitiesService.findBestPlayableGame = function(files, exts, officialscore) {
         j:      new RegExp('\\(j\\)', 'ig')         //so sometimes a japanese relese IS important because we don't want it ranking as long as a hacked game
     };
 
+
     var reOption = {
         p:      new RegExp('\\[!\\]', 'ig'),        //The ROM is an exact copy of the original game; it has not had any hacks or modifications.
         f:      new RegExp('\\[f\d?\\]', 'ig'),        //A fixed dump is a ROM that has been altered to run better on a flashcart or an emulator.
@@ -415,7 +416,7 @@ UtilitiesService.findBestPlayableGame = function(files, exts, officialscore) {
             continue;
         }
 
-        //pass over all regions, check playable
+        //pass over all regions, check playable //99-82
         for (re in reRegion) {
             if (item.match(reRegion[re]) && item.match(reOption.p) && resultrank > runningrank) {
                 result = item;
@@ -425,6 +426,7 @@ UtilitiesService.findBestPlayableGame = function(files, exts, officialscore) {
             ++runningrank;
         }
 
+        //81
         if (item.match(reOption.p) && resultrank > runningrank) {
             result = item;
             resultindex = i;
@@ -432,7 +434,7 @@ UtilitiesService.findBestPlayableGame = function(files, exts, officialscore) {
         }
         ++runningrank;
 
-        //pass over all regions, no brackets
+        //pass over all regions, no brackets (63-80)
         for (re in reRegion) {
             if (item.match(reRegion[re]) && !item.match(reOption.b) && resultrank > runningrank) {
                 result = item;
