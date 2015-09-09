@@ -55,7 +55,7 @@ exports.data = {
 	search: {
 		notes: "Rank Skip is passing over the japanese and translated titles with [!]",
 		boxFrontThreshold: 63,
-		searchAllThreshold: 63,
+		searchAllThreshold: 65,
 		searchAllRankSkip: [
 			82,
 			83
