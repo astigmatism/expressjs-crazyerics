@@ -360,6 +360,7 @@ UtilitiesService.findBestPlayableGame = function(files, exts, officialscore) {
     //regular exp for region. order of importance. we're seeking a game which is probably in english
     var reRegion = {
         u:      new RegExp('\\(u\\)', 'ig'),        //US region
+        w:      new RegExp('\\(w\\)', 'ig'),        //World release (always english i think)
         ju:     new RegExp('\\(ju\\)', 'ig'),       //Japanese and US release
         uj:     new RegExp('\\(uj\\)', 'ig'),       //Japanese and US release (alt)
         ue:     new RegExp('\\(ue\\)', 'ig'),       //Europe and US release
@@ -368,15 +369,18 @@ UtilitiesService.findBestPlayableGame = function(files, exts, officialscore) {
         ueb:    new RegExp('\\(ueb\\)', 'ig'),      //Brazil, Europe and US
         jub:    new RegExp('\\(jub\\)', 'ig'),      //Japan, Brazil and US
         jue:    new RegExp('\\(jue\\)', 'ig'),      //Japan, Europe and US
-        w:      new RegExp('\\(w\\)', 'ig'),        //World release
+        jeb:    new RegExp('\\(jeb\\)', 'ig'),      //Japan, Brazil and Europe
         uk:     new RegExp('\\(uk\\)', 'ig'),       //UK release
         c:      new RegExp('\\(c\\)', 'ig'),        //Canada release
         a:      new RegExp('\\(a\\)', 'ig'),        //Ausrilia release
         e:      new RegExp('\\(e\\)', 'ig'),        //Europe release (last ditch check as can be english sometimes)
-        eb:     new RegExp('\\(eb\\)', 'ig'),        //Europe and Brazil
-        jeb:    new RegExp('\\(jeb\\)', 'ig'),      //Japan, Brazil and Europe
-        eng:    new RegExp('Eng', 'ig'),            //English translation
-        j:      new RegExp('\\(j\\)', 'ig')         //so sometimes a japanese relese IS important because we don't want it ranking as long as a hacked game
+        eb:     new RegExp('\\(eb\\)', 'ig')        //Europe and Brazil
+    };
+
+    //regions not in english are still important so that they arent ranked low
+    var reRegion2 = {
+        j:      new RegExp('\\(j\\)', 'ig')         //japanese
+        eng:    new RegExp('Eng', 'ig'),            //English translation of japanese game
     };
 
 
@@ -416,7 +420,7 @@ UtilitiesService.findBestPlayableGame = function(files, exts, officialscore) {
             continue;
         }
 
-        //pass over all regions, check playable //99-82
+        //pass over all english regions with playable [!] //99-84
         for (re in reRegion) {
             if (item.match(reRegion[re]) && item.match(reOption.p) && resultrank > runningrank) {
                 result = item;
@@ -426,15 +430,7 @@ UtilitiesService.findBestPlayableGame = function(files, exts, officialscore) {
             ++runningrank;
         }
 
-        //81
-        if (item.match(reOption.p) && resultrank > runningrank) {
-            result = item;
-            resultindex = i;
-            resultrank = runningrank;
-        }
-        ++runningrank;
-
-        //pass over all regions, no brackets (63-80)
+        //pass over all english regions, no brackets (83-68)
         for (re in reRegion) {
             if (item.match(reRegion[re]) && !item.match(reOption.b) && resultrank > runningrank) {
                 result = item;
@@ -444,7 +440,40 @@ UtilitiesService.findBestPlayableGame = function(files, exts, officialscore) {
             ++runningrank;
         }
 
-        //all regions with fixed dump [f]
+        // cut off "all search" and suggestions here (we want them to return english games only)
+
+        //all non-english regions with playable [!] (67-66)
+        for (re in reRegion2) {
+            if (item.match(reRegion2[re]) && item.match(reOption.p) && resultrank > runningrank) {
+                result = item;
+                resultindex = i;
+                resultrank = runningrank;
+            }
+            ++runningrank;
+        }
+
+        //pass over all non-english regions, no brackets (65-64)
+        for (re in reRegion2) {
+            if (item.match(reRegion2[re]) && !item.match(reOption.b) && resultrank > runningrank) {
+                result = item;
+                resultindex = i;
+                resultrank = runningrank;
+            }
+            ++runningrank;
+        }
+
+        //has playable [!] with no matching region data (63)
+        if (item.match(reOption.p) && resultrank > runningrank) {
+            result = item;
+            resultindex = i;
+            resultrank = runningrank;
+        }
+        ++runningrank;
+
+
+        //cut off box front art here, chances that anything lower won't have art is high
+
+        //all english regions with fixed dump [f]
         for (re in reRegion) {
             if (item.match(reRegion[re]) && item.match(reOption.f) && resultrank > runningrank) {
                 result = item;
@@ -454,9 +483,29 @@ UtilitiesService.findBestPlayableGame = function(files, exts, officialscore) {
             ++runningrank;
         }
 
-        //all regions
+        //all non-english regions with fixed dump [f]
+        for (re in reRegion2) {
+            if (item.match(reRegion[re]) && item.match(reOption.f) && resultrank > runningrank) {
+                result = item;
+                resultindex = i;
+                resultrank = runningrank;
+            }
+            ++runningrank;
+        }
+
+        //all english regions
         for (re in reRegion) {
             if (item.match(reRegion[re]) && resultrank > runningrank) {
+                result = item;
+                resultindex = i;
+                resultrank = runningrank;
+            }
+            ++runningrank;
+        }
+
+        //all non-english regions
+        for (re in reRegion2) {
+            if (item.match(reRegion2[re]) && resultrank > runningrank) {
                 result = item;
                 resultindex = i;
                 resultrank = runningrank;
@@ -536,8 +585,8 @@ UtilitiesService.findSuggestions = function(system, items, callback) {
 
         //narrow down our list of random games to choose based on the theshold
         for (game in data) {
-            //great than the threshold and NOT in the skip over
-            if (data[game].r >= config.data.search.suggestionThreshold && config.data.search.suggestionRankSkip.indexOf(data[game].r) === -1) {
+            //great than the threshold 
+            if (data[game].r >= config.data.search.suggestionThreshold) {
                 suggestions.push(game);
             }
         }
