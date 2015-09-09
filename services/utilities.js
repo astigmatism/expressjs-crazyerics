@@ -537,7 +537,7 @@ UtilitiesService.findSuggestions = function(system, items, callback) {
         //narrow down our list of random games to choose based on the theshold
         for (game in data) {
             //great than the threshold and NOT in the skip over
-            if (data[game].r >= config.data.search.suggestionThreshold && !config.data.search.suggestionRankSkip.includes(data[game].r)) {
+            if (data[game].r >= config.data.search.suggestionThreshold && config.data.search.suggestionRankSkip.indexOf(data[game].r) === -1) {
                 suggestions.push(game);
             }
         }
