@@ -86,7 +86,12 @@ UtilitiesService.search = function(system, term, maximum, callback) {
                 var regex = new RegExp('\.' + sys + '$', 'gi');
                 var name = game.replace(regex,'');
 
-                result.push([name, data[game].g, sys, searchscore, data[game].r]);
+                //yes, we already built a score for this term, but was it a direct match?? give it a max score per word
+                if (term == game) {
+                    result.push([name, data[game].g, sys, (words.length * 300), data[game].r]);
+                } else {
+                    result.push([name, data[game].g, sys, searchscore, data[game].r]);
+                }
             }
         }
 
@@ -359,8 +364,8 @@ UtilitiesService.findBestPlayableGame = function(files, exts, officialscore) {
 
     //regular exp for region. order of importance. we're seeking a game which is probably in english
     var reRegion = {
+        w:      new RegExp('\\(w\\)', 'ig'),        //World release
         u:      new RegExp('\\(u\\)', 'ig'),        //US region
-        w:      new RegExp('\\(w\\)', 'ig'),        //World release (always english i think)
         ju:     new RegExp('\\(ju\\)', 'ig'),       //Japanese and US release
         uj:     new RegExp('\\(uj\\)', 'ig'),       //Japanese and US release (alt)
         ue:     new RegExp('\\(ue\\)', 'ig'),       //Europe and US release
