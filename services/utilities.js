@@ -35,6 +35,15 @@ UtilitiesService.search = function(system, term, maximum, callback) {
         //pass over all entries just once
         for (game in data) {
 
+            var sys = (system === 'all') ? data[game].s : system;
+            var name = game;
+
+            //if we're looking over the "all" search file, system info is on the "s" property
+            if (system === 'all') {
+                //we append the system name to the game name for unique enries (ie "Sonic the Hedgehog" exists twice and we can't use it as a key without its system name)
+                var name = name.replace(new RegExp('\.' + sys + '$', 'gi'),'');
+            }
+
             /**
              * search scoring
              * hundreds digit: the strength of the regex scoring
@@ -44,28 +53,29 @@ UtilitiesService.search = function(system, term, maximum, callback) {
              */
             //the higher the search score, the more likely it is to show at the top of the auto complete list
             var searchscore = 0;
+            var scorelog = '';
 
             //pass over all search terms
             for (i = 0; i < words.length; ++i) {
 
                 var beginswith = new RegExp('^' + words[i],'i');                    //word is a whole or partial word at at the beginning of the result
-                var wordinside = new RegExp('\\s' + words[i] + '($|\\s)', 'i');     //word is a whole word someplace in the result (space either side or line end)
+                var wordinside = new RegExp('\\s' + words[i] + '(\\s|$)', 'i');     //word is a whole word someplace in the result (space or endstring after word)
                 var partof     = new RegExp(words[i], 'i');                         //word is partial word anyplace in the result
 
                 var termdepthscore = (words.length - i) * 10; //word path score gives highest score to first term in entry (most likely what user is searching for)
 
                 //check each word against possible location in game and give score based on position
                 //continue at each check to prevent same word scoring mutliple times
-                if (game.match(beginswith)) {
-                    searchscore += (300 + termdepthscore); //most points awarded to first work in query
+                if (name.match(beginswith)) {
+                    searchscore += (300 + termdepthscore); //most points awarded to first word in query
                     continue;
                 }
-                if (game.match(wordinside)) {
-                    searchscore += (200 + termdepthscore); //most points awarded to first work in query
+                if (name.match(wordinside)) {
+                    searchscore += (200 + termdepthscore);
                     continue;
                 }
-                if (game.match(partof)) {
-                    searchscore += (100 + termdepthscore); //most points awarded to first work in query
+                if (name.match(partof)) {
+                    searchscore += (100 + termdepthscore);
                     continue;
                 }
             }
@@ -73,25 +83,13 @@ UtilitiesService.search = function(system, term, maximum, callback) {
             if (searchscore > 0) {
 
                 //the one's digit is a score based on how many words the game's title is. The fewer, the beter the match given the terms
-                var gamewords = game.split(' ');
+                var gamewords = name.split(' ');
                 searchscore += (10 - gamewords.length);
 
                 //the decimal places in the score represent the "playability" of the game. This way, games with (U) and [!] will rank higher than those that are hacks or have brackets
                 searchscore += (data[game].r * 0.1); //between 9.9 and 0.0
 
-                //if we're looking over the "all" search file, system info is on the "s" property
-                var sys = (system === 'all') ? data[game].s : system;
-
-                //we append the system name to the game name for unique enries (ie "Sonic the Hedgehog" exists twice and we can't use it as a key without its system name)
-                var regex = new RegExp('\.' + sys + '$', 'gi');
-                var name = game.replace(regex,'');
-
-                //yes, we already built a score for this term, but was it a direct match?? give it a max score per word
-                if (term == game) {
-                    result.push([name, data[game].g, sys, (words.length * 300), data[game].r]);
-                } else {
-                    result.push([name, data[game].g, sys, searchscore, data[game].r]);
-                }
+                result.push([name, data[game].g, sys, searchscore, data[game].r]);
             }
         }
 
