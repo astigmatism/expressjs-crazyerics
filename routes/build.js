@@ -65,7 +65,8 @@ router.get('/data', function(req, res, next) {
 
                             var item = content[game];
                             
-                            if (item.r >= config.data.search.searchAllThreshold) {
+                            //if above the threshhold and not in the "skip over rank" array, include this title in the "all" search
+                            if (item.r >= config.data.search.searchAllThreshold && !confif.data.search.searchAllRankSkip.includes(item.r)) {
                                 item.s = system;
                                 result[game + '.' + system] = item;
                             }
