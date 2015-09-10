@@ -90,13 +90,13 @@ var crazyerics = function() {
             $('#emulator').focus();
         });
 
-        $('#emulatorwrapper')
-        .on('mouseenter', function(event) {
-            $('#emulatorcontrolswrapper').removeClass();
-        })
-        .on('mouseleave', function(event) {
-            $('#emulatorcontrolswrapper').addClass('closed');
-        });
+        $('#emulatorwrapper').hover(
+            function(event) {
+                $('#emulatorcontrolswrapper').removeClass();
+            },
+            function(event) {
+                $('#emulatorcontrolswrapper').addClass('closed');
+            });
 
         $('#emulatorcontrolswrapper li.fullscreen').click(function() {
             self._Module.requestFullScreen(true, true);
@@ -428,32 +428,26 @@ crazyerics.prototype._loademulator = function(system, callback) {
 
 crazyerics.prototype._loadGame = function(system, title, file, callback) {
 
+    var self = this;
+
     //first, look for game in indexeddb
     var objectStore = self._db.objectStore(file, true);
 
     objectStore.get(file)
         .done(function(result, event) {
-            callback(result);
-        })
-        .fail(function(error, event) {
             
-            //failed to find game in indexeddb
+            if (result) {
+                callback(result);
+            
+            } else {
 
-            var url = '/loadgame/' + system + '/' + title + '/' + file;
+                self._loadGameFromSoruce(system, title, file, function(data) {
 
-            var xhr = new XMLHttpRequest();
-            xhr.onreadystatechange = function(){
-                if (this.readyState == 4 && this.status == 200){
-                    
-                    //response comes back as arraybuffer. convery to uint8array
-                    var dataView = new Uint8Array(this.response);
-
-                                                
                     //delete the previous value (if set)
                     objectStore.delete(file);
                     
                     //add the new item
-                    objectStore.add(dataView, file)
+                    objectStore.add(data, file)
                         .done(function(result, event){
                             console.log(result);
                         })
@@ -461,15 +455,37 @@ crazyerics.prototype._loadGame = function(system, title, file, callback) {
                             console.log(error);
                         });
 
-
-                    callback(dataView);
-                }
+                    callback(data);
+                });
             }
-            xhr.open('GET', url);
-            xhr.responseType = 'arraybuffer';
-            xhr.send();
+        })
+        .fail(function(error, event) {
 
+            console.log(error);
+
+            self._loadGameFromSoruce(system, title, file, function(data) {
+                callback(data);
+            });
         });
+};
+
+crazyerics.prototype._loadGameFromSoruce = function(system, title, file, callback) {
+
+    var url = '/loadgame/' + system + '/' + title + '/' + file;
+
+    var xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function(){
+        if (this.readyState == 4 && this.status == 200){
+            
+            //response comes back as arraybuffer. convery to uint8array
+            var dataView = new Uint8Array(this.response);
+
+            callback(dataView);
+        }
+    }
+    xhr.open('GET', url);
+    xhr.responseType = 'arraybuffer';
+    xhr.send();
 };
 
 crazyerics.prototype._buildFileSystem = function(Module, file, data) {
@@ -491,6 +507,8 @@ crazyerics.prototype._buildFileSystem = function(Module, file, data) {
 };
 
 crazyerics.prototype._restoreStates = function(Module, file, callback) {
+
+    var self = this;
 
     //restore saved states
     var objectStore = self._db.objectStore(file + '.states', true);
@@ -531,7 +549,7 @@ crazyerics.prototype._restoreStates = function(Module, file, callback) {
         });
 };
 
-crazyerics.prototype._asyncLoop(iterations, func, callback) {
+crazyerics.prototype._asyncLoop = function (iterations, func, callback) {
     var index = 0;
     var done = false;
     var loop = {
