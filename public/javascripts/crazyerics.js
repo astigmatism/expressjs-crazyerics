@@ -8,6 +8,11 @@ var crazyerics = function() {
 
         self._db = $.indexedDB("crazyerics");
 
+        //incoming params to open game now?
+        if ('g' in openonload && 't' in openonload && 's' in openonload && 'r' in openonload) {
+            self._bootstrap(openonload.s, openonload.t, openonload.g, openonload.r);
+        }
+
         //console select
         $('#searchform select').selectOrDie({
             customID: 'selectordie',
@@ -98,47 +103,97 @@ var crazyerics = function() {
                 $('#emulatorcontrolswrapper').addClass('closed');
             });
 
-        $('#emulatorcontrolswrapper li.fullscreen').click(function() {
+        $('#maincolumn').hover(
+            function(event) {
+                $('#gamecontrolslist').removeClass();
+            },
+            function(event) {
+                $('#gamecontrolslist').addClass('closed');
+            });
+
+
+        // $('#emulatorcontrolswrapper li.fullscreen').click(function() {
+        //     self._Module.requestFullScreen(true, true);
+        // });
+
+        // $('#emulatorcontrolswrapper li.savestate').click(function() {
+        //     self._simulateEmulatorKeypress(113); //F2
+        // });
+
+        // $('#emulatorcontrolswrapper li.loadstate').click(function() {
+        //     self._simulateEmulatorKeypress(115); //F4
+        // });
+
+        // $('#emulatorcontrolswrapper li.mute').click(function() {
+        //     self._simulateEmulatorKeypress(120); //F9
+        // });
+
+        // $('#emulatorcontrolswrapper li.decrementslot').click(function() {
+        //     self._simulateEmulatorKeypress(117); //F6
+        // });
+
+        // $('#emulatorcontrolswrapper li.incrementslot').click(function() {
+        //     self._simulateEmulatorKeypress(118); //F6
+        // });
+
+        // $('#emulatorcontrolswrapper li.fastforward').click(function() {
+        //     self._simulateEmulatorKeypress(32); //F6
+        // });
+
+        // $('#emulatorcontrolswrapper li.pause').click(function() {
+        //     self._simulateEmulatorKeypress(80); //P
+        // });
+
+        // $('#emulatorcontrolswrapper li.reset').click(function() {
+        //     self._simulateEmulatorKeypress(72); //F6
+        // });
+
+        $('#gametitlecontent li').click(function() {
+            event.preventDefault();
+            $('#emulator').focus();
+        });
+
+        $('#gamecontrolslist li.fullscreen').on('click', function() {
             self._Module.requestFullScreen(true, true);
         });
 
-        $('#emulatorcontrolswrapper li.savestate').click(function() {
-            self._simulateEmulatorKeypress(113); //F2
-        });
-
-        $('#emulatorcontrolswrapper li.loadstate').click(function() {
-            self._simulateEmulatorKeypress(115); //F4
-        });
-
-        $('#emulatorcontrolswrapper li.mute').click(function() {
+        $('#gamecontrolslist li.mute').on('click', function() {
             self._simulateEmulatorKeypress(120); //F9
         });
 
-        $('#emulatorcontrolswrapper li.decrementslot').click(function() {
-            self._simulateEmulatorKeypress(117); //F6
+        $('#gamecontrolslist li.controls').on('click', function() {
+        
+            $("#controlsslider").animate({width:'toggle', padding: 'toggle'}, 500);
+
+            if($(this).attr('data-click-state') == 0) {
+                $(this).attr('data-click-state', 1);
+                $(this).find('img').animateRotate(0, -90, 500);
+            
+            } else {
+                $(this).attr('data-click-state', 0);
+                $(this).find('img').animateRotate(-90, 0, 500);
+            }
         });
 
-        $('#emulatorcontrolswrapper li.incrementslot').click(function() {
-            self._simulateEmulatorKeypress(118); //F6
-        });
+        $('#gamecontrolslist li.states').on('click', function() {
+        
+            $("#statesslider").animate({width:'toggle', padding: 'toggle'}, 500);
 
-        $('#emulatorcontrolswrapper li.fastforward').click(function() {
-            self._simulateEmulatorKeypress(32); //F6
-        });
-
-        $('#emulatorcontrolswrapper li.pause').click(function() {
-            self._simulateEmulatorKeypress(80); //P
-        });
-
-        $('#emulatorcontrolswrapper li.reset').click(function() {
-            self._simulateEmulatorKeypress(72); //F6
+            if($(this).attr('data-click-state') == 0) {
+                $(this).attr('data-click-state', 1);
+                $(this).find('img').animateRotate(0, -90, 500);
+            
+            } else {
+                $(this).attr('data-click-state', 0);
+                $(this).find('img').animateRotate(-90, 0, 500);
+            }
         });
     });
 };
 
 crazyerics.prototype.LSFS = null; //local storge file system
 
-crazyerics.prototype._boxFrontThreshold = 83;
+crazyerics.prototype._boxFrontThreshold = 63;
 crazyerics.prototype._Module = null; //handle the emulator Module
 crazyerics.prototype._ModuleLoading = false; //oldskool way to prevent double loading
 
@@ -201,9 +256,8 @@ crazyerics.prototype._buildGameTitle = function(system, title, rank) {
     });
     $('#gametitleimagewrapper').empty().append(img);
     
-    $('#gametitlecontent')
-        .text(title)
-        .fadeIn(1000);
+    $('#title').text(title);
+    $('#gametitlecontent').fadeIn(1000);
 };
 
 crazyerics.prototype._bootstrap = function(system, title, file, rank) {
@@ -604,5 +658,18 @@ crazyerics.prototype._asyncLoop = function (iterations, func, callback) {
     return loop;
 }
 
+$.fn.animateRotate = function(startingangle, angle, duration, easing, complete) {
+  var args = $.speed(duration, easing, complete);
+  var step = args.step;
+  return this.each(function(i, e) {
+    args.complete = $.proxy(args.complete, e);
+    args.step = function(now) {
+      $.style(e, 'transform', 'rotate(' + now + 'deg)');
+      if (step) return step.apply(e, arguments);
+    };
+
+    $({deg: startingangle}).animate({deg: angle}, args);
+  });
+};
 
 var crazyerics = new crazyerics();

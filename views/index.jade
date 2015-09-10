@@ -26,10 +26,6 @@ block content
             div#emulatormessagewrapper This is a test message
             div#emulatorcontrolswrapper
                 ul(class="fl")
-                    li(class="fullscreen")
-                        img(class="tooltip",src="/images/fullscreen.png",title="Enter Fullscreen")
-                    li(class="mute")
-                        img(class="tooltip",src="/images/mute.png",title="Toggle Mute (F9)")
                     li(class="pause")
                         img(class="tooltip",src="/images/pause.png",title="Pause Game (P)")
                     li(class="fastforward")
@@ -37,14 +33,7 @@ block content
                     li(class="reset")
                         img(class="tooltip",src="/images/reset.png",title="Reset System (H)")
                 ul(class="fr")
-                    li(class="savestate")
-                        img(class="tooltip",src="/images/savestate.png",title="Save State (F2)")
-                    li(class="decrementslot")
-                        img(class="tooltip",src="/images/decrementslot.png",title="Decrement Save Slot (F6)")
-                    li(class="incrementslot")
-                        img(class="tooltip",src="/images/incrementslot.png",title="Increment Save Slot (F7)")
-                    li(class="loadstate")
-                        img(class="tooltip",src="/images/loadstate.png",title="Load State (F4)")
+                    
             textarea#output(rows="8")
         
             div#emulatorwrapperoverlay
@@ -56,6 +45,27 @@ block content
             div#gametitle(class="darkgrad")
                 div#gametitleimagewrapper
                 div#gametitlecontent
+                    div#title
+                    div#controlsslider(class="slidingpanel")
+                    div#statesslider(class="slidingpanel")
+                        ul
+                            li(class="savestate")
+                                img(class="tooltip",src="/images/savestate.png",title="Save State (F2)")
+                            li(class="decrementslot")
+                                img(class="tooltip",src="/images/decrementslot.png",title="Decrement Save Slot (F6)")
+                            li(class="incrementslot")
+                                img(class="tooltip",src="/images/incrementslot.png",title="Increment Save Slot (F7)")
+                            li(class="loadstate")
+                                img(class="tooltip",src="/images/loadstate.png",title="Load State (F4)")
+                    ul#gamecontrolslist(class="closed")
+                        li(class="fullscreen")
+                            img(class="tooltip",src="/images/fullscreen.png",title="Enter Fullscreen")
+                        li(class="states", data-click-state="0")
+                            img(class="tooltip",src="/images/states.png",title="Save and Load States")
+                        li(class="mute")
+                            img(class="tooltip",src="/images/mute.png",title="Toggle Mute (F9)")
+                        li(class="controls", data-click-state="0")
+                            img(class="tooltip",src="/images/gamepad.png", title="View Controls")
 
         div#gameloadingoverlay(class="darkgrad")
             div#gameloadingoverlaytable

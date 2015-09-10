@@ -24,6 +24,7 @@ router.get('/data', function(req, res, next) {
             }
 
             var gamecount = 0;
+            var searchallcount = 0;
             var gamecountsuggestions = 0;
 
             if (config && config.data && config.data.systems && config.data.systems[system]) {
@@ -69,15 +70,19 @@ router.get('/data', function(req, res, next) {
                             var item = content[game];
                             gamecount++;
                             
-                            //if above the threshhold
-                            if (item.r >= config.data.search.suggestionThreshold) {
+                            //if above the search all threshhold
+                            if (item.r >= config.data.search.searchAllThreshold) {
                                 item.s = system;
                                 result[game + '.' + system] = item;
+                                searchallcount++;
+                            }
+
+                            if (item.r >= config.data.search.suggestionThreshold) {
                                 gamecountsuggestions++;
                             }
                         }
 
-                        console.log('total number of ' + system + ' games: ' + gamecount + '. games above suggestions threshold: ' + gamecountsuggestions);
+                        console.log('total number of ' + system + ' games: ' + gamecount + '. search all count: ' + searchallcount + '. games above suggestions threshold: ' + gamecountsuggestions);
                         
                         return nextsystem();
 

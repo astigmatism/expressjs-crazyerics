@@ -77,4 +77,21 @@ router.get('/emulator/:system', function(req, res, next) {
     res.render('emulators/' + system);
 });
 
+router.get('/:system/:game', function(req, res, next) {
+    
+    var system = req.params.system;
+    var game = req.params.game;
+    var openonload = {};
+
+    UtilitiesService.findGame(system, game, function(err, result) {
+        if (result) {
+            openonload = result;
+        }
+        res.render('index', {
+            layout: 'layout',
+            openonload: openonload
+        });
+    });
+});
+
 module.exports = router;

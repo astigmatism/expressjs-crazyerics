@@ -7,8 +7,9 @@ exports.data = {
 				'gb',
 				'gbc'
 			],
-			gamestosuggest: 1075,
-			ratiotoall: 0.205 
+			romcount: 2087,
+			gamestosuggest: 979,
+			ratiotoall: 0.224 
 		},
 		gba: {
 			name: "Gameboy Advance",
@@ -16,8 +17,9 @@ exports.data = {
 			romfileextentions: [
 				'gba'
 			],
-			gamestosuggest: 1157,
-			ratiotoall: 0.221
+			romcount: 2040,
+			gamestosuggest: 604,
+			ratiotoall: 0.138
 		},
 		nes: {
 			name: "Nintendo Entermainment System",
@@ -25,8 +27,9 @@ exports.data = {
 			romfileextentions: [
 				'nes'
 			],
-			gamestosuggest: 826,
-			ratiotoall: 0.158
+			romcount: 1971,
+			gamestosuggest: 761,
+			ratiotoall: 0.174
 		},
 		snes: {
 			name: "Super Nintendo Entermainment System",
@@ -34,8 +37,9 @@ exports.data = {
 			romfileextentions: [
 				'smc'
 			],
-			gamestosuggest: 836,
-			ratiotoall: 0.159
+			romcount: 2120,
+			gamestosuggest: 752,
+			ratiotoall: 0.172
 		},
 		gen: {
 			name: "Sega Genesis",
@@ -44,8 +48,9 @@ exports.data = {
 				'bin',
 				'32x'
 			],
-			gamestosuggest: 823,
-			ratiotoall: 0.157
+			romcount: 1112,
+			gamestosuggest: 791,
+			ratiotoall: 0.181
 		},
 		sms: {
 			name: "Sega Master System",
@@ -53,8 +58,9 @@ exports.data = {
 			romfileextentions: [
 				'sms'
 			],
-			gamestosuggest: 259,
-			ratiotoall: 0.049
+			romcount: 516,
+			gamestosuggest: 245,
+			ratiotoall: 0.056
 		},
 		gg: {
 			name: "Sega Game Gear",
@@ -62,12 +68,15 @@ exports.data = {
 			romfileextentions: [
 				'gg'
 			],
-			gamestosuggest: 267,
-			ratiotoall: 0.0509
+			romcount: 376,
+			gamestosuggest: 235,
+			ratiotoall: 0.054
 		}
 	},
 	search: {
+		notes: "dont forget to also change crazyerics.prototype._boxFrontThreshold",
 		boxFrontThreshold: 63,
-		suggestionThreshold: 66
+		searchAllThreshold: 66,
+		suggestionThreshold: 89
 	}
 };

@@ -376,8 +376,8 @@ UtilitiesService.findBestPlayableGame = function(files, exts, officialscore) {
         uk:     new RegExp('\\(uk\\)', 'ig'),       //UK release
         c:      new RegExp('\\(c\\)', 'ig'),        //Canada release
         a:      new RegExp('\\(a\\)', 'ig'),        //Ausrilia release
-        e:      new RegExp('\\(e\\)', 'ig'),        //Europe release (last ditch check as can be english sometimes)
         eb:     new RegExp('\\(eb\\)', 'ig'),        //Europe and Brazil
+        e:      new RegExp('\\(e\\)', 'ig'),        //Europe release (last ditch check as can be english sometimes)
         eng:    new RegExp('Eng', 'ig')             //English translation of japanese game. I'm putting this up here so that it DOES appear in suggestions and searches
     };
 
@@ -442,8 +442,6 @@ UtilitiesService.findBestPlayableGame = function(files, exts, officialscore) {
             }
             ++runningrank;
         }
-
-        // cut off "all search" and suggestions here (we want them to return english games only)
 
         //all non-english regions with playable [!] (65)
         for (re in reRegion2) {
@@ -640,6 +638,33 @@ UtilitiesService.loadGame = function(system, folder, file, callback) {
         callback(system + ' is not found the config and is not a valid system');
     }
 
+};
+
+UtilitiesService.findGame = function(system, title, callback) {
+
+    if (config && config.data && config.data.systems && config.data.systems[system]) {
+
+        DataService.getFile('/data/' + system + '/search.json', function(err, data) {
+            if (err) {
+                return callback(err);
+            }
+
+            for (game in data) {
+                if (title === game) {
+                    return callback(null, {
+                        t: game,
+                        g: data[game].g,
+                        r: data[game].r,
+                        s: system
+                    });
+                }
+            }
+            return callback();
+        });
+
+    } else {
+        callback(system + ' is not found the config and is not a valid system');
+    }
 };
 
 module.exports = UtilitiesService;
