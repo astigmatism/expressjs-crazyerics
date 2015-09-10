@@ -254,36 +254,43 @@ crazyerics.prototype._bootstrap = function(system, title, file, rank) {
             self._Module = Module; //handle to Module
             FS = fs;
 
-            self._loadGame('/loadgame/' + system + '/' + title + '/' + file, function(data) {
+            self._loadGame(system, title, file, function(data) {
+
+                self._buildFileSystem(Module, file, data);
 
                 self._setupKeypressInterceptor(system, title, file);
-                self._initGame(Module, file, data);
-                
-                $('#gametitlewrapper').slideDown(1000);
-                
-                $('#gameloadingoverlaycontent').addClass('close');
-                $('#gameloadingoverlay').fadeOut(1000, function() {
 
-                    //show controls initially to reveal their presence
-                    setTimeout(function() { 
-                        self._ModuleLoading = false;
-                        //$('#emulatorcontrolswrapper').slideToggle({ direction: "down" }, 300);
-                        $('#emulatorcontrolswrapper').addClass('closed');
-                    }, 3000);
-                    
-                    self._buildGameTitle(system, title, rank);
+                self._restoreStates(Module, file, function() {
+
+                    //begin game
+                    Module['callMain'](Module['arguments']);
+
+                    $('#gametitlewrapper').slideDown(1000);
+                
+                    $('#gameloadingoverlaycontent').addClass('close');
+                    $('#gameloadingoverlay').fadeOut(1000, function() {
+
+                        //show controls initially to reveal their presence
+                        setTimeout(function() { 
+                            self._ModuleLoading = false;
+                            //$('#emulatorcontrolswrapper').slideToggle({ direction: "down" }, 300);
+                            $('#emulatorcontrolswrapper').addClass('closed');
+                        }, 3000);
+                        
+                        self._buildGameTitle(system, title, rank);
+                    });
+
+                    $('#emulator')
+                        .focusout(function() {
+                            Module.pauseMainLoop();
+                            $('#emulatorwrapperoverlay').fadeIn();
+                        })
+                        .focus(function() {
+                            Module.resumeMainLoop();
+                            $('#emulatorwrapperoverlay').hide();
+                        })
+                        .focus();
                 });
-
-                $('#emulator')
-                    .focusout(function() {
-                        Module.pauseMainLoop();
-                        $('#emulatorwrapperoverlay').fadeIn();
-                    })
-                    .focus(function() {
-                        Module.resumeMainLoop();
-                        $('#emulatorwrapperoverlay').hide();
-                    })
-                    .focus();
             });
         });
     });
@@ -368,8 +375,12 @@ crazyerics.prototype._setupKeypressInterceptor = function(system, title, file) {
                                     var statecontent = FS.open(filename);
                                     if (statecontent && statecontent.node && statecontent.node.contents) {
 
-                                        var objectStore = self._db.objectStore(file, true);
+                                        var objectStore = self._db.objectStore(file + '.states', true); //the key in the index is the file with ".states"
+                                        
+                                        //delete the previous value (if set)
                                         objectStore.delete(filename);
+                                        
+                                        //add the new item
                                         objectStore.add(statecontent.node.contents, filename)
                                             .done(function(result, event){
                                                 console.log(result);
@@ -415,116 +426,112 @@ crazyerics.prototype._loademulator = function(system, callback) {
     $('body').append(frame);
 };
 
-/**
- * jQuery does not support the a response datatype of "arraybuffer" so we're going to use the old XHLHttpRequest object
- * see docs here: https://dvcs.w3.org/hg/xhr/raw-file/tip/Overview.html#the-response-attribute
- * its part of the "XHR2" solution and jQuery does not support it yet. you can google "jquery ajax arraybuffer" at some point to clean this up maybe
- * @param  {string}   url
- * @param  {Function} callback
- * @return {undef}
- */
-crazyerics.prototype._loadGame = function(url, callback) {
+crazyerics.prototype._loadGame = function(system, title, file, callback) {
 
-    var xhr = new XMLHttpRequest();
-    xhr.onreadystatechange = function(){
-        if (this.readyState == 4 && this.status == 200){
+    //first, look for game in indexeddb
+    var objectStore = self._db.objectStore(file, true);
+
+    objectStore.get(file)
+        .done(function(result, event) {
+            callback(result);
+        })
+        .fail(function(error, event) {
             
-            //response comes back as arraybuffer. convery to uint8array
-            var dataView = new Uint8Array(this.response);
-            callback(dataView);
-        }
-    }
-    xhr.open('GET', url);
-    xhr.responseType = 'arraybuffer';
-    xhr.send();
+            //failed to find game in indexeddb
+
+            var url = '/loadgame/' + system + '/' + title + '/' + file;
+
+            var xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = function(){
+                if (this.readyState == 4 && this.status == 200){
+                    
+                    //response comes back as arraybuffer. convery to uint8array
+                    var dataView = new Uint8Array(this.response);
+
+                                                
+                    //delete the previous value (if set)
+                    objectStore.delete(file);
+                    
+                    //add the new item
+                    objectStore.add(dataView, file)
+                        .done(function(result, event){
+                            console.log(result);
+                        })
+                        .fail(function(error, event){
+                            console.log(error);
+                        });
+
+
+                    callback(dataView);
+                }
+            }
+            xhr.open('GET', url);
+            xhr.responseType = 'arraybuffer';
+            xhr.send();
+
+        });
 };
 
-crazyerics.prototype._onupload = function(files) {
-    var self = this;
-    var count = files.length;
-
-    self._buildModule();
-
-    this._loademulator('gba', function() {
-
-        for (var i = 0; i < files.length; i++) {
-            filereader = new FileReader();
-            filereader.file_name = files[i].name;
-            filereader.onload = function(){
-                var dataView = new Uint8Array(this.result);
-                self._initGame(this.file_name, dataView);
-            };
-            filereader.readAsArrayBuffer(files[i]);
-        }
-    });
-};
-
-crazyerics.prototype._initGame = function(Module, file, data) {
+crazyerics.prototype._buildFileSystem = function(Module, file, data) {
 
     var self = this;
 
+    //game
     Module.FS_createDataFile('/', file, data, true, true);
     Module.arguments = ['-v', '/' + file];
 
+    //config
     Module.FS_createFolder('/', 'etc', true, true);
     var config = 'input_player1_select = shift\n';
     var latency = 96; //parseInt(document.getElementById('latency').value, 10);
-    //if (isNaN(latency)) latency = 96;
     config += 'audio_latency = ' + latency + '\n'
-    //if (document.getElementById('vsync').checked)
-    //config += 'video_vsync = true\n';
-    //else
     config += 'video_vsync = false\n';
     Module.FS_createDataFile('/etc', 'retroarch.cfg', config, true, true);
-    // document.getElementById('canvas_div').style.display = 'block';
-    // document.getElementById('vsync').disabled = true;
-    // document.getElementById('vsync-label').style.color = 'gray';
-    // document.getElementById('latency').disabled = true;
-    // document.getElementById('latency-label').style.color = 'gray';
-    
+
+};
+
+crazyerics.prototype._restoreStates = function(Module, file, callback) {
 
     //restore saved states
-    var objectStore = self._db.objectStore(file, true);
+    var objectStore = self._db.objectStore(file + '.states', true);
     objectStore.count()
         .done(function(result, event) {
 
             console.log('save states for ' + file + ': ' + result);
 
-            var loadGame = function(i, callback) {
+            var loadGame = function(i, asyncCallback) {
                 var activefile = file.replace(new RegExp('\.[a-z]{1,3}$', 'gi'), '');
                 var filename = '/' + activefile + '.state' + (i === 0 ? '' : i);
 
                 objectStore.get(filename)
                     .done(function(result, event) {
                         Module.FS_createDataFile('/', filename, result, true, true);
-                        callback();
+                        asyncCallback();
                     })
                     .fail(function(error, event) {
                         console.log(error);
-                        callback();
+                        asyncCallback();
                     });
             };
 
-            asyncLoop(result, function(loop) {
+            self._asyncLoop(result, function(loop) {
                 loadGame(loop.iteration(), function(result) {
                     loop.next();
                 })},
                 function(){
 
                     console.log('save states restored');
-
-                    //begin game
-                    Module['callMain'](Module['arguments']);
+                    callback();   
                 }
             );
         })
         .fail(function(error, event) {
             console.log(error);
+            callback();
         });
-
 };
 
-function asyncLoop(iterations, func, callback) {
+crazyerics.prototype._asyncLoop(iterations, func, callback) {
     var index = 0;
     var done = false;
     var loop = {
