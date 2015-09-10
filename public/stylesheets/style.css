@@ -414,13 +414,13 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#000000', end
 #controlsslider {
 
 	display: none;
-	width: 200px;
+	width: 150px;
 	background-color: rgba(0,0,0,0.3);
 	position: absolute;
 	top: 0;
 	right: 0;
 	height: 100%;
-	padding-right: 32px;
+	padding-right: 15px;
 
 	background-image: url('/images/gen_pad.png');
 	background-position: center center;
