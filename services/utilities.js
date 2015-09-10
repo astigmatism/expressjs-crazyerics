@@ -542,11 +542,25 @@ UtilitiesService.findBestPlayableGame = function(files, exts, officialscore) {
 UtilitiesService.findSuggestionsAll = function(items, callback) {
 
     var aggrigation = [];
-    var systems = Object.keys(config.data.systems);
 
-    async.each(systems, function(system, nextsystem) {
+    // for debugging:
+    // var totaltosuggest = 0;
+    // for (system in config.data.systems) {
+    //     totaltosuggest += config.data.systems[system].gamestosuggest;
+    // }
 
-        UtilitiesService.findSuggestions(system, (items / systems.length), function(err, suggestions) {
+    async.each(Object.keys(config.data.systems), function(system, nextsystem) {
+
+        // for debugging:
+        // var ratio = config.data.systems[system].gamestosuggest / totaltosuggest;
+        var ratio = config.data.systems[system].ratiotoall;
+
+        var tosuggest = (ratio * items);
+
+        // for debugging:
+        // console.log(system + ' ' + tosuggest + ' ' + ratio);
+
+        UtilitiesService.findSuggestions(system, tosuggest, function(err, suggestions) {
             if (err) {
                 return nextsystem(err);
             }
