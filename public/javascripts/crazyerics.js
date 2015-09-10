@@ -290,6 +290,10 @@ crazyerics.prototype._bootstrap = function(system, title, file, rank) {
                             $('#emulatorwrapperoverlay').hide();
                         })
                         .focus();
+
+                    //set last played
+                    var objectStore = self._db.objectStore('lastplayed', true);
+                    objectStore.delete();
                 });
             });
         });
@@ -431,7 +435,7 @@ crazyerics.prototype._loadGame = function(system, title, file, callback) {
     var self = this;
 
     //first, look for game in indexeddb
-    var objectStore = self._db.objectStore(file, true);
+    var objectStore = self._db.objectStore('games', true);
 
     objectStore.get(file)
         .done(function(result, event) {
@@ -486,6 +490,25 @@ crazyerics.prototype._loadGameFromSoruce = function(system, title, file, callbac
     xhr.open('GET', url);
     xhr.responseType = 'arraybuffer';
     xhr.send();
+};
+
+crazyerics.prototype._setLastPlayed = function(system, title, file) {
+
+    var self = this;
+
+    var objectStore = self._db.objectStore('lastPlayed', true); //the key in the index is the file with ".states"
+                                        
+    //delete the previous value (if set)
+    objectStore.delete(filename);
+    
+    //add the new item
+    objectStore.add(statecontent.node.contents, filename)
+        .done(function(result, event){
+            console.log(result);
+        })
+        .fail(function(error, event){
+            console.log(error);
+        });
 };
 
 crazyerics.prototype._buildFileSystem = function(Module, file, data) {

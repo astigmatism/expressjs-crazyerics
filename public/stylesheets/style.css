@@ -225,10 +225,9 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#000000', end
 	height: auto;
 }
 
-#emulatorcontrolswrapper {
+#emulatormessagewrapper, #emulatorcontrolswrapper {
 	position: absolute;
 	left: 0;
-	bottom: 0;
 	width: 100%;
 	background-color: rgba(0,0,0,0.8);
 	max-height: 32px;
@@ -240,7 +239,19 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#000000', end
 	transition-timing-function: cubic-bezier(0, 1, 0.5, 1);
 }
 
-#emulatorcontrolswrapper.closed {
+#emulatormessagewrapper {
+	top: 0;
+
+	font-size: 1.5em;
+	padding: 5px;
+	text-align: center;
+}
+
+#emulatorcontrolswrapper {
+	bottom: 0;
+}
+
+#emulatorcontrolswrapper.closed, #emulatormessagewrapper.closed {
 	max-height: 0;
 }
 
@@ -446,3 +457,4 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#000000', end
     -webkit-animation-name: tada; 
     animation-name: tada; 
 }
+
