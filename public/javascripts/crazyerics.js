@@ -571,7 +571,8 @@ crazyerics.prototype._buildFileSystem = function(Module, file, data) {
 
     //game
     Module.FS_createDataFile('/', file, data, true, true);
-    Module.arguments = ['-v', '/' + file];
+    //Module.arguments = ['-v', '/' + file];
+    Module.arguments = ['-v', '--menu'];
 
     //config
     Module.FS_createFolder('/', 'etc', true, true);
