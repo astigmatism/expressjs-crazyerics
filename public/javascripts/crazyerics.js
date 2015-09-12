@@ -49,7 +49,7 @@ var crazyerics = function() {
 
                 //have image, see config for "boxFrontThreshold"
                 if (item[4] >= self._boxFrontThreshold) {
-                    src = '/images/' + item[2] + '/' + item[0] + '/50.jpg';
+                    src = '/images/games/' + item[2] + '/' + item[0] + '/50.jpg';
                 }
 
                 var html = '<div class="autocomplete-suggestion" data-title="' + item[0] + '" data-file="' + item[1] + '" data-system="' + item[2] + '" data-searchscore="' + item[3] + '" data-rank="' + item[4] + '"><img src="' + src + '"><div>' + item[0] + '</div></div>';
@@ -80,28 +80,22 @@ var crazyerics = function() {
         });
 
         $('#emulatorwrapperoverlay')
-        .on('click', function() {
-            $('#emulator').focus();
-        })
-        .on('mouseenter', function() {
-            event.stopPropagation();
-        })
-        .on('mouseleave', function() {
-            event.stopPropagation();
-        });
-
-        $('#emulatorcontrolswrapper').on('mousedown mouseup click', function(event) {
-            event.preventDefault();
-            $('#emulator').focus();
-        });
-
-        $('#emulatorwrapper').hover(
-            function(event) {
-                $('#emulatorcontrolswrapper').removeClass();
-            },
-            function(event) {
-                $('#emulatorcontrolswrapper').addClass('closed');
+            .on('click', function() {
+                $('#emulator').focus();
             });
+
+        // $('#emulatorcontrolswrapper').on('mousedown mouseup click', function(event) {
+        //     event.preventDefault();
+        //     $('#emulator').focus();
+        // });
+
+        // $('#emulatorwrapper').hover(
+        //     function(event) {
+        //         $('#emulatorcontrolswrapper').removeClass();
+        //     },
+        //     function(event) {
+        //         $('#emulatorcontrolswrapper').addClass('closed');
+        //     });
 
         $('#maincolumn').hover(
             function(event) {
@@ -148,9 +142,9 @@ var crazyerics = function() {
         //     self._simulateEmulatorKeypress(72); //F6
         // });
 
-        $('#gametitlecontent li').click(function() {
+        $('#gamedetailscontent li').click(function() {
             event.preventDefault();
-            $('#emulator').focus();
+            $('#emulator').focus(); 
         });
 
         $('#gamecontrolslist li.fullscreen').on('click', function() {
@@ -159,6 +153,14 @@ var crazyerics = function() {
 
         $('#gamecontrolslist li.mute').on('click', function() {
             self._simulateEmulatorKeypress(120); //F9
+        });
+
+        $('#gamecontrolslist li.reset').on('click', function() {
+            self._simulateEmulatorKeypress(72); //F6
+        });
+
+        $('#gamecontrolslist li.pause').on('click', function() {
+            self._simulateEmulatorKeypress(80); //P
         });
 
         $('#gamecontrolslist li.controls').on('click', function() {
@@ -217,7 +219,7 @@ crazyerics.prototype.replaceSuggestions = function(system, items) {
 
         //use modulus to evenly disperse across all columns
         for (var i = 0; i < response.length; ++i) {
-            $(columns[i % columns.length]).append('<img class="tooltip" style="float:left" data-title="' + response[i].t + '" data-file="' + response[i].g + '" data-system="' + response[i].s + '" data-rank="' + response[i].r + '" src="/images/' + response[i].s + '/' + response[i].t + '/114.jpg" title="' + response[i].t + '" />');
+            $(columns[i % columns.length]).append('<img class="tooltip" style="float:left" data-title="' + response[i].t + '" data-file="' + response[i].g + '" data-system="' + response[i].s + '" data-rank="' + response[i].r + '" src="/images/games/' + response[i].s + '/' + response[i].t + '/114.jpg" title="' + response[i].t + '" />');
         }
 
         //when all images have loaded, show suggestions
@@ -246,7 +248,7 @@ crazyerics.prototype._buildGameTitle = function(system, title, rank) {
     var src = '/images/blanks/' + system + '_150.png';
 
     if (rank >= this._boxFrontThreshold) {
-        src = '/images/' + system + '/' + title + '/150.jpg';
+        src = '/images/games/' + system + '/' + title + '/150.jpg';
     }
 
     
@@ -254,10 +256,11 @@ crazyerics.prototype._buildGameTitle = function(system, title, rank) {
     img.load(function(){
         $(this).removeClass();
     });
-    $('#gametitleimagewrapper').empty().append(img);
+    $('#gamedetailsboxfront').empty().append(img);
     
-    $('#title').text(title);
-    $('#gametitlecontent').fadeIn(1000);
+    $('#gametitle').text(title);
+    
+    $('#gamedetailswrapper').fadeIn(1000);
 };
 
 crazyerics.prototype._bootstrap = function(system, title, file, rank) {
@@ -268,8 +271,8 @@ crazyerics.prototype._bootstrap = function(system, title, file, rank) {
     self._ModuleLoading = true;
 
     $('#gameloadingname').text(title);
-    $('#gametitleimagewrapper img').addClass('close');
-    $('#gametitlecontent').fadeOut();
+    $('#gamedetailsboxfront img').addClass('close');
+    $('#gamedetailswrapper').fadeOut();
 
     //move welcome and emulator into view (first time only)
     $('#startmessage').slideUp(1000);
@@ -281,7 +284,7 @@ crazyerics.prototype._bootstrap = function(system, title, file, rank) {
     $('#gameloadingoverlaycontentimage').empty();
     var src = '/images/blanks/' + system + '_150.png';
     if (rank >= this._boxFrontThreshold) {
-        src = '/images/' + system + '/' + title + '/150.jpg';
+        src = '/images/games/' + system + '/' + title + '/150.jpg';
     }
     var img = $('<img class="tada" src="' + src + '" />');
     img.load(function(){
@@ -319,7 +322,7 @@ crazyerics.prototype._bootstrap = function(system, title, file, rank) {
                     //begin game
                     Module['callMain'](Module['arguments']);
 
-                    $('#gametitlewrapper').slideDown(1000);
+                    $('#gamedetailsbackground').slideDown(1000);
                 
                     $('#gameloadingoverlaycontent').addClass('close');
                     $('#gameloadingoverlay').fadeOut(1000, function() {
@@ -571,8 +574,8 @@ crazyerics.prototype._buildFileSystem = function(Module, file, data) {
 
     //game
     Module.FS_createDataFile('/', file, data, true, true);
-    //Module.arguments = ['-v', '/' + file];
-    Module.arguments = ['-v', '--menu'];
+    Module.arguments = ['-v', '/' + file];
+    //Module.arguments = ['-v', '--menu'];
 
     //config
     Module.FS_createFolder('/', 'etc', true, true);

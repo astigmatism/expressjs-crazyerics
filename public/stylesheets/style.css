@@ -225,8 +225,12 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#000000', end
 	height: auto;
 }
 
-#emulatormessagewrapper, #emulatorcontrolswrapper {
+#emulatormessagewrapper {
 	position: absolute;
+	top: 0;
+	font-size: 1.5em;
+	padding: 5px;
+	text-align: center;
 	left: 0;
 	width: 100%;
 	background-color: rgba(0,0,0,0.8);
@@ -239,32 +243,8 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#000000', end
 	transition-timing-function: cubic-bezier(0, 1, 0.5, 1);
 }
 
-#emulatormessagewrapper {
-	top: 0;
-
-	font-size: 1.5em;
-	padding: 5px;
-	text-align: center;
-}
-
-#emulatorcontrolswrapper {
-	bottom: 0;
-}
-
-#emulatorcontrolswrapper.closed, #emulatormessagewrapper.closed {
+#emulatormessagewrapper.closed {
 	max-height: 0;
-}
-
-#emulatorcontrolswrapper ul {
-	padding: 0 5px;
-	margin: 0;
-}
-
-#emulatorcontrolswrapper li {
-	list-style: none;
-	display: inline;
-	padding: 0px 3px;
-	cursor: pointer;
 }
 
 #emulatorwrapperoverlay{
@@ -351,39 +331,52 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#000000', end
 	width: 100%;
 }
 
-#gametitlewrapper {
+/* game details wrapper */
+
+#gamedetailsbackground {
 	display: none;
 	padding: 10px 0px;
+	min-height: 250px;
+	background: rgba(0,0,0,1);
+}
+
+#gamedetailswrapper {
+	display: none;
 	height: auto;
-	background: rgb(0,0,0);
+	width: 100%;
 }
 
 #gametitle {
-	line-height: 70px;
+	font-size: 24px;
+	padding: 5px 15px;
+}
+
+#gamedetailstable {
 	width: 100%;
 	display: table;
+	min-height: 200px;
 }
-#gametitleimagewrapper {
+
+#gamedetailsboxfront {
 	display: table-cell;
-	min-width: 150px;
+	width: 150px;
+	vertical-align: middle;
 }
 
-#gametitleimagewrapper img {
-
+#gamedetailsboxfront img {
+	width: 150px;
+	max-height: 200px;
 	margin: 0px 15px;
-
+	vertical-align: middle;
 	transition:All 200ms ease-in;
 	-webkit-transition:All 200ms ease-in;
 	-moz-transition:All 200ms ease-in;
 	-o-transition:All 200ms ease-in;
 }
 
-#gametitlecontent {
+#gamedetailscontent {
 	display: table-cell;
-	width: 100%;
 	vertical-align: top;
-	font-size: 24px;
-	line-height: normal;
 	position: relative;
 }
 
@@ -402,11 +395,11 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#000000', end
 	transition-timing-function: cubic-bezier(0, 1, 0.5, 1);
 }
 
-#gametitlecontent ul.closed {
+#gamecontrolslist.closed {
 	max-width: 0px;
 }
 
-#gametitlecontent li {
+#gamecontrolslist li {
 	cursor: pointer;
 	padding-right: 10px;
 }
@@ -414,13 +407,12 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#000000', end
 #controlsslider {
 
 	display: none;
-	width: 150px;
+	width: 100%;
 	background-color: rgba(0,0,0,0.3);
 	position: absolute;
 	top: 0;
 	right: 0;
 	height: 100%;
-	padding-right: 15px;
 
 	background-image: url('/images/gen_pad.png');
 	background-position: center center;
@@ -430,7 +422,7 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#000000', end
 #statesslider {
 
 	display: none;
-	width: 200px;
+	width: 100%;
 	height: 42px;
 	background-color: rgba(0,0,0,0.3);
 	position: absolute;
@@ -448,11 +440,6 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#000000', end
 
 #statesslider li {	
 	display: inline;
-}
-
-#controlstrigger {
-	height: 32px;
-	width: 32px;
 }
 
 

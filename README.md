@@ -2,23 +2,47 @@ expressjs-crazyerics
 =====
 
 building emulators
+------------------
 
-9/10/15: Okay, I'm a couple of days in trying to get a RetroArch project complied with Emscript with some emulators (notibly the missing NES emulator I don't have). The good news
-is that I was able to compile a working RetroArch version, the bad news is that while I seem to be able to Emscript compile some of the emulators (Bnes, Nestopia), I can't get them to
-either start (Nestopia) or load up a game (Bnes). Hopefully you don't give up on this because at the time of this writing, no one else in the RetroArch project cares about compiling
-to Javascript and you could be the ONLY one with such a nice collection of playable games on the entire web (so I think so far).
+9/11/15: Okay, now that I understand (somewhat) the build procedure for RetroArch and its emulation cores, I'll detail it here. That being said, while I can build the most current version of RetroArch just fine, not a single one of the "cores" (console emulators) seems to work when I start it up and attempt to load a game. I have no idea why and debugging why an emulator in javascript through the host of another app sounds like a nightmare undertaking.
 
-Included in /tools is a zip file called "RetroidNetplay-master". This is actually a branch of the RetroArch project at about version 0.9.9.3 when Emscripten compliing was working.
-It took me a while to find a version which worked!
+- First, get Emscripten installed and working (https://kripken.github.io/emscripten-site/docs/getting_started/downloads.html). There were so many steps that I won't repeat them here. The latest version (at this time tag-1.34.8) was working fine.
 
-- First, get Emscripten installed and working. There were so many steps that I won't repeat them here. The latest version (at this time tag-1.34.8) was working fine.
-- Open up the "RetroidNetplay-master" folder. Thankfully, someone was nice and included a .sh file for creating Emscripten solutions. Go to ./dist-scritps
-- you should be able to compile the project with "emmake ./emscripten-cores.sh". I did modify the Makefile.emscripten file in the parent with $DEBUG=1 so that no javascript is compiled. This is important because if I can ever get one of these working, you have to make changes to that file (see below) so that it'll run on Crazyerics
-- Game cores have to be compiled separately.
+- From GitHub, get the RetroArch project (https://github.com/libretro/RetroArch). At the time of this writting its at version 1.2.2, commit 9fa376a835fff55710826029353cde4d7e6e12c7. I only say this because Emscripten compiling is working at this time :) You never know about its support later. On a side note - I actually went back in time to version 0.9.9.3 which I learned to compile from and then attempted the latest release with all my new "learnings" and it worked just fine :P
+
+- We're going to modify the ./dist-scripts/dist-cores.sh file. 
+
+Replace this, with this:
+make -C ../ -f Makefile.emscripten LTO=$lto -j7 clean || exit 1
+make -C ../ -f Makefile.emscripten DEBUG=1 clean || exit 1
+
+I'm replacing the optimization options with a flag which does does none. This is important because I need to modify the source once built for the emulator to work on Crazyerics (see below)
+
+- Ok, so we can't build anything yet until we have byte-code from an Emscripten compiled libretro "core" (or emulator). Browse the repository at https://github.com/libretro. There are actually a ton of cores out there all somewhat with active development.
+
+- Compiling a core doesn't take much work but might mean modifying the ./Makefile or ./Makefile.libretro. We need to include instruction for output when the platform is Emscripten and often it won't have it. Open up the make file and ensure something like this exists:
+
+# emscripten
+else ifeq ($(platform), emscripten)
+	TARGET := $(TARGET_NAME)_libretro_emscripten.bc
+
+- You should now be able to attempt a build. Be sure to include the platform parameter:
+
+emmake make -f ./Makefile platform=emscripten
+
+- If successful, you'll end up with a .bc file which represents byte-level code of the core. We can not use this when building RetroArch.
+
+- Drop the .bc (one or several) into the ./dist-scripts/ folder in the RetroArch project. They'll now be directly alongside the dist-cores.sh file you'll run:
+
+emmake ./dist-cores.sh emscripten
+
+- Congrats, a resulting javascript file of the core with RetroArch will now be in the ./emscripten folder in the RetroArch project. I suggest trying it out in that location with the template.html file they include for testing. If you have any luck it'll open a game, I've yet to see this :(
+
+Alright, that's about it. I might try this whole procedure on a Windows or Ubuntu box as maybe the OSX c++ compilers (g++?) don't offer as much compatibility? Hard to say but rarely do I see a core built without several warnings thrown. I still get a build product of course but its suspect. Maybe you'll have some luck there in the future :)
 
 
-
-chnages to emulator scripts:
+chnages to emulator scripts
+---------------------------
 
 - event handling: 
 
