@@ -307,61 +307,70 @@ crazyerics.prototype._bootstrap = function(system, title, file, rank) {
         //create new canvas
         $('#emulatorcanvas').append('<canvas tabindex="0" id="emulator"></canvas>');
 
-        //build all code in an iframe for separate context and returns emulator module
-        self._loademulator(system, function(Module, fs, frame) {
 
-            self.emulatorframe = frame; //handle to iframe
+        //deffered for emulator and game to load them concurrently
+        var emulatorReady = $.Deferred();
+        var gameReady = $.Deferred();
+
+
+        $.when(emulatorReady, gameReady).done(function (emulator, data) {
+
+            var Module = emulator[0];
+            var fs = emulator[1];
+            var frame = emulator[2];
+
             self._Module = Module; //handle to Module
             FS = fs;
+            self.emulatorframe = frame; //handle to iframe
 
-            //load game
-            self._loadGame(system, title, file, function(data) {
+            self._buildFileSystem(Module, system, file, data);
 
-                self._buildFileSystem(Module, system, file, data);
+            self._setupKeypressInterceptor(system, title, file);
 
-                self._setupKeypressInterceptor(system, title, file);
+            self._restoreStates(Module, file, function() {
 
-                self._restoreStates(Module, file, function() {
+                //begin game
+                Module['callMain'](Module['arguments']);
 
-                    //begin game
-                    Module['callMain'](Module['arguments']);
+                //handle title and content fadein steps
+                self._buildGameContent(system, title, rank, function() {
 
-                    //handle title and content fadein steps
-                    self._buildGameContent(system, title, rank, function() {
-
-                    });
-                
-                    $('#gameloadingoverlaycontent').addClass('close');
-                    $('#gameloadingoverlay').fadeOut(1000, function() {
-
-                        //show controls initially to reveal their presence
-                        setTimeout(function() { 
-                            self._ModuleLoading = false;
-                            //$('#emulatorcontrolswrapper').slideToggle({ direction: "down" }, 300);
-                            $('#emulatorcontrolswrapper').addClass('closed');
-                        }, 3000);
-                        
-                    });
-
-                    $('#emulator')
-                        .blur(function(event) {
-                            if (!self._pauseOverride) {
-                                Module.pauseMainLoop();
-                                $('#emulatorwrapperoverlay').fadeIn();
-                            }
-                        })
-                        .focus(function() {
-                            Module.resumeMainLoop();
-                            $('#emulatorwrapperoverlay').hide();
-                        })
-                        .focus();
-
-                    //set last played
-                    var objectStore = self._db.objectStore('lastplayed', true);
-                    objectStore.delete();
                 });
+            
+                $('#gameloadingoverlaycontent').addClass('close');
+                $('#gameloadingoverlay').fadeOut(1000, function() {
+
+                    //show controls initially to reveal their presence
+                    setTimeout(function() { 
+                        self._ModuleLoading = false;
+                        //$('#emulatorcontrolswrapper').slideToggle({ direction: "down" }, 300);
+                        $('#emulatorcontrolswrapper').addClass('closed');
+                    }, 3000);
+                    
+                });
+
+                $('#emulator')
+                    .blur(function(event) {
+                        if (!self._pauseOverride) {
+                            Module.pauseMainLoop();
+                            $('#emulatorwrapperoverlay').fadeIn();
+                        }
+                    })
+                    .focus(function() {
+                        Module.resumeMainLoop();
+                        $('#emulatorwrapperoverlay').hide();
+                    })
+                    .focus();
+
+                //set last played
+                var objectStore = self._db.objectStore('lastplayed', true);
+                objectStore.delete();
             });
+
         });
+
+        self._loademulator(system, emulatorReady);
+        self._loadGame(system, title, file, gameReady);
     });
 };
 
@@ -525,7 +534,7 @@ crazyerics.prototype._setupKeypressInterceptor = function(system, title, file) {
     }
 };
 
-crazyerics.prototype._loademulator = function(system, callback) {
+crazyerics.prototype._loademulator = function(system, deffered) {
 
     var frame  = $('<iframe/>', {
         src:'/emulator/' + system,
@@ -535,13 +544,13 @@ crazyerics.prototype._loademulator = function(system, callback) {
             //find module to run games
             var FS = this.contentWindow.FS;
             var Module = this.contentWindow.Module;
-            callback(Module, FS, frame);
+            deffered.resolve(Module, FS, frame);
         }
     });
     $('body').append(frame);
 };
 
-crazyerics.prototype._loadGame = function(system, title, file, callback) {
+crazyerics.prototype._loadGame = function(system, title, file, deffered) {
 
     var self = this;
 
@@ -552,7 +561,7 @@ crazyerics.prototype._loadGame = function(system, title, file, callback) {
         .done(function(result, event) {
             
             if (result) {
-                callback(result);
+                deffered.resolve(result);
             
             } else {
 
@@ -570,7 +579,7 @@ crazyerics.prototype._loadGame = function(system, title, file, callback) {
                             console.log(error);
                         });
 
-                    callback(data);
+                    deffered.resolve(data);
                 });
             }
         })
@@ -579,7 +588,7 @@ crazyerics.prototype._loadGame = function(system, title, file, callback) {
             console.log(error);
 
             self._loadGameFromSoruce(system, title, file, function(data) {
-                callback(data);
+                deffered.resolve(data);
             });
         });
 };
