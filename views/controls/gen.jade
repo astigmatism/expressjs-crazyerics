@@ -1,0 +1,126 @@
+style.
+	#wrapper {
+		position: relative;
+		height: 170px;
+		width: 470px;
+	}
+	#wrapper ul {
+		margin: 15px;
+		padding: 0;
+		float: right;
+	}
+	#wrapper li {
+		list-style: none;
+		text-align: right;
+	}
+	#diagramwrapper, #controllerwrapper {
+		left: 50px;
+		height: 100%;
+	}
+	#diagramwrapper {
+		position: absolute;
+		top: -14px;
+		
+	}
+	#controllerwrapper {
+		position: absolute;
+		top: 0;
+	}
+	#controller {
+		position: relative;
+		width: 200px;
+		height: 100%;
+	}
+	#controller img {
+		position: absolute;
+		margin-top: -100px;
+		top: 50%;
+		text-align: middle;
+	}
+	#diagram {
+		position: relative;
+		width: 200px;
+		height: 100%;
+	}
+	#dpad {
+		position: absolute;
+		top: 88px;
+		left: -45px;
+		vertical-align: middle;
+	}
+	#start {
+		position: absolute;
+		top: 148px;
+		left: 86px;
+		vertical-align: middle;
+	}
+	#pad {
+		position: absolute;
+		top: 88px;
+		left: 226px;
+	}
+	#padinner {
+		position: relative;
+	}
+	#a {
+		position: absolute;
+		top: 13px;
+		left: -14px;
+		vertical-align: middle;
+	}
+	#b {
+		position: absolute;
+		top: 5px;
+		left: 5px;
+		vertical-align: middle;
+	}
+	#c {
+		position: absolute;
+		top: 0px;
+		left: 24px;
+		vertical-align: middle;
+	}
+	#x {
+		position: absolute;
+		top: -8px;
+		left: -22px;
+		vertical-align: middle;
+	}
+	#y {
+		position: absolute;
+		top: -15px;
+		left: -5px;
+		vertical-align: middle;
+	}
+	#z {
+		position: absolute;
+		top: -20px;
+		left: 12px;
+		vertical-align: middle;
+	}
+div#wrapper
+	ul
+		li Save State: F2
+		li Load State: F4
+		li Increment State: F6
+		li Decrement State: F7
+		li Pause: P
+		li FF: Spacebar
+		li Frame Skip: K
+		li Reset: H
+
+	div#controllerwrapper
+		div#controller
+			img(src="/images/gamepads/gen.png")
+	div#diagramwrapper
+		div#diagram
+			div#dpad Arrows
+			div#start Enter
+			div#pad
+				div#padinner
+					div#a A
+					div#b Z
+					div#c X
+					div#x Q
+					div#y S
+					div#z W

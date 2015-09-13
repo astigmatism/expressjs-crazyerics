@@ -271,19 +271,10 @@ crazyerics.prototype._bootstrap = function(system, title, file, rank) {
     $('#gamedetailsboxfront img').addClass('close');
     $('#gamedetailswrapper').fadeOut();
 
-    //close any sliders
-    $('#gamecontrolslist li').each(function() {
-        if($(this).attr('data-click-state') == 1) {
-            $(this).click();
-        }
-    });
-
 
     //move welcome and emulator into view (first time only)
     $('#startmessage').slideUp(1000);
     $('#emulatorwrapper').slideDown(1000);
-
-    //before fading in loading overlay
     
     //loading image
     $('#gameloadingoverlaycontentimage').empty();
@@ -297,8 +288,15 @@ crazyerics.prototype._bootstrap = function(system, title, file, rank) {
     });
     $('#gameloadingoverlaycontentimage').append(img);
 
-    //fade in overla
+    //fade in overlay
     $('#gameloadingoverlay').fadeIn(500, function() {
+
+        //close any sliders
+        $('#gamecontrolslist li').each(function() {
+            if($(this).attr('data-click-state') == 1) {
+                $(this).mouseup();
+            }
+        });
 
         $('#gameloadingoverlaycontent').removeClass();
         $('#emulatorcontrolswrapper').show(); //show controls initially to reveal their presence

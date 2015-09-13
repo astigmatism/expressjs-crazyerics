@@ -1,0 +1,105 @@
+style.
+	#wrapper {
+		position: relative;
+		height: 170px;
+		width: 470px;
+	}
+	#wrapper ul {
+		margin: 15px;
+		padding: 0;
+		float: right;
+	}
+	#wrapper li {
+		list-style: none;
+		text-align: right;
+	}
+	#diagramwrapper, #controllerwrapper {
+		left: 60px;
+		height: 100%;
+	}
+	#diagramwrapper {
+		position: absolute;
+		top: -14px;
+		
+	}
+	#controllerwrapper {
+		position: absolute;
+		top: 0;
+	}
+	#controller {
+		position: relative;
+		width: 200px;
+		height: 100%;
+	}
+	#controller img {
+		position: absolute;
+		margin-top: -100px;
+		top: 50%;
+		text-align: middle;
+	}
+	#diagram {
+		position: relative;
+		width: 200px;
+		height: 100%;
+	}
+	#dpad {
+		position: absolute;
+		top: 90px;
+		left: -45px;
+		vertical-align: middle;
+	}
+	#select {
+		position: absolute;
+		top: 157px;
+		left: 70px;
+		vertical-align: middle;
+	}
+	#start {
+		position: absolute;
+		top: 157px;
+		left: 102px;
+		vertical-align: middle;
+	}
+	#pad {
+		position: absolute;
+		top: 95px;
+		left: 213px;
+	}
+	#padinner {
+		position: relative;
+	}
+	#a {
+		position: absolute;
+		top: 4px;
+		left: 21px;
+		vertical-align: middle;
+	}
+	#b {
+		position: absolute;
+		top: 4px;
+		left: -3px;
+		vertical-align: middle;
+	}
+div#wrapper
+	ul
+		li Save State: F2
+		li Load State: F4
+		li Increment State: F6
+		li Decrement State: F7
+		li Pause: P
+		li FF: Spacebar
+		li Frame Skip: K
+		li Reset: H
+
+	div#controllerwrapper
+		div#controller
+			img(src="/images/gamepads/nes.png")
+	div#diagramwrapper
+		div#diagram
+			div#dpad Arrows
+			div#select Shift
+			div#start Enter
+			div#pad
+				div#padinner
+					div#a X
+					div#b Z
