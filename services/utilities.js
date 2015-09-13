@@ -667,4 +667,17 @@ UtilitiesService.findGame = function(system, title, callback) {
     }
 };
 
+UtilitiesService.collectDataFromClient = function(callback) {
+
+    var result = {
+        retroarchconfig: {}
+    };
+
+    for (system in config.data.systems) {
+        result.retroarchconfig[system] = config.data.systems[system].retroarchconfig;
+    }
+
+    return callback(result);
+};
+
 module.exports = UtilitiesService;

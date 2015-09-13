@@ -64,7 +64,11 @@ var crazyerics = function() {
 
         self.replaceSuggestions('all');
 
-        $('#suggestionswrapper').on('click', 'img', function() {
+        $('#suggestionswrapper')
+        .on('mousedown', 'img', function() {
+            self._pauseOverride = true; //prevent current game from pausng before fadeout
+        })
+        .on('mouseup', 'img', function() {
 
             self._bootstrap(this.dataset.system, this.dataset.title, this.dataset.file, this.dataset.rank);
             window.scrollTo(0,0);
@@ -75,29 +79,34 @@ var crazyerics = function() {
             animation: 'grow'
         });
 
-        $('#upload').change(function(event) {
-            self._onupload(event.target.files);
-        });
-
+        //clicking on paused game overlay
         $('#emulatorwrapperoverlay')
-            .on('click', function() {
-                $('#emulator').focus();
+        .on('click', function() {
+            $('#emulator').focus();
+            $('#emulatorcontrolswrapper').removeClass();
+        })
+        .hover(
+            function(event) {
+                event.stopPropagation();
+            },
+            function(event) {
+                event.stopPropagation();
             });
 
-        // $('#emulatorcontrolswrapper').on('mousedown mouseup click', function(event) {
-        //     event.preventDefault();
-        //     $('#emulator').focus();
-        // });
+        $('#emulatorcontrolswrapper').on('mousedown mouseup click', function(event) {
+            event.preventDefault();
+            $('#emulator').focus();
+        });
 
-        // $('#emulatorwrapper').hover(
-        //     function(event) {
-        //         $('#emulatorcontrolswrapper').removeClass();
-        //     },
-        //     function(event) {
-        //         $('#emulatorcontrolswrapper').addClass('closed');
-        //     });
+        $('#emulatorwrapper').hover(
+            function(event) {
+                $('#emulatorcontrolswrapper').removeClass();
+            },
+            function(event) {
+                $('#emulatorcontrolswrapper').addClass('closed');
+            });
 
-        $('#maincolumn').hover(
+        $('#gamedetailswrapper').hover(
             function(event) {
                 $('#gamecontrolslist').removeClass();
             },
@@ -106,65 +115,69 @@ var crazyerics = function() {
             });
 
 
-        // $('#emulatorcontrolswrapper li.fullscreen').click(function() {
-        //     self._Module.requestFullScreen(true, true);
-        // });
-
-        // $('#emulatorcontrolswrapper li.savestate').click(function() {
-        //     self._simulateEmulatorKeypress(113); //F2
-        // });
-
-        // $('#emulatorcontrolswrapper li.loadstate').click(function() {
-        //     self._simulateEmulatorKeypress(115); //F4
-        // });
-
-        // $('#emulatorcontrolswrapper li.mute').click(function() {
-        //     self._simulateEmulatorKeypress(120); //F9
-        // });
-
-        // $('#emulatorcontrolswrapper li.decrementslot').click(function() {
-        //     self._simulateEmulatorKeypress(117); //F6
-        // });
-
-        // $('#emulatorcontrolswrapper li.incrementslot').click(function() {
-        //     self._simulateEmulatorKeypress(118); //F6
-        // });
-
-        // $('#emulatorcontrolswrapper li.fastforward').click(function() {
-        //     self._simulateEmulatorKeypress(32); //F6
-        // });
-
-        // $('#emulatorcontrolswrapper li.pause').click(function() {
-        //     self._simulateEmulatorKeypress(80); //P
-        // });
-
-        // $('#emulatorcontrolswrapper li.reset').click(function() {
-        //     self._simulateEmulatorKeypress(72); //F6
-        // });
-
-        $('#gamedetailscontent li').click(function() {
-            event.preventDefault();
-            $('#emulator').focus(); 
-        });
-
-        $('#gamecontrolslist li.fullscreen').on('click', function() {
+        $('#emulatorcontrolswrapper li.fullscreen').click(function() {
             self._Module.requestFullScreen(true, true);
         });
 
-        $('#gamecontrolslist li.mute').on('click', function() {
+        $('#emulatorcontrolswrapper li.savestate').click(function() {
+            self._simulateEmulatorKeypress(113); //F2
+        });
+
+        $('#emulatorcontrolswrapper li.loadstate').click(function() {
+            self._simulateEmulatorKeypress(115); //F4
+        });
+
+        $('#emulatorcontrolswrapper li.mute').click(function() {
             self._simulateEmulatorKeypress(120); //F9
         });
 
-        $('#gamecontrolslist li.reset').on('click', function() {
-            self._simulateEmulatorKeypress(72); //F6
+        $('#emulatorcontrolswrapper li.decrementslot').click(function() {
+            self._simulateEmulatorKeypress(117); //F6
         });
 
-        $('#gamecontrolslist li.pause').on('click', function() {
+        $('#emulatorcontrolswrapper li.incrementslot').click(function() {
+            self._simulateEmulatorKeypress(118); //F6
+        });
+
+        $('#emulatorcontrolswrapper li.fastforward').click(function() {
+            self._simulateEmulatorKeypress(32); //F6
+        });
+
+        $('#emulatorcontrolswrapper li.pause').click(function() {
             self._simulateEmulatorKeypress(80); //P
         });
 
-        $('#gamecontrolslist li.controls').on('click', function() {
-        
+        $('#emulatorcontrolswrapper li.reset').click(function() {
+            self._simulateEmulatorKeypress(72); //F6
+        });
+
+
+        // $('#gamecontrolslist li.fullscreen').on('click', function() {
+        //     self._Module.requestFullScreen(true, true);
+        // });
+
+        // $('#gamecontrolslist li.mute').on('click', function() {
+        //     self._simulateEmulatorKeypress(120); //F9
+        // });
+
+        // $('#gamecontrolslist li.reset').on('click', function() {
+        //     self._simulateEmulatorKeypress(72); //F6
+        // });
+
+        // $('#gamecontrolslist li.pause').on('click', function() {
+        //     self._simulateEmulatorKeypress(80); //P
+        // });
+
+        $('#gamecontrolslist li.controls')
+        .on('mousedown', function() {
+            self._pauseOverride = true;  
+        })
+        .on('mouseup', function(event) {            
+
+            //immediately give focus back
+            $('#emulator').focus();
+            self._pauseOverride = false;
+
             $("#controlsslider").animate({width:'toggle', padding: 'toggle'}, 500);
 
             if($(this).attr('data-click-state') == 0) {
@@ -177,19 +190,19 @@ var crazyerics = function() {
             }
         });
 
-        $('#gamecontrolslist li.states').on('click', function() {
+        // $('#gamecontrolslist li.states').on('click', function() {
         
-            $("#statesslider").animate({width:'toggle', padding: 'toggle'}, 500);
+        //     $("#statesslider").animate({width:'toggle', padding: 'toggle'}, 500);
 
-            if($(this).attr('data-click-state') == 0) {
-                $(this).attr('data-click-state', 1);
-                $(this).find('img').animateRotate(0, -90, 500);
+        //     if($(this).attr('data-click-state') == 0) {
+        //         $(this).attr('data-click-state', 1);
+        //         $(this).find('img').animateRotate(0, -90, 500);
             
-            } else {
-                $(this).attr('data-click-state', 0);
-                $(this).find('img').animateRotate(-90, 0, 500);
-            }
-        });
+        //     } else {
+        //         $(this).attr('data-click-state', 0);
+        //         $(this).find('img').animateRotate(-90, 0, 500);
+        //     }
+        // });
     });
 };
 
@@ -198,6 +211,7 @@ crazyerics.prototype.LSFS = null; //local storge file system
 crazyerics.prototype._boxFrontThreshold = 63;
 crazyerics.prototype._Module = null; //handle the emulator Module
 crazyerics.prototype._ModuleLoading = false; //oldskool way to prevent double loading
+crazyerics.prototype._pauseOverride = false; //condition for blur event of emulator, sometimes we don't want it to pause when we're giving it back focus
 
 crazyerics.prototype._activeFile = null;
 crazyerics.prototype._activeSaveStateSlot = 0;
@@ -243,36 +257,27 @@ crazyerics.prototype.replaceSuggestions = function(system, items) {
     });
 };
 
-crazyerics.prototype._buildGameTitle = function(system, title, rank) {
-
-    var src = '/images/blanks/' + system + '_150.png';
-
-    if (rank >= this._boxFrontThreshold) {
-        src = '/images/games/' + system + '/' + title + '/150.jpg';
-    }
-
-    
-    var img = $('<img class="close" src="' + src + '" />');
-    img.load(function(){
-        $(this).removeClass();
-    });
-    $('#gamedetailsboxfront').empty().append(img);
-    
-    $('#gametitle').text(title);
-    
-    $('#gamedetailswrapper').fadeIn(1000);
-};
-
 crazyerics.prototype._bootstrap = function(system, title, file, rank) {
     
     var self = this;
 
     if (self._ModuleLoading) return;
     self._ModuleLoading = true;
+    self._pauseOverride = false;
 
     $('#gameloadingname').text(title);
+    
+    //fade out content
     $('#gamedetailsboxfront img').addClass('close');
     $('#gamedetailswrapper').fadeOut();
+
+    //close any sliders
+    $('#gamecontrolslist li').each(function() {
+        if($(this).attr('data-click-state') == 1) {
+            $(this).click();
+        }
+    });
+
 
     //move welcome and emulator into view (first time only)
     $('#startmessage').slideUp(1000);
@@ -311,9 +316,10 @@ crazyerics.prototype._bootstrap = function(system, title, file, rank) {
             self._Module = Module; //handle to Module
             FS = fs;
 
+            //load game
             self._loadGame(system, title, file, function(data) {
 
-                self._buildFileSystem(Module, file, data);
+                self._buildFileSystem(Module, system, file, data);
 
                 self._setupKeypressInterceptor(system, title, file);
 
@@ -322,7 +328,10 @@ crazyerics.prototype._bootstrap = function(system, title, file, rank) {
                     //begin game
                     Module['callMain'](Module['arguments']);
 
-                    $('#gamedetailsbackground').slideDown(1000);
+                    //handle title and content fadein steps
+                    self._buildGameContent(system, title, rank, function() {
+
+                    });
                 
                     $('#gameloadingoverlaycontent').addClass('close');
                     $('#gameloadingoverlay').fadeOut(1000, function() {
@@ -334,13 +343,14 @@ crazyerics.prototype._bootstrap = function(system, title, file, rank) {
                             $('#emulatorcontrolswrapper').addClass('closed');
                         }, 3000);
                         
-                        self._buildGameTitle(system, title, rank);
                     });
 
                     $('#emulator')
-                        .focusout(function() {
-                            Module.pauseMainLoop();
-                            $('#emulatorwrapperoverlay').fadeIn();
+                        .blur(function(event) {
+                            if (!self._pauseOverride) {
+                                Module.pauseMainLoop();
+                                $('#emulatorwrapperoverlay').fadeIn();
+                            }
                         })
                         .focus(function() {
                             Module.resumeMainLoop();
@@ -355,6 +365,52 @@ crazyerics.prototype._bootstrap = function(system, title, file, rank) {
             });
         });
     });
+};
+
+crazyerics.prototype._buildGameContent = function(system, title, rank, callback) {
+
+    var src = '/images/blanks/' + system + '_150.png';
+    if (rank >= this._boxFrontThreshold) {
+        src = '/images/games/' + system + '/' + title + '/150.jpg';
+    }
+    
+    //using old skool js load was the only way I could get back image dimensions! gotta love non-framework solutions!
+    var img = document.createElement('img');
+    img.addEventListener('load', function () { 
+
+        $('#gamedetailsboxfront').empty().append(img);
+        $('#gametitle').empty().hide().append(title);
+
+        // slide down background
+        // first measure the area the box will use. is it greater? use that distance to slide
+        var distance = this.height > 200 ? this.height : 200;
+        $('#gamedetailsboxfront img').addClass('close');
+        $("#gamedetailsbackground").animate({
+            height : distance
+        }, 1000, function() {
+
+            //fade in details
+            $('#gamedetailswrapper').fadeIn(1000, function() {
+                
+                $('#gametitle').bigText({
+                    textAlign: 'left',
+                    horizontalAlign: 'left'
+                }); //auto size text to fit
+                $('#gametitle').fadeIn(500);
+                $('#gamedetailsboxfront img').removeClass();
+
+                //load controls
+                $('#controlsslider').empty();
+                $.get('/controls/' + system, function(result) {
+                    $('#controlsslider').append(result);
+                });
+
+                callback();
+            });
+        });
+
+    }, true);
+    img.setAttribute('src', src);
 };
 
 crazyerics.prototype._cleanupEmulator = function() {
@@ -568,7 +624,7 @@ crazyerics.prototype._setLastPlayed = function(system, title, file) {
         });
 };
 
-crazyerics.prototype._buildFileSystem = function(Module, file, data) {
+crazyerics.prototype._buildFileSystem = function(Module, system, file, data) {
 
     var self = this;
 
@@ -577,13 +633,11 @@ crazyerics.prototype._buildFileSystem = function(Module, file, data) {
     Module.arguments = ['-v', '/' + file];
     //Module.arguments = ['-v', '--menu'];
 
-    //config
     Module.FS_createFolder('/', 'etc', true, true);
-    var config = 'input_player1_select = shift\n';
-    var latency = 96; //parseInt(document.getElementById('latency').value, 10);
-    config += 'audio_latency = ' + latency + '\n'
-    config += 'video_vsync = false\n';
-    Module.FS_createDataFile('/etc', 'retroarch.cfg', config, true, true);
+
+    if (retroarchconfig && retroarchconfig[system]) {
+        Module.FS_createDataFile('/etc', 'retroarch.cfg', retroarchconfig[system], true, true);
+    }
 
 };
 

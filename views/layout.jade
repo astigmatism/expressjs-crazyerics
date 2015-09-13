@@ -7,6 +7,7 @@ html
         script(src='/javascripts/jquery.auto-complete.min.js')
         script(src='/javascripts/selectordie.min.js')
         script(src='/javascripts/browserfs.min.js')
+        script(src='/javascripts/jquery.bigtext.js')
         script(src='/javascripts/jquery.indexeddb.js')
         script(src='/javascripts/jquery.tooltipster.min.js')
         script(src='/javascripts/jquery.waitforimages.min.js')
@@ -18,6 +19,7 @@ html
         link(rel='stylesheet', href='/stylesheets/tooltipster-shadow.css')
         link(rel='stylesheet', type='text/css', href='http://fonts.googleapis.com/css?family=Open+Sans|Montserrat')
         script.
+            retroarchconfig=!{JSON.stringify(retroarchconfig)};
             openonload=!{JSON.stringify(openonload)};
     body
         div#container

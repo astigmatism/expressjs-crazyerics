@@ -1,0 +1,132 @@
+style.
+	#wrapper {
+		position: relative;
+		height: 170px;
+		width: 470px;
+	}
+	#wrapper ul {
+		margin: 15px;
+		padding: 0;
+		float: right;
+	}
+	#wrapper li {
+		list-style: none;
+		text-align: right;
+	}
+	#diagramwrapper {
+		position: absolute;
+		top: -14px;
+		left: 75px;
+		height: 100%;
+	}
+	#controllerwrapper {
+		position: absolute;
+		top: 0;
+		left: 75px;
+		height: 100%;
+	}
+	#controller {
+		position: relative;
+		width: 150px;
+		height: 100%;
+	}
+	#controller img {
+		position: absolute;
+		margin-top: -75px;
+		top: 50%;
+		text-align: middle;
+	}
+	#diagram {
+		position: relative;
+		width: 150px;
+		height: 100%;
+	}
+	#dpad {
+		position: absolute;
+		top: 85px;
+		left: -46px;
+		vertical-align: middle;
+	}
+	#select {
+		position: absolute;
+		top: 135px;
+		left: 39px;
+		vertical-align: middle;
+	}
+	#start {
+		position: absolute;
+		top: 135px;
+		left: 76px;
+		vertical-align: middle;
+	}
+	#l {
+		position: absolute;
+		top: 44px;
+		left: 29px;
+		vertical-align: middle;
+	}
+	#r {
+		position: absolute;
+		top: 44px;
+		left: 110px;
+		vertical-align: middle;
+	}
+	#pad {
+		position: absolute;
+		top: 88px;
+		left: 166px;
+	}
+	#padinner {
+		position: relative;
+	}
+	#a {
+		position: absolute;
+		top: -5px;
+		left: 15px;
+		vertical-align: middle;
+	}
+	#b {
+		position: absolute;
+		top: 8px;
+		left: 2px;
+		vertical-align: middle;
+	}
+	#x {
+		position: absolute;
+		top: -15px;
+		left: 2px;
+		vertical-align: middle;
+	}
+	#y {
+		position: absolute;
+		top: -5px;
+		left: -12px;
+		vertical-align: middle;
+	}
+div#wrapper
+	ul
+		li Save State: F2
+		li Load State: F4
+		li Increment State: F6
+		li Decrement State: F7
+		li Pause: P
+		li FF: Spacebar
+		li Frame Skip: K
+		li Reset: H
+
+	div#controllerwrapper
+		div#controller
+			img(src="/images/gamepads/snes.png")
+	div#diagramwrapper
+		div#diagram
+			div#dpad Arrows
+			div#select Shift
+			div#start Enter
+			div#l Q
+			div#r W
+			div#pad
+				div#padinner
+					div#a X
+					div#b Z
+					div#y A
+					div#x S

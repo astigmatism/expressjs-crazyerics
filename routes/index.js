@@ -8,9 +8,13 @@ var router = express.Router();
 
 router.get('/', function(req, res, next) {
     
-    res.render('index', {
-        layout: 'layout',
-        openonload: {}
+    UtilitiesService.collectDataFromClient(function(clientdata) {
+
+        res.render('index', {
+            layout: 'layout',
+            retroarchconfig: clientdata.retroarchconfig,
+            openonload: {}
+        });
     });
 });
 
@@ -78,19 +82,37 @@ router.get('/emulator/:system', function(req, res, next) {
     res.render('emulators/' + system);
 });
 
+router.get('/controls/:system', function(req, res, next) {
+    
+    var system = req.params.system;
+    res.render('controls/' + system);
+});
+
+router.get('/test/controls/:system', function(req, res, next) {
+    
+    var system = req.params.system;
+    res.render('controls/' + system, {
+        layout: 'basic'
+    });
+});
+
+//this route defined last to avoid overriding any route above
 router.get('/:system/:game', function(req, res, next) {
     
     var system = req.params.system;
     var game = req.params.game;
     var openonload = {};
 
-    UtilitiesService.findGame(system, game, function(err, result) {
-        if (result) {
-            openonload = result;
-        }
-        res.render('index', {
-            layout: 'layout',
-            openonload: openonload
+    UtilitiesService.collectDataFromClient(function(clientdata) {
+        UtilitiesService.findGame(system, game, function(err, result) {
+            if (result) {
+                openonload = result;
+            }
+            res.render('index', {
+                layout: 'layout',
+                retroarchconfig: clientdata.retroarchconfig,
+                openonload: openonload
+            });
         });
     });
 });
