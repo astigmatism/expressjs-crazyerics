@@ -170,13 +170,19 @@ var crazyerics = function() {
 
         $('#gamecontrolslist li.controls')
         .on('mousedown', function() {
-            self._pauseOverride = true;  
+            
+            //override pausing emulator if it is active
+            if ($('#emulator').is(":focus")) {
+                self._pauseOverride = true;  
+            }
         })
         .on('mouseup', function(event) {            
 
-            //immediately give focus back
-            $('#emulator').focus();
-            self._pauseOverride = false;
+            //immediately give focus back if it had it
+            if (self._pauseOverride) {
+                $('#emulator').focus();
+                self._pauseOverride = false;
+            }
 
             $("#controlsslider").animate({width:'toggle', padding: 'toggle'}, 500);
 
