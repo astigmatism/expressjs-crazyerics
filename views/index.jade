@@ -17,9 +17,13 @@ block content
     div(class="rel")
         
         div#startmessage(class="darkgrad")
-            div(class="centered")
+            div#startfirst(class="centered hide")
                 h2 Welcome!
-                p Get started by searching for a game or selecting a suggestion below.
+                p Get started by searching for a game or selecting a suggestion below
+            div#startplayed(class="centered hide")
+                h2 Welcome Back
+                ul
+                p Continue playing, search, or select a suggestion below (or #[a(href="javascript:crazyerics.clearHistory()") clear] your history)
 
         div#emulatorwrapper
             div#emulatorcanvas

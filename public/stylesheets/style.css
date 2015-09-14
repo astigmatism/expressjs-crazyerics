@@ -62,6 +62,10 @@ input[type='text'] {
     overflow: hidden;
 }
 
+#maincolumn a {
+	color: rgb(81,97,112);
+}
+
 #menucolumn
 {
     position: absolute;
@@ -179,13 +183,24 @@ input[type='text'] {
 
 #startmessage {
 	padding: 10px 0px;
-	height: 120px;
+	min-height: 120px;
 	width: 100%;
 }
 
 #startmessage div {
 	text-align: center;
 	padding: 15px 0;
+}
+
+#startplayed ul {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+}
+
+#startplayed li {
+	display: inline;
+	padding: 0px 5px;
 }
 
 .darkgrad {
@@ -215,6 +230,10 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#000000', end
 
 .fr {
 	float: right;
+}
+
+.hide {
+	display: none;
 }
 
 #emulatorwrapper {
@@ -445,22 +464,7 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#000000', end
 }
 
 #suggestionswrapper img {
-	cursor: pointer;
 	margin: 5px 0px;
-
-	transition:All 200ms ease-in;
-	-webkit-transition:All 200ms ease-in;
-	-moz-transition:All 200ms ease-in;
-	-o-transition:All 200ms ease-in;
-}
-
-#suggestionswrapper img:hover {
-
-	transform: scale(1.1, 1.1);
-	-webkit-transform: scale(1.1, 1.1);
-	-moz-transform: scale(1.1, 1.1);
-	-o-transform: scale(1.1, 1.1);
-	-ms-transform: scale(1.1, 1.1);
 }
 
 #loading {
@@ -503,5 +507,22 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#000000', end
 .tada { 
     -webkit-animation-name: tada; 
     animation-name: tada; 
+}
+
+.gamelink {
+	cursor: pointer;
+	transition:All 200ms ease-in;
+	-webkit-transition:All 200ms ease-in;
+	-moz-transition:All 200ms ease-in;
+	-o-transition:All 200ms ease-in;
+}
+
+.gamelink:hover {
+
+	transform: scale(1.1, 1.1);
+	-webkit-transform: scale(1.1, 1.1);
+	-moz-transform: scale(1.1, 1.1);
+	-o-transform: scale(1.1, 1.1);
+	-ms-transform: scale(1.1, 1.1);
 }
 

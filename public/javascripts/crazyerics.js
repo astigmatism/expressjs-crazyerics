@@ -7,11 +7,15 @@ var crazyerics = function() {
     $(document).ready(function() {
 
         self._db = $.indexedDB("crazyerics");
+        self._dbPlayHistory = self._db.objectStore('playHistory', true);
+        self._dbGames = self._db.objectStore('games', true);
 
         //incoming params to open game now?
         if ('g' in openonload && 't' in openonload && 's' in openonload && 'r' in openonload) {
             self._bootstrap(openonload.s, openonload.t, openonload.g, openonload.r);
         }
+
+        self._buildWelcomeMessage();
 
         //console select
         $('#searchform select').selectOrDie({
@@ -45,13 +49,7 @@ var crazyerics = function() {
                 ]
                  */
 
-                var src = '/images/blanks/' + item[2] + '_50.png';
-
-                //have image, see config for "boxFrontThreshold"
-                if (item[4] >= self._boxFrontThreshold) {
-                    src = '/images/games/' + item[2] + '/' + item[0] + '/50.jpg';
-                }
-
+                src = self._getBoxFront(item[2], item[0], item[4], 50);
                 var html = '<div class="autocomplete-suggestion" data-title="' + item[0] + '" data-file="' + item[1] + '" data-system="' + item[2] + '" data-searchscore="' + item[3] + '" data-rank="' + item[4] + '"><img src="' + src + '"><div>' + item[0] + '</div></div>';
                 //self.googleimagesearch(item[2] + ' ' + item[0] + ' box', 'img[name="' + item[0] + '"]');
                 return html;
@@ -60,38 +58,21 @@ var crazyerics = function() {
                 
                 self._bootstrap(item.data('system'), item.data('title'), item.data('file'), item.data('rank'));
             }
-        });
-
-        self.replaceSuggestions('all');
-
-        $('#suggestionswrapper')
-        .on('mousedown', 'img', function() {
-            self._pauseOverride = true; //prevent current game from pausng before fadeout
-        })
-        .on('mouseup', 'img', function() {
-
-            self._bootstrap(this.dataset.system, this.dataset.title, this.dataset.file, this.dataset.rank);
-            window.scrollTo(0,0);
-        });
-
-        $('.tooltip').tooltipster({
-            theme: 'tooltipster-shadow',
-            animation: 'grow'
-        });
+        }); 
 
         //clicking on paused game overlay
         $('#emulatorwrapperoverlay')
-        .on('click', function() {
-            $('#emulator').focus();
-            $('#emulatorcontrolswrapper').removeClass();
-        })
-        .hover(
-            function(event) {
-                event.stopPropagation();
-            },
-            function(event) {
-                event.stopPropagation();
-            });
+            .on('click', function() {
+                $('#emulator').focus();
+                $('#emulatorcontrolswrapper').removeClass();
+            })
+            .hover(
+                function(event) {
+                    event.stopPropagation();
+                },
+                function(event) {
+                    event.stopPropagation();
+                });
 
         $('#emulatorcontrolswrapper').on('mousedown mouseup click', function(event) {
             event.preventDefault();
@@ -196,6 +177,10 @@ var crazyerics = function() {
             }
         });
 
+        self.replaceSuggestions('all');
+
+        self._toolTips();
+
         // $('#gamecontrolslist li.states').on('click', function() {
         
         //     $("#statesslider").animate({width:'toggle', padding: 'toggle'}, 500);
@@ -222,8 +207,13 @@ crazyerics.prototype._pauseOverride = false; //condition for blur event of emula
 crazyerics.prototype._activeFile = null;
 crazyerics.prototype._activeSaveStateSlot = 0;
 
+crazyerics.prototype._db = null;                //reference to indexeddb
+crazyerics.prototype._dbPlayHistory = null;     //reference to objectStore which contains information about last played games
+crazyerics.prototype._dbGames = null;           //reference to objectStore which contains binary game data
+
 crazyerics.prototype.replaceSuggestions = function(system, items) {
 
+    var self = this;
     items = items || 100;
 
     //show loading icon
@@ -239,7 +229,8 @@ crazyerics.prototype.replaceSuggestions = function(system, items) {
 
         //use modulus to evenly disperse across all columns
         for (var i = 0; i < response.length; ++i) {
-            $(columns[i % columns.length]).append('<img class="tooltip" style="float:left" data-title="' + response[i].t + '" data-file="' + response[i].g + '" data-system="' + response[i].s + '" data-rank="' + response[i].r + '" src="/images/games/' + response[i].s + '/' + response[i].t + '/114.jpg" title="' + response[i].t + '" />');
+            var html = self._buildGameLink(response[i].s, response[i].t, response[i].g, response[i].r, 114);
+            $(columns[i % columns.length]).append(html);
         }
 
         //when all images have loaded, show suggestions
@@ -253,13 +244,7 @@ crazyerics.prototype.replaceSuggestions = function(system, items) {
             }
         });
 
-        //apply tooltips
-        $('#suggestionswrapper .tooltip').tooltipster({
-            theme: 'tooltipster-shadow',
-            animation: 'grow',
-            delay: 100
-        });
-
+        self._toolTips();
     });
 };
 
@@ -284,10 +269,8 @@ crazyerics.prototype._bootstrap = function(system, title, file, rank) {
     
     //loading image
     $('#gameloadingoverlaycontentimage').empty();
-    var src = '/images/blanks/' + system + '_150.png';
-    if (rank >= this._boxFrontThreshold) {
-        src = '/images/games/' + system + '/' + title + '/150.jpg';
-    }
+    
+    var src = self._getBoxFront(system, title, rank, 150);
     var img = $('<img class="tada" src="' + src + '" />');
     img.load(function(){
         $(this).fadeIn(200);
@@ -369,8 +352,12 @@ crazyerics.prototype._bootstrap = function(system, title, file, rank) {
                     .focus();
 
                 //set last played
-                var objectStore = self._db.objectStore('lastplayed', true);
-                objectStore.delete();
+                self._dbPlayHistory.add({
+                    system: system,
+                    title: title,
+                    file: file,
+                    rank: rank
+                }, Date.now());
             });
 
         });
@@ -382,10 +369,7 @@ crazyerics.prototype._bootstrap = function(system, title, file, rank) {
 
 crazyerics.prototype._buildGameContent = function(system, title, rank, callback) {
 
-    var src = '/images/blanks/' + system + '_150.png';
-    if (rank >= this._boxFrontThreshold) {
-        src = '/images/games/' + system + '/' + title + '/150.jpg';
-    }
+    var src = this._getBoxFront(system, title, rank, 150);
     
     //using old skool js load was the only way I could get back image dimensions! gotta love non-framework solutions!
     var img = document.createElement('img');
@@ -561,9 +545,7 @@ crazyerics.prototype._loadGame = function(system, title, file, deffered) {
     var self = this;
 
     //first, look for game in indexeddb
-    var objectStore = self._db.objectStore('games', true);
-
-    objectStore.get(file)
+    self._dbGames.get(file)
         .done(function(result, event) {
             
             if (result) {
@@ -574,16 +556,16 @@ crazyerics.prototype._loadGame = function(system, title, file, deffered) {
                 self._loadGameFromSoruce(system, title, file, function(data) {
 
                     //delete the previous value (if set)
-                    objectStore.delete(file);
+                    self._dbGames.delete(file);
                     
-                    //add the new item
-                    objectStore.add(data, file)
-                        .done(function(result, event){
-                            console.log(result);
-                        })
-                        .fail(function(error, event){
-                            console.log(error);
-                        });
+                    //add the new item FOR NOW NO SAVING GAMES
+                    // self._dbGames.add(data, file)
+                    //     .done(function(result, event){
+                    //         console.log(result);
+                    //     })
+                    //     .fail(function(error, event){
+                    //         console.log(error);
+                    //     });
 
                     deffered.resolve(data);
                 });
@@ -616,25 +598,6 @@ crazyerics.prototype._loadGameFromSoruce = function(system, title, file, callbac
     xhr.open('GET', url);
     xhr.responseType = 'arraybuffer';
     xhr.send();
-};
-
-crazyerics.prototype._setLastPlayed = function(system, title, file) {
-
-    var self = this;
-
-    var objectStore = self._db.objectStore('lastPlayed', true); //the key in the index is the file with ".states"
-                                        
-    //delete the previous value (if set)
-    objectStore.delete(filename);
-    
-    //add the new item
-    objectStore.add(statecontent.node.contents, filename)
-        .done(function(result, event){
-            console.log(result);
-        })
-        .fail(function(error, event){
-            console.log(error);
-        });
 };
 
 crazyerics.prototype._buildFileSystem = function(Module, system, file, data) {
@@ -695,6 +658,90 @@ crazyerics.prototype._restoreStates = function(Module, file, callback) {
             console.log(error);
             callback();
         });
+};
+
+crazyerics.prototype._buildWelcomeMessage = function() {
+
+    var self = this;
+    var history = {};
+    var historyarr = [];
+
+    var iterationPromise = self._dbPlayHistory.each(function(item) {
+        //if game already in history, take latest play date
+        if (item.value.title && item.value.title in history) {
+            if (item.key > history[item.value.title].played) {
+                history[item.value.title] = item.value;
+                history[item.value.title].played = item.key;
+            }
+        } else {
+            history[item.value.title] = item.value;
+            history[item.value.title].played = item.key;
+        }
+    });
+
+    iterationPromise.done(function(result, event){
+        
+        if ($.isEmptyObject(history)) {
+            $('#startfirst').fadeIn(500);
+            return;
+        }
+
+        //sort history by latest
+        for (game in history) {
+            historyarr.push(history[game]);
+        }
+        historyarr.sort(function(a, b) {
+            return a.played < b.played;
+        });
+
+        for (var i = 0; i < historyarr.length && i < 5; ++i) {
+            var img = self._buildGameLink(historyarr[i].system, historyarr[i].title, historyarr[i].file, historyarr[i].rank, 114);
+            var li = $('<li></li>');
+            li.append(img);
+            $('#startplayed ul').append(li);
+        }
+
+        $('#startplayed').fadeIn(500);
+        self._toolTips();
+    });
+};
+
+crazyerics.prototype._buildGameLink = function(system, title, file, rank, size) {
+    var self = this;
+    var img = $('<img class="tooltip gamelink" data-title="' + title + '" data-file="' + file + '" data-system="' + system + '" data-rank="' + rank + '" src="/images/games/' + system + '/' + title + '/' + size + '.jpg" title="' + title + '" />')
+        .on('mousedown', function() {
+            self._pauseOverride = true; //prevent current game from pausng before fadeout
+        })
+        .on('mouseup', function() {
+
+            self._bootstrap(this.dataset.system, this.dataset.title, this.dataset.file, this.dataset.rank);
+            window.scrollTo(0,0);
+        });
+    return img;
+}
+
+crazyerics.prototype._getBoxFront = function(system, title, rank, size) {
+
+    var src = '/images/blanks/' + system + '_' + size + '.png';
+    if (rank >= this._boxFrontThreshold) {
+        src = '/images/games/' + system + '/' + title + '/' + size + '.jpg';
+    }
+    return src;
+};
+
+crazyerics.prototype._toolTips = function() {
+    //apply tooltips
+    $('.tooltip').tooltipster({
+        theme: 'tooltipster-shadow',
+        animation: 'grow',
+        delay: 100
+    });
+};
+
+crazyerics.prototype.clearHistory = function() {
+    this._dbPlayHistory.clear();
+    this._dbGames.clear();
+    location.reload();    
 };
 
 crazyerics.prototype._asyncLoop = function (iterations, func, callback) {
