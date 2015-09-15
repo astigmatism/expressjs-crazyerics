@@ -687,10 +687,14 @@ crazyerics.prototype._buildWelcomeMessage = function() {
         }
     });
 
+    iterationPromise.fail(function(error, event){
+        $('#startfirst').animate({height: 'toggle', opacity: 'toggle'}, 200);
+    });
+
     iterationPromise.done(function(result, event){
         
         if ($.isEmptyObject(history)) {
-            $('#startfirst').fadeIn(500);
+            $('#startfirst').animate({height: 'toggle', opacity: 'toggle'}, 200);
             return;
         }
 
@@ -737,13 +741,13 @@ crazyerics.prototype._buildWelcomeMessage = function() {
         self._asyncLoop(historyarr.length, function(loop) {
             appendGameToWelcome(loop.iteration(), function(result) {
                 loop.next();
-            })},
-            function(){
-                
-                $('#startplayed').fadeIn(500);
-                self._toolTips();
-            }
-        );
+            });
+        },
+        function() {
+            
+            $('#startplayed').animate({height: 'toggle', opacity: 'toggle'}, 200);
+            self._toolTips();
+        });
     });
 };
 
