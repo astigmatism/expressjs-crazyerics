@@ -133,22 +133,6 @@ var crazyerics = function() {
         });
 
 
-        // $('#gamecontrolslist li.fullscreen').on('click', function() {
-        //     self._Module.requestFullScreen(true, true);
-        // });
-
-        // $('#gamecontrolslist li.mute').on('click', function() {
-        //     self._simulateEmulatorKeypress(120); //F9
-        // });
-
-        // $('#gamecontrolslist li.reset').on('click', function() {
-        //     self._simulateEmulatorKeypress(72); //F6
-        // });
-
-        // $('#gamecontrolslist li.pause').on('click', function() {
-        //     self._simulateEmulatorKeypress(80); //P
-        // });
-
         $('#gamecontrolslist li.controls')
         .on('mousedown', function() {
             
@@ -846,6 +830,15 @@ crazyerics.prototype._asyncLoop = function (iterations, func, callback) {
     return loop;
 }
 
+/**
+ * css rotation animation helper and jquery extension
+ * @param  {number} startingangle
+ * @param  {number} angle
+ * @param  {number} duration
+ * @param  {string} easing
+ * @param  {Function} complete
+ * @return {}
+ */
 $.fn.animateRotate = function(startingangle, angle, duration, easing, complete) {
   var args = $.speed(duration, easing, complete);
   var step = args.step;

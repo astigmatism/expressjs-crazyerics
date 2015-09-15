@@ -5,6 +5,9 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var favicon = require('serve-favicon');
+var mongoose = require('mongoose');
+
+mongoose.connect('mongodb://localhost/crazyerics');
 
 var routes = require('./routes/index');
 var build = require('./routes/build');

@@ -1,8 +1,6 @@
 {
   "preset": "google",
-  "plugins": [
-    "jscs-jsdoc"
-  ],
+  "plugins": [],
   "disallowTrailingWhitespace": true,
   "excludeFiles": [
   ],
@@ -14,8 +12,8 @@
     "allowRegex": true
   },
   "jsDoc": {
-    "checkAnnotations": "closurecompiler",
-    "checkTypes": "strictNativeCase",
-    "enforceExistence": "exceptExports"
+      "checkAnnotations": "closurecompiler",
+      "checkTypes": "strictNativeCase",
+      "enforceExistence": "exceptExports"
   }
 }
