@@ -248,7 +248,7 @@ crazyerics.prototype.replaceSuggestions = function(system, items) {
     });
 };
 
-crazyerics.prototype._bootstrap = function(system, title, file, rank) {
+crazyerics.prototype._bootstrap = function(system, title, file, rank, state) {
     
     var self = this;
 
@@ -264,7 +264,7 @@ crazyerics.prototype._bootstrap = function(system, title, file, rank) {
 
 
     //move welcome and emulator into view (first time only)
-    $('#startmessage').slideUp(1000);
+    $('#startmessage').animate({height: 'toggle'}, 1000);
     $('#emulatorwrapper').slideDown(1000);
     
     //loading image
@@ -320,6 +320,14 @@ crazyerics.prototype._bootstrap = function(system, title, file, rank) {
 
                 //begin game
                 Module['callMain'](Module['arguments']);
+
+                //load state?
+                if (state) {
+                    for (var i = 0; i < state; ++i) {
+                        self._simulateEmulatorKeypress(118); //F6 increment state slot   
+                    }
+                    self._simulateEmulatorKeypress(115); //F4 load state
+                }
 
                 //handle title and content fadein steps
                 self._buildGameContent(system, title, rank, function() {
@@ -694,15 +702,70 @@ crazyerics.prototype._buildWelcomeMessage = function() {
             return a.played < b.played;
         });
 
-        for (var i = 0; i < historyarr.length && i < 5; ++i) {
-            var img = self._buildGameLink(historyarr[i].system, historyarr[i].title, historyarr[i].file, historyarr[i].rank, 114);
-            var li = $('<li></li>');
-            li.append(img);
-            $('#startplayed ul').append(li);
+        var appendGameToWelcome = function(i, asyncCallback) {
+            //are these states as well?
+            self._getSavedStates(historyarr[i].file, function(states) {
+
+                console.log(states);
+
+                var img = self._buildGameLink(historyarr[i].system, historyarr[i].title, historyarr[i].file, historyarr[i].rank, 114);
+                var li = $('<li></li>');
+                li.append(img);
+
+                //include links for states as well
+                var statewrapper = $('<div class="statewrapper"></div>');
+                for (state in states) {
+                    var statebox = $('<div class="gamelink tooltip" title="Load Saved State #' + state + '">' + state + '</div>')
+                        .on('mousedown', function() {
+                            self._pauseOverride = true; //prevent current game from pausng before fadeout
+                        })
+                        .on('mouseup', function() {
+
+                            self._bootstrap(historyarr[i].system, historyarr[i].title, historyarr[i].file, historyarr[i].rank, state);
+                            window.scrollTo(0,0);
+                        });
+                    statewrapper.append(statebox);
+                }
+                li.append(statewrapper);
+
+                $('#startplayed ul').append(li);
+                asyncCallback();
+
+            });            
+        };
+
+        self._asyncLoop(historyarr.length, function(loop) {
+            appendGameToWelcome(loop.iteration(), function(result) {
+                loop.next();
+            })},
+            function(){
+                
+                $('#startplayed').fadeIn(500);
+                self._toolTips();
+            }
+        );
+    });
+};
+
+crazyerics.prototype._getSavedStates = function(file, callback) {
+
+    var self = this;
+    var states = {};
+    var objectStore = self._db.objectStore(file + '.states', true); //the key in the index is the file with ".states"
+    var promise = objectStore.each(function(item) {
+        
+        var slot = 0;
+        var slotmatch = item.key.match(/\.state(\d*)$/); //match the .stateX value out of the 
+        
+        if (slotmatch && slotmatch[1]) {
+            slot = slotmatch[1];
         }
 
-        $('#startplayed').fadeIn(500);
-        self._toolTips();
+        states[slot] = item.value;
+
+    });
+    promise.done(function(result) {
+        callback(states);
     });
 };
 
@@ -739,9 +802,12 @@ crazyerics.prototype._toolTips = function() {
 };
 
 crazyerics.prototype.clearHistory = function() {
-    this._dbPlayHistory.clear();
-    this._dbGames.clear();
-    location.reload();    
+    var self = this;
+    if (confirm('This means deleting recently played games and all saved states. Are you sure?')) {
+        self._db.deleteDatabase().done(function() { 
+            location.reload();
+        });
+    }
 };
 
 crazyerics.prototype._asyncLoop = function (iterations, func, callback) {
