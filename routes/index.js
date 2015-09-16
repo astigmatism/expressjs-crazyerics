@@ -61,13 +61,13 @@ router.get('/suggest/:system/:items', function(req, res, next) {
     }
 });
 
-router.get('/loadgame/:system/:folder/:file', function(req, res, next) {
+router.get('/load/:system/:title/:file', function(req, res, next) {
 
     var system = req.params.system;
-    var folder = req.params.folder;
+    var title = req.params.title;
     var file = req.params.file;
 
-    UtilitiesService.loadGame(system, folder, file, function(err, data) {
+    UtilitiesService.loadGame(system, title, file, function(err, data) {
         if (err) {
             return res.json(err);
         }
@@ -75,36 +75,22 @@ router.get('/loadgame/:system/:folder/:file', function(req, res, next) {
     });
 });
 
-router.get('/emulator/:system', function(req, res, next) {
+router.get('/load/emulator/:system', function(req, res, next) {
         
     var system = req.params.system;
 
     res.render('emulators/' + system);
 });
 
-router.get('/controls/:system', function(req, res, next) {
+//this one last as two wild cards follow load
+router.get('/load/:system/:title', function(req, res, next) {
     
     var system = req.params.system;
-    res.render('controls/' + system);
-});
-
-router.get('/test/controls/:system', function(req, res, next) {
-    
-    var system = req.params.system;
-    res.render('controls/' + system, {
-        layout: 'basic'
-    });
-});
-
-//this route defined last to avoid overriding any route above
-router.get('/:system/:game', function(req, res, next) {
-    
-    var system = req.params.system;
-    var game = req.params.game;
+    var title = req.params.title;
     var openonload = {};
 
     UtilitiesService.collectDataFromClient(function(clientdata) {
-        UtilitiesService.findGame(system, game, function(err, result) {
+        UtilitiesService.findGame(system, title, function(err, result) {
             if (result) {
                 openonload = result;
             }
@@ -115,6 +101,23 @@ router.get('/:system/:game', function(req, res, next) {
             });
         });
     });
+});
+
+router.post('/state/:system/:title/:file/:slot', function(req, res, next) {
+    
+    var system = req.params.system;
+    var title = req.params.title;
+    var file = req.params.file;
+    var slot = req.params.slot;
+    var data = req.body.data;
+    console.log(data);
+    res.json('');
+});
+
+router.get('/layout/controls/:system', function(req, res, next) {
+    
+    var system = req.params.system;
+    res.render('controls/' + system);
 });
 
 module.exports = router;

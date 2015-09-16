@@ -363,7 +363,7 @@ crazyerics.prototype._buildGameContent = function(system, title, rank, callback)
 
                 //load controls
                 $('#controlsslider').empty();
-                $.get('/controls/' + system, function(result) {
+                $.get('/layout/controls/' + system, function(result) {
                     $('#controlsslider').append(result);
                 });
 
@@ -454,6 +454,17 @@ crazyerics.prototype._setupKeypressInterceptor = function(system, title, file) {
                                     var statecontent = FS.open(filename);
                                     if (statecontent && statecontent.node && statecontent.node.contents) {
 
+                                        if (JSZip.support.uint8array) {
+                                            var zip = new JSZip();
+                                            content = zip.file(statecontent.node.contents).asUint8Array();
+                                        }
+
+                                        $.post('/state/' + system + '/' + title + '/' + file + '/' + self._activeSaveStateSlot, {
+                                            data: statecontent.node.contents
+                                        }, function() {
+
+                                        });
+
                                         // var objectStore = self._db.objectStore(file + '.states', true); //the key in the index is the file with ".states"
                                         
                                         // //delete the previous value (if set)
@@ -492,7 +503,7 @@ crazyerics.prototype._setupKeypressInterceptor = function(system, title, file) {
 crazyerics.prototype._loademulator = function(system, deffered) {
 
     var frame  = $('<iframe/>', {
-        src:'/emulator/' + system,
+        src:'/load/emulator/' + system,
         style:'display:none',
         load: function(){
 
@@ -508,7 +519,7 @@ crazyerics.prototype._loademulator = function(system, deffered) {
 crazyerics.prototype._loadGame = function(system, title, file, deffered) {
 
     var self = this;
-    var url = '/loadgame/' + system + '/' + title + '/' + file;
+    var url = '/load/' + system + '/' + title + '/' + file;
 
     var xhr = new XMLHttpRequest();
     xhr.onreadystatechange = function(){
