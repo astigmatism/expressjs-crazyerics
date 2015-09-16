@@ -6,6 +6,8 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var favicon = require('serve-favicon');
 var mongoose = require('mongoose');
+var session = require('express-session');
+var MongoStore = require('connect-mongo')(session);
 
 mongoose.connect('mongodb://localhost/crazyerics');
 
@@ -25,6 +27,15 @@ app.use(bodyParser.urlencoded({extended: false}));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(favicon(__dirname + '/public/favicon.ico'));
+
+app.use(session({
+    secret: 'ill have what im having',
+    saveUninitialized: false,
+    resave: false,
+    store: new MongoStore({ 
+        mongooseConnection: mongoose.connection 
+    })
+}));
 
 app.use('/', routes);
 app.use('/build', build);

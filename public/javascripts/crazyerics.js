@@ -6,10 +6,6 @@ var crazyerics = function() {
     
     $(document).ready(function() {
 
-        self._db = $.indexedDB("crazyerics");
-        self._dbPlayHistory = self._db.objectStore('playHistory', true);
-        self._dbGames = self._db.objectStore('games', true);
-
         //incoming params to open game now?
         if ('g' in openonload && 't' in openonload && 's' in openonload && 'r' in openonload) {
             self._bootstrap(openonload.s, openonload.t, openonload.g, openonload.r);
@@ -164,20 +160,6 @@ var crazyerics = function() {
         self.replaceSuggestions('all');
 
         self._toolTips();
-
-        // $('#gamecontrolslist li.states').on('click', function() {
-        
-        //     $("#statesslider").animate({width:'toggle', padding: 'toggle'}, 500);
-
-        //     if($(this).attr('data-click-state') == 0) {
-        //         $(this).attr('data-click-state', 1);
-        //         $(this).find('img').animateRotate(0, -90, 500);
-            
-        //     } else {
-        //         $(this).attr('data-click-state', 0);
-        //         $(this).find('img').animateRotate(-90, 0, 500);
-        //     }
-        // });
     });
 };
 
@@ -190,10 +172,6 @@ crazyerics.prototype._pauseOverride = false; //condition for blur event of emula
 
 crazyerics.prototype._activeFile = null;
 crazyerics.prototype._activeSaveStateSlot = 0;
-
-crazyerics.prototype._db = null;                //reference to indexeddb
-crazyerics.prototype._dbPlayHistory = null;     //reference to objectStore which contains information about last played games
-crazyerics.prototype._dbGames = null;           //reference to objectStore which contains binary game data
 
 crazyerics.prototype.replaceSuggestions = function(system, items) {
 
@@ -344,12 +322,7 @@ crazyerics.prototype._bootstrap = function(system, title, file, rank, state) {
                     .focus();
 
                 //set last played
-                self._dbPlayHistory.add({
-                    system: system,
-                    title: title,
-                    file: file,
-                    rank: rank
-                }, Date.now());
+                self._setPlayHistory(system, title, file, rank);
             });
 
         });
@@ -481,19 +454,19 @@ crazyerics.prototype._setupKeypressInterceptor = function(system, title, file) {
                                     var statecontent = FS.open(filename);
                                     if (statecontent && statecontent.node && statecontent.node.contents) {
 
-                                        var objectStore = self._db.objectStore(file + '.states', true); //the key in the index is the file with ".states"
+                                        // var objectStore = self._db.objectStore(file + '.states', true); //the key in the index is the file with ".states"
                                         
-                                        //delete the previous value (if set)
-                                        objectStore.delete(filename);
+                                        // //delete the previous value (if set)
+                                        // objectStore.delete(filename);
                                         
-                                        //add the new item
-                                        objectStore.add(statecontent.node.contents, filename)
-                                            .done(function(result, event){
-                                                console.log(result);
-                                            })
-                                            .fail(function(error, event){
-                                                console.log(error);
-                                            });
+                                        // //add the new item
+                                        // objectStore.add(statecontent.node.contents, filename)
+                                        //     .done(function(result, event){
+                                        //         console.log(result);
+                                        //     })
+                                        //     .fail(function(error, event){
+                                        //         console.log(error);
+                                        //     });
                                     }
                                 } catch(e) {
                                     console.log('could not write local storage save state', e);
@@ -535,46 +508,6 @@ crazyerics.prototype._loademulator = function(system, deffered) {
 crazyerics.prototype._loadGame = function(system, title, file, deffered) {
 
     var self = this;
-
-    //first, look for game in indexeddb
-    self._dbGames.get(file)
-        .done(function(result, event) {
-            
-            if (result) {
-                deffered.resolve(result);
-            
-            } else {
-
-                self._loadGameFromSoruce(system, title, file, function(data) {
-
-                    //delete the previous value (if set)
-                    self._dbGames.delete(file);
-                    
-                    //add the new item FOR NOW NO SAVING GAMES
-                    // self._dbGames.add(data, file)
-                    //     .done(function(result, event){
-                    //         console.log(result);
-                    //     })
-                    //     .fail(function(error, event){
-                    //         console.log(error);
-                    //     });
-
-                    deffered.resolve(data);
-                });
-            }
-        })
-        .fail(function(error, event) {
-
-            console.log(error);
-
-            self._loadGameFromSoruce(system, title, file, function(data) {
-                deffered.resolve(data);
-            });
-        });
-};
-
-crazyerics.prototype._loadGameFromSoruce = function(system, title, file, callback) {
-
     var url = '/loadgame/' + system + '/' + title + '/' + file;
 
     var xhr = new XMLHttpRequest();
@@ -584,7 +517,7 @@ crazyerics.prototype._loadGameFromSoruce = function(system, title, file, callbac
             //response comes back as arraybuffer. convery to uint8array
             var dataView = new Uint8Array(this.response);
 
-            callback(dataView);
+            deffered.resolve(dataView);
         }
     }
     xhr.open('GET', url);
@@ -612,6 +545,8 @@ crazyerics.prototype._buildFileSystem = function(Module, system, file, data) {
 crazyerics.prototype._restoreStates = function(Module, file, callback) {
 
     var self = this;
+
+    return callback(); //nope, not storing these in client anymore
 
     //restore saved states
     var objectStore = self._db.objectStore(file + '.states', true);
@@ -655,84 +590,66 @@ crazyerics.prototype._restoreStates = function(Module, file, callback) {
 crazyerics.prototype._buildWelcomeMessage = function() {
 
     var self = this;
-    var history = {};
-    var historyarr = [];
+    var playHistory = self._getPlayHistory(5);
 
-    var iterationPromise = self._dbPlayHistory.each(function(item) {
-        //if game already in history, take latest play date
-        if (item.value.title && item.value.title in history) {
-            if (item.key > history[item.value.title].played) {
-                history[item.value.title] = item.value;
-                history[item.value.title].played = item.key;
-            }
-        } else {
-            history[item.value.title] = item.value;
-            history[item.value.title].played = item.key;
-        }
-    });
-
-    iterationPromise.fail(function(error, event){
+    if (playHistory.length === 0) {
         $('#startfirst').animate({height: 'toggle', opacity: 'toggle'}, 200);
-    });
+        return;
+    }
 
-    iterationPromise.done(function(result, event){
+    for (var i = 0; i < playHistory.length; ++i) {
+        var img = self._buildGameLink(playHistory[i].system, playHistory[i].title, playHistory[i].file, playHistory[i].rank, 114);
+        var li = $('<li></li>');
+        li.append(img);
+        $('#startplayed ul').append(li);
+    }
+
+    $('#startplayed').animate({height: 'toggle', opacity: 'toggle'}, 200);
+    self._toolTips();
+
+    // var appendGameToWelcome = function(i, asyncCallback) {
+
+    //     var item = playHistory[i];
+
+    //     //are these states as well?
+    //     self._getSavedStates(item.file, function(states) {
+
+    //         var img = self._buildGameLink(item.system, item.title, item.file, item.rank, 114);
+    //         var li = $('<li></li>');
+    //         li.append(img);
+
+    //         //include links for states as well
+    //         var statewrapper = $('<div class="statewrapper"></div>');
+    //         for (state in states) {
+    //             var statebox = $('<div class="gamelink tooltip" title="Load Saved State #' + state + '">' + state + '</div>')
+    //                 .on('mousedown', function() {
+    //                     self._pauseOverride = true; //prevent current game from pausng before fadeout
+    //                 })
+    //                 .on('mouseup', function() {
+
+    //                     self._bootstrap(item.system, item.title, item.file, item.rank, state);
+    //                     window.scrollTo(0,0);
+    //                 });
+    //             statewrapper.append(statebox);
+    //         }
+    //         li.append(statewrapper);
+
+    //         $('#startplayed ul').append(li);
+    //         asyncCallback();
+
+    //     });            
+    // };
+
+    // self._asyncLoop(playHistory.length, function(loop) {
+    //     appendGameToWelcome(loop.iteration(), function(result) {
+    //         loop.next();
+    //     });
+    // },
+    // function() {
         
-        if ($.isEmptyObject(history)) {
-            $('#startfirst').animate({height: 'toggle', opacity: 'toggle'}, 200);
-            return;
-        }
-
-        //sort history by latest
-        for (game in history) {
-            historyarr.push(history[game]);
-        }
-        historyarr.sort(function(a, b) {
-            return a.played < b.played;
-        });
-
-        var appendGameToWelcome = function(i, asyncCallback) {
-            //are these states as well?
-            self._getSavedStates(historyarr[i].file, function(states) {
-
-                console.log(states);
-
-                var img = self._buildGameLink(historyarr[i].system, historyarr[i].title, historyarr[i].file, historyarr[i].rank, 114);
-                var li = $('<li></li>');
-                li.append(img);
-
-                //include links for states as well
-                var statewrapper = $('<div class="statewrapper"></div>');
-                for (state in states) {
-                    var statebox = $('<div class="gamelink tooltip" title="Load Saved State #' + state + '">' + state + '</div>')
-                        .on('mousedown', function() {
-                            self._pauseOverride = true; //prevent current game from pausng before fadeout
-                        })
-                        .on('mouseup', function() {
-
-                            self._bootstrap(historyarr[i].system, historyarr[i].title, historyarr[i].file, historyarr[i].rank, state);
-                            window.scrollTo(0,0);
-                        });
-                    statewrapper.append(statebox);
-                }
-                li.append(statewrapper);
-
-                $('#startplayed ul').append(li);
-                asyncCallback();
-
-            });            
-        };
-
-        self._asyncLoop(historyarr.length, function(loop) {
-            appendGameToWelcome(loop.iteration(), function(result) {
-                loop.next();
-            });
-        },
-        function() {
-            
-            $('#startplayed').animate({height: 'toggle', opacity: 'toggle'}, 200);
-            self._toolTips();
-        });
-    });
+    //     $('#startplayed').animate({height: 'toggle', opacity: 'toggle'}, 200);
+    //     self._toolTips();
+    // });
 };
 
 crazyerics.prototype._getSavedStates = function(file, callback) {
@@ -798,37 +715,71 @@ crazyerics.prototype.clearHistory = function() {
     }
 };
 
-crazyerics.prototype._asyncLoop = function (iterations, func, callback) {
-    var index = 0;
-    var done = false;
-    var loop = {
-        next: function() {
-            if (done) {
-                return;
-            }
+crazyerics.prototype._setPlayHistory = function(system, title, file, rank, numberToKeep) {
 
-            if (index < iterations) {
-                index++;
-                func(loop);
+    numberToKeep = numberToKeep || 10;
 
-            } else {
-                done = true;
-                callback();
-            }
-        },
+    var playHistory = localStorage.getItem('playHistory')
+    playHistory = playHistory ? JSON.parse(playHistory) : {};
 
-        iteration: function() {
-            return index - 1;
-        },
 
-        break: function() {
-            done = true;
-            callback();
+    //does this game already exist in the history?
+    for (moment in playHistory) {
+        if (playHistory[moment].title === title && playHistory[moment].system === system) {
+            delete playHistory[moment];
+            break;
         }
-    };
-    loop.next();
-    return loop;
-}
+    }
+
+    playHistory[Date.now()] = {
+        system: system,
+        title: title,
+        file: file,
+        rank: rank
+    }
+
+    //trim history?
+
+    var keys = Object.keys(playHistory);
+
+    if (keys.length > numberToKeep) {
+        keys.sort(function(a, b) {
+            return a < b;
+        });
+        keys = keys.slice(0, numberToKeep);
+        var newHistory = {};
+        for (var i = 0; i < keys.length; ++i) {
+            newHistory[keys[i]] = playHistory[keys[i]];
+        }
+        playHistory = newHistory;
+    }
+
+
+    localStorage.setItem('playHistory', JSON.stringify(playHistory));
+};
+
+crazyerics.prototype._getPlayHistory = function(maximum) {
+
+    var playHistory = localStorage.getItem('playHistory')
+    playHistory = playHistory ? JSON.parse(playHistory) : {};
+
+    var result = [];
+    var keys = Object.keys(playHistory);
+
+    maximum = maximum || keys.length;
+
+    //sorted by most recent
+    keys.sort(function(a, b) {
+        return a < b;
+    });
+
+    for (var i = 0; i < keys.length && i < maximum; ++i) {
+        playHistory[keys[i]].played = keys[i];
+        result.push(playHistory[keys[i]]);
+    }
+
+    return result;
+};
 
 /**
  * css rotation animation helper and jquery extension
