@@ -2,6 +2,8 @@
 var fs = require('fs');
 var async = require('async');
 var config = require('../config.js');
+var pako = require('pako');
+var btoa = require('btoa');
 var DataService = require('../services/data.js');
 
 /**
@@ -667,17 +669,91 @@ UtilitiesService.findGame = function(system, title, callback) {
     }
 };
 
-UtilitiesService.collectDataFromClient = function(callback) {
+UtilitiesService.collectDataForClient = function(req, openonload, callback) {
 
     var result = {
         retroarchconfig: {}
     };
 
-    for (system in config.data.systems) {
-        result.retroarchconfig[system] = config.data.systems[system].retroarchconfig;
-    }
+    var synchonous = function() {
+        //retroarch configs
+        for (system in config.data.systems) {
+            result.retroarchconfig[system] = config.data.systems[system].retroarchconfig;
+        }
 
-    return callback(result);
+        //play history from session
+        result.playhistory = {};
+        if (req.session && req.session.games && req.session.games.history) {
+            result.playhistory = req.session.games.history;
+        }
+
+        //because this json object is going over the wire, compress (client will decompress)
+        result = UtilitiesService.compress.json(result);
+
+        return callback(result);
+    };
+
+    if (openonload && openonload.title && openonload.system) {
+        UtilitiesService.findGame(openonload.system, openonload.title, function(err, data) {
+            result.openonload = data;
+            synchonous();
+        });
+    } else {
+        synchonous();
+    }
 };
+
+UtilitiesService.setPlayHistory = function(req, system, title, file, callback) {
+
+    if (req.session) {
+
+        //ensure structure exists
+        req.session.games = req.session.games ? req.session.games : {};
+        req.session.games.history = req.session.games.history ? req.session.games.history : {};
+
+        var numberToKeep = 10; //get this from config?
+        var playHistory = req.session.games.history;
+
+        //does this title already exist in the history?
+        for (moment in playHistory) {
+            if (playHistory[moment].title === title && playHistory[moment].system === system) {
+                delete playHistory[moment];
+                break;
+            }
+        }
+
+        playHistory[Date.now()] = {
+            system: system,
+            title: title,
+            file: file
+        }
+
+        //trim history?
+        var keys = Object.keys(playHistory);
+
+        if (keys.length > numberToKeep) {
+            keys.sort(function(a, b) {
+                return a < b;
+            });
+            keys = keys.slice(0, numberToKeep);
+            var newHistory = {};
+            for (var i = 0; i < keys.length; ++i) {
+                newHistory[keys[i]] = playHistory[keys[i]];
+            }
+            playHistory = newHistory;
+        }
+
+        req.session.games.history = playHistory;
+    }
+    callback(playHistory);
+
+};
+
+UtilitiesService.compress = {
+    json: function(json) {
+        return btoa(pako.deflate(JSON.stringify(json), { to: 'string' }));
+    }
+};
+
 
 module.exports = UtilitiesService;

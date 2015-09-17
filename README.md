@@ -69,6 +69,8 @@ RI is the object with the event handler.
 After the object definition, do this "Module.RI = RI"
 This exposes the handler to the Module and then our app.
 
-adding systems
---------------
+various notes
+-------------
+
+compress all localstorage keys and values with LZ-String (http://pieroxy.net/blog/pages/lz-string/index.html)
 

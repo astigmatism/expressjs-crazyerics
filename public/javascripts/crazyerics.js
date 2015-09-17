@@ -6,7 +6,11 @@ var crazyerics = function() {
     
     $(document).ready(function() {
 
+        //decompress clientdata
+        self._clientdata = self._decompress.json(clientdata);
+
         //incoming params to open game now?
+        var openonload = self._clientdata.openonload || {};
         if ('g' in openonload && 't' in openonload && 's' in openonload && 'r' in openonload) {
             self._bootstrap(openonload.s, openonload.t, openonload.g, openonload.r);
         }
@@ -163,8 +167,7 @@ var crazyerics = function() {
     });
 };
 
-crazyerics.prototype.LSFS = null; //local storge file system
-
+crazyerics.prototype._clientdata = null;
 crazyerics.prototype._boxFrontThreshold = 63;
 crazyerics.prototype._Module = null; //handle the emulator Module
 crazyerics.prototype._ModuleLoading = false; //oldskool way to prevent double loading
@@ -278,7 +281,7 @@ crazyerics.prototype._bootstrap = function(system, title, file, rank, state) {
 
             self._setupKeypressInterceptor(system, title, file);
 
-            self._restoreStates(Module, file, function() {
+            self._restoreStates(Module, system, title, file, function() {
 
                 //begin game
                 Module['callMain'](Module['arguments']);
@@ -445,44 +448,9 @@ crazyerics.prototype._setupKeypressInterceptor = function(system, title, file) {
                     var key = event.keyCode;
                     switch(key) {
                         case 113: //save state
-                            //give time for the emaultor to save the file
-                            setTimeout(function() {
-                                
-                                var activefile = file.replace(new RegExp('\.[a-z]{1,3}$', 'gi'), '');
-                                var filename = '/' + activefile + '.state' + (self._activeSaveStateSlot === 0 ? '' : self._activeSaveStateSlot);
-                                try {
-                                    var statecontent = FS.open(filename);
-                                    if (statecontent && statecontent.node && statecontent.node.contents) {
+                            self._saveState(system, title, file, self._activeSaveStateSlot, function() {
 
-                                        if (JSZip.support.uint8array) {
-                                            var zip = new JSZip();
-                                            content = zip.file(statecontent.node.contents).asUint8Array();
-                                        }
-
-                                        $.post('/state/' + system + '/' + title + '/' + file + '/' + self._activeSaveStateSlot, {
-                                            data: statecontent.node.contents
-                                        }, function() {
-
-                                        });
-
-                                        // var objectStore = self._db.objectStore(file + '.states', true); //the key in the index is the file with ".states"
-                                        
-                                        // //delete the previous value (if set)
-                                        // objectStore.delete(filename);
-                                        
-                                        // //add the new item
-                                        // objectStore.add(statecontent.node.contents, filename)
-                                        //     .done(function(result, event){
-                                        //         console.log(result);
-                                        //     })
-                                        //     .fail(function(error, event){
-                                        //         console.log(error);
-                                        //     });
-                                    }
-                                } catch(e) {
-                                    console.log('could not write local storage save state', e);
-                                }
-                            },500);
+                            });
                             break;
                         case 117: //decrement state
                             self._activeSaveStateSlot = self._activeSaveStateSlot === 0 ? 0 : self._activeSaveStateSlot -1;
@@ -547,55 +515,55 @@ crazyerics.prototype._buildFileSystem = function(Module, system, file, data) {
 
     Module.FS_createFolder('/', 'etc', true, true);
 
-    if (retroarchconfig && retroarchconfig[system]) {
-        Module.FS_createDataFile('/etc', 'retroarch.cfg', retroarchconfig[system], true, true);
+    if (self._clientdata.retroarchconfig && self._clientdata.retroarchconfig[system]) {
+        Module.FS_createDataFile('/etc', 'retroarch.cfg', self._clientdata.retroarchconfig[system], true, true);
     }
 
 };
 
-crazyerics.prototype._restoreStates = function(Module, file, callback) {
+crazyerics.prototype._saveState = function(system, title, file, slot, callback) {
+
+    var self = this;
+    var filenoextension  = file.replace(new RegExp('\.[a-z]{1,3}$', 'gi'), '');
+    var filename         = filenoextension + '.state' + (slot === 0 ? '' : slot);
+
+    try {
+        var statecontent = FS.open(filename);
+    } catch(e) {
+        console.log(e);
+        return;
+    }
+        
+    if (statecontent && statecontent.node && statecontent.node.contents) {
+
+        var data = self._compress.bytearray(statecontent.node.contents);
+
+        $.ajax({
+            url: '/states/' + system + '/' + title + '/' + file + '/' + slot,
+            data: data,
+            processData: false,
+            contentType: 'text/plain',
+            type: 'POST',
+            success: function(data){
+                
+            }
+        });
+    }   
+};
+
+crazyerics.prototype._restoreStates = function(Module, system, title, file, callback) {
 
     var self = this;
 
-    return callback(); //nope, not storing these in client anymore
-
-    //restore saved states
-    var objectStore = self._db.objectStore(file + '.states', true);
-    objectStore.count()
-        .done(function(result, event) {
-
-            console.log('save states for ' + file + ': ' + result);
-
-            var loadGame = function(i, asyncCallback) {
-                var activefile = file.replace(new RegExp('\.[a-z]{1,3}$', 'gi'), '');
-                var filename = '/' + activefile + '.state' + (i === 0 ? '' : i);
-
-                objectStore.get(filename)
-                    .done(function(result, event) {
-                        Module.FS_createDataFile('/', filename, result, true, true);
-                        asyncCallback();
-                    })
-                    .fail(function(error, event) {
-                        console.log(error);
-                        asyncCallback();
-                    });
-            };
-
-            self._asyncLoop(result, function(loop) {
-                loadGame(loop.iteration(), function(result) {
-                    loop.next();
-                })},
-                function(){
-
-                    console.log('save states restored');
-                    callback();   
-                }
-            );
-        })
-        .fail(function(error, event) {
-            console.log(error);
-            callback();
-        });
+    $.get('/states/' + system + '/' + title + '/' + file, function(states) {
+        for (slot in states) {
+            var statedata = self._decompress.bytearray(states[slot]);
+            var filenoextension = file.replace(new RegExp('\.[a-z]{1,3}$', 'gi'), '');
+            var statefilename = '/' + filenoextension + '.state' + (slot == 0 ? '' : slot);
+            Module.FS_createDataFile('/', statefilename, statedata, true, true);
+        }
+        callback();
+    });
 };
 
 crazyerics.prototype._buildWelcomeMessage = function() {
@@ -617,50 +585,6 @@ crazyerics.prototype._buildWelcomeMessage = function() {
 
     $('#startplayed').animate({height: 'toggle', opacity: 'toggle'}, 200);
     self._toolTips();
-
-    // var appendGameToWelcome = function(i, asyncCallback) {
-
-    //     var item = playHistory[i];
-
-    //     //are these states as well?
-    //     self._getSavedStates(item.file, function(states) {
-
-    //         var img = self._buildGameLink(item.system, item.title, item.file, item.rank, 114);
-    //         var li = $('<li></li>');
-    //         li.append(img);
-
-    //         //include links for states as well
-    //         var statewrapper = $('<div class="statewrapper"></div>');
-    //         for (state in states) {
-    //             var statebox = $('<div class="gamelink tooltip" title="Load Saved State #' + state + '">' + state + '</div>')
-    //                 .on('mousedown', function() {
-    //                     self._pauseOverride = true; //prevent current game from pausng before fadeout
-    //                 })
-    //                 .on('mouseup', function() {
-
-    //                     self._bootstrap(item.system, item.title, item.file, item.rank, state);
-    //                     window.scrollTo(0,0);
-    //                 });
-    //             statewrapper.append(statebox);
-    //         }
-    //         li.append(statewrapper);
-
-    //         $('#startplayed ul').append(li);
-    //         asyncCallback();
-
-    //     });            
-    // };
-
-    // self._asyncLoop(playHistory.length, function(loop) {
-    //     appendGameToWelcome(loop.iteration(), function(result) {
-    //         loop.next();
-    //     });
-    // },
-    // function() {
-        
-    //     $('#startplayed').animate({height: 'toggle', opacity: 'toggle'}, 200);
-    //     self._toolTips();
-    // });
 };
 
 crazyerics.prototype._getSavedStates = function(file, callback) {
@@ -720,77 +644,55 @@ crazyerics.prototype._toolTips = function() {
 crazyerics.prototype.clearHistory = function() {
     var self = this;
     if (confirm('This means deleting recently played games and all saved states. Are you sure?')) {
-        self._db.deleteDatabase().done(function() { 
-            location.reload();
-        });
+        window.location = '/?clear';
     }
-};
-
-crazyerics.prototype._setPlayHistory = function(system, title, file, rank, numberToKeep) {
-
-    numberToKeep = numberToKeep || 10;
-
-    var playHistory = localStorage.getItem('playHistory')
-    playHistory = playHistory ? JSON.parse(playHistory) : {};
-
-
-    //does this game already exist in the history?
-    for (moment in playHistory) {
-        if (playHistory[moment].title === title && playHistory[moment].system === system) {
-            delete playHistory[moment];
-            break;
-        }
-    }
-
-    playHistory[Date.now()] = {
-        system: system,
-        title: title,
-        file: file,
-        rank: rank
-    }
-
-    //trim history?
-
-    var keys = Object.keys(playHistory);
-
-    if (keys.length > numberToKeep) {
-        keys.sort(function(a, b) {
-            return a < b;
-        });
-        keys = keys.slice(0, numberToKeep);
-        var newHistory = {};
-        for (var i = 0; i < keys.length; ++i) {
-            newHistory[keys[i]] = playHistory[keys[i]];
-        }
-        playHistory = newHistory;
-    }
-
-
-    localStorage.setItem('playHistory', JSON.stringify(playHistory));
 };
 
 crazyerics.prototype._getPlayHistory = function(maximum) {
 
-    var playHistory = localStorage.getItem('playHistory')
-    playHistory = playHistory ? JSON.parse(playHistory) : {};
-
+    var self = this;
     var result = [];
-    var keys = Object.keys(playHistory);
+    
+    if (self._clientdata && self._clientdata.playhistory) {
 
-    maximum = maximum || keys.length;
+        var playhistory = self._clientdata.playhistory;
+        var keys = Object.keys(playhistory);
 
-    //sorted by most recent
-    keys.sort(function(a, b) {
-        return a < b;
-    });
+        maximum = maximum || keys.length;
 
-    for (var i = 0; i < keys.length && i < maximum; ++i) {
-        playHistory[keys[i]].played = keys[i];
-        result.push(playHistory[keys[i]]);
+        //sorted by most recent
+        keys.sort(function(a, b) {
+            return a < b;
+        });
+
+        for (var i = 0; i < keys.length && i < maximum; ++i) {
+            playhistory[keys[i]].played = keys[i];
+            result.push(playhistory[keys[i]]);
+        }
     }
 
     return result;
 };
+
+crazyerics.prototype._compress = {
+    bytearray: function(uint8array) {
+        var deflated = pako.deflate(uint8array);
+        return btoa(String.fromCharCode.apply(null, deflated));
+    },
+    json: function(json) {
+        return btoa(pako.deflate(JSON.stringify(json), { to: 'string' }));
+    },
+};
+
+crazyerics.prototype._decompress = {
+    bytearray: function(item) {
+        var decoded = new Uint8Array(atob(item).split('').map(function(c){return c.charCodeAt(0);}));
+        return pako.inflate(decoded);
+    },
+    json: function(item) {
+        return JSON.parse(pako.inflate(atob(item), { to: 'string' }));
+    }
+}
 
 /**
  * css rotation animation helper and jquery extension

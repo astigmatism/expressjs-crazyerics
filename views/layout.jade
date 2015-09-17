@@ -8,7 +8,8 @@ html
         script(src='/javascripts/selectordie.min.js')
         script(src='/javascripts/browserfs.min.js')
         script(src='/javascripts/jquery.bigtext.js')
-        script(src='/javascripts/jszip.min.js')    
+        script(src='/javascripts/lz-string.min.js')
+        script(src='/javascripts/pako.min.js')
         script(src='/javascripts/jquery.tooltipster.min.js')
         script(src='/javascripts/jquery.waitforimages.min.js')
         link(rel='shortcut icon', href='favicon.ico', type='image/x-icon')
@@ -19,8 +20,7 @@ html
         link(rel='stylesheet', href='/stylesheets/tooltipster-shadow.css')
         link(rel='stylesheet', type='text/css', href='http://fonts.googleapis.com/css?family=Open+Sans|Montserrat')
         script.
-            retroarchconfig=!{JSON.stringify(retroarchconfig)};
-            openonload=!{JSON.stringify(openonload)};
+            clientdata='#{clientdata}';
     body
         div#container
             div#maincolumn

@@ -8,12 +8,11 @@ var router = express.Router();
 
 router.get('/', function(req, res, next) {
     
-    UtilitiesService.collectDataFromClient(function(clientdata) {
+    UtilitiesService.collectDataForClient(req, null, function(clientdata) {
 
         res.render('index', {
             layout: 'layout',
-            retroarchconfig: clientdata.retroarchconfig,
-            openonload: {}
+            clientdata: clientdata
         });
     });
 });
@@ -71,7 +70,11 @@ router.get('/load/:system/:title/:file', function(req, res, next) {
         if (err) {
             return res.json(err);
         }
-        res.send(new Buffer(data, 'binary'));
+
+        UtilitiesService.setPlayHistory(req, system, title, file, function() {
+
+            res.send(new Buffer(data, 'binary'));
+        });
     });
 });
 
@@ -89,29 +92,49 @@ router.get('/load/:system/:title', function(req, res, next) {
     var title = req.params.title;
     var openonload = {};
 
-    UtilitiesService.collectDataFromClient(function(clientdata) {
-        UtilitiesService.findGame(system, title, function(err, result) {
-            if (result) {
-                openonload = result;
-            }
-            res.render('index', {
-                layout: 'layout',
-                retroarchconfig: clientdata.retroarchconfig,
-                openonload: openonload
-            });
+    UtilitiesService.collectDataForClient(req, {
+        system: system,
+        title: title
+    }, function(clientdata) {        
+
+        res.render('index', {
+            layout: 'layout',
+            clientdata: clientdata
         });
     });
 });
 
-router.post('/state/:system/:title/:file/:slot', function(req, res, next) {
+router.post('/states/:system/:title/:file/:slot', function(req, res, next) {
     
     var system = req.params.system;
     var title = req.params.title;
     var file = req.params.file;
     var slot = req.params.slot;
-    var data = req.body.data;
-    console.log(data);
-    res.json('');
+    var data = req.body;
+
+    if (req.session) {
+        req.session.games = req.session.games ? req.session.games : {};
+        req.session.games[system] = req.session.games[system] ? req.session.games[system] : {};
+        req.session.games[system][title] = req.session.games[system][title] ? req.session.games[system][title] : {};
+        req.session.games[system][title][file] = req.session.games[system][title][file] ? req.session.games[system][title][file] : {};
+        req.session.games[system][title][file].states = req.session.games[system][title][file].states ? req.session.games[system][title][file].states : {};
+        req.session.games[system][title][file].states[slot] = data;
+    }
+    res.json();
+});
+
+router.get('/states/:system/:title/:file', function(req, res, next) {
+
+    var system = req.params.system;
+    var title = req.params.title;
+    var file = req.params.file;
+
+    var states = {};
+
+    if (req.session && req.session.games && req.session.games[system] && req.session.games[system][title] && req.session.games[system][title][file] && req.session.games[system][title][file].states) {
+        states = req.session.games[system][title][file].states;
+    }
+    res.json(states);
 });
 
 router.get('/layout/controls/:system', function(req, res, next) {
