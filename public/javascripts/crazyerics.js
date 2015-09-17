@@ -12,7 +12,7 @@ var crazyerics = function() {
         //incoming params to open game now?
         var openonload = self._clientdata.openonload || {};
         if ('g' in openonload && 't' in openonload && 's' in openonload && 'r' in openonload) {
-            self._bootstrap(openonload.s, openonload.t, openonload.g, openonload.r);
+            self._bootstrap(openonload.s, openonload.t, openonload.g);
         }
 
         self._buildWelcomeMessage();
@@ -44,19 +44,17 @@ var crazyerics = function() {
                     game name,
                     rom file name,
                     system,
-                    search score,
-                    game rank
+                    search score
                 ]
                  */
-
-                src = self._getBoxFront(item[2], item[0], item[4], 50);
-                var html = '<div class="autocomplete-suggestion" data-title="' + item[0] + '" data-file="' + item[1] + '" data-system="' + item[2] + '" data-searchscore="' + item[3] + '" data-rank="' + item[4] + '"><img src="' + src + '"><div>' + item[0] + '</div></div>';
+                var box = self._getBoxFront(item[2], item[0], 50);
+                var html = '<div class="autocomplete-suggestion" data-title="' + item[0] + '" data-file="' + item[1] + '" data-system="' + item[2] + '" data-searchscore="' + item[3] + '">' + box + '<div>' + item[0] + '</div></div>';
                 //self.googleimagesearch(item[2] + ' ' + item[0] + ' box', 'img[name="' + item[0] + '"]');
                 return html;
             },
             onSelect: function(e, term, item){
                 
-                self._bootstrap(item.data('system'), item.data('title'), item.data('file'), item.data('rank'));
+                self._bootstrap(item.data('system'), item.data('title'), item.data('file'));
             }
         }); 
 
@@ -168,7 +166,6 @@ var crazyerics = function() {
 };
 
 crazyerics.prototype._clientdata = null;
-crazyerics.prototype._boxFrontThreshold = 63;
 crazyerics.prototype._Module = null; //handle the emulator Module
 crazyerics.prototype._ModuleLoading = false; //oldskool way to prevent double loading
 crazyerics.prototype._pauseOverride = false; //condition for blur event of emulator, sometimes we don't want it to pause when we're giving it back focus
@@ -194,7 +191,7 @@ crazyerics.prototype.replaceSuggestions = function(system, items) {
 
         //use modulus to evenly disperse across all columns
         for (var i = 0; i < response.length; ++i) {
-            var html = self._buildGameLink(response[i].s, response[i].t, response[i].g, response[i].r, 114);
+            var html = self._buildGameLink(response[i].s, response[i].t, response[i].g, 114);
             $(columns[i % columns.length]).append(html);
         }
 
@@ -213,7 +210,7 @@ crazyerics.prototype.replaceSuggestions = function(system, items) {
     });
 };
 
-crazyerics.prototype._bootstrap = function(system, title, file, rank, state) {
+crazyerics.prototype._bootstrap = function(system, title, file, state) {
     
     var self = this;
 
@@ -235,12 +232,12 @@ crazyerics.prototype._bootstrap = function(system, title, file, rank, state) {
     //loading image
     $('#gameloadingoverlaycontentimage').empty();
     
-    var src = self._getBoxFront(system, title, rank, 150);
-    var img = $('<img class="tada" src="' + src + '" />');
-    img.load(function(){
+    var box = self._getBoxFront(system, title, 150);
+    box.addClass('tada');
+    box.load(function(){
         $(this).fadeIn(200);
     });
-    $('#gameloadingoverlaycontentimage').append(img);
+    $('#gameloadingoverlaycontentimage').append(box);
 
     //fade in overlay
     $('#gameloadingoverlay').fadeIn(500, function() {
@@ -295,7 +292,7 @@ crazyerics.prototype._bootstrap = function(system, title, file, rank, state) {
                 }
 
                 //handle title and content fadein steps
-                self._buildGameContent(system, title, rank, function() {
+                self._buildGameContent(system, title, function() {
 
                 });
             
@@ -323,9 +320,6 @@ crazyerics.prototype._bootstrap = function(system, title, file, rank, state) {
                         $('#emulatorwrapperoverlay').hide();
                     })
                     .focus();
-
-                //set last played
-                self._setPlayHistory(system, title, file, rank);
             });
 
         });
@@ -335,15 +329,15 @@ crazyerics.prototype._bootstrap = function(system, title, file, rank, state) {
     });
 };
 
-crazyerics.prototype._buildGameContent = function(system, title, rank, callback) {
+crazyerics.prototype._buildGameContent = function(system, title, callback) {
 
-    var src = this._getBoxFront(system, title, rank, 150);
+    var box = this._getBoxFront(system, title, 150);
     
-    //using old skool js load was the only way I could get back image dimensions! gotta love non-framework solutions!
+    //using old skool img because it was the only way to get proper image height
     var img = document.createElement('img');
     img.addEventListener('load', function () { 
 
-        $('#gamedetailsboxfront').empty().append(img);
+        $('#gamedetailsboxfront').empty().append(box);
         $('#gametitle').empty().hide().append(title);
 
         // slide down background
@@ -373,9 +367,12 @@ crazyerics.prototype._buildGameContent = function(system, title, rank, callback)
                 callback();
             });
         });
-
     }, true);
-    img.setAttribute('src', src);
+
+    //once the formal box loads, use the same src for our temp img to measure its height
+    box.load(function() {
+        img.setAttribute('src', box.attr('src'));
+    });
 };
 
 crazyerics.prototype._cleanupEmulator = function() {
@@ -577,7 +574,7 @@ crazyerics.prototype._buildWelcomeMessage = function() {
     }
 
     for (var i = 0; i < playHistory.length; ++i) {
-        var img = self._buildGameLink(playHistory[i].system, playHistory[i].title, playHistory[i].file, playHistory[i].rank, 114);
+        var img = self._buildGameLink(playHistory[i].system, playHistory[i].title, playHistory[i].file, 114);
         var li = $('<li></li>');
         li.append(img);
         $('#startplayed ul').append(li);
@@ -609,27 +606,38 @@ crazyerics.prototype._getSavedStates = function(file, callback) {
     });
 };
 
-crazyerics.prototype._buildGameLink = function(system, title, file, rank, size) {
+crazyerics.prototype._buildGameLink = function(system, title, file, size) {
     var self = this;
-    var img = $('<img class="tooltip gamelink" data-title="' + title + '" data-file="' + file + '" data-system="' + system + '" data-rank="' + rank + '" src="/images/games/' + system + '/' + title + '/' + size + '.jpg" title="' + title + '" />')
+    
+    var box = self._getBoxFront(system, title, size);
+
+    box.addClass('tooltip gamelink');
+    box.attr('title', title);
+    box.attr('data-system', system);
+    box.attr('data-title', title);
+    box.attr('data-file', file);
+
+    box.load(function() {
+        $(this)
         .on('mousedown', function() {
             self._pauseOverride = true; //prevent current game from pausng before fadeout
         })
         .on('mouseup', function() {
 
-            self._bootstrap(this.dataset.system, this.dataset.title, this.dataset.file, this.dataset.rank);
+            self._bootstrap(this.dataset.system, this.dataset.title, this.dataset.file);
             window.scrollTo(0,0);
         });
-    return img;
+    });
+    return box;
 }
 
-crazyerics.prototype._getBoxFront = function(system, title, rank, size) {
+crazyerics.prototype._getBoxFront = function(system, title, size) {
 
-    var src = '/images/blanks/' + system + '_' + size + '.png';
-    if (rank >= this._boxFrontThreshold) {
-        src = '/images/games/' + system + '/' + title + '/' + size + '.jpg';
-    }
-    return src;
+    var img = $('<img src="/images/games/' + system + '/' + title + '/' + size + '.jpg" />')
+        .error(function(event) {
+            this.src = '/images/blanks/' + system + '_' + size + '.png';
+        });
+    return img;
 };
 
 crazyerics.prototype._toolTips = function() {
