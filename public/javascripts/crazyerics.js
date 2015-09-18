@@ -47,10 +47,10 @@ var crazyerics = function() {
                     search score
                 ]
                  */
-                var box = self._getBoxFront(item[2], item[0], 50);
-                var html = '<div class="autocomplete-suggestion" data-title="' + item[0] + '" data-file="' + item[1] + '" data-system="' + item[2] + '" data-searchscore="' + item[3] + '">' + box + '<div>' + item[0] + '</div></div>';
-                //self.googleimagesearch(item[2] + ' ' + item[0] + ' box', 'img[name="' + item[0] + '"]');
-                return html;
+                var suggestion = $('<div class="autocomplete-suggestion" data-title="' + item[0] + '" data-file="' + item[1] + '" data-system="' + item[2] + '" data-searchscore="' + item[3] + '"></div>');
+                suggestion.append(self._getBoxFront(item[2], item[0], 50));
+                suggestion.append('<div>' + item[0] + '</div>');
+                return $("<div/>").append(suggestion).html(); //because .html only returns inner content
             },
             onSelect: function(e, term, item){
                 
