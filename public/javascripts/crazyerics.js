@@ -484,21 +484,10 @@ crazyerics.prototype._loademulator = function(system, deffered) {
 crazyerics.prototype._loadGame = function(system, title, file, deffered) {
 
     var self = this;
-    var url = '/load/' + system + '/' + title + '/' + file;
-
-    var xhr = new XMLHttpRequest();
-    xhr.onreadystatechange = function(){
-        if (this.readyState == 4 && this.status == 200){
-            
-            //response comes back as arraybuffer. convery to uint8array
-            var dataView = new Uint8Array(this.response);
-
-            deffered.resolve(dataView);
-        }
-    }
-    xhr.open('GET', url);
-    xhr.responseType = 'arraybuffer';
-    xhr.send();
+    $.get('/load/' + system + '/' + title + '/' + file, function(data) {
+        var inflated = pako.inflate(data); //inflate compressed string to arraybuffer
+        deffered.resolve(inflated);
+    });
 };
 
 crazyerics.prototype._buildFileSystem = function(Module, system, file, data) {

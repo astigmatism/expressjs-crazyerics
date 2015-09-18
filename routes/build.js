@@ -3,6 +3,7 @@ var fs = require('fs');
 var async = require('async');
 var router = express.Router();
 var config = require('../config.js');
+var pako = require('pako');
 var UtilitiesService = require('../services/utilities');
 
 router.get('/data', function(req, res, next) {
@@ -103,6 +104,85 @@ router.get('/data', function(req, res, next) {
                 }
                 res.json('File ' + path + ' written');
             });
+        });
+    });
+});
+
+router.get('/zip/:system', function(req, res, next) {
+    
+    var system = req.params.system;
+
+    fs.readdir(__dirname + '/../public/roms/' + system, function(err, titles) {
+        if (err) {
+            return res.json(err);
+        }
+
+        fs.mkdir(__dirname + '/../public/zipped/' + system, function(err) {
+            if (err) {
+                return res.json(err);
+            }
+
+            //loop over titles
+            async.eachSeries(titles, function(title, nexttitle) {
+                
+                var stats = fs.statSync(__dirname + '/../public/roms/' + system + '/' + title);
+                if (stats.isFile()) {
+                    return nexttitle();
+                }
+
+
+                fs.readdir(__dirname + '/../public/roms/' + system + '/' + title, function(err, files) {
+                    if (err) {
+                        return nexttitle(err);
+                    }
+
+                    fs.mkdir(__dirname + '/../public/zipped/' + system + '/' + title, function(err) {
+                        if (err) {
+                            return nexttitle(err);
+                        }
+
+                        //loop over files
+                        async.eachSeries(files, function(file, nextfile) {
+
+
+                            fs.readFile(__dirname + '/../public/roms/' + system + '/' + title + '/' + file, function (err, buffer) {
+                                if (err) {
+                                    return nextfile(err);
+                                }
+
+                                //convert buffer to uint8array
+                                var ab = new ArrayBuffer(buffer.length);
+                                var view = new Uint8Array(ab);
+                                for (var i = 0; i < buffer.length; ++i) {
+                                    view[i] = buffer[i];
+                                }
+                                var deflated = pako.deflate(view, { to: 'string' });
+
+                                fs.writeFile(__dirname + '/../public/zipped/' + system + '/' + title + '/' + file, deflated, function(err) {
+                                    if (err) {
+                                        return nextfile(err);
+                                    }
+
+                                    console.log(file + ' --> ' + buffer.length + ' --> ' + deflated.length);
+                                    nextfile();
+                                });
+                            });
+
+                        }, function(err, result) {
+                            if (err) {
+                                return res.json(err);
+                            }
+                            nexttitle();
+                        });
+                    });
+                });
+
+            });
+        }, function(err, result) {
+            if (err) {
+                return res.json(err);
+            }
+            res.json(result);
         });
     });
 });
