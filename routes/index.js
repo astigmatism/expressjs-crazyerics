@@ -71,19 +71,11 @@ router.get('/load/:system/:title/:file', function(req, res, next) {
             return res.json(err);
         }
 
-<<<<<<< Updated upstream
-=======
-<<<<<<< HEAD
-        UtilitiesService.setPlayHistory(req, system, title, file, function() {
-            res.send(data);
-=======
->>>>>>> Stashed changes
         UtilitiesService.setPlayHistory(req, system, title, file, true, function(err, ph) {
             if (err) {
                 return res.json(err);
             }
-            res.send(new Buffer(data, 'binary'));
->>>>>>> origin/master
+            res.send(data);
         });
     });
 });
