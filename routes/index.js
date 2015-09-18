@@ -71,8 +71,10 @@ router.get('/load/:system/:title/:file', function(req, res, next) {
             return res.json(err);
         }
 
-        UtilitiesService.setPlayHistory(req, system, title, file, function() {
-
+        UtilitiesService.setPlayHistory(req, system, title, file, true, function(err, ph) {
+            if (err) {
+                return res.json(err);
+            }
             res.send(new Buffer(data, 'binary'));
         });
     });
@@ -135,6 +137,23 @@ router.get('/states/:system/:title/:file', function(req, res, next) {
         states = req.session.games[system][title][file].states;
     }
     res.json(states);
+});
+
+router.delete('/:system/:title/:file', function(req, res, next) {
+
+    var system = req.params.system;
+    var title = req.params.title;
+    var file = req.params.file;
+
+    UtilitiesService.setPlayHistory(req, system, title, file, false, function(err, ph) {
+        if (err) {
+            return res.json(err);
+        }
+        if (req.session && req.session.games && req.session.games[system] && req.session.games[system][title] && req.session.games[system][title][file]) {
+            delete req.session.games[system][title][file];
+        }
+        return res.json();
+    });
 });
 
 router.get('/layout/controls/:system', function(req, res, next) {

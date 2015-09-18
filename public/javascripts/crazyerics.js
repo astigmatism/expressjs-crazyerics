@@ -184,15 +184,15 @@ crazyerics.prototype.replaceSuggestions = function(system, items) {
 
     $.getJSON('/suggest/' + system + '/' + items, function(response) {
 
-        //remove all current images
-        $('#suggestionswrapper img').remove();
+        //remove all current gamelinks
+        $('#suggestionswrapper li').remove();
 
-        var columns = $('#suggestionswrapper .column');
+        var columns = $('#suggestionswrapper ul');
 
         //use modulus to evenly disperse across all columns
         for (var i = 0; i < response.length; ++i) {
-            var html = self._buildGameLink(response[i].s, response[i].t, response[i].g, 114);
-            $(columns[i % columns.length]).append(html);
+            var gamelink = self._buildGameLink(response[i].s, response[i].t, response[i].g, 114);
+            $(columns[i % columns.length]).append(gamelink.li);
         }
 
         //when all images have loaded, show suggestions
@@ -574,10 +574,24 @@ crazyerics.prototype._buildWelcomeMessage = function() {
     }
 
     for (var i = 0; i < playHistory.length; ++i) {
-        var img = self._buildGameLink(playHistory[i].system, playHistory[i].title, playHistory[i].file, 114);
-        var li = $('<li></li>');
-        li.append(img);
-        $('#startplayed ul').append(li);
+        var gamelink = self._buildGameLink(playHistory[i].system, playHistory[i].title, playHistory[i].file, 114, true);
+        
+        //put this in a closure to keep values on click bind
+        (function(system, title, file, gamelink) {
+            gamelink.remove
+                .addClass('tooltip')
+                .attr('title', 'Remove this game and all saved states')
+                .on('click', function() {
+                    gamelink.li.addClass('close');
+                    $.ajax({
+                        url: '/' + system + '/' + title + '/' + file,
+                        type: 'DELETE',
+                        success: function() {
+                        }
+                    });
+                });
+        })(playHistory[i].system, playHistory[i].title, playHistory[i].file, gamelink);
+        $('#startplayed ul').append(gamelink.li);
     }
 
     $('#startplayed').animate({height: 'toggle', opacity: 'toggle'}, 200);
@@ -606,12 +620,14 @@ crazyerics.prototype._getSavedStates = function(file, callback) {
     });
 };
 
-crazyerics.prototype._buildGameLink = function(system, title, file, size) {
+crazyerics.prototype._buildGameLink = function(system, title, file, size, close) {
     var self = this;
-    
+    close = close || false;
+
+    var li = $('<li class="gamelink"></li>');
     var box = self._getBoxFront(system, title, size);
 
-    box.addClass('tooltip gamelink');
+    box.addClass('tooltip close');
     box.attr('title', title);
     box.attr('data-system', system);
     box.attr('data-title', title);
@@ -619,6 +635,7 @@ crazyerics.prototype._buildGameLink = function(system, title, file, size) {
 
     box.load(function() {
         $(this)
+        .removeClass('close')
         .on('mousedown', function() {
             self._pauseOverride = true; //prevent current game from pausng before fadeout
         })
@@ -628,7 +645,26 @@ crazyerics.prototype._buildGameLink = function(system, title, file, size) {
             window.scrollTo(0,0);
         });
     });
-    return box;
+    li.append(box);
+
+    var remove = null;
+    if (close) {
+        remove = $('<div class="remove"></div>');
+        li
+            .append(remove)
+            .on('mouseover', function() {
+                $(remove).show();
+            })
+            .on('mouseout', function() {
+                $(remove).hide();
+            });
+    }
+
+    return {
+        li: li,
+        img: box,
+        remove: remove
+    };
 }
 
 crazyerics.prototype._getBoxFront = function(system, title, size) {

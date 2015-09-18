@@ -703,7 +703,7 @@ UtilitiesService.collectDataForClient = function(req, openonload, callback) {
     }
 };
 
-UtilitiesService.setPlayHistory = function(req, system, title, file, callback) {
+UtilitiesService.setPlayHistory = function(req, system, title, file, add, callback) {
 
     if (req.session) {
 
@@ -722,10 +722,12 @@ UtilitiesService.setPlayHistory = function(req, system, title, file, callback) {
             }
         }
 
-        playHistory[Date.now()] = {
-            system: system,
-            title: title,
-            file: file
+        if (add) {
+            playHistory[Date.now()] = {
+                system: system,
+                title: title,
+                file: file
+            }
         }
 
         //trim history?
@@ -745,7 +747,7 @@ UtilitiesService.setPlayHistory = function(req, system, title, file, callback) {
 
         req.session.games.history = playHistory;
     }
-    callback(playHistory);
+    callback(null, playHistory);
 
 };
 

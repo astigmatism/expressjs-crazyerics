@@ -194,10 +194,21 @@ input[type='text'] {
 }
 
 #startplayed li {
+	position: relative;
 	display: inline-block;
 	padding: 0px 5px;
 	width: 114px;
 	height: auto;
+}
+
+#startplayed li .remove {
+	position: absolute;
+	width: 22px;
+	height: 22px;
+	background: url("/images/close.png") no-repeat center center;
+	display: none;
+	top: -4px;
+	right: -4px;
 }
 
 #startplayed li .statewrapper div {
@@ -482,14 +493,16 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#000000', end
 	padding: 10px;
 }
 
-#suggestionswrapper .column {
+#suggestionswrapper ul {
 	width: 114px;
 	display: inline-block;
 	margin: 0px 5px;
+	padding: 0;
 	vertical-align: top;
 }
 
-#suggestionswrapper img {
+#suggestionswrapper li {
+	list-style: none;
 	margin: 5px 0px;
 }
 
