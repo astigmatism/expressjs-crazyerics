@@ -226,7 +226,7 @@ crazyerics.prototype._bootstrap = function(system, title, file, state) {
 
 
     //move welcome and emulator into view (first time only)
-    $('#startmessage').animate({height: 'toggle'}, 1000);
+    $('#startmessage').slideUp(1000);
     $('#emulatorwrapper').slideDown(1000);
     
     //loading image
@@ -658,11 +658,8 @@ crazyerics.prototype._buildGameLink = function(system, title, file, size, close)
 
 crazyerics.prototype._getBoxFront = function(system, title, size) {
 
-    var img = $('<img src="/images/games/' + system + '/' + title + '/' + size + '.jpg" />')
-        .error(function(event) {
-            this.src = '/images/blanks/' + system + '_' + size + '.png';
-        });
-    return img;
+    //incldes swap to blank cart onerror
+    return $('<img onerror="this.src=\'/images/blanks/' + system + '_' + size + '.png\'" src="/images/games/' + system + '/' + title + '/' + size + '.jpg" />');    
 };
 
 crazyerics.prototype._toolTips = function() {
