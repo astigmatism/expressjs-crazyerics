@@ -207,8 +207,8 @@ input[type='text'] {
 	height: 22px;
 	background: url("/images/close.png") no-repeat center center;
 	display: none;
-	top: -4px;
-	right: -4px;
+	top: -3px;
+	right: -1px;
 }
 
 #startplayed li .statewrapper div {

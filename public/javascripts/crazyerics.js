@@ -11,8 +11,8 @@ var crazyerics = function() {
 
         //incoming params to open game now?
         var openonload = self._clientdata.openonload || {};
-        if ('g' in openonload && 't' in openonload && 's' in openonload && 'r' in openonload) {
-            self._bootstrap(openonload.s, openonload.t, openonload.g);
+        if ('system' in openonload && 'title' in openonload && 'file' in openonload) {
+            self._bootstrap(openonload.system, openonload.title, openonload.file);
         }
 
         self._buildWelcomeMessage();
@@ -34,7 +34,7 @@ var crazyerics = function() {
             source: function(term, response){
                 var system = $('#searchform select').val();
                 $.getJSON('/search/' + system + '/' + term, function(data) { 
-                    response(data);
+                    response(self._decompress.json(data));
                 });
             },
             renderItem: function (item, search){
@@ -184,14 +184,16 @@ crazyerics.prototype.replaceSuggestions = function(system, items) {
 
     $.getJSON('/suggest/' + system + '/' + items, function(response) {
 
-        //remove all current gamelinks
+        response = self._decompress.json(response);
+
+        //remove all current gamelinks  
         $('#suggestionswrapper li').remove();
 
         var columns = $('#suggestionswrapper ul');
 
         //use modulus to evenly disperse across all columns
         for (var i = 0; i < response.length; ++i) {
-            var gamelink = self._buildGameLink(response[i].s, response[i].t, response[i].g, 114);
+            var gamelink = self._buildGameLink(response[i].system, response[i].title, response[i].file, 114);
             $(columns[i % columns.length]).append(gamelink.li);
         }
 
@@ -262,80 +264,89 @@ crazyerics.prototype._bootstrap = function(system, title, file, state) {
         //deffered for emulator and game to load them concurrently
         var emulatorReady = $.Deferred();
         var gameReady = $.Deferred();
+        var gameContentReady = $.Deferred();
 
 
-        $.when(emulatorReady, gameReady).done(function (emulator, data) {
+        $.when(emulatorReady, gameReady, gameContentReady).done(function (emulator, gamedata, gamecontent) {
 
             var Module = emulator[0];
             var fs = emulator[1];
             var frame = emulator[2];
 
+            var states = gamecontent.states;
+            var files = gamecontent.files;
+
             self._Module = Module; //handle to Module
             FS = fs;
             self.emulatorframe = frame; //handle to iframe
 
-            self._buildFileSystem(Module, system, file, data);
+            self._buildFileSystem(Module, system, file, gamedata, states);
 
             self._setupKeypressInterceptor(system, title, file);
 
-            self._restoreStates(Module, system, title, file, function() {
+            //begin game
+            Module['callMain'](Module.arguments);
 
-                //begin game
-                Module['callMain'](Module['arguments']);
-
-                //load state?
-                if (state) {
-                    for (var i = 0; i < state; ++i) {
-                        self._simulateEmulatorKeypress(118); //F6 increment state slot   
-                    }
-                    self._simulateEmulatorKeypress(115); //F4 load state
+            //load state?
+            if (state) {
+                for (var i = 0; i < state; ++i) {
+                    self._simulateEmulatorKeypress(118); //F6 increment state slot
                 }
+                self._simulateEmulatorKeypress(115); //F4 load state
+            }
 
-                //handle title and content fadein steps
-                self._buildGameContent(system, title, function() {
+            //handle title and content fadein steps
+            self._buildGameContent(system, title, function() {
 
-                });
-            
-                $('#gameloadingoverlaycontent').addClass('close');
-                $('#gameloadingoverlay').fadeOut(1000, function() {
-
-                    //show controls initially to reveal their presence
-                    setTimeout(function() { 
-                        self._ModuleLoading = false;
-                        //$('#emulatorcontrolswrapper').slideToggle({ direction: "down" }, 300);
-                        $('#emulatorcontrolswrapper').addClass('closed');
-                    }, 3000);
-                    
-                });
-
-                $('#emulator')
-                    .blur(function(event) {
-                        if (!self._pauseOverride) {
-                            Module.pauseMainLoop();
-                            $('#emulatorwrapperoverlay').fadeIn();
-                        }
-                    })
-                    .focus(function() {
-                        Module.resumeMainLoop();
-                        $('#emulatorwrapperoverlay').hide();
-                    })
-                    .focus();
             });
+
+            $('#gameloadingoverlaycontent').addClass('close');
+            $('#gameloadingoverlay').fadeOut(1000, function() {
+
+                //show controls initially to reveal their presence
+                setTimeout(function() {
+                    self._ModuleLoading = false;
+                    //$('#emulatorcontrolswrapper').slideToggle({ direction: "down" }, 300);
+                    $('#emulatorcontrolswrapper').addClass('closed');
+                }, 3000);
+
+            });
+
+            $('#emulator')
+                .blur(function(event) {
+                    if (!self._pauseOverride) {
+                        Module.pauseMainLoop();
+                        $('#emulatorwrapperoverlay').fadeIn();
+                    }
+                })
+                .focus(function() {
+                    Module.resumeMainLoop();
+                    $('#emulatorwrapperoverlay').hide();
+                })
+                .focus();
 
         });
 
         self._loademulator(system, emulatorReady);
         self._loadGame(system, title, file, gameReady);
+        self._loadGameContent(system, title, file, gameContentReady);
     });
 };
 
+/**
+ * build content area underneath emulator canvas
+ * @param  {string}   system
+ * @param  {string}   title
+ * @param  {Function} callback
+ * @return {undef}
+ */
 crazyerics.prototype._buildGameContent = function(system, title, callback) {
 
     var box = this._getBoxFront(system, title, 150);
-    
+
     //using old skool img because it was the only way to get proper image height
     var img = document.createElement('img');
-    img.addEventListener('load', function () { 
+    img.addEventListener('load', function() {
 
         $('#gamedetailsboxfront').empty().append(box);
         $('#gametitle').empty().hide().append(title);
@@ -344,13 +355,13 @@ crazyerics.prototype._buildGameContent = function(system, title, callback) {
         // first measure the area the box will use. is it greater? use that distance to slide
         var distance = this.height > 200 ? this.height : 200;
         $('#gamedetailsboxfront img').addClass('close');
-        $("#gamedetailsbackground").animate({
-            height : distance
+        $('#gamedetailsbackground').animate({
+            height: distance
         }, 1000, function() {
 
             //fade in details
             $('#gamedetailswrapper').fadeIn(1000, function() {
-                
+
                 $('#gametitle').bigText({
                     textAlign: 'left',
                     horizontalAlign: 'left'
@@ -375,11 +386,15 @@ crazyerics.prototype._buildGameContent = function(system, title, callback) {
     });
 };
 
+/**
+ * handle removing the emulator frame from view and all bound events
+ * @return {undef}
+ */
 crazyerics.prototype._cleanupEmulator = function() {
 
     var self = this;
 
-    //since each Module attached an event to the parent document, we need to clean those up too:    
+    //since each Module attached an event to the parent document, we need to clean those up too:
     $(document).unbind('fullscreenchange');
     $(document).unbind('mozfullscreenchange');
     $(document).unbind('webkitfullscreenchange');
@@ -396,7 +411,7 @@ crazyerics.prototype._cleanupEmulator = function() {
     if (self._Module) {
         try {
             self._Module.exit(); //calls exit on emulator ending loop (just to be safe)
-        } catch(e) {
+        } catch (e) {
 
         }
         self._Module = null;
@@ -408,6 +423,11 @@ crazyerics.prototype._cleanupEmulator = function() {
     $('#emulator').remove(); //kill all events attached (keyboard, focus, etc)
 };
 
+/**
+ * simulator keypress on emulator. used to allow interaction of dom elements
+ * @param  {number} key ascii key code
+ * @return {undef}
+ */
 crazyerics.prototype._simulateEmulatorKeypress = function(key) {
 
     var self = this;
@@ -429,48 +449,70 @@ crazyerics.prototype._simulateEmulatorKeypress = function(key) {
     }
 };
 
+/**
+ * intercepts all key presses heading to emulator. allows for additional application actions
+ * @param  {string} system
+ * @param  {string} title
+ * @param  {string} file
+ * @return {undef}
+ */
 crazyerics.prototype._setupKeypressInterceptor = function(system, title, file) {
-    
+
     var self = this;
 
     if (this._Module && this._Module.RI && this._Module.RI.eventHandler) {
 
         var callback = this._Module.RI.eventHandler;
 
+        /**
+         * event handling function from Module
+         * @param  {Object} event
+         * @return {undef}
+         */
         this._Module.RI.eventHandler = function(event) {
-
 
             switch (event.type) {
                 case 'keyup':
                     var key = event.keyCode;
-                    switch(key) {
-                        case 113: //save state
-                            self._saveState(system, title, file, self._activeSaveStateSlot, function() {
-
-                            });
-                            break;
+                    switch (key) {
+                        case 113: //save state. small delay necessary since this function call would fire before the emulator writes to the FS
+                            setTimeout(function() {
+                                self._saveState(system, title, file, self._activeSaveStateSlot, function() {
+                                });
+                            },100);
+                        break;
                         case 117: //decrement state
-                            self._activeSaveStateSlot = self._activeSaveStateSlot === 0 ? 0 : self._activeSaveStateSlot -1;
-                            break;
+                            self._activeSaveStateSlot = self._activeSaveStateSlot === 0 ? 0 : self._activeSaveStateSlot - 1;
+                        break;
                         case 118: //incremenet state
                             self._activeSaveStateSlot++;
-                            break;
+                        break;
                     }
                 break;
             };
 
             callback(event);
-        }
-
+        };
     }
 };
 
+/**
+ * ajax call to load layout and script of emulator and load it within frame, resolves deffered when loaded
+ * @param  {string} system
+ * @param  {Object} deffered
+ * @return {undef}
+ */
 crazyerics.prototype._loademulator = function(system, deffered) {
 
     var frame  = $('<iframe/>', {
-        src:'/load/emulator/' + system,
-        style:'display:none',
-        load: function(){
+        src: '/load/emulator/' + system,
+        style: 'display:none',
+
+        /**
+         * on frame load
+         * @return {undef}
+         */
+        load: function() {
 
             //find module to run games
             var FS = this.contentWindow.FS;
@@ -481,6 +523,14 @@ crazyerics.prototype._loademulator = function(system, deffered) {
     $('body').append(frame);
 };
 
+/**
+ * load rom file from server. will come in as compressed string. after unpacked will resolve deffered. loads concurrently with emulator
+ * @param  {string} system
+ * @param  {string} title
+ * @param  {string} file
+ * @param  {Object} deffered
+ * @return {undef}
+ */
 crazyerics.prototype._loadGame = function(system, title, file, deffered) {
 
     var self = this;
@@ -490,7 +540,29 @@ crazyerics.prototype._loadGame = function(system, title, file, deffered) {
     });
 };
 
-crazyerics.prototype._buildFileSystem = function(Module, system, file, data) {
+
+crazyerics.prototype._loadGameContent = function(system, title, file, deffered) {
+
+    var self = this;
+    //call returns not only states but misc game details. I tried to make this
+    //part of the loadGame call but the formatting for the compressed game got weird
+    $.get('/states/' + system + '/' + title + '/' + file, function(data) {
+        deffered.resolve({
+            states: data.states,
+            files: self._decompress.json(data.files)
+        })
+    });
+};
+
+/**
+ * Once Module has loaded with its own file system, populate ir with config and rom file
+ * @param  {Object} Module
+ * @param  {string} system
+ * @param  {string} file
+ * @param  {string} data
+ * @return {undef}
+ */
+crazyerics.prototype._buildFileSystem = function(Module, system, file, data, states) {
 
     var self = this;
 
@@ -505,6 +577,12 @@ crazyerics.prototype._buildFileSystem = function(Module, system, file, data) {
         Module.FS_createDataFile('/etc', 'retroarch.cfg', self._clientdata.retroarchconfig[system], true, true);
     }
 
+    for (slot in states) {
+        var statedata = self._decompress.bytearray(states[slot]);
+        var filenoextension = file.replace(new RegExp('\.[a-z]{1,3}$', 'gi'), '');
+        var statefilename = '/' + filenoextension + '.state' + (slot == 0 ? '' : slot);
+        Module.FS_createDataFile('/', statefilename, statedata, true, true);
+    }
 };
 
 crazyerics.prototype._saveState = function(system, title, file, slot, callback) {
@@ -537,21 +615,6 @@ crazyerics.prototype._saveState = function(system, title, file, slot, callback) 
     }   
 };
 
-crazyerics.prototype._restoreStates = function(Module, system, title, file, callback) {
-
-    var self = this;
-
-    $.get('/states/' + system + '/' + title + '/' + file, function(states) {
-        for (slot in states) {
-            var statedata = self._decompress.bytearray(states[slot]);
-            var filenoextension = file.replace(new RegExp('\.[a-z]{1,3}$', 'gi'), '');
-            var statefilename = '/' + filenoextension + '.state' + (slot == 0 ? '' : slot);
-            Module.FS_createDataFile('/', statefilename, statedata, true, true);
-        }
-        callback();
-    });
-};
-
 crazyerics.prototype._buildWelcomeMessage = function() {
 
     var self = this;
@@ -567,6 +630,10 @@ crazyerics.prototype._buildWelcomeMessage = function() {
         
         //put this in a closure to keep values on click bind
         (function(system, title, file, gamelink) {
+            gamelink.li.addClass('close');
+            gamelink.img.load(function() {
+                gamelink.li.removeClass('close');
+            });
             gamelink.remove
                 .addClass('tooltip')
                 .attr('title', 'Remove this game and all saved states')

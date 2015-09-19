@@ -19,43 +19,49 @@ UtilitiesService = function() {
  * @param  {number} maximum number of results returned
  * @return {Array}
  */
-UtilitiesService.search = function(system, term, maximum, callback) {
+UtilitiesService.search = function(systemfilter, term, maximum, callback) {
 
     maximum = maximum || 20; //return 20 results unless otherwise stated
     term = term || '';
     term = term.replace(/\s+/g,' ').trim().replace(/[^a-zA-Z0-9\s]/gi,''); //sanitize term by trimming, removing invalid characters
     var result = [];
     var i;
-    var game;
+    var system;
+    var file;
+    var rank;
     var words = term.split(' '); //split all search terms
 
-    DataService.getFile('/data/' + system + '/search.json', function(err, data) {
+    DataService.getFile('/data/' + systemfilter + '.json', function(err, data) {
         if (err) {
             return callback(err);
         }
 
-        //pass over all entries just once
-        for (game in data) {
+        //pass over all titles just once
+        for (title in data) {
 
-            var sys = (system === 'all') ? data[game].s : system;
-            var name = game;
-
-            //if we're looking over the "all" search file, system info is on the "s" property
-            if (system === 'all') {
-                //we append the system name to the game name for unique enries (ie "Sonic the Hedgehog" exists twice and we can't use it as a key without its system name)
-                var name = name.replace(new RegExp('\.' + sys + '$', 'gi'),'');
+            //edge case for "all" searches - the file is in a different format
+            if (systemfilter === 'all') {
+                system = data[title].system;
+                file = data[title].file;
+                rank = data[title].rank;
+                //we append the system name to the title name for unique enries (ie "Sonic the Hedgehog" exists twice and we can't use it as a key without its system name)
+                title = title.replace(new RegExp('\.' + system + '$', 'gi'),'');
+            
+            } else {
+                system = systemfilter;
+                file = data[title].best;
+                rank = data[title].files[file];
             }
 
             /**
              * search scoring
              * hundreds digit: the strength of the regex scoring
              * tens digit: the order of the search query words (first is more relevant)
-             * ones digit: the length of the game's title. a smaller title more closely matches the search making it more revelant
-             * precision: the playability score of the game. this elevates games that are (U) and [!] over ones that are hacks etc.
+             * ones digit: the length of the title's title. a smaller title more closely matches the search making it more revelant
+             * precision: the playability score of the title. this elevates titles that are (U) and [!] over ones that are hacks etc.
              */
             //the higher the search score, the more likely it is to show at the top of the auto complete list
             var searchscore = 0;
-            var scorelog = '';
 
             //pass over all search terms
             for (i = 0; i < words.length; ++i) {
@@ -66,17 +72,17 @@ UtilitiesService.search = function(system, term, maximum, callback) {
 
                 var termdepthscore = (words.length - i) * 10; //word path score gives highest score to first term in entry (most likely what user is searching for)
 
-                //check each word against possible location in game and give score based on position
+                //check each word against possible location in title and give score based on position
                 //continue at each check to prevent same word scoring mutliple times
-                if (name.match(beginswith)) {
+                if (title.match(beginswith)) {
                     searchscore += (300 + termdepthscore); //most points awarded to first word in query
                     continue;
                 }
-                if (name.match(wordinside)) {
+                if (title.match(wordinside)) {
                     searchscore += (200 + termdepthscore);
                     continue;
                 }
-                if (name.match(partof)) {
+                if (title.match(partof)) {
                     searchscore += (100 + termdepthscore);
                     continue;
                 }
@@ -84,18 +90,16 @@ UtilitiesService.search = function(system, term, maximum, callback) {
 
             if (searchscore > 0) {
 
-                //the one's digit is a score based on how many words the game's title is. The fewer, the beter the match given the terms
-                var gamewords = name.split(' ');
-                searchscore += (10 - gamewords.length);
+                //the one's digit is a score based on how many words the title's title is. The fewer, the beter the match given the terms
+                var titlewords = title.split(' ');
+                searchscore += (10 - titlewords.length);
 
-                //the decimal places in the score represent the "playability" of the game. This way, games with (U) and [!] will rank higher than those that are hacks or have brackets
-                searchscore += (data[game].r * 0.1); //between 9.9 and 0.0
+                //the decimal places in the score represent the "playability" of the title. This way, titles with (U) and [!] will rank higher than those that are hacks or have brackets
+                searchscore += (rank * 0.1); //between 9.9 and 0.0
 
-                result.push([name, data[game].g, sys, searchscore, data[game].r]);
+                result.push([title, file, system, searchscore]);
             }
         }
-
-        //return result; //use for debugging all results
 
         //sort according to score
         result.sort(function(a, b) {
@@ -194,145 +198,63 @@ UtilitiesService.buildRomFolders = function(system, callback) {
     });
 };
 
-/**
- * build system's search.json
- * @param  {string}   system
- * @param  {Function} callback
- * @param {Array} exts array of allowable file extentions
- * @return {}
- */
-UtilitiesService.buildSearch = function(system, callback, exts) {
-
-    var result = {};            //all games ranked
-
-    //read all directory's from roms/system (each game is a dir)
-    fs.readdir(__dirname + '/../public/roms/' + system, function(err, games) {
-        if (err) {
-            callback(err);
-        }
-
-        async.each(games, function(game, nextgame) {
-
-            //if the game begins with a ., then pass over (this is because of .DS_STORE)
-            if (game.indexOf('.') === 0) {
-                return nextgame();
-            }
-
-            //analyize file
-            fs.stat(__dirname + '/../public/roms/' + system + '/' + game, function (err, stats) {
-                if (err) {
-                    return nextgame();
-                }
-
-                //if file, mistake?
-                if (stats.isFile()) {
-                    console.log('File found in system directory: ' + game + ' ---> ' + dirname);
-                    return nextgame();
-                }
-
-                //if directory filled with roms as expected
-                if (stats.isDirectory()) {
-
-                    result[game] = {}; //create object for game
-
-                    //open the game's directory and read each of the rom files
-                    fs.readdir(__dirname + '/../public/roms/' + system + '/' + game, function(err, roms) {
-                        if (err) {
-                            return nextgame(err);
-                        }
-                        
-                        var details = UtilitiesService.findBestPlayableGame(roms, exts); //returns index of playable game returns object with "game", "index" and "rank"
-
-                        //for detailed results in debugging
-                        // result[game] = {
-                        //     roms: roms,
-                        //     game: details.game,
-                        //     index: details.index,
-                        //     rank: details.rank
-                        // }
-
-                        result[game] = {
-                            g: details.game,
-                            r: details.rank
-                        };
-
-                        return nextgame();
-                    });
-                }
-            });
-
-        }, function(err) {
-            if (err) {
-                return callback(err);
-            }
-
-            var path = __dirname + '/../data/' + system + '/search.json';
-
-            fs.writeFile(path, JSON.stringify(result), function(error) {
-                if (err) {
-                    return callback(err);
-                }
-                callback(null, 'File ' + path + ' written')
-            });
-        });
-    });
-};
-
-/**
- * builds system games.json file
- * @param  {string}   system
- * @param  {Function} callback
- * @param {Array} exts array of allowable file extentions
- * @return {}
- */
-UtilitiesService.buildGames = function(system, callback, exts) {
+UtilitiesService.buildData = function(system, callback, exts) {
 
     var result = {};
 
     //read all directory's from roms/system (each game is a dir)
-    fs.readdir(__dirname + '/../public/roms/' + system, function(err, games) {
+    fs.readdir(__dirname + '/../public/roms/' + system, function(err, titles) {
         if (err) {
             callback(err);
         }
 
-        async.each(games, function(game, nextgame) {
+        async.each(titles, function(title, nexttitle) {
 
-            //if the game begins with a ., then pass over (this is because of .DS_STORE)
-            if (game.indexOf('.') === 0) {
-                return nextgame();
+            //if the title begins with a ., then pass over (this is because of .DS_STORE)
+            if (title.indexOf('.') === 0) {
+                return nexttitle();
             }
 
             //analyize file
-            fs.stat(__dirname + '/../public/roms/' + system + '/' + game, function (err, stats) {
+            fs.stat(__dirname + '/../public/roms/' + system + '/' + title, function (err, stats) {
                 if (err) {
-                    return nextgame();
+                    return nexttitle();
                 }
 
                 //if file, mistake?
                 if (stats.isFile()) {
-                    console.log('File found in system directory: ' + game);
-                    return nextgame();
+                    console.log('File found in system directory: ' + title);
+                    return nexttitle();
                 }
 
                 //if directory filled with roms as expected
                 if (stats.isDirectory()) {
 
-                    result[game] = {}; //create object for game
+                    //create object for title
+                    result[title] = {
+                        best: '',         //key for files object which represents the best file suited for emulation play
+                        files: {}
+                    };
 
-                    //open the game's directory and read each of the rom files
-                    fs.readdir(__dirname + '/../public/roms/' + system + '/' + game, function(err, roms) {
+                    //open the title's directory and read each of the rom files
+                    fs.readdir(__dirname + '/../public/roms/' + system + '/' + title, function(err, files) {
                         if (err) {
-                            return nextgame(err);
+                            return nexttitle(err);
                         }
 
-                        for (var j = 0; j < roms.length; ++j) {
-                            
-                            var details = UtilitiesService.findBestPlayableGame([roms[j]], exts);
+                        var details = UtilitiesService.findBestPlayableFile(files, exts);
+                        
+                        result[title].best = details.game;  //key into files maps which represents the best playable file
 
-                            result[game][roms[j]] = details.rank;
+                        //get rank of each file
+                        for (var j = 0; j < files.length; ++j) {
+                            var details = UtilitiesService.findBestPlayableFile([files[j]], exts);
+                            result[title].files[files[j]] = details.rank;
                         }
 
-                        return nextgame();
+                        console.log(system + ' ' + title);
+
+                        return nexttitle();
                     });
                 }
             });
@@ -342,12 +264,12 @@ UtilitiesService.buildGames = function(system, callback, exts) {
                 return callback(err);
             }
 
-            var path = __dirname + '/../data/' + system + '/games.json';
+            var path = __dirname + '/../data/' + system + '.json';
             fs.writeFile(path, JSON.stringify(result), function(error) {
                 if (err) {
                     return callback(err);
                 }
-                callback(null, 'File ' + path + ' written')
+                callback(null, result);
             });
         });
     });
@@ -360,7 +282,7 @@ UtilitiesService.buildGames = function(system, callback, exts) {
  * @param {number} officialscore the score at which the game is considered an official release
  * @return {string}
  */
-UtilitiesService.findBestPlayableGame = function(files, exts, officialscore) {
+UtilitiesService.findBestPlayableFile = function(files, exts, officialscore) {
 
     //regular exp for region. order of importance. we're seeking a game which is probably in english
     var reRegion = {
@@ -557,19 +479,15 @@ UtilitiesService.findSuggestionsAll = function(items, callback) {
 
         var tosuggest = (ratio * items);
 
-        // for debugging:
-        // console.log(system + ' ' + tosuggest + ' ' + ratio);
-
         UtilitiesService.findSuggestions(system, tosuggest, function(err, suggestions) {
             if (err) {
                 return nextsystem(err);
             }
             for (var i = 0; i < suggestions.length; ++i) {
                 aggrigation.push({
-                    t: suggestions[i].t,
-                    g: suggestions[i].g,
-                    r: suggestions[i].r,
-                    s: system
+                    system: system,
+                    title: suggestions[i].title,
+                    file: suggestions[i].file
                 });
             }
             nextsystem();
@@ -595,15 +513,17 @@ UtilitiesService.findSuggestions = function(system, items, callback) {
     var results = [];
     var suggestions = [];
 
-    DataService.getFile('/data/' + system + '/search.json', function(err, data) {
+    DataService.getFile('/data/' + system + '.json', function(err, data) {
         if (err) {
             return callback(err);
         }
 
         //narrow down our list of random games to choose based on the theshold
         for (game in data) {
-            //great than the threshold 
-            if (data[game].r >= config.data.search.suggestionThreshold) {
+            //greater than the threshold 
+            var bestfile = data[game].best;
+            var bestrank = data[game].files[bestfile];
+            if (bestrank >= config.data.search.suggestionThreshold) {
                 suggestions.push(game);
             }
         }
@@ -616,21 +536,23 @@ UtilitiesService.findSuggestions = function(system, items, callback) {
                 
             //in the result, use the game as the key and its values the file and rank
             results.push({
-                t: randomgame,
-                g: data[randomgame].g,
-                r: data[randomgame].r,
-                s: system
+                system: system,
+                title: randomgame,
+                file: data[randomgame].best
             });
         }
         callback(null, results);
     });
 };  
 
-UtilitiesService.loadGame = function(system, folder, file, callback) {
+UtilitiesService.loadGame = function(system, title, file, callback) {
+
+    var self = this;
 
     if (config && config.data && config.data.systems && config.data.systems[system]) {
 
-        fs.readFile(__dirname + '/../public/roms/' + system + '/' + folder + '/' + file, function(err, content) {
+        //load the actual game content. thanks to compressed with pako, the content is stored as a compressed string
+        fs.readFile(__dirname + '/../public/roms/' + system + '/' + title + '/' + file, function(err, content) {
             if (err) {
                 return callback(err);
             }
@@ -646,20 +568,18 @@ UtilitiesService.findGame = function(system, title, callback) {
 
     if (config && config.data && config.data.systems && config.data.systems[system]) {
 
-        DataService.getFile('/data/' + system + '/search.json', function(err, data) {
+        DataService.getFile('/data/' + system + '.json', function(err, games) {
             if (err) {
                 return callback(err);
             }
 
-            for (game in data) {
-                if (title === game) {
-                    return callback(null, {
-                        t: game,
-                        g: data[game].g,
-                        r: data[game].r,
-                        s: system
-                    });
-                }
+            if (games[title]) {
+                return callback(null, {
+                    system: system,
+                    title: title,
+                    file: games[title].best,
+                    files: games[title].files
+                });
             }
             return callback();
         });
