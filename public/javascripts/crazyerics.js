@@ -281,12 +281,12 @@ crazyerics.prototype._bootstrap = function(system, title, file, state) {
             self._restoreStates(Module, system, title, file, function() {
 
                 //begin game
-                Module['callMain'](Module['arguments']);
+                Module['callMain'](Module.arguments);
 
                 //load state?
                 if (state) {
                     for (var i = 0; i < state; ++i) {
-                        self._simulateEmulatorKeypress(118); //F6 increment state slot   
+                        self._simulateEmulatorKeypress(118); //F6 increment state slot
                     }
                     self._simulateEmulatorKeypress(115); //F4 load state
                 }
@@ -295,17 +295,17 @@ crazyerics.prototype._bootstrap = function(system, title, file, state) {
                 self._buildGameContent(system, title, function() {
 
                 });
-            
+
                 $('#gameloadingoverlaycontent').addClass('close');
                 $('#gameloadingoverlay').fadeOut(1000, function() {
 
                     //show controls initially to reveal their presence
-                    setTimeout(function() { 
+                    setTimeout(function() {
                         self._ModuleLoading = false;
                         //$('#emulatorcontrolswrapper').slideToggle({ direction: "down" }, 300);
                         $('#emulatorcontrolswrapper').addClass('closed');
                     }, 3000);
-                    
+
                 });
 
                 $('#emulator')
@@ -329,13 +329,20 @@ crazyerics.prototype._bootstrap = function(system, title, file, state) {
     });
 };
 
+/**
+ * build content area underneath emulator canvas
+ * @param  {string}   system
+ * @param  {string}   title
+ * @param  {Function} callback
+ * @return {undef}
+ */
 crazyerics.prototype._buildGameContent = function(system, title, callback) {
 
     var box = this._getBoxFront(system, title, 150);
-    
+
     //using old skool img because it was the only way to get proper image height
     var img = document.createElement('img');
-    img.addEventListener('load', function () { 
+    img.addEventListener('load', function() {
 
         $('#gamedetailsboxfront').empty().append(box);
         $('#gametitle').empty().hide().append(title);
@@ -344,13 +351,13 @@ crazyerics.prototype._buildGameContent = function(system, title, callback) {
         // first measure the area the box will use. is it greater? use that distance to slide
         var distance = this.height > 200 ? this.height : 200;
         $('#gamedetailsboxfront img').addClass('close');
-        $("#gamedetailsbackground").animate({
-            height : distance
+        $('#gamedetailsbackground').animate({
+            height: distance
         }, 1000, function() {
 
             //fade in details
             $('#gamedetailswrapper').fadeIn(1000, function() {
-                
+
                 $('#gametitle').bigText({
                     textAlign: 'left',
                     horizontalAlign: 'left'
@@ -375,11 +382,15 @@ crazyerics.prototype._buildGameContent = function(system, title, callback) {
     });
 };
 
+/**
+ * handle removing the emulator frame from view and all bound events
+ * @return {undef}
+ */
 crazyerics.prototype._cleanupEmulator = function() {
 
     var self = this;
 
-    //since each Module attached an event to the parent document, we need to clean those up too:    
+    //since each Module attached an event to the parent document, we need to clean those up too:
     $(document).unbind('fullscreenchange');
     $(document).unbind('mozfullscreenchange');
     $(document).unbind('webkitfullscreenchange');
@@ -396,7 +407,7 @@ crazyerics.prototype._cleanupEmulator = function() {
     if (self._Module) {
         try {
             self._Module.exit(); //calls exit on emulator ending loop (just to be safe)
-        } catch(e) {
+        } catch (e) {
 
         }
         self._Module = null;
@@ -408,6 +419,11 @@ crazyerics.prototype._cleanupEmulator = function() {
     $('#emulator').remove(); //kill all events attached (keyboard, focus, etc)
 };
 
+/**
+ * simulator keypress on emulator. used to allow interaction of dom elements
+ * @param  {number} key ascii key code
+ * @return {undef}
+ */
 crazyerics.prototype._simulateEmulatorKeypress = function(key) {
 
     var self = this;
@@ -429,48 +445,69 @@ crazyerics.prototype._simulateEmulatorKeypress = function(key) {
     }
 };
 
+/**
+ * intercepts all key presses heading to emulator. allows for additional application actions
+ * @param  {string} system
+ * @param  {string} title
+ * @param  {string} file
+ * @return {undef}
+ */
 crazyerics.prototype._setupKeypressInterceptor = function(system, title, file) {
-    
+
     var self = this;
 
     if (this._Module && this._Module.RI && this._Module.RI.eventHandler) {
 
         var callback = this._Module.RI.eventHandler;
 
+        /**
+         * event handling function from Module
+         * @param  {Object} event
+         * @return {undef}
+         */
         this._Module.RI.eventHandler = function(event) {
-
 
             switch (event.type) {
                 case 'keyup':
                     var key = event.keyCode;
-                    switch(key) {
+                    switch (key) {
                         case 113: //save state
                             self._saveState(system, title, file, self._activeSaveStateSlot, function() {
 
                             });
-                            break;
+                        break;
                         case 117: //decrement state
-                            self._activeSaveStateSlot = self._activeSaveStateSlot === 0 ? 0 : self._activeSaveStateSlot -1;
-                            break;
+                            self._activeSaveStateSlot = self._activeSaveStateSlot === 0 ? 0 : self._activeSaveStateSlot - 1;
+                        break;
                         case 118: //incremenet state
                             self._activeSaveStateSlot++;
-                            break;
+                        break;
                     }
                 break;
             };
 
             callback(event);
-        }
-
+        };
     }
 };
 
+/**
+ * ajax call to load layout and script of emulator and load it within frame, resolves deffered when loaded
+ * @param  {string} system
+ * @param  {Object} deffered
+ * @return {undef}
+ */
 crazyerics.prototype._loademulator = function(system, deffered) {
 
     var frame  = $('<iframe/>', {
-        src:'/load/emulator/' + system,
-        style:'display:none',
-        load: function(){
+        src: '/load/emulator/' + system,
+        style: 'display:none',
+
+        /**
+         * on frame load
+         * @return {undef}
+         */
+        load: function() {
 
             //find module to run games
             var FS = this.contentWindow.FS;
@@ -481,6 +518,14 @@ crazyerics.prototype._loademulator = function(system, deffered) {
     $('body').append(frame);
 };
 
+/**
+ * load rom file from server. will come in as compressed string. after unpacked will resolve deffered. loads concurrently with emulator
+ * @param  {string} system
+ * @param  {string} title
+ * @param  {string} file
+ * @param  {Object} deffered
+ * @return {undef}
+ */
 crazyerics.prototype._loadGame = function(system, title, file, deffered) {
 
     var self = this;
@@ -490,6 +535,14 @@ crazyerics.prototype._loadGame = function(system, title, file, deffered) {
     });
 };
 
+/**
+ * Once Module has loaded with its own file system, populate ir with config and rom file
+ * @param  {Object} Module
+ * @param  {string} system
+ * @param  {string} file
+ * @param  {string} data
+ * @return {undef}
+ */
 crazyerics.prototype._buildFileSystem = function(Module, system, file, data) {
 
     var self = this;
@@ -537,6 +590,15 @@ crazyerics.prototype._saveState = function(system, title, file, slot, callback) 
     }   
 };
 
+/**
+ * TODO: move this functionalty to the server load of "load game"
+ * @param  {Object}   Module
+ * @param  {string}   system
+ * @param  {string}   title
+ * @param  {string}   file
+ * @param  {Function} callback
+ * @return {undef}
+ */
 crazyerics.prototype._restoreStates = function(Module, system, title, file, callback) {
 
     var self = this;

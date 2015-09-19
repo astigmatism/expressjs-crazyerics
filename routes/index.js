@@ -71,19 +71,21 @@ router.get('/load/:system/:title/:file', function(req, res, next) {
             return res.json(err);
         }
 
-<<<<<<< Updated upstream
-=======
-<<<<<<< HEAD
-        UtilitiesService.setPlayHistory(req, system, title, file, function() {
-            res.send(data);
-=======
->>>>>>> Stashed changes
         UtilitiesService.setPlayHistory(req, system, title, file, true, function(err, ph) {
             if (err) {
                 return res.json(err);
             }
-            res.send(new Buffer(data, 'binary'));
->>>>>>> origin/master
+
+            //states
+            var states = {};
+            if (req.session && req.session.games && req.session.games[system] && req.session.games[system][title] && req.session.games[system][title][file] && req.session.games[system][title][file].states) {
+                states = req.session.games[system][title][file].states;
+            }
+
+            res.json({
+                data: data,
+                states: states
+            });
         });
     });
 });
@@ -131,20 +133,6 @@ router.post('/states/:system/:title/:file/:slot', function(req, res, next) {
         req.session.games[system][title][file].states[slot] = data;
     }
     res.json();
-});
-
-router.get('/states/:system/:title/:file', function(req, res, next) {
-
-    var system = req.params.system;
-    var title = req.params.title;
-    var file = req.params.file;
-
-    var states = {};
-
-    if (req.session && req.session.games && req.session.games[system] && req.session.games[system][title] && req.session.games[system][title][file] && req.session.games[system][title][file].states) {
-        states = req.session.games[system][title][file].states;
-    }
-    res.json(states);
 });
 
 router.delete('/:system/:title/:file', function(req, res, next) {
