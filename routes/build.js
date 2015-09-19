@@ -18,7 +18,7 @@ router.get('/data', function(req, res, next) {
 
             UtilitiesService.buildData(system, function(err, result) {
                 if (err) {
-                    return res.json(err);
+                    return nextsystem(err);
                 }
 
                 aggrigation[system] = result;
