@@ -545,11 +545,14 @@ UtilitiesService.findSuggestions = function(system, items, callback) {
     });
 };  
 
-UtilitiesService.loadGame = function(system, folder, file, callback) {
+UtilitiesService.loadGame = function(system, title, file, callback) {
+
+    var self = this;
 
     if (config && config.data && config.data.systems && config.data.systems[system]) {
 
-        fs.readFile(__dirname + '/../public/roms/' + system + '/' + folder + '/' + file, function(err, content) {
+        //load the actual game content. thanks to compressed with pako, the content is stored as a compressed string
+        fs.readFile(__dirname + '/../public/roms/' + system + '/' + title + '/' + file, function(err, content) {
             if (err) {
                 return callback(err);
             }
@@ -565,37 +568,20 @@ UtilitiesService.findGame = function(system, title, callback) {
 
     if (config && config.data && config.data.systems && config.data.systems[system]) {
 
-        DataService.getFile('/data/' + system + '/search.json', function(err, search) {
+        DataService.getFile('/data/' + system + '.json', function(err, games) {
             if (err) {
                 return callback(err);
             }
 
-            DataService.getFile('/data/' + system + '/games.json', function(err, games) {
-                if (err) {
-                    return callback(err);
-                }
-
-                //if title exists in both search and title files, then we have a valid title
-                if (games[title] && search[title]) {
-
-                    return callback({
-                        title: title,
-                        //file:  
-                    });
-                }
-
-                for (game in data) {
-                    if (title === game) {
-                        return callback(null, {
-                            t: game,
-                            g: data[game].g,
-                            r: data[game].r,
-                            s: system
-                        });
-                    }
-                }
-                return callback();
-            });
+            if (games[title]) {
+                return callback(null, {
+                    system: system,
+                    title: title,
+                    file: games[title].best,
+                    files: games[title].files
+                });
+            }
+            return callback();
         });
 
     } else {

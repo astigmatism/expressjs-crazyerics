@@ -26,7 +26,8 @@ router.get('/search/:system/:query', function(req, res, next) {
         if (err) {
             return res.json(err);
         }
-        res.json(result);
+        var compressed = UtilitiesService.compress.json(result);
+        res.json(compressed);
     });
 });
 
@@ -38,7 +39,8 @@ router.get('/suggest/all/:items', function(req, res, next) {
         if (err) {
             return res.json(err);
         }
-        res.json(suggestions);
+        var compressed = UtilitiesService.compress.json(suggestions);
+        res.json(compressed);
     });
 });
 
@@ -53,7 +55,8 @@ router.get('/suggest/:system/:items', function(req, res, next) {
             if (err) {
                 return res.json(err);
             }
-            res.json(suggestions);
+            var compressed = UtilitiesService.compress.json(suggestions);
+            res.json(compressed);
         });
     } else {
         res.json(system + ' is not found the config and is not a valid system'); 
@@ -66,7 +69,7 @@ router.get('/load/:system/:title/:file', function(req, res, next) {
     var title = req.params.title;
     var file = req.params.file;
 
-    UtilitiesService.loadGame(system, title, file, function(err, data) {
+    UtilitiesService.loadGame(system, title, file, function(err, content) {
         if (err) {
             return res.json(err);
         }
@@ -75,17 +78,7 @@ router.get('/load/:system/:title/:file', function(req, res, next) {
             if (err) {
                 return res.json(err);
             }
-
-            //states
-            var states = {};
-            if (req.session && req.session.games && req.session.games[system] && req.session.games[system][title] && req.session.games[system][title][file] && req.session.games[system][title][file].states) {
-                states = req.session.games[system][title][file].states;
-            }
-
-            res.json({
-                data: data,
-                states: states
-            });
+            res.send(content);
         });
     });
 });
@@ -133,6 +126,30 @@ router.post('/states/:system/:title/:file/:slot', function(req, res, next) {
         req.session.games[system][title][file].states[slot] = data;
     }
     res.json();
+});
+
+router.get('/states/:system/:title/:file', function(req, res, next) {
+
+    var system = req.params.system;
+    var title = req.params.title;
+    var file = req.params.file;
+
+    var states = {};
+
+    if (req.session && req.session.games && req.session.games[system] && req.session.games[system][title] && req.session.games[system][title][file] && req.session.games[system][title][file].states) {
+        states = req.session.games[system][title][file].states;
+    }
+
+    UtilitiesService.findGame(system, title, function(err, details) {
+        if (err) {
+            return res.json(err);
+        }
+
+        res.json({
+            states: states,
+            files: UtilitiesService.compress.json(details.files)
+        });
+    });
 });
 
 router.delete('/:system/:title/:file', function(req, res, next) {
