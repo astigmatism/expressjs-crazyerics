@@ -119,7 +119,7 @@ var crazyerics = function() {
         });
 
         $('#emulatorcontrolswrapper li.fastforward').click(function() {
-            self._simulateEmulatorKeypress(32); //F6
+            self._simulateEmulatorKeypress(70); //f
         });
 
         $('#emulatorcontrolswrapper li.pause').click(function() {
@@ -273,6 +273,9 @@ crazyerics.prototype._bootstrap = function(system, title, file, state) {
             var fs = emulator[1];
             var frame = emulator[2];
 
+            var err = gamedata[0];
+            var gamedata = gamedata[1];
+
             var states = gamecontent.states;
             var files = gamecontent.files;
 
@@ -280,9 +283,9 @@ crazyerics.prototype._bootstrap = function(system, title, file, state) {
             FS = fs;
             self.emulatorframe = frame; //handle to iframe
 
-            self._buildFileSystem(Module, system, file, gamedata, states);
-
             self._setupKeypressInterceptor(system, title, file);
+
+            self._buildFileSystem(Module, system, file, gamedata, states);
 
             //begin game
             Module['callMain'](Module.arguments);
@@ -535,8 +538,13 @@ crazyerics.prototype._loadGame = function(system, title, file, deffered) {
 
     var self = this;
     $.get('/load/' + system + '/' + title + '/' + file, function(data) {
-        var inflated = pako.inflate(data); //inflate compressed string to arraybuffer
-        deffered.resolve(inflated);
+        try {
+            var inflated = pako.inflate(data); //inflate compressed string to arraybuffer
+        } catch(e) {
+            deffered.resolve(e);
+            return;
+        }
+        deffered.resolve(null, inflated);
     });
 };
 
