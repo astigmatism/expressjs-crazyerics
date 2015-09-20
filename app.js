@@ -29,6 +29,9 @@ app.use(favicon(__dirname + '/public/favicon.ico'));
 
 app.use(session({
     secret: 'ill have what im having',
+    cookie: { 
+        maxAge: 1209600000 //two weeks  
+    },
     saveUninitialized: false,
     resave: false,
     store: new MongoStore({ 
