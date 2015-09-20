@@ -285,6 +285,8 @@ crazyerics.prototype._bootstrap = function(system, title, file, state) {
 
             self._setupKeypressInterceptor(system, title, file);
 
+            setTimeout(function() { //for some reason, leaving this in prevent the emulator from starting at a crazy speed
+
             self._buildFileSystem(Module, system, file, gamedata, states);
 
             //begin game
@@ -327,6 +329,8 @@ crazyerics.prototype._bootstrap = function(system, title, file, state) {
                     $('#emulatorwrapperoverlay').hide();
                 })
                 .focus();
+
+            }, 1000);
 
         });
 
