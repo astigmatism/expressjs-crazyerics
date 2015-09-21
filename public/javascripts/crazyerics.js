@@ -283,52 +283,54 @@ crazyerics.prototype._bootstrap = function(system, title, file, state) {
             FS = fs;
             self.emulatorframe = frame; //handle to iframe
 
+            console.log(self._generateLink(system, title, file));
+
             self._setupKeypressInterceptor(system, title, file);
 
-            setTimeout(function() { //for some reason, leaving this in prevent the emulator from starting at a crazy speed
+            setTimeout(function() { //for some reason, leaving this in prevents the emulator from starting at a crazy speed, race condition?
 
-            self._buildFileSystem(Module, system, file, gamedata, states);
+                self._buildFileSystem(Module, system, file, gamedata, states);
 
-            //begin game
-            Module['callMain'](Module.arguments);
+                //begin game
+                Module['callMain'](Module.arguments);
 
-            //load state?
-            if (state) {
-                for (var i = 0; i < state; ++i) {
-                    self._simulateEmulatorKeypress(118); //F6 increment state slot
-                }
-                self._simulateEmulatorKeypress(115); //F4 load state
-            }
-
-            //handle title and content fadein steps
-            self._buildGameContent(system, title, function() {
-
-            });
-
-            $('#gameloadingoverlaycontent').addClass('close');
-            $('#gameloadingoverlay').fadeOut(1000, function() {
-
-                //show controls initially to reveal their presence
-                setTimeout(function() {
-                    self._ModuleLoading = false;
-                    //$('#emulatorcontrolswrapper').slideToggle({ direction: "down" }, 300);
-                    $('#emulatorcontrolswrapper').addClass('closed');
-                }, 3000);
-
-            });
-
-            $('#emulator')
-                .blur(function(event) {
-                    if (!self._pauseOverride) {
-                        Module.pauseMainLoop();
-                        $('#emulatorwrapperoverlay').fadeIn();
+                //load state?
+                if (state) {
+                    for (var i = 0; i < state; ++i) {
+                        self._simulateEmulatorKeypress(118); //F6 increment state slot
                     }
-                })
-                .focus(function() {
-                    Module.resumeMainLoop();
-                    $('#emulatorwrapperoverlay').hide();
-                })
-                .focus();
+                    self._simulateEmulatorKeypress(115); //F4 load state
+                }
+
+                //handle title and content fadein steps
+                self._buildGameContent(system, title, function() {
+
+                });
+
+                $('#gameloadingoverlaycontent').addClass('close');
+                $('#gameloadingoverlay').fadeOut(1000, function() {
+
+                    //show controls initially to reveal their presence
+                    setTimeout(function() {
+                        self._ModuleLoading = false;
+                        //$('#emulatorcontrolswrapper').slideToggle({ direction: "down" }, 300);
+                        $('#emulatorcontrolswrapper').addClass('closed');
+                    }, 3000);
+
+                });
+
+                $('#emulator')
+                    .blur(function(event) {
+                        if (!self._pauseOverride) {
+                            Module.pauseMainLoop();
+                            $('#emulatorwrapperoverlay').fadeIn();
+                        }
+                    })
+                    .focus(function() {
+                        Module.resumeMainLoop();
+                        $('#emulatorwrapperoverlay').hide();
+                    })
+                    .focus();
 
             }, 1000);
 
@@ -652,7 +654,7 @@ crazyerics.prototype._buildWelcomeMessage = function() {
                 .on('click', function() {
                     gamelink.li.addClass('close');
                     $.ajax({
-                        url: '/' + system + '/' + title + '/' + file,
+                        url: '/states/' + system + '/' + title + '/' + file,
                         type: 'DELETE',
                         success: function() {
                         }
@@ -750,13 +752,6 @@ crazyerics.prototype._toolTips = function() {
     });
 };
 
-crazyerics.prototype.clearHistory = function() {
-    var self = this;
-    if (confirm('This means deleting recently played games and all saved states. Are you sure?')) {
-        window.location = '/?clear';
-    }
-};
-
 crazyerics.prototype._getPlayHistory = function(maximum) {
 
     var self = this;
@@ -783,6 +778,10 @@ crazyerics.prototype._getPlayHistory = function(maximum) {
     return result;
 };
 
+crazyerics.prototype._generateLink = function(system, title, file, slot) {
+    return this._compress.string('/start/' + system + '/' + title + '/' + file); //prehaps slot for load state as query string?
+};
+
 crazyerics.prototype._compress = {
     bytearray: function(uint8array) {
         var deflated = pako.deflate(uint8array);
@@ -791,6 +790,9 @@ crazyerics.prototype._compress = {
     json: function(json) {
         return btoa(pako.deflate(JSON.stringify(json), { to: 'string' }));
     },
+    string: function(string) {
+        return btoa(pako.deflate(string, { to: 'string' }));  
+    }
 };
 
 crazyerics.prototype._decompress = {

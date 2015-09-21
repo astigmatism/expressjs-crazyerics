@@ -13,6 +13,7 @@ mongoose.connect('mongodb://localhost/crazyerics');
 
 var routes = require('./routes/index');
 var build = require('./routes/build');
+var states = require('./routes/states');
 
 var app = express();
 
@@ -41,6 +42,7 @@ app.use(session({
 
 app.use('/', routes);
 app.use('/build', build);
+app.use('/states', states);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

@@ -564,7 +564,7 @@ UtilitiesService.loadGame = function(system, title, file, callback) {
 
 };
 
-UtilitiesService.findGame = function(system, title, callback) {
+UtilitiesService.findGame = function(system, title, file, callback) {
 
     if (config && config.data && config.data.systems && config.data.systems[system]) {
 
@@ -573,15 +573,17 @@ UtilitiesService.findGame = function(system, title, callback) {
                 return callback(err);
             }
 
-            if (games[title]) {
+            if (games[title] && games[title].files[file]) {
+
                 return callback(null, {
                     system: system,
                     title: title,
-                    file: games[title].best,
+                    file: file,
                     files: games[title].files
                 });
+
             }
-            return callback();
+            return callback(title + ' not found for ' + system + ' or ' + file + ' not found in ' + title);
         });
 
     } else {
@@ -610,11 +612,14 @@ UtilitiesService.collectDataForClient = function(req, openonload, callback) {
         //because this json object is going over the wire, compress (client will decompress)
         result = UtilitiesService.compress.json(result);
 
-        return callback(result);
+        return callback(null, result);
     };
 
-    if (openonload && openonload.title && openonload.system) {
-        UtilitiesService.findGame(openonload.system, openonload.title, function(err, data) {
+    if (openonload && openonload.title && openonload.system && openonload.file) {
+        UtilitiesService.findGame(openonload.system, openonload.title, openonload.file, function(err, data) {
+            if (err) {
+                return callback(err);
+            }
             result.openonload = data;
             synchonous();
         });
