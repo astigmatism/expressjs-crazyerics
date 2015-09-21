@@ -4,6 +4,7 @@
   "disallowTrailingWhitespace": true,
   "excludeFiles": [
   ],
+  "requireCamelCaseOrUpperCaseIdentifiers": false,
   "validateIndentation": 4,
   "maximumLineLength": {
     "value": 500,

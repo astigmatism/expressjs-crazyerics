@@ -556,6 +556,10 @@ UtilitiesService.loadGame = function(system, title, file, callback) {
             if (err) {
                 return callback(err);
             }
+
+            //save play information to mongo
+
+
             callback(null, content);
         });
     } else {
@@ -594,13 +598,13 @@ UtilitiesService.findGame = function(system, title, file, callback) {
 UtilitiesService.collectDataForClient = function(req, openonload, callback) {
 
     var result = {
-        retroarchconfig: {}
+        retroarch: {}
     };
 
     var synchonous = function() {
         //retroarch configs
         for (system in config.data.systems) {
-            result.retroarchconfig[system] = config.data.systems[system].retroarchconfig;
+            result.retroarch[system] = config.data.retroarch + config.data.systems[system].retroarch;
         }
 
         //play history from session

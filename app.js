@@ -1,3 +1,4 @@
+var http = require('http');
 var express = require('express');
 var path = require('path');
 var favicon = require('serve-favicon');
@@ -8,6 +9,7 @@ var favicon = require('serve-favicon');
 var mongoose = require('mongoose');
 var session = require('express-session');
 var MongoStore = require('connect-mongo')(session);
+var io = require('./socket.io');
 
 mongoose.connect('mongodb://localhost/crazyerics');
 

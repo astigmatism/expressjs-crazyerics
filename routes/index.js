@@ -31,7 +31,6 @@ router.get('/search/:system/:query', function(req, res, next) {
     });
 });
 
-//ajax call to load a game
 router.get('/load/:system/:title/:file', function(req, res, next) {
 
     var system = req.params.system;

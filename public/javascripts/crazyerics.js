@@ -7,6 +7,8 @@ var Crazyerics = function() {
 
     var self = this;
 
+    //self._socket = io.connect(window.location.hostname + ':3000');
+
     $(document).ready(function() {
 
         //decompress clientdata
@@ -119,39 +121,39 @@ var Crazyerics = function() {
             });
 
         $('#emulatorcontrolswrapper li.fullscreen').click(function() {
-            self._Module.requestFullScreen(true, true);
+            self._simulateEmulatorKeypress(70); // F
         });
 
         $('#emulatorcontrolswrapper li.savestate').click(function() {
-            self._simulateEmulatorKeypress(113); //F2
+            self._simulateEmulatorKeypress(49); // 1
         });
 
         $('#emulatorcontrolswrapper li.loadstate').click(function() {
-            self._simulateEmulatorKeypress(115); //F4
+            self._simulateEmulatorKeypress(52); // 4
         });
 
         $('#emulatorcontrolswrapper li.mute').click(function() {
-            self._simulateEmulatorKeypress(120); //F9
+            self._simulateEmulatorKeypress(77); // M
         });
 
         $('#emulatorcontrolswrapper li.decrementslot').click(function() {
-            self._simulateEmulatorKeypress(117); //F6
+            self._simulateEmulatorKeypress(50); // 2
         });
 
         $('#emulatorcontrolswrapper li.incrementslot').click(function() {
-            self._simulateEmulatorKeypress(118); //F6
+            self._simulateEmulatorKeypress(51); // 3
         });
 
         $('#emulatorcontrolswrapper li.fastforward').click(function() {
-            self._simulateEmulatorKeypress(70); //f
+            self._simulateEmulatorKeypress(84); // T
         });
 
         $('#emulatorcontrolswrapper li.pause').click(function() {
-            self._simulateEmulatorKeypress(80); //P
+            self._simulateEmulatorKeypress(80); // P
         });
 
         $('#emulatorcontrolswrapper li.reset').click(function() {
-            self._simulateEmulatorKeypress(72); //F6
+            self._simulateEmulatorKeypress(82); //R
         });
 
         $('#gamecontrolslist li.controls')
@@ -192,9 +194,9 @@ Crazyerics.prototype._clientdata = null;
 Crazyerics.prototype._Module = null; //handle the emulator Module
 Crazyerics.prototype._ModuleLoading = false; //oldskool way to prevent double loading
 Crazyerics.prototype._pauseOverride = false; //condition for blur event of emulator, sometimes we don't want it to pause when we're giving it back focus
-
 Crazyerics.prototype._activeFile = null;
 Crazyerics.prototype._activeSaveStateSlot = 0;
+Crazyerics.prototype._socket = null; //socket.io
 
 /**
  * function for handling the load and replacement of the suggestions content area
@@ -302,14 +304,18 @@ Crazyerics.prototype._bootstrap = function(system, title, file, state) {
         var gameReady = $.Deferred();
         var gameDetailsReady = $.Deferred();
 
-        $.when(emulatorReady, gameReady, gameContentReady).done(function(emulator, gamedata, gamecontent) {
+        // self._socket.emit('start', 'test', function (data) {
+        //     console.log(data); // data will be 'woot'
+        // });
+
+        $.when(emulatorReady, gameReady, gameDetailsReady).done(function(emulator, loadedgame, gamecontent) {
 
             var Module = emulator[0];
             var fs = emulator[1];
             var frame = emulator[2];
 
-            var err = gamedata[0];
-            var gamedata = gamedata[1];
+            var err = loadedgame[0];
+            var gamedata = loadedgame[1];
 
             var states = gamecontent.states;
             var files = gamecontent.files;
@@ -318,7 +324,7 @@ Crazyerics.prototype._bootstrap = function(system, title, file, state) {
             FS = fs;
             self.emulatorframe = frame; //handle to iframe
 
-            console.log(self._generateLink(system, title, file));
+            //console.log(self._generateLink(system, title, file));
 
             self._setupKeypressInterceptor(system, title, file);
 
@@ -521,22 +527,24 @@ Crazyerics.prototype._setupKeypressInterceptor = function(system, title, file) {
                 case 'keyup':
                     var key = event.keyCode;
                     switch (key) {
-                        case 113: //save state. small delay necessary since this function call would fire before the emulator writes to the FS
+                        case 70: // F
+                            self._Module.requestFullScreen(true, true);
+                        break;
+                        case 49: //save state. small delay necessary since this function call would fire before the emulator writes to the FS
                             setTimeout(function() {
                                 self._saveState(system, title, file, self._activeSaveStateSlot, function() {
                                 });
                             },100);
                         break;
-                        case 117: //decrement state
+                        case 50: //decrement state
                             self._activeSaveStateSlot = self._activeSaveStateSlot === 0 ? 0 : self._activeSaveStateSlot - 1;
                         break;
-                        case 118: //incremenet state
+                        case 51: //incremenet state
                             self._activeSaveStateSlot++;
                         break;
                     }
                 break;
-            };
-
+            }
             callback(event);
         };
     }
@@ -581,8 +589,9 @@ Crazyerics.prototype._loadGame = function(system, title, file, deffered) {
 
     var self = this;
     $.get('/load/' + system + '/' + title + '/' + file, function(data) {
+        var inflated;
         try {
-            var inflated = pako.inflate(data); //inflate compressed string to arraybuffer
+            inflated = pako.inflate(data); //inflate compressed string to arraybuffer
         } catch (e) {
             deffered.resolve(e);
             return;
@@ -631,12 +640,12 @@ Crazyerics.prototype._buildFileSystem = function(Module, system, file, data, sta
 
     //config
     Module.FS_createFolder('/', 'etc', true, true);
-    if (self._clientdata.retroarchconfig && self._clientdata.retroarchconfig[system]) {
-        Module.FS_createDataFile('/etc', 'retroarch.cfg', self._clientdata.retroarchconfig[system], true, true);
+    if (self._clientdata.retroarch && self._clientdata.retroarch[system]) {
+        Module.FS_createDataFile('/etc', 'retroarch.cfg', self._clientdata.retroarch[system], true, true);
     }
 
     //states
-    for (slot in states) {
+    for (var slot in states) {
         var statedata = self._decompress.bytearray(states[slot]);
         var filenoextension = file.replace(new RegExp('\.[a-z]{1,3}$', 'gi'), '');
         var statefilename = '/' + filenoextension + '.state' + (slot == 0 ? '' : slot);
@@ -657,10 +666,11 @@ Crazyerics.prototype._saveState = function(system, title, file, slot, callback) 
 
     var self = this;
     var filenoextension  = file.replace(new RegExp('\.[a-z]{1,3}$', 'gi'), '');
-    var filename         = filenoextension + '.state' + (slot === 0 ? '' : slot);
+    var filename         = filenoextension + '.state' + (slot == 0 ? '' : slot);
+    var statecontent;
 
     try {
-        var statecontent = FS.open(filename);
+        statecontent = FS.open(filename);
     } catch (e) {
         console.log(e);
         return;
