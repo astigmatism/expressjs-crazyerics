@@ -14,6 +14,7 @@ mongoose.connect('mongodb://localhost/crazyerics');
 var routes = require('./routes/index');
 var build = require('./routes/build');
 var states = require('./routes/states');
+var suggest = require('./routes/suggest');
 
 var app = express();
 
@@ -30,19 +31,20 @@ app.use(favicon(__dirname + '/public/favicon.ico'));
 
 app.use(session({
     secret: 'ill have what im having',
-    cookie: { 
-        maxAge: 1209600000 //two weeks  
+    cookie: {
+        maxAge: 1209600000 //two weeks
     },
     saveUninitialized: false,
     resave: false,
-    store: new MongoStore({ 
-        mongooseConnection: mongoose.connection 
+    store: new MongoStore({
+        mongooseConnection: mongoose.connection
     })
 }));
 
 app.use('/', routes);
 app.use('/build', build);
 app.use('/states', states);
+app.use('/suggest', suggest);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -54,7 +56,6 @@ app.use(function(req, res, next) {
 // error handlers
 
 // development error handler
-// 
 // will print stacktrace
 if (app.get('env') === 'development') {
     app.use(function(err, req, res, next) {

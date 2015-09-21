@@ -31,8 +31,8 @@ router.get('/data', function(req, res, next) {
                 return res.json(err);
             }
 
-            for (system in aggrigation) {
-                for (title in aggrigation[system]) {
+            for (var system in aggrigation) {
+                for (var title in aggrigation[system]) {
                     var bestfile = aggrigation[system][title].best;
                     var bestrank = aggrigation[system][title].files[bestfile];
 
@@ -61,7 +61,7 @@ router.get('/data', function(req, res, next) {
 });
 
 router.get('/zip/:system', function(req, res, next) {
-    
+
     var system = req.params.system;
 
     fs.readdir(__dirname + '/../public/roms/' + system, function(err, titles) {
@@ -76,12 +76,11 @@ router.get('/zip/:system', function(req, res, next) {
 
             //loop over titles
             async.eachSeries(titles, function(title, nexttitle) {
-                
+
                 var stats = fs.statSync(__dirname + '/../public/roms/' + system + '/' + title);
                 if (stats.isFile()) {
                     return nexttitle();
                 }
-
 
                 fs.readdir(__dirname + '/../public/roms/' + system + '/' + title, function(err, files) {
                     if (err) {
@@ -96,8 +95,7 @@ router.get('/zip/:system', function(req, res, next) {
                         //loop over files
                         async.eachSeries(files, function(file, nextfile) {
 
-
-                            fs.readFile(__dirname + '/../public/roms/' + system + '/' + title + '/' + file, function (err, buffer) {
+                            fs.readFile(__dirname + '/../public/roms/' + system + '/' + title + '/' + file, function(err, buffer) {
                                 if (err) {
                                     return nextfile(err);
                                 }
@@ -108,7 +106,7 @@ router.get('/zip/:system', function(req, res, next) {
                                 for (var i = 0; i < buffer.length; ++i) {
                                     view[i] = buffer[i];
                                 }
-                                var deflated = pako.deflate(view, { to: 'string' });
+                                var deflated = pako.deflate(view, {to: 'string'});
 
                                 fs.writeFile(__dirname + '/../public/zipped/' + system + '/' + title + '/' + file, deflated, function(err) {
                                     if (err) {
@@ -142,7 +140,7 @@ router.get('/zip/:system', function(req, res, next) {
 router.get('/folders/:system', function(req, res, next) {
 
     var system = req.params.system;
-        
+
     UtilitiesService.buildRomFolders(system, function(err, data) {
         if (err) {
             return res.json(err);
