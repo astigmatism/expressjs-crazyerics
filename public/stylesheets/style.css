@@ -42,6 +42,14 @@ input[type='text'] {
 	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#516170', endColorstr='#343f4a',GradientType=0 ); /* IE6-9 */
 }
 
+h2 {
+	font-size: 1.8em;
+}
+
+p {
+	font-size: 1.2em;
+}
+
 #container {
 	margin: 0 auto;
 	position: relative;
@@ -55,7 +63,7 @@ input[type='text'] {
 	margin: 0 auto;
     position: absolute;
     left: 0px;
-	width: 650px;
+	width: 800px;
 	background-color: #101921;
 	min-height:100% !important; /* browser fill */
     height: auto;                /*content fill */
@@ -120,7 +128,7 @@ input[type='text'] {
 	font-size: 32px;
 	font-family: 'Montserrat', sans-serif;
 }
-#titlebanner h1, #titlebanner h4  {
+#titlebanner h1, #titlebanner p  {
 	padding: 0;
 	margin: 0;
 }
@@ -137,7 +145,7 @@ input[type='text'] {
 #selectordie {
 	padding: 14px 10px;
 	border: none;
-	width: 145px;
+	width: 195px;
 	text-transform: none;
 	font-size: 12px;
 	font-weight: normal;
@@ -152,8 +160,8 @@ input[type='text'] {
 	height: 40px;
 	position: absolute;
 	top: 0px;
-	left: 150px;
-	width: 500px;
+	left: 200px;
+	width: 600px;
 }
 
 #searchform input {
@@ -169,7 +177,7 @@ input[type='text'] {
 	display: inline-block;
 	font-size: 12px;
     text-align: left;
-	width: 480px;
+	width: 580px;
   	outline: none;
   	background: #fff;
   	color: #444444;
@@ -187,52 +195,27 @@ input[type='text'] {
 	padding: 15px 0;
 }
 
-#startplayed ul {
-	list-style: none;
-	padding: 0;
-	margin: 0;
-}
-
-#startplayed li {
-	position: relative;
-	display: inline-block;
-	padding: 0px 5px;
-	width: 114px;
-	height: auto;
-}
-
-#startplayed li .remove {
-	position: absolute;
-	width: 22px;
-	height: 22px;
-	background: url("/images/close.png") no-repeat center center;
-	display: none;
-	top: -3px;
-	right: -1px;
-}
-
-#startplayed li .statewrapper div {
-	text-align: center;
-	vertical-align: center;
-	background: rgb(81,97,112);
-	display: inline-block;
-	padding: 0px 5px;
-	margin: 2px;
-	-moz-border-radius: 2px;
-	border-radius: 5px;
-	min-width: 14px;
-}
-
 .gamelink {
-	cursor: pointer;
-	transition:All 200ms ease-in;
-	-webkit-transition:All 200ms ease-in;
-	-moz-transition:All 200ms ease-in;
-	-o-transition:All 200ms ease-in;
+	max-height: 1000px;
 }
 
-.gamelink:hover {
+.gamelink .box {
+	position: relative;
+	cursor: pointer;
+}
 
+.gamelink .statebutton {
+	cursor: pointer;	
+}
+
+.zoom {
+	transition:All 100ms ease-in;
+	-webkit-transition:All 100ms ease-in;
+	-moz-transition:All 100ms ease-in;
+	-o-transition:All 100ms ease-in;
+}
+
+.zoom:hover {
 	transform: scale(1.1, 1.1);
 	-webkit-transform: scale(1.1, 1.1);
 	-moz-transform: scale(1.1, 1.1);
@@ -240,16 +223,25 @@ input[type='text'] {
 	-ms-transform: scale(1.1, 1.1);
 }
 
+
 .darkgrad {
-/* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#000000+0,1b2026+50,000000+100 */
-background: rgb(0,0,0); /* Old browsers */
-background: -moz-linear-gradient(top,  rgba(0,0,0,1) 0%, rgba(27,32,38,1) 50%, rgba(0,0,0,1) 100%); /* FF3.6+ */
-background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(0,0,0,1)), color-stop(50%,rgba(27,32,38,1)), color-stop(100%,rgba(0,0,0,1))); /* Chrome,Safari4+ */
-background: -webkit-linear-gradient(top,  rgba(0,0,0,1) 0%,rgba(27,32,38,1) 50%,rgba(0,0,0,1) 100%); /* Chrome10+,Safari5.1+ */
-background: -o-linear-gradient(top,  rgba(0,0,0,1) 0%,rgba(27,32,38,1) 50%,rgba(0,0,0,1) 100%); /* Opera 11.10+ */
-background: -ms-linear-gradient(top,  rgba(0,0,0,1) 0%,rgba(27,32,38,1) 50%,rgba(0,0,0,1) 100%); /* IE10+ */
-background: linear-gradient(to bottom,  rgba(0,0,0,1) 0%,rgba(27,32,38,1) 50%,rgba(0,0,0,1) 100%); /* W3C */
-filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#000000', endColorstr='#000000',GradientType=0 ); /* IE6-9 */
+	/* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#000000+0,1b2026+50,000000+100 */
+	background: rgb(0,0,0); /* Old browsers */
+	background: -moz-linear-gradient(top,  rgba(0,0,0,1) 0%, rgba(27,32,38,1) 50%, rgba(0,0,0,1) 100%); /* FF3.6+ */
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(0,0,0,1)), color-stop(50%,rgba(27,32,38,1)), color-stop(100%,rgba(0,0,0,1))); /* Chrome,Safari4+ */
+	background: -webkit-linear-gradient(top,  rgba(0,0,0,1) 0%,rgba(27,32,38,1) 50%,rgba(0,0,0,1) 100%); /* Chrome10+,Safari5.1+ */
+	background: -o-linear-gradient(top,  rgba(0,0,0,1) 0%,rgba(27,32,38,1) 50%,rgba(0,0,0,1) 100%); /* Opera 11.10+ */
+	background: -ms-linear-gradient(top,  rgba(0,0,0,1) 0%,rgba(27,32,38,1) 50%,rgba(0,0,0,1) 100%); /* IE10+ */
+	background: linear-gradient(to bottom,  rgba(0,0,0,1) 0%,rgba(27,32,38,1) 50%,rgba(0,0,0,1) 100%); /* W3C */
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#000000', endColorstr='#000000',GradientType=0 ); /* IE6-9 */
+}
+
+.slideup {
+	max-height: 0 !important; 
+	overflow: hidden;
+	-webkit-transition: max-height 0.5s;
+	-moz-transition: max-height 0.5s;
+	transition: max-height 0.5s;
 }
 
 .close {
@@ -341,7 +333,7 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#000000', end
 }
 
 #emulatorcanvas {
-	min-height: 487px; /* when the emulator resizes from 800x600 into the maincolumn, this is the height */
+	height: 600px; /* when the emulator resizes from 800x600 into the maincolumn, this is the height */
 }
 
 #emulator {
@@ -375,7 +367,7 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#000000', end
 }
 
 #gameloadingoverlaycontent {
-	height: 185px;	
+	height: 250px;	
 	width: 100%;
 	text-align: center;
 	position: relative;
@@ -387,7 +379,7 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#000000', end
 }
 
 #gameloadingoverlaycontentimage img {
-	height: 100px;
+	height: 130px;
 	display: none;
 
 	-webkit-animation-duration: 5s; 
@@ -398,11 +390,23 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#000000', end
     -webkit-animation-iteration-count:infinite;
 }
 
-#gameloadingoverlaycontent p {
+#gameloadingoverlaycontent h2 {
+	margin-bottom: 30px;
+}
+
+#gameloadingname {
 	position: absolute;
 	bottom: 0;
 	text-align: center;
 	width: 100%;
+}
+
+#tip {
+	display: none;
+	text-align: center;
+	width: 100%;
+	position: absolute;
+	bottom: 50px;
 }
 
 /* game details wrapper */
@@ -428,7 +432,7 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#000000', end
 
 #gamedetailsboxfront {
 	display: table-cell;
-	width: 180px;
+	width: 200px;
 }
 
 #gamedetailsboxfront img {
@@ -444,12 +448,12 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#000000', end
 	display: table-cell;
 	vertical-align: top;
 	position: relative;
-	margin-right: 15px;
+	padding-left: 15px;
 }
 
 #gametitlewrapper {
 	height: 32px;
-	margin-right: 50px;
+	margin-left: 40px;
 }
 
 /* game controls list and sliders */
@@ -457,10 +461,11 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#000000', end
 #gamecontrolslist {
 	position: absolute;
 	top: 0;
-	right: 0;
-	margin: 0;
+	left: 0;
 	list-style: none;
 	max-width: 42px;
+	padding: 0;
+	margin: 3px 10px;
 
 	transition-property: all;
 	transition-duration: 1s;
@@ -482,8 +487,64 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#000000', end
 	width: 100%;
 	position: absolute;
 	top: 32px;
-	right: 0;
-	height: 170px;
+	left: 0;
+	height: 200px;
+}
+
+/* recently played */
+
+#recentplayedwrapper {
+	width: 780px;
+	padding: 0px 10px;
+	display: none;
+	background: -moz-linear-gradient(top,  rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%); /* FF3.6+ */
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(0,0,0,1)), color-stop(100%,rgba(0,0,0,0))); /* Chrome,Safari4+ */
+	background: -webkit-linear-gradient(top,  rgba(0,0,0,1) 0%,rgba(0,0,0,0) 100%); /* Chrome10+,Safari5.1+ */
+	background: -o-linear-gradient(top,  rgba(0,0,0,1) 0%,rgba(0,0,0,0) 100%); /* Opera 11.10+ */
+	background: -ms-linear-gradient(top,  rgba(0,0,0,1) 0%,rgba(0,0,0,0) 100%); /* IE10+ */
+	background: linear-gradient(to bottom,  rgba(0,0,0,1) 0%,rgba(0,0,0,0) 100%); /* W3C */
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#000000', endColorstr='#00000000',GradientType=0 ); /* IE6-9 */
+}
+
+#recentplayedwrapper ul {
+	width: 120px;
+	display: inline-block;
+	margin: 0px 5px;
+	padding: 0;
+	vertical-align: top;
+}
+
+#recentplayedwrapper li {
+	list-style: none;
+	margin: 5px 0px;
+
+	transition:All 200ms ease-in;
+	-webkit-transition:All 200ms ease-in;
+	-moz-transition:All 200ms ease-in;
+	-o-transition:All 200ms ease-in;
+}
+
+#recentplayedwrapper li .remove {
+	position: absolute;
+	width: 22px;
+	height: 22px;
+	background: url("/images/close.png") no-repeat center center;
+	display: none;
+	top: -5px;
+	right: -5px;
+	z-index: 100;
+}
+
+#recentplayedwrapper li .statewrapper div {
+	text-align: center;
+	vertical-align: center;
+	background: rgb(81,97,112);
+	display: inline-block;
+	padding: 0px 5px;
+	margin: 2px;
+	-moz-border-radius: 2px;
+	border-radius: 5px;
+	min-width: 14px;
 }
 
 
@@ -494,7 +555,7 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#000000', end
 }
 
 #suggestionswrapper ul {
-	width: 114px;
+	width: 120px;
 	display: inline-block;
 	margin: 0px 5px;
 	padding: 0;
@@ -518,6 +579,13 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#000000', end
 	height: 90px;	
 	width: 100%;
 	background: url('/images/triangle.svg') no-repeat center 0px;
+
+	-moz-transform: scaleY(-1);
+    -o-transform: scaleY(-1);
+    -webkit-transform: scaleY(-1);
+    transform: scaleY(-1);
+    filter: FlipV;
+    -ms-filter: "FlipV";
 }
 #loading .loadingtext {
 	text-align: center;
@@ -528,6 +596,26 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#000000', end
 	display: none;
 	width: 100%
 }
+
+/* side menu */
+
+.menuwrapper {
+	background-color: #101921;
+	margin-bottom: 10px;
+	padding: 10px;
+	text-align: center;
+}
+
+#recentlyplayedlist {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+}
+
+#recentlyplayedlist li {
+	margin-top: 5px;
+}
+
 
 @-webkit-keyframes tada { 
     0% {-webkit-transform: scale(1);} 

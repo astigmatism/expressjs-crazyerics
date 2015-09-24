@@ -80,7 +80,7 @@ exports.data = {
 			retroarch: 'video_aspect_ratio = 1.11111111',
 		}
 	},
-	retroarch: 'input_screenshot = n\ninput_exit_emulator = end\ninput_exit_emulator=input_save_state = num1\ninput_load_state = num4\ninput_state_slot_increase = num3\ninput_state_slot_decrease = num2\ninput_audio_mute = m\ninput_reset = r\ninput_toggle_fullscreen = f12\ninput_toggle_fast_forward = t\ninput_player1_select = shift\nvideo_vsync = false\naudio_latency = 96\nvideo_font_size = 24\n',
+	retroarch: 'input_screenshot = t\ninput_exit_emulator = end\ninput_save_state = num1\ninput_load_state = num4\ninput_state_slot_increase = num3\ninput_state_slot_decrease = num2\ninput_audio_mute = m\ninput_reset = h\ninput_toggle_fullscreen = f12\ninput_toggle_fast_forward = space\ninput_player1_select = shift\nvideo_vsync = false\naudio_latency = 96\nvideo_font_size = 32\nvideo_force_aspect = true\nvideo_smooth = true\nrewind_enable = true\n',
 	search: {
 		notes: "dont forget to also change crazyerics.prototype._boxFrontThreshold",
 		boxFrontThreshold: 63,

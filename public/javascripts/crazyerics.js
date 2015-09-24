@@ -20,7 +20,7 @@ var Crazyerics = function() {
             self._bootstrap(openonload.system, openonload.title, openonload.file);
         }
 
-        self._buildWelcomeMessage();
+        self._buildRecentlyPlayed(self._clientdata.playhistory);
 
         //console select
         $('#searchform select').selectOrDie({
@@ -145,7 +145,7 @@ var Crazyerics = function() {
         });
 
         $('#emulatorcontrolswrapper li.fastforward').click(function() {
-            self._simulateEmulatorKeypress(84); // T
+            self._simulateEmulatorKeypress(32); // Space
         });
 
         $('#emulatorcontrolswrapper li.pause').click(function() {
@@ -153,7 +153,11 @@ var Crazyerics = function() {
         });
 
         $('#emulatorcontrolswrapper li.reset').click(function() {
-            self._simulateEmulatorKeypress(82); //R
+            self._simulateEmulatorKeypress(72); // H
+        });
+
+        $('#emulatorcontrolswrapper li.rewind').click(function() {
+            self._simulateEmulatorKeypress(82, 5000); // R
         });
 
         $('#gamecontrolslist li.controls')
@@ -176,11 +180,11 @@ var Crazyerics = function() {
 
             if ($(this).attr('data-click-state') == 0) {
                 $(this).attr('data-click-state', 1);
-                $(this).find('img').animateRotate(0, -90, 500);
+                $(this).find('img').animateRotate(0, 90, 500);
 
             } else {
                 $(this).attr('data-click-state', 0);
-                $(this).find('img').animateRotate(-90, 0, 500);
+                $(this).find('img').animateRotate(90, 0, 500);
             }
         });
 
@@ -196,6 +200,17 @@ Crazyerics.prototype._ModuleLoading = false; //oldskool way to prevent double lo
 Crazyerics.prototype._pauseOverride = false; //condition for blur event of emulator, sometimes we don't want it to pause when we're giving it back focus
 Crazyerics.prototype._activeFile = null;
 Crazyerics.prototype._activeSaveStateSlot = 0;
+Crazyerics.prototype._tips = [
+    'Back out of that mistake you made by holding the R key to rewind the game',
+    'Press the Space key to fast forward through those boring story scenes',
+    'If your browser supports it, you can go fullscreen by pressing the F key',
+    'You can save your progress by pressing the 1 key, return to it anytime with the 4 key',
+    'We\'ll store all of your save states as long as you return within two weeks',
+    'Pause your game with the P key',
+    'Select a system filter to generate a new list of suggested games',
+    'To search for more obsurace or forgeign titles, select a system filter first'
+];
+Crazyerics.prototype._playhistory = {};
 Crazyerics.prototype._socket = null; //socket.io
 
 /**
@@ -224,7 +239,7 @@ Crazyerics.prototype.replaceSuggestions = function(system, items) {
 
         //use modulus to evenly disperse across all columns
         for (var i = 0; i < response.length; ++i) {
-            var gamelink = self._buildGameLink(response[i].system, response[i].title, response[i].file, 114);
+            var gamelink = self._buildGameLink(response[i].system, response[i].title, response[i].file, 120);
             $(columns[i % columns.length]).append(gamelink.li);
         }
 
@@ -251,7 +266,7 @@ Crazyerics.prototype.replaceSuggestions = function(system, items) {
  * @param  {number} state       optional. restore a saved state with the slot value (0, 1, 2, etc)
  * @return {undef}
  */
-Crazyerics.prototype._bootstrap = function(system, title, file, state) {
+Crazyerics.prototype._bootstrap = function(system, title, file, slot) {
 
     var self = this;
 
@@ -274,12 +289,23 @@ Crazyerics.prototype._bootstrap = function(system, title, file, state) {
     //loading image
     $('#gameloadingoverlaycontentimage').empty();
 
-    var box = self._getBoxFront(system, title, 150);
+    var box = self._getBoxFront(system, title, 170);
     box.addClass('tada');
     box.load(function() {
         $(this).fadeIn(200);
     });
     $('#gameloadingoverlaycontentimage').append(box);
+
+    var tipInterval = setInterval(function() {
+        $('#tip').fadeOut(500, function() {
+            var tip = Crazyerics.prototype._tips[Math.floor(Math.random() * Crazyerics.prototype._tips.length)];
+            
+            if(!$('#gameloadingoverlay').is(':animated')) {
+                $('#tip').empty().append('Tip: ' + tip).fadeIn(500);
+            }
+        });
+    }, 5000); //show tip for this long
+
 
     //fade in overlay
     $('#gameloadingoverlay').fadeIn(500, function() {
@@ -328,23 +354,13 @@ Crazyerics.prototype._bootstrap = function(system, title, file, state) {
 
             self._setupKeypressInterceptor(system, title, file);
 
-            // for some reason, leaving this in prevents the emulator from starting at a crazy speed, race condition?
-            // this is also good because it leaves time for the loading animation to show even in best possible scenario (files loaded locally)
-            setTimeout(function() {
+            self._buildFileSystem(Module, system, file, gamedata, states);
 
-                self._buildFileSystem(Module, system, file, gamedata, states);
+            //begin game
+            Module.callMain(Module.arguments);
 
-                //begin game
-                Module.callMain(Module.arguments);
 
-                //load state?
-                if (state) {
-                    for (var i = 0; i < state; ++i) {
-                        self._simulateEmulatorKeypress(118); //F6 increment state slot
-                    }
-                    self._simulateEmulatorKeypress(115); //F4 load state
-                }
-
+            var removeVail = function() {
                 //handle title and content fadein steps
                 self._buildGameContent(system, title, function() {
 
@@ -352,6 +368,10 @@ Crazyerics.prototype._bootstrap = function(system, title, file, state) {
 
                 $('#gameloadingoverlaycontent').addClass('close');
                 $('#gameloadingoverlay').fadeOut(1000, function() {
+
+                    //hide tips
+                    $('#tips').stop().hide();
+                    clearInterval(tipInterval);
 
                     //show controls initially to reveal their presence
                     setTimeout(function() {
@@ -374,9 +394,24 @@ Crazyerics.prototype._bootstrap = function(system, title, file, state) {
                         $('#emulatorwrapperoverlay').hide();
                     })
                     .focus();
+            };
 
-            }, 1000);
 
+            //load state?
+            if (slot) {
+                self._asyncLoop(parseInt(slot, 10), function(loop) {
+                    
+                    self._simulateEmulatorKeypress(51, 10, function() {
+                        loop.next();
+                    });
+
+                }, function() {
+                    self._simulateEmulatorKeypress(52); //4 load state
+                    removeVail();
+                });
+            } else {
+                removeVail();
+            }
         });
 
         self._loademulator(system, emulatorReady);
@@ -394,7 +429,7 @@ Crazyerics.prototype._bootstrap = function(system, title, file, state) {
  */
 Crazyerics.prototype._buildGameContent = function(system, title, callback) {
 
-    var box = this._getBoxFront(system, title, 150);
+    var box = this._getBoxFront(system, title, 170);
 
     //using old skool img because it was the only way to get proper image height
     var img = document.createElement('img');
@@ -405,7 +440,7 @@ Crazyerics.prototype._buildGameContent = function(system, title, callback) {
 
         // slide down background
         // first measure the area the box will use. is it greater? use that distance to slide
-        var distance = this.height > 200 ? this.height : 200;
+        var distance = this.height > 232 ? this.height : 232;
         $('#gamedetailsboxfront img').addClass('close');
         $('#gamedetailsbackground').animate({
             height: distance
@@ -480,9 +515,10 @@ Crazyerics.prototype._cleanupEmulator = function() {
  * @param  {number} key ascii key code
  * @return {undef}
  */
-Crazyerics.prototype._simulateEmulatorKeypress = function(key) {
+Crazyerics.prototype._simulateEmulatorKeypress = function(key, keyUpDelay, callback) {
 
     var self = this;
+    keyUpDelay = keyUpDelay || 10;
 
     if (this._Module && this._Module.RI && this._Module.RI.eventHandler) {
 
@@ -496,7 +532,12 @@ Crazyerics.prototype._simulateEmulatorKeypress = function(key) {
             e.keyCode = key;
             e.which = key;
             self._Module.RI.eventHandler(e); //after wait, dispatch keyup
-        }, 10);
+            if (callback) {
+                setTimeout(function() {
+                    callback();
+                }, 100);
+            }
+        }, keyUpDelay);
         $('#emulator').focus();
     }
 };
@@ -588,7 +629,8 @@ Crazyerics.prototype._loademulator = function(system, deffered) {
 Crazyerics.prototype._loadGame = function(system, title, file, deffered) {
 
     var self = this;
-    $.get('/load/' + system + '/' + title + '/' + file, function(data) {
+
+    $.get('/load/' + self._compress.gamekey(system, title, file), function(data) {
         var inflated;
         try {
             inflated = pako.inflate(data); //inflate compressed string to arraybuffer
@@ -596,6 +638,10 @@ Crazyerics.prototype._loadGame = function(system, title, file, deffered) {
             deffered.resolve(e);
             return;
         }
+
+        //add to play history
+        self._addToPlayHistory(self._compress.gamekey(system, title, file), system, title, file);
+
         deffered.resolve(null, inflated);
     });
 };
@@ -613,7 +659,7 @@ Crazyerics.prototype._loadGameDetails = function(system, title, file, deffered) 
     var self = this;
     //call returns not only states but misc game details. I tried to make this
     //part of the loadGame call but the formatting for the compressed game got weird
-    $.get('/states/' + system + '/' + title + '/' + file, function(data) {
+    $.get('/states/' + self._compress.gamekey(system, title, file), function(data) {
         deffered.resolve({
             states: data.states,
             files: self._decompress.json(data.files)
@@ -668,6 +714,7 @@ Crazyerics.prototype._saveState = function(system, title, file, slot, callback) 
     var filenoextension  = file.replace(new RegExp('\.[a-z]{1,3}$', 'gi'), '');
     var filename         = filenoextension + '.state' + (slot == 0 ? '' : slot);
     var statecontent;
+    var gamekey = self._compress.gamekey(system, title, file);
 
     try {
         statecontent = FS.open(filename);
@@ -681,7 +728,7 @@ Crazyerics.prototype._saveState = function(system, title, file, slot, callback) 
         var data = self._compress.bytearray(statecontent.node.contents);
 
         $.ajax({
-            url: '/states/' + system + '/' + title + '/' + file + '/' + slot,
+            url: '/states/' + gamekey + '/' + slot,
             data: data,
             processData: false,
             contentType: 'text/plain',
@@ -691,57 +738,149 @@ Crazyerics.prototype._saveState = function(system, title, file, slot, callback) 
              * @param  {Object} data
              * @return {undef}
              */
-            success: function(data) {
+            complete: function(data) {
+            
+                //when complete, we have something to load. show in recently played
+                var statedetails = new Object();
+                statedetails[slot] = Date.now();
+                self._addToPlayHistory(gamekey, system, title, file, null, statedetails);
             }
         });
     }
 };
 
-/**
- * function which comprises buliding the welcome message section of the site upon return
- * @return {undef}
- */
-Crazyerics.prototype._buildWelcomeMessage = function() {
+Crazyerics.prototype._buildRecentlyPlayed = function(clientdata, maximum) {
+  
+    for (game in clientdata) {
+        this._addToPlayHistory(game, clientdata[game].system, clientdata[game].title, clientdata[game].file, clientdata[game].played, clientdata[game].slots);
+    }
+
+    if ($.isEmptyObject(clientdata)) {
+        $('#startfirst').animate({height: 'toggle', opacity: 'toggle'}, 500);
+    } else {
+        $('#startplayed').animate({height: 'toggle', opacity: 'toggle'}, 500);
+    }
+};
+
+Crazyerics.prototype._addToPlayHistory = function(key, system, title, file, played, slots) {
 
     var self = this;
-    var playHistory = self._getPlayHistory(5);
 
-    if (playHistory.length === 0) {
-        $('#startfirst').animate({height: 'toggle', opacity: 'toggle'}, 200);
+    //handling dupes will be a common function, replace the date and handle the states slots 
+    if (key in self._playhistory) {
+        self._playhistory[key].played = Date.now();
+
+        //update any states saved:
+        if (slots) {
+            for (slot in slots) {
+                self._addStateToPlayHistory(self._playhistory[key], self._playhistory[key].stateswrapper, slot, slots[slot]);
+            }
+        }
+        self._toolTips();
         return;
+    }   
+
+    //not a dupe, let's create a new play histry game
+
+    var gamelink = self._buildGameLink(system, title, file, 120, true, slots); //get a game link 
+
+    gamelink.li.addClass('close');
+
+    gamelink.img.load(function() {
+        gamelink.li.removeClass('close');
+    });
+
+    //the remove link will delete the game from play history and any saved states
+    gamelink.remove
+    .addClass('tooltip')
+    .attr('title', 'Remove this game and all saved states')
+    .on('click', function() {
+        gamelink.li.addClass('slideup');
+        $.ajax({
+            url: '/states/' + key,
+            type: 'DELETE',
+            complete: function() {
+                setTimeout(function() {
+                    gamelink.li.remove();
+                }, 500);
+            }
+        });
+    });
+
+    //create the saved state area and add states to it
+    var stateswrapper = $('<div class="statewrapper"></div>');
+    gamelink.li.append(stateswrapper);
+
+    //create a local store to take this with handle to dom elements
+    self._playhistory[key] = {
+        system: system,
+        title: title,
+        file: file,
+        played: played || Date.now(),
+        slots: slots || {},
+        stateswrapper: stateswrapper
+    };
+
+    //append states, if any
+    if (slots) {
+        for (slot in slots) {
+            self._addStateToPlayHistory(self._playhistory[key], stateswrapper, slot, slots[slot]);
+        }
     }
 
-    for (var i = 0; i < playHistory.length; ++i) {
-        var gamelink = self._buildGameLink(playHistory[i].system, playHistory[i].title, playHistory[i].file, 114, true);
-
-        //put this in a closure to keep values on click bind
-        (function(system, title, file, gamelink) {
-            gamelink.li.addClass('close');
-            gamelink.img.load(function() {
-                gamelink.li.removeClass('close');
-            });
-            gamelink.remove
-                .addClass('tooltip')
-                .attr('title', 'Remove this game and all saved states')
-                .on('click', function() {
-                    gamelink.li.addClass('close');
-                    $.ajax({
-                        url: '/states/' + system + '/' + title + '/' + file,
-                        type: 'DELETE',
-                        /**
-                         * after successfully getting back states data
-                         * @return {undef}
-                         */
-                        success: function() {
-                        }
-                    });
-                });
-        })(playHistory[i].system, playHistory[i].title, playHistory[i].file, gamelink);
-        $('#startplayed ul').append(gamelink.li);
+    //figure out where to insert this gamelink in the recently played area
+    var columns = $('#recentplayedwrapper ul');
+    var column = columns[0];
+    for (var i = 0; i < columns.length; ++i) {
+        column = ($(columns[i]).children().length < $(column).children().length) ? columns[i] : column;
     }
+    $(column).append(gamelink.li); //append to recently played area
 
-    $('#startplayed').animate({height: 'toggle', opacity: 'toggle'}, 200);
+    $('#recentplayedwrapper').show(); //ensure it is showing (will be hidden first time)
+
     self._toolTips();
+};
+
+Crazyerics.prototype._addStateToPlayHistory = function(details, stateswrapper, slot, date) {
+
+    var self = this;
+    date = new Date(date);
+    var formatteddate = $.format.date(date, 'E MM/dd/yyyy h:mm:ss a'); //using the jquery dateFormat plugin
+
+    var loadstate = $('<div data-slot="' + slot + '" class="statebutton zoom tooltip" title="Load State Saved ' + formatteddate + '">' + slot + '</div>')
+    .on('mousedown', function() {
+        self._pauseOverride = true; //prevent current game from pausng before fadeout
+    })
+    .on('mouseup', function() {
+
+        self._bootstrap(details.system, details.title, details.file, slot);
+        window.scrollTo(0,0);
+    });
+
+    //two conditions here - the same state is being saved (replace) or a new state is saved and we need to insert it correctly
+    var gotinserted = false;
+    stateswrapper.children().each(function(callback) {
+
+        //convert both to numbers for comparison (they are strings because they are used as properties in an object)
+        var currentslot = parseInt($(this).attr('data-slot'), 10);
+        slot = parseInt(slot, 10);
+
+        if (currentslot === slot) {
+            loadstate.insertBefore(this);
+            $(this).remove();
+            gotinserted = true;
+            callback(false); //bails iteration
+        } else if (currentslot > slot) {
+            loadstate.insertBefore(this);
+            gotinserted = true;
+            callback(false); //bails iteration
+        }
+    });
+
+    //if it didn't get insert its either the first state saved or the greatest 
+    if (!gotinserted) {
+        stateswrapper.append(loadstate);
+    }
 };
 
 /**
@@ -762,9 +901,6 @@ Crazyerics.prototype._buildGameLink = function(system, title, file, size, close)
 
     box.addClass('tooltip close');
     box.attr('title', title);
-    box.attr('data-system', system);
-    box.attr('data-title', title);
-    box.attr('data-file', file);
 
     box.load(function() {
         $(this)
@@ -774,16 +910,21 @@ Crazyerics.prototype._buildGameLink = function(system, title, file, size, close)
         })
         .on('mouseup', function() {
 
-            self._bootstrap(this.dataset.system, this.dataset.title, this.dataset.file);
+            self._bootstrap(system, title, file);
             window.scrollTo(0,0);
         });
     });
-    li.append(box);
+
+    var imagewrapper = $('<div class="box zoom"></div>');
+
+    imagewrapper.append(box);
+
+    li.append(imagewrapper);
 
     var remove = null;
     if (close) {
         remove = $('<div class="remove"></div>');
-        li
+        imagewrapper
             .append(remove)
             .on('mouseover', function() {
                 $(remove).show();
@@ -810,7 +951,7 @@ Crazyerics.prototype._buildGameLink = function(system, title, file, size, close)
 Crazyerics.prototype._getBoxFront = function(system, title, size) {
 
     //incldes swap to blank cart onerror
-    return $('<img onerror="this.src=\'/images/blanks/' + system + '_' + size + '.png\'" src="/images/games/' + system + '/' + title + '/' + size + '.jpg" />');
+    return $('<img onerror="this.src=\'/images/blanks/' + system + '_' + size + '.png\'" src="/images/boxes/' + system + '/' + title + '/' + size + '.jpg" />');
 };
 
 /**
@@ -824,37 +965,6 @@ Crazyerics.prototype._toolTips = function() {
         animation: 'grow',
         delay: 100
     });
-};
-
-/**
- * parses the play history from the returned clientdata on page load
- * @param  {number} maximum  the number of games in which to return, sorted by most recently played
- * @return {Array}           a sorted array of plat played games
- */
-Crazyerics.prototype._getPlayHistory = function(maximum) {
-
-    var self = this;
-    var result = [];
-
-    if (self._clientdata && self._clientdata.playhistory) {
-
-        var playhistory = self._clientdata.playhistory;
-        var keys = Object.keys(playhistory);
-
-        maximum = maximum || keys.length;
-
-        //sorted by most recent
-        keys.sort(function(a, b) {
-            return a < b;
-        });
-
-        for (var i = 0; i < keys.length && i < maximum; ++i) {
-            playhistory[keys[i]].played = keys[i];
-            result.push(playhistory[keys[i]]);
-        }
-    }
-
-    return result;
 };
 
 /**
@@ -884,7 +994,7 @@ Crazyerics.prototype._compress = {
      * @return {string}
      */
     json: function(json) {
-        return btoa(pako.deflate(JSON.stringify(json), {to: 'string'}));
+        return btoa(pako.deflate(encodeURI(JSON.stringify(json)), {to: 'string'}));
     },
     /**
      * compress and base64 encode a string
@@ -892,7 +1002,14 @@ Crazyerics.prototype._compress = {
      * @return {string}
      */
     string: function(string) {
-        return btoa(pako.deflate(string, {to: 'string'}));
+        return btoa(pako.deflate(encodeURI(string), {to: 'string'}));
+    },
+    gamekey: function(system, title, file) {
+        return this.json({
+            system: system,
+            title: title,
+            file: file
+        });
     }
 };
 
@@ -912,7 +1029,10 @@ Crazyerics.prototype._decompress = {
      * @return {Object}
      */
     json: function(item) {
-        return JSON.parse(pako.inflate(atob(item), {to: 'string'}));
+        return JSON.parse(decodeURI(pako.inflate(atob(item), {to: 'string'})));
+    },
+    string: function(item) {
+        return decodeURI(pako.inflate(atob(item), {to: 'string'}));
     }
 };
 
@@ -944,6 +1064,55 @@ $.fn.animateRotate = function(startingangle, angle, duration, easing, complete) 
 
         $({deg: startingangle}).animate({deg: angle}, args);
     });
+};
+
+/**
+ * asychonous iteration helper
+ * @param  {[type]}   iterations [description]
+ * @param  {[type]}   func       [description]
+ * @param  {Function} callback   [description]
+ * @return {[type]}              [description]
+ */
+Crazyerics.prototype._asyncLoop = function(iterations, func, callback) {
+    var index = 0;
+    var done = false;
+    var loop = {
+        /**
+         * [next description]
+         * @return {Function} [description]
+         */
+        next: function() {
+            if (done) {
+                return;
+            }
+
+            if (index < iterations) {
+                index++;
+                func(loop);
+
+            } else {
+                done = true;
+                callback();
+            }
+        },
+        /**
+         * [iteration description]
+         * @return {[type]} [description]
+         */
+        iteration: function() {
+            return index - 1;
+        },
+        /**
+         * [break description]
+         * @return {[type]} [description]
+         */
+        break: function() {
+            done = true;
+            callback();
+        }
+    };
+    loop.next();
+    return loop;
 };
 
 var crazyerics = new Crazyerics();

@@ -3,38 +3,39 @@ var jade = require('jade');
 var UtilitiesService = require('../services/utilities.js');
 var router = express.Router();
 
-router.post('/:system/:title/:file/:slot', function(req, res, next) {
+router.post('/:key/:slot', function(req, res, next) {
     
-    var system = req.params.system;
-    var title = req.params.title;
-    var file = req.params.file;
+    var key = req.params.key;
     var slot = req.params.slot;
     var data = req.body;
 
     if (req.session) {
         req.session.games = req.session.games ? req.session.games : {};
-        req.session.games[system] = req.session.games[system] ? req.session.games[system] : {};
-        req.session.games[system][title] = req.session.games[system][title] ? req.session.games[system][title] : {};
-        req.session.games[system][title][file] = req.session.games[system][title][file] ? req.session.games[system][title][file] : {};
-        req.session.games[system][title][file].states = req.session.games[system][title][file].states ? req.session.games[system][title][file].states : {};
-        req.session.games[system][title][file].states[slot] = data;
+        req.session.games[key] = req.session.games[key] ? req.session.games[key] : {};
+        req.session.games[key].states = req.session.games[key].states ? req.session.games[key].states : {};
+        req.session.games[key].states[slot] = data;
+
+        //save state time in play history
+        if (req.session.games.history && req.session.games.history[key]) {
+            req.session.games.history[key].slots[slot] = Date.now();
+        }
+
     }
     res.json();
 });
 
-router.get('/:system/:title/:file', function(req, res, next) {
+router.get('/:key', function(req, res, next) {
 
-    var system = req.params.system;
-    var title = req.params.title;
-    var file = req.params.file;
-
+    var key = req.params.key;
+    var game = UtilitiesService.decompress.json(key);
+    key = UtilitiesService.compress.json(game);
     var states = {};
 
-    if (req.session && req.session.games && req.session.games[system] && req.session.games[system][title] && req.session.games[system][title][file] && req.session.games[system][title][file].states) {
-        states = req.session.games[system][title][file].states;
+    if (req.session && req.session.games && req.session.games[key] && req.session.games[key].states) {
+        states = req.session.games[key].states;
     }
 
-    UtilitiesService.findGame(system, title, file, function(err, details) {
+    UtilitiesService.findGame(game.system, game.title, game.file, function(err, details) {
         if (err) {
             return res.json(err);
         }
@@ -46,21 +47,21 @@ router.get('/:system/:title/:file', function(req, res, next) {
     });
 });
 
-router.delete('/:system/:title/:file', function(req, res, next) {
+router.delete('/:key', function(req, res, next) {
 
-    var system = req.params.system;
-    var title = req.params.title;
-    var file = req.params.file;
+    var key = req.params.key;
 
-    UtilitiesService.setPlayHistory(req, system, title, file, false, function(err, ph) {
-        if (err) {
-            return res.json(err);
+    if (req.session) {
+        if (req.session.games && req.session.games[key] && req.session.games[key]) {
+             delete req.session.games[key];
         }
-        if (req.session && req.session.games && req.session.games[system] && req.session.games[system][title] && req.session.games[system][title][file]) {
-            delete req.session.games[system][title][file];
+
+        if (req.session.games.history && req.session.games.history[key]) {
+            delete req.session.games.history[key]
         }
-        res.json();
-    });
+    }
+    res.json();
+    
 });
 
 module.exports = router;

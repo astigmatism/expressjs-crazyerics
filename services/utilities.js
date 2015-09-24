@@ -4,6 +4,7 @@ var async = require('async');
 var config = require('../config.js');
 var pako = require('pako');
 var btoa = require('btoa');
+var atob = require('atob');
 var DataService = require('../services/data.js');
 
 /**
@@ -632,57 +633,21 @@ UtilitiesService.collectDataForClient = function(req, openonload, callback) {
     }
 };
 
-UtilitiesService.setPlayHistory = function(req, system, title, file, add, callback) {
-
-    if (req.session) {
-
-        //ensure structure exists
-        req.session.games = req.session.games ? req.session.games : {};
-        req.session.games.history = req.session.games.history ? req.session.games.history : {};
-
-        var numberToKeep = 10; //get this from config?
-        var playHistory = req.session.games.history;
-
-        //does this title already exist in the history?
-        for (moment in playHistory) {
-            if (playHistory[moment].title === title && playHistory[moment].system === system) {
-                delete playHistory[moment];
-                break;
-            }
-        }
-
-        if (add) {
-            playHistory[Date.now()] = {
-                system: system,
-                title: title,
-                file: file
-            }
-        }
-
-        //trim history?
-        var keys = Object.keys(playHistory);
-
-        if (keys.length > numberToKeep) {
-            keys.sort(function(a, b) {
-                return a < b;
-            });
-            keys = keys.slice(0, numberToKeep);
-            var newHistory = {};
-            for (var i = 0; i < keys.length; ++i) {
-                newHistory[keys[i]] = playHistory[keys[i]];
-            }
-            playHistory = newHistory;
-        }
-
-        req.session.games.history = playHistory;
-    }
-    callback(null, playHistory);
-
-};
-
 UtilitiesService.compress = {
     json: function(json) {
-        return btoa(pako.deflate(JSON.stringify(json), { to: 'string' }));
+        return btoa(pako.deflate(encodeURI(JSON.stringify(json)), {to: 'string'}));
+    },
+    string: function(string) {
+        return btoa(pako.deflate(encodeURI(string), {to: 'string'}));
+    }
+};
+
+UtilitiesService.decompress = {
+    json: function(item) {
+        return JSON.parse(decodeURI(pako.inflate(atob(item), {to: 'string'})));
+    },
+    string: function(item) {
+        return decodeURI(pako.inflate(atob(item), {to: 'string'}));
     }
 };
 

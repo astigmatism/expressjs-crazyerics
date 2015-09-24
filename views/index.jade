@@ -23,7 +23,7 @@ block content
             div#startplayed(class="centered hide")
                 h2 Welcome Back
                 ul
-                p Continue playing, search, or select a game suggestion below
+                p Continue playing, search for, or select a game suggestion below
 
         div#emulatorwrapper
             div#emulatorcanvas
@@ -31,13 +31,15 @@ block content
             div#emulatorcontrolswrapper
                 ul(class="fl")
                     li(class="fullscreen")
-                        img(class="tooltip",src="/images/fullscreen.png",title="Enter Fullscreen (1)")
+                        img(class="tooltip",src="/images/fullscreen.png",title="Enter Fullscreen (F)")
                     li(class="mute")
                         img(class="tooltip",src="/images/mute.png",title="Toggle Mute (M)")
+                    li(class="rewind")
+                        img(class="tooltip",src="/images/rewind.png",title="Rewind (Hold R)")
                     li(class="pause")
                         img(class="tooltip",src="/images/pause.png",title="Pause Game (P)")
                     li(class="fastforward")
-                        img(class="tooltip",src="/images/fastforward.png",title="Toggle Fast Forward (T)")
+                        img(class="tooltip",src="/images/fastforward.png",title="Toggle Fast Forward (Space)")
                     li(class="reset")
                         img(class="tooltip",src="/images/reset.png",title="Reset System (H)")
                 ul(class="fr")
@@ -60,7 +62,6 @@ block content
         div#gamedetailsbackground
             div#gamedetailswrapper(class="darkgrad")
                 div#gamedetailstable
-                    div#gamedetailsboxfront
                     div#gamedetailscontent
                         div#gametitlewrapper
                             span#gametitle
@@ -68,6 +69,7 @@ block content
                         ul#gamecontrolslist(class="closed")
                             li(class="controls", data-click-state="0")
                                 img(class="tooltip",src="/images/gamepad.png", title="View Controls")
+                    div#gamedetailsboxfront
 
         div#gameloadingoverlay(class="darkgrad")
             div#gameloadingoverlaytable
@@ -77,8 +79,18 @@ block content
                         div#gameloadingoverlaycontentimage
                             img(class="tada")
                         p#gameloadingname
+                    p#tip Did you know that you rewind that mistake by holding the R key?
+
+    div#recentplayedwrapper
+        ul
+        ul
+        ul
+        ul
+        ul
+        ul
 
     div#suggestionswrapper
+        ul
         ul
         ul
         ul
