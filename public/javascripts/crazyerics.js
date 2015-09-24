@@ -994,7 +994,11 @@ Crazyerics.prototype._compress = {
      * @return {string}
      */
     json: function(json) {
-        return btoa(pako.deflate(encodeURI(JSON.stringify(json)), {to: 'string'}));
+        var string = JSON.stringify(json);
+        var deflate = pako.deflate(string, {to: 'string'});
+        var base64 = btoa(deflate);
+        var encoded = encodeURIComponent(base64);
+        return encoded;
     },
     /**
      * compress and base64 encode a string
@@ -1002,7 +1006,10 @@ Crazyerics.prototype._compress = {
      * @return {string}
      */
     string: function(string) {
-        return btoa(pako.deflate(encodeURI(string), {to: 'string'}));
+        var deflate = pako.deflate(string, {to: 'string'});
+        var base64 = btoa(deflate);
+        var encoded = encodeURIComponent(base64);
+        return base64;
     },
     gamekey: function(system, title, file) {
         return this.json({
@@ -1029,10 +1036,17 @@ Crazyerics.prototype._decompress = {
      * @return {Object}
      */
     json: function(item) {
-        return JSON.parse(decodeURI(pako.inflate(atob(item), {to: 'string'})));
+        var decoded = decodeURIComponent(item);
+        var base64 = atob(decoded);
+        var inflate = pako.inflate(base64, {to: 'string'});
+        var json = JSON.parse(inflate);
+        return json;
     },
     string: function(item) {
-        return decodeURI(pako.inflate(atob(item), {to: 'string'}));
+        var decoded = decodeURIComponent(item);
+        var base64 = atob(decoded);
+        var inflate = pako.inflate(base64, {to: 'string'});
+        return inflate;
     }
 };
 

@@ -28,7 +28,6 @@ router.get('/:key', function(req, res, next) {
 
     var key = req.params.key;
     var game = UtilitiesService.decompress.json(key);
-    key = UtilitiesService.compress.json(game);
     var states = {};
 
     if (req.session && req.session.games && req.session.games[key] && req.session.games[key].states) {
