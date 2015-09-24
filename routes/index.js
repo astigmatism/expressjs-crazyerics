@@ -82,46 +82,4 @@ router.get('/layout/controls/:system', function(req, res, next) {
     res.render('controls/' + system);
 });
 
-// router.get('/:wildcard', function(req, res, next) {
-
-//     var wildcard = req.params.wildcard;
-//     var routes = [];
-
-//     try {
-//         routes = decodeURI(pako.inflate(atob(wildcard), {to: 'string'})).split('/'); //lots of steps ;)
-//     } catch (e) {
-//         return res.json(e);
-//     }
-
-//     if (routes.length === 3) {
-
-//         var system = routes[0];
-//         var title = routes[1];
-//         var file = routes[2];
-
-//         UtilitiesService.collectDataForClient(req, {
-//             system: system,
-//             title: title,
-//             file: file
-//         }, function(err, clientdata) {
-//             if (err) {
-//                 return res.json(err);
-//             }
-
-//             UtilitiesService.setPlayHistory(req, system, title, file, true, function(err, ph) {
-//                 if (err) {
-//                     return res.json(err);
-//                 }
-
-//                 return res.render('index', {
-//                     layout: 'layout',
-//                     clientdata: clientdata
-//                 });
-//             });
-//         });
-//     } else {
-//         res.json('wildcard did not contain expected data: ' + routes.toString());
-//     }
-// });
-
 module.exports = router;
