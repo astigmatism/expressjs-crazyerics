@@ -639,13 +639,11 @@ UtilitiesService.compress = {
         var string = JSON.stringify(json);
         var deflate = pako.deflate(string, {to: 'string'});
         var base64 = btoa(deflate);
-        var encoded = encodeURIComponent(base64);
-        return encoded;
+        return base64;
     },
     string: function(string) {
         var deflate = pako.deflate(string, {to: 'string'});
         var base64 = btoa(deflate);
-        var encoded = encodeURIComponent(base64);
         return base64;
     }
 };
@@ -653,15 +651,13 @@ UtilitiesService.compress = {
 //order: base 64, escape, inflate, decode, parse
 UtilitiesService.decompress = {
     json: function(item) {
-        var decoded = decodeURIComponent(item);
-        var base64 = atob(decoded);
+        var base64 = atob(item);
         var inflate = pako.inflate(base64, {to: 'string'});
         var json = JSON.parse(inflate);
         return json;
     },
     string: function(item) {
-        var decoded = decodeURIComponent(item);
-        var base64 = atob(decoded);
+        var base64 = atob(item);
         var inflate = pako.inflate(base64, {to: 'string'});
         return inflate;
     }

@@ -33,7 +33,7 @@ router.get('/search/:system/:query', function(req, res, next) {
 
 router.get('/load/:key', function(req, res, next) {
 
-    var key = req.params.key; //key has been uriencoded, compressed and base64 encoded
+    var key = decodeURIComponent(req.params.key); //key has been uriencoded, compressed and base64 encoded
     var game = UtilitiesService.decompress.json(key); //extract values
 
     //decompressed key contains these members

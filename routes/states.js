@@ -5,7 +5,7 @@ var router = express.Router();
 
 router.post('/:key/:slot', function(req, res, next) {
     
-    var key = req.params.key;
+    var key = decodeURIComponent(req.params.key);
     var slot = req.params.slot;
     var data = req.body;
 
@@ -26,7 +26,7 @@ router.post('/:key/:slot', function(req, res, next) {
 
 router.get('/:key', function(req, res, next) {
 
-    var key = req.params.key;
+    var key = decodeURIComponent(req.params.key);
     var game = UtilitiesService.decompress.json(key);
     var states = {};
 
@@ -48,7 +48,7 @@ router.get('/:key', function(req, res, next) {
 
 router.delete('/:key', function(req, res, next) {
 
-    var key = req.params.key;
+    var key = decodeURIComponent(req.params.key);
 
     if (req.session) {
         if (req.session.games && req.session.games[key] && req.session.games[key]) {

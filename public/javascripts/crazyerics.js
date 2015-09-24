@@ -630,7 +630,7 @@ Crazyerics.prototype._loadGame = function(system, title, file, deffered) {
 
     var self = this;
 
-    $.get('/load/' + self._compress.gamekey(system, title, file), function(data) {
+    $.get('/load/' + encodeURIComponent(self._compress.gamekey(system, title, file)), function(data) {
         var inflated;
         try {
             inflated = pako.inflate(data); //inflate compressed string to arraybuffer
@@ -659,7 +659,7 @@ Crazyerics.prototype._loadGameDetails = function(system, title, file, deffered) 
     var self = this;
     //call returns not only states but misc game details. I tried to make this
     //part of the loadGame call but the formatting for the compressed game got weird
-    $.get('/states/' + self._compress.gamekey(system, title, file), function(data) {
+    $.get('/states/' + encodeURIComponent(self._compress.gamekey(system, title, file)), function(data) {
         deffered.resolve({
             states: data.states,
             files: self._decompress.json(data.files)
@@ -728,7 +728,7 @@ Crazyerics.prototype._saveState = function(system, title, file, slot, callback) 
         var data = self._compress.bytearray(statecontent.node.contents);
 
         $.ajax({
-            url: '/states/' + gamekey + '/' + slot,
+            url: '/states/' + encodeURIComponent(gamekey) + '/' + slot,
             data: data,
             processData: false,
             contentType: 'text/plain',
@@ -797,7 +797,7 @@ Crazyerics.prototype._addToPlayHistory = function(key, system, title, file, play
     .on('click', function() {
         gamelink.li.addClass('slideup');
         $.ajax({
-            url: '/states/' + key,
+            url: '/states/' + encodeURIComponent(key),
             type: 'DELETE',
             complete: function() {
                 setTimeout(function() {
@@ -997,8 +997,7 @@ Crazyerics.prototype._compress = {
         var string = JSON.stringify(json);
         var deflate = pako.deflate(string, {to: 'string'});
         var base64 = btoa(deflate);
-        var encoded = encodeURIComponent(base64);
-        return encoded;
+        return base64;
     },
     /**
      * compress and base64 encode a string
@@ -1008,7 +1007,6 @@ Crazyerics.prototype._compress = {
     string: function(string) {
         var deflate = pako.deflate(string, {to: 'string'});
         var base64 = btoa(deflate);
-        var encoded = encodeURIComponent(base64);
         return base64;
     },
     gamekey: function(system, title, file) {
@@ -1036,15 +1034,13 @@ Crazyerics.prototype._decompress = {
      * @return {Object}
      */
     json: function(item) {
-        var decoded = decodeURIComponent(item);
-        var base64 = atob(decoded);
+        var base64 = atob(item);
         var inflate = pako.inflate(base64, {to: 'string'});
         var json = JSON.parse(inflate);
         return json;
     },
     string: function(item) {
-        var decoded = decodeURIComponent(item);
-        var base64 = atob(decoded);
+        var base64 = atob(item);
         var inflate = pako.inflate(base64, {to: 'string'});
         return inflate;
     }
