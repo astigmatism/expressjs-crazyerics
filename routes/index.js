@@ -31,9 +31,16 @@ router.get('/search/:system/:query', function(req, res, next) {
     });
 });
 
-router.get('/load/:key', function(req, res, next) {
+router.get('/load/emulator/:system', function(req, res, next) {
 
-    var key = decodeURIComponent(req.params.key); //key has been uriencoded, compressed and base64 encoded
+    var system = req.params.system;
+
+    res.render('emulators/' + system);
+});
+
+router.get('/load/game', function(req, res, next) {
+
+    var key = decodeURIComponent(req.query.key); //key has been uriencoded, compressed and base64 encoded
     var game = UtilitiesService.decompress.json(key); //extract values
 
     //decompressed key contains these members
@@ -65,15 +72,8 @@ router.get('/load/:key', function(req, res, next) {
             res.send(content);
         });
     } else {
-        res.json();
+        res.json(game);
     }
-});
-
-router.get('/load/emulator/:system', function(req, res, next) {
-
-    var system = req.params.system;
-
-    res.render('emulators/' + system);
 });
 
 router.get('/layout/controls/:system', function(req, res, next) {

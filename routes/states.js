@@ -3,10 +3,10 @@ var jade = require('jade');
 var UtilitiesService = require('../services/utilities.js');
 var router = express.Router();
 
-router.post('/:key/:slot', function(req, res, next) {
+router.post('/save', function(req, res, next) {
     
-    var key = decodeURIComponent(req.params.key);
-    var slot = req.params.slot;
+    var key = decodeURIComponent(req.query.key);
+    var slot = req.query.slot;
     var data = req.body;
 
     if (req.session) {
@@ -24,9 +24,9 @@ router.post('/:key/:slot', function(req, res, next) {
     res.json();
 });
 
-router.get('/:key', function(req, res, next) {
+router.get('/load', function(req, res, next) {
 
-    var key = decodeURIComponent(req.params.key);
+    var key = decodeURIComponent(req.query.key);
     var game = UtilitiesService.decompress.json(key);
     var states = {};
 
@@ -46,9 +46,9 @@ router.get('/:key', function(req, res, next) {
     });
 });
 
-router.delete('/:key', function(req, res, next) {
+router.delete('/delete', function(req, res, next) {
 
-    var key = decodeURIComponent(req.params.key);
+    var key = decodeURIComponent(req.query.key);
 
     if (req.session) {
         if (req.session.games && req.session.games[key] && req.session.games[key]) {

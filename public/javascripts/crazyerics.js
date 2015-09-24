@@ -630,7 +630,7 @@ Crazyerics.prototype._loadGame = function(system, title, file, deffered) {
 
     var self = this;
 
-    $.get('/load/' + encodeURIComponent(self._compress.gamekey(system, title, file)), function(data) {
+    $.get('/load/game?key=' + encodeURIComponent(self._compress.gamekey(system, title, file)), function(data) {
         var inflated;
         try {
             inflated = pako.inflate(data); //inflate compressed string to arraybuffer
@@ -659,7 +659,7 @@ Crazyerics.prototype._loadGameDetails = function(system, title, file, deffered) 
     var self = this;
     //call returns not only states but misc game details. I tried to make this
     //part of the loadGame call but the formatting for the compressed game got weird
-    $.get('/states/' + encodeURIComponent(self._compress.gamekey(system, title, file)), function(data) {
+    $.get('/states/load?key=' + encodeURIComponent(self._compress.gamekey(system, title, file)), function(data) {
         deffered.resolve({
             states: data.states,
             files: self._decompress.json(data.files)
@@ -728,7 +728,7 @@ Crazyerics.prototype._saveState = function(system, title, file, slot, callback) 
         var data = self._compress.bytearray(statecontent.node.contents);
 
         $.ajax({
-            url: '/states/' + encodeURIComponent(gamekey) + '/' + slot,
+            url: '/states/save?key=' + encodeURIComponent(gamekey) + '&slot=' + slot,
             data: data,
             processData: false,
             contentType: 'text/plain',
@@ -797,7 +797,7 @@ Crazyerics.prototype._addToPlayHistory = function(key, system, title, file, play
     .on('click', function() {
         gamelink.li.addClass('slideup');
         $.ajax({
-            url: '/states/' + encodeURIComponent(key),
+            url: '/states/delete?key=' + encodeURIComponent(key),
             type: 'DELETE',
             complete: function() {
                 setTimeout(function() {
@@ -859,7 +859,7 @@ Crazyerics.prototype._addStateToPlayHistory = function(details, stateswrapper, s
 
     //two conditions here - the same state is being saved (replace) or a new state is saved and we need to insert it correctly
     var gotinserted = false;
-    stateswrapper.children().each(function(callback) {
+    stateswrapper.children().each(function() {
 
         //convert both to numbers for comparison (they are strings because they are used as properties in an object)
         var currentslot = parseInt($(this).attr('data-slot'), 10);
@@ -869,11 +869,11 @@ Crazyerics.prototype._addStateToPlayHistory = function(details, stateswrapper, s
             loadstate.insertBefore(this);
             $(this).remove();
             gotinserted = true;
-            callback(false); //bails iteration
+            return false;
         } else if (currentslot > slot) {
             loadstate.insertBefore(this);
             gotinserted = true;
-            callback(false); //bails iteration
+            return false;
         }
     });
 
