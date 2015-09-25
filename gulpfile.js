@@ -4,6 +4,7 @@ var stylish = require('jshint-stylish');
 var jscs = require('gulp-jscs');
 var uglify = require('gulp-uglify');
 var rename = require('gulp-rename');
+var concat = require('gulp-concat');
 var runSequence = require('run-sequence');
 var closureCompiler = require('gulp-closure-compiler');
 var minifyCss = require('gulp-minify-css');
@@ -86,6 +87,7 @@ gulp.task('closure', function() {
     .pipe(closureCompiler({
       compilerPath: './compiler.jar',
       fileName: 'build.js',
+      continueWithWarnings: true,
       compilerFlags: {
         compilation_level: 'SIMPLE_OPTIMIZATIONS'
       }
@@ -96,6 +98,6 @@ gulp.task('closure', function() {
 gulp.task('minify-css', function() {
   return gulp.src('./public/stylesheets/*.css')
     .pipe(minifyCss())
-    .pipe(rename('style.min.css'))
+    .pipe(concat('style.min.css'))
     .pipe(gulp.dest(DEST));
 });
