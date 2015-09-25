@@ -29,8 +29,10 @@
   },
   "devDependencies": {
     "gulp": "^3.9.0",
+    "gulp-closure-compiler": "^0.3.0",
     "gulp-jscs": "^2.0.0",
     "gulp-jshint": "^1.11.2",
+    "gulp-minify-css": "^1.2.1",
     "jscs-jsdoc": "^1.1.0",
     "jshint-stylish": "^2.0.1"
   }

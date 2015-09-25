@@ -300,13 +300,12 @@ Crazyerics.prototype._bootstrap = function(system, title, file, slot) {
     var tipInterval = setInterval(function() {
         $('#tip').fadeOut(500, function() {
             var tip = Crazyerics.prototype._tips[Math.floor(Math.random() * Crazyerics.prototype._tips.length)];
-            
-            if(!$('#gameloadingoverlay').is(':animated')) {
+
+            if (!$('#gameloadingoverlay').is(':animated')) {
                 $('#tip').empty().append('Tip: ' + tip).fadeIn(500);
             }
         });
     }, 5000); //show tip for this long
-
 
     //fade in overlay
     $('#gameloadingoverlay').fadeIn(500, function() {
@@ -360,7 +359,10 @@ Crazyerics.prototype._bootstrap = function(system, title, file, slot) {
             //begin game
             Module.callMain(Module.arguments);
 
-
+            /**
+             * the action to perform once all keypresses for loading state have completed (or not if not necessary)
+             * @return {undef}
+             */
             var removeVail = function() {
                 //handle title and content fadein steps
                 self._buildGameContent(system, title, function() {
@@ -386,7 +388,6 @@ Crazyerics.prototype._bootstrap = function(system, title, file, slot) {
                                 $(this).mouseup();
                             }
                         });
-                        
                     }, 3000);
 
                 });
@@ -405,11 +406,11 @@ Crazyerics.prototype._bootstrap = function(system, title, file, slot) {
                     .focus();
             };
 
-
-            //load state?
+            // load state?
+            // we need to handle mulitple keypresses asyncrounsly to ensure the emulator recieved input
             if (slot) {
                 self._asyncLoop(parseInt(slot, 10), function(loop) {
-                    
+
                     self._simulateEmulatorKeypress(51, 10, function() {
                         loop.next();
                     });
@@ -754,9 +755,9 @@ Crazyerics.prototype._saveState = function(system, title, file, slot, callback) 
              * @return {undef}
              */
             complete: function(data) {
-            
+
                 //when complete, we have something to load. show in recently played
-                var statedetails = new Object();
+                var statedetails = {};
                 statedetails[slot] = Date.now();
                 self._addToPlayHistory(gamekey, system, title, file, null, statedetails);
             }
@@ -764,9 +765,15 @@ Crazyerics.prototype._saveState = function(system, title, file, slot, callback) 
     }
 };
 
+/**
+ * on page load, build the recently played content area from clientdata passed from server
+ * @param  {Object} clientdata
+ * @param  {number} maximum        //no used at the moment since we want to show the entire play history and let the user delete what they don't want to see
+ * @return {undef}
+ */
 Crazyerics.prototype._buildRecentlyPlayed = function(clientdata, maximum) {
-  
-    for (game in clientdata) {
+
+    for (var game in clientdata) {
         this._addToPlayHistory(game, clientdata[game].system, clientdata[game].title, clientdata[game].file, clientdata[game].played, clientdata[game].slots);
     }
 
@@ -777,11 +784,21 @@ Crazyerics.prototype._buildRecentlyPlayed = function(clientdata, maximum) {
     }
 };
 
+/**
+ * Add or update a game in the play history area
+ * @param {Object} key    unique game key
+ * @param {string} system
+ * @param {string} title
+ * @param {string} file
+ * @param {Date} played     date game last played
+ * @param {Object} slots    {slot: 3, date: date} //date state saved as property
+ */
 Crazyerics.prototype._addToPlayHistory = function(key, system, title, file, played, slots) {
 
     var self = this;
+    var slot;
 
-    //handling dupes will be a common function, replace the date and handle the states slots 
+    //handling dupes will be a common function, replace the date and handle the states slots
     if (key in self._playhistory) {
         self._playhistory[key].played = Date.now();
 
@@ -793,11 +810,11 @@ Crazyerics.prototype._addToPlayHistory = function(key, system, title, file, play
         }
         self._toolTips();
         return;
-    }   
+    }
 
     //not a dupe, let's create a new play histry game
 
-    var gamelink = self._buildGameLink(system, title, file, 120, true, slots); //get a game link 
+    var gamelink = self._buildGameLink(system, title, file, 120, true, slots); //get a game link
 
     gamelink.li.addClass('close');
 
@@ -814,6 +831,10 @@ Crazyerics.prototype._addToPlayHistory = function(key, system, title, file, play
         $.ajax({
             url: '/states/delete?key=' + encodeURIComponent(key),
             type: 'DELETE',
+            /**
+             * on successful state deletion
+             * @return {undef}
+             */
             complete: function() {
                 setTimeout(function() {
                     gamelink.li.remove();
@@ -856,6 +877,13 @@ Crazyerics.prototype._addToPlayHistory = function(key, system, title, file, play
     self._toolTips();
 };
 
+/**
+ * adding a state button for a game to the play history area
+ * @param {Object} details       this function is called from the _addToPlayHistory function which passes a data blob of game details
+ * @param {Object} stateswrapper dom element
+ * @param {number} slot
+ * @param {Date} date
+ */
 Crazyerics.prototype._addStateToPlayHistory = function(details, stateswrapper, slot, date) {
 
     var self = this;
@@ -892,7 +920,7 @@ Crazyerics.prototype._addStateToPlayHistory = function(details, stateswrapper, s
         }
     });
 
-    //if it didn't get insert its either the first state saved or the greatest 
+    //if it didn't get insert its either the first state saved or the greatest
     if (!gotinserted) {
         stateswrapper.append(loadstate);
     }
@@ -1024,6 +1052,13 @@ Crazyerics.prototype._compress = {
         var base64 = btoa(deflate);
         return base64;
     },
+    /**
+     * a "gamekey" is an identifer on the server-end for system, title, file. we use it for a bunch of stuff from loading/saving states to loading games
+     * @param  {string} system
+     * @param  {string} title
+     * @param  {string} file
+     * @return {string}
+     */
     gamekey: function(system, title, file) {
         return this.json({
             system: system,
@@ -1054,6 +1089,11 @@ Crazyerics.prototype._decompress = {
         var json = JSON.parse(inflate);
         return json;
     },
+    /**
+     * decompress a string
+     * @param  {string} item
+     * @return {string}
+     */
     string: function(item) {
         var base64 = atob(item);
         var inflate = pako.inflate(base64, {to: 'string'});
@@ -1093,10 +1133,10 @@ $.fn.animateRotate = function(startingangle, angle, duration, easing, complete) 
 
 /**
  * asychonous iteration helper
- * @param  {[type]}   iterations [description]
- * @param  {[type]}   func       [description]
- * @param  {Function} callback   [description]
- * @return {[type]}              [description]
+ * @param  {number}   iterations
+ * @param  {Function}   func
+ * @param  {Function} callback
+ * @return {Object}
  */
 Crazyerics.prototype._asyncLoop = function(iterations, func, callback) {
     var index = 0;
@@ -1122,14 +1162,14 @@ Crazyerics.prototype._asyncLoop = function(iterations, func, callback) {
         },
         /**
          * [iteration description]
-         * @return {[type]} [description]
+         * @return {number}
          */
         iteration: function() {
             return index - 1;
         },
         /**
          * [break description]
-         * @return {[type]} [description]
+         * @return {undef}
          */
         break: function() {
             done = true;
