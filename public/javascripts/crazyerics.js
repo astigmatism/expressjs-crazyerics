@@ -381,6 +381,13 @@ Crazyerics.prototype._bootstrap = function(system, title, file, slot) {
                         $('#emulatorcontrolswrapper').addClass('closed');
                     }, 3000);
 
+                    //becuse I have nothing else to show, reveal controls
+                    $('#gamecontrolslist li').each(function() {
+                        if ($(this).attr('data-click-state') == 0) {
+                            $(this).mouseup();
+                        }
+                    });
+
                 });
 
                 $('#emulator')
