@@ -200,6 +200,7 @@ Crazyerics.prototype._ModuleLoading = false; //oldskool way to prevent double lo
 Crazyerics.prototype._pauseOverride = false; //condition for blur event of emulator, sometimes we don't want it to pause when we're giving it back focus
 Crazyerics.prototype._activeFile = null;
 Crazyerics.prototype._activeSaveStateSlot = 0;
+Crazyerics.prototype._keypresslocked = false; //when we're sending a keyboard event to the emulator, we want to wait until that event is complete before any additinal keypresses are made (prevents spamming)
 Crazyerics.prototype._tips = [
     'Back out of that mistake you made by holding the R key to rewind the game',
     'Press the Space key to fast forward through those boring story scenes',
@@ -522,6 +523,11 @@ Crazyerics.prototype._simulateEmulatorKeypress = function(key, keyUpDelay, callb
 
     if (this._Module && this._Module.RI && this._Module.RI.eventHandler) {
 
+        if (self._keypresslocked) {
+            return;
+        }
+
+        self._keypresslocked = true;
         var e;
         e = $.Event('keydown');
         e.keyCode = key;
@@ -532,11 +538,12 @@ Crazyerics.prototype._simulateEmulatorKeypress = function(key, keyUpDelay, callb
             e.keyCode = key;
             e.which = key;
             self._Module.RI.eventHandler(e); //after wait, dispatch keyup
-            if (callback) {
-                setTimeout(function() {
+            setTimeout(function() {
+                self._keypresslocked = false;
+                if (callback) {
                     callback();
-                }, 100);
-            }
+                }
+            }, 100);
         }, keyUpDelay);
         $('#emulator').focus();
     }
@@ -985,8 +992,8 @@ Crazyerics.prototype._compress = {
      * @return {string}
      */
     bytearray: function(uint8array) {
-        var deflated = pako.deflate(uint8array);
-        return btoa(String.fromCharCode.apply(null, deflated));
+        var deflated = pako.deflate(uint8array, {to: 'string'});
+        return btoa(deflated);
     },
     /**
      * comrpess and base64 encode a json object
