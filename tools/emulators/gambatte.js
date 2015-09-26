@@ -3249,6 +3249,23 @@ function copyTempDouble(ptr) {
         ___setErrNo(ERRNO_CODES.EBADF);
         return -1;
       }
+      
+      /* the following was modified for crazyerics.com */
+
+      try {
+        var slab = HEAP8;
+        result = FS.write(stream, slab, buf, nbyte);
+      } catch (e) {
+        FS.handleFSError(e);
+        result = -1;
+      }
+      if (Module.emulatorFileWritten && stream && stream.node && stream.node.name && stream.node.contents) {
+        Module.emulatorFileWritten(stream.node.name, stream.node.contents);
+      }
+      return result;
+
+      /* end of modification. original code here:
+
       try {
         var slab = HEAP8;
         return FS.write(stream, slab, buf, nbyte);
@@ -3256,6 +3273,8 @@ function copyTempDouble(ptr) {
         FS.handleFSError(e);
         return -1;
       }
+
+      */
     }function _fwrite(ptr, size, nitems, stream) {
       // size_t fwrite(const void *restrict ptr, size_t size, size_t nitems, FILE *restrict stream);
       // http://pubs.opengroup.org/onlinepubs/000095399/functions/fwrite.html

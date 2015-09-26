@@ -199,7 +199,6 @@ Crazyerics.prototype._Module = null; //handle the emulator Module
 Crazyerics.prototype._ModuleLoading = false; //oldskool way to prevent double loading
 Crazyerics.prototype._pauseOverride = false; //condition for blur event of emulator, sometimes we don't want it to pause when we're giving it back focus
 Crazyerics.prototype._activeFile = null;
-Crazyerics.prototype._activeSaveStateSlot = 0;
 Crazyerics.prototype._keypresslocked = false; //when we're sending a keyboard event to the emulator, we want to wait until that event is complete before any additinal keypresses are made (prevents spamming)
 Crazyerics.prototype._tips = [
     'Back out of that mistake you made by holding the R key to rewind the game',
@@ -270,6 +269,7 @@ Crazyerics.prototype.replaceSuggestions = function(system, items) {
 Crazyerics.prototype._bootstrap = function(system, title, file, slot) {
 
     var self = this;
+    var key = self._compress.gamekey(system, title, file); //for anything that might need it
 
     if (self._ModuleLoading) {
         return;
@@ -356,6 +356,16 @@ Crazyerics.prototype._bootstrap = function(system, title, file, slot) {
 
             self._buildFileSystem(Module, system, file, gamedata, states);
 
+            /**
+             * register a callback function when the emulator saves a file
+             * @param  {string} filename
+             * @param  {UInt8Array} contents
+             * @return {undef}
+             */
+            Module.emulatorFileWritten = function(filename, contents) {
+                self._emulatorFileWritten(key, system, title, file, filename, contents);
+            };
+
             //begin game
             Module.callMain(Module.arguments);
 
@@ -389,7 +399,6 @@ Crazyerics.prototype._bootstrap = function(system, title, file, slot) {
                             }
                         });
                     }, 3000);
-
                 });
 
                 $('#emulator')
@@ -425,8 +434,8 @@ Crazyerics.prototype._bootstrap = function(system, title, file, slot) {
         });
 
         self._loademulator(system, emulatorReady);
-        self._loadGame(system, title, file, gameReady);
-        self._loadGameDetails(system, title, file, gameDetailsReady);
+        self._loadGame(key, system, title, file, gameReady);
+        self._loadGameDetails(key, gameDetailsReady);
     });
 };
 
@@ -498,8 +507,6 @@ Crazyerics.prototype._cleanupEmulator = function() {
     $(document).unbind('pointerlockchange');
     $(document).unbind('mozpointerlockchange');
     $(document).unbind('webkitpointerlockchange');
-
-    self._activeSaveStateSlot = 0;
 
     if (FS) {
         FS = null;
@@ -587,18 +594,6 @@ Crazyerics.prototype._setupKeypressInterceptor = function(system, title, file) {
                         case 70: // F
                             self._Module.requestFullScreen(true, true);
                         break;
-                        case 49: //save state. small delay necessary since this function call would fire before the emulator writes to the FS
-                            setTimeout(function() {
-                                self._saveState(system, title, file, self._activeSaveStateSlot, function() {
-                                });
-                            },100);
-                        break;
-                        case 50: //decrement state
-                            self._activeSaveStateSlot = self._activeSaveStateSlot === 0 ? 0 : self._activeSaveStateSlot - 1;
-                        break;
-                        case 51: //incremenet state
-                            self._activeSaveStateSlot++;
-                        break;
                     }
                 break;
             }
@@ -642,11 +637,11 @@ Crazyerics.prototype._loademulator = function(system, deffered) {
  * @param  {Object} deffered
  * @return {undef}
  */
-Crazyerics.prototype._loadGame = function(system, title, file, deffered) {
+Crazyerics.prototype._loadGame = function(key, system, title, file, deffered) {
 
     var self = this;
 
-    $.get('/load/game?key=' + encodeURIComponent(self._compress.gamekey(system, title, file)), function(data) {
+    $.get('/load/game?key=' + encodeURIComponent(key), function(data) {
         var inflated;
         try {
             inflated = pako.inflate(data); //inflate compressed string to arraybuffer
@@ -656,7 +651,7 @@ Crazyerics.prototype._loadGame = function(system, title, file, deffered) {
         }
 
         //add to play history
-        self._addToPlayHistory(self._compress.gamekey(system, title, file), system, title, file);
+        self._addToPlayHistory(key, system, title, file);
 
         deffered.resolve(null, inflated);
     });
@@ -670,12 +665,12 @@ Crazyerics.prototype._loadGame = function(system, title, file, deffered) {
  * @param  {Object} deffered
  * @return {undef}
  */
-Crazyerics.prototype._loadGameDetails = function(system, title, file, deffered) {
+Crazyerics.prototype._loadGameDetails = function(key, deffered) {
 
     var self = this;
     //call returns not only states but misc game details. I tried to make this
     //part of the loadGame call but the formatting for the compressed game got weird
-    $.get('/states/load?key=' + encodeURIComponent(self._compress.gamekey(system, title, file)), function(data) {
+    $.get('/states/load?key=' + encodeURIComponent(key), function(data) {
         deffered.resolve({
             states: data.states,
             files: self._decompress.json(data.files)
@@ -716,42 +711,35 @@ Crazyerics.prototype._buildFileSystem = function(Module, system, file, data, sta
 };
 
 /**
- * function for handling a save state
- * @param  {string}   system
- * @param  {string}   title
- * @param  {string}   file
- * @param  {number}   slot
- * @param  {Function} callback
+ * this function is registered with the emulator when a file is written, we only care about state saving
+ * @param  {string} key      unique game key, used to save state
+ * @param  {string} system
+ * @param  {string} title
+ * @param  {string} file
+ * @param  {string} filename the file name being saved by the emulator
+ * @param  {UInt8Array} contents the contents of the file saved by the emulator
  * @return {undef}
  */
-Crazyerics.prototype._saveState = function(system, title, file, slot, callback) {
+Crazyerics.prototype._emulatorFileWritten = function(key, system, title, file, filename, contents) {
 
     var self = this;
-    var filenoextension  = file.replace(new RegExp('\.[a-z]{1,3}$', 'gi'), '');
-    var filename         = filenoextension + '.state' + (slot == 0 ? '' : slot);
-    var statecontent;
-    var gamekey = self._compress.gamekey(system, title, file);
+    var match = filename.match(/\.state(\d*)$/); //match .state or .statex where x is a digit
 
-    try {
-        statecontent = FS.open(filename);
-    } catch (e) {
-        console.log(e);
-        return;
-    }
+    // match will return an array when match was successful, our capture group with the slot value, its 1 index
+    if (match) {
 
-    if (statecontent && statecontent.node && statecontent.node.contents) {
-
-        var data = self._compress.bytearray(statecontent.node.contents);
+        var slot = match[1] === '' ? 0 : match[1]; //the 0 state does not use a digit
+        var data = self._compress.bytearray(contents);
 
         $.ajax({
-            url: '/states/save?key=' + encodeURIComponent(gamekey) + '&slot=' + slot,
+            url: '/states/save?key=' + encodeURIComponent(key) + '&slot=' + slot,
             data: data,
             processData: false,
             contentType: 'text/plain',
             type: 'POST',
             /**
-             * up on successfully state save
-             * @param  {Object} data
+             * on completion of state save
+             * @param  {string} data
              * @return {undef}
              */
             complete: function(data) {
@@ -759,7 +747,7 @@ Crazyerics.prototype._saveState = function(system, title, file, slot, callback) 
                 //when complete, we have something to load. show in recently played
                 var statedetails = {};
                 statedetails[slot] = Date.now();
-                self._addToPlayHistory(gamekey, system, title, file, null, statedetails);
+                self._addToPlayHistory(key, system, title, file, null, statedetails);
             }
         });
     }

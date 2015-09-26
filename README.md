@@ -60,7 +60,7 @@ there's a function called "fullScreenChange" which has a bunch of "document" ref
 
 document. --> parent.window.docuemnt.
 
--- KeyBoard events
+- KeyBoard events
 
 This one was a real pain in the ass. First I noticed that I couldn't dispatch events on the canvas itself, don't know why. I decided to expose the event handler within the emulator and then send events directly to it. This works :) What took forever though was discovering that any keydown event MUST be followed by a keyup event. If they trigger at the same time, failure. I put a 10ms gap between them and everything worked. It's NUTS.
 
@@ -69,8 +69,63 @@ RI is the object with the event handler.
 After the object definition, do this "Module.RI = RI"
 This exposes the handler to the Module and then our app.
 
+- getting save states
+
+Instead of independantly tracking when the use is changing the state slot values (which I found can get out of sync when spamming the keyboard) I decided to register a callback when a file has been written to the emulator's file system. Look for this block of code:
+
+try {
+    var slab = HEAP8;
+    return FS.write(stream, slab, buf, nbyte);
+  } catch (e) {
+    FS.handleFSError(e);
+    return -1;
+  }
+
+This is the top-most function (FS.write) for writing files. I didn't want my registered function to exist inside the try catch, so I modified this block thusly:
+
+try {
+    var slab = HEAP8;
+    result = FS.write(stream, slab, buf, nbyte);
+  } catch (e) {
+    FS.handleFSError(e);
+    result = -1;
+  }
+  if (Module.emulatorFileWritten && stream && stream.node && stream.node.name && stream.node.contents) {
+    Module.emulatorFileWritten(stream.node.name, stream.node.contents);
+  }
+  return result;
+
+.. more than that, be cool and leave the original intact, it'll be removed when you compile anyway:
+
+/* the following was modified for crazyerics.com */
+
+  try {
+    var slab = HEAP8;
+    result = FS.write(stream, slab, buf, nbyte);
+  } catch (e) {
+    FS.handleFSError(e);
+    result = -1;
+  }
+  if (Module.emulatorFileWritten && stream && stream.node && stream.node.name && stream.node.contents) {
+    Module.emulatorFileWritten(stream.node.name, stream.node.contents);
+  }
+  return result;
+
+  /* end of modification. original code here:
+
+  try {
+    var slab = HEAP8;
+    return FS.write(stream, slab, buf, nbyte);
+  } catch (e) {
+    FS.handleFSError(e);
+    return -1;
+  }
+
+  */
+
 various notes
 -------------
 
-compress all localstorage keys and values with LZ-String (http://pieroxy.net/blog/pages/lz-string/index.html)
+- using pako as a method to compress all strings, json and uintarrays
+- gulp produces two files in ./public/build: build.js (all compressed js file contents) and style.min.css (all compressed css file contents). The layout.jade on your production box references these files instead of the source content.
 
