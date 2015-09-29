@@ -249,11 +249,11 @@ UtilitiesService.buildData = function(system, callback, exts) {
 
                         //get rank of each file
                         for (var j = 0; j < files.length; ++j) {
-                            var details = UtilitiesService.findBestPlayableFile([files[j]], exts);
-                            result[title].files[files[j]] = details.rank;
+                            var filedetails = UtilitiesService.findBestPlayableFile([files[j]], exts);
+                            result[title].files[files[j]] = filedetails.rank;
                         }
 
-                        console.log(system + ' ' + title);
+                        console.log(system + ' ' + title + ' --> ' + details.rank + ' ' + details.game);
 
                         return nexttitle();
                     });
@@ -313,6 +313,10 @@ UtilitiesService.findBestPlayableFile = function(files, exts, officialscore) {
 
 
     var reOption = {
+        v3:     new RegExp('\\(V1\\.3\\)', 'ig'),   //when a game has a version greater than (V1.0), we want to give it a higher ranking
+        v2:     new RegExp('\\(V1\\.2\\)', 'ig'),
+        v1:     new RegExp('\\(V1\\.1\\)', 'ig'),
+        c:      new RegExp('\\[C\\]', 'ig'),        //color!
         p:      new RegExp('\\[!\\]', 'ig'),        //The ROM is an exact copy of the original game; it has not had any hacks or modifications.
         f:      new RegExp('\\[f\d?\\]', 'ig'),        //A fixed dump is a ROM that has been altered to run better on a flashcart or an emulator.
         b:      new RegExp('\\[', 'ig')
@@ -329,13 +333,13 @@ UtilitiesService.findBestPlayableFile = function(files, exts, officialscore) {
 
     var result = null;      //the resulting file by name
     var resultindex = 0;    //the index of the resulting game in the "files" array
-    var resultrank = 99;    //the current rank of the selection made
+    var resultrank = 0;
 
     //pass over all files. as soon as we find a successful match, break out and try the next file
     for (i = 0; i < files.length; ++i) {
 
         var item = files[i];
-        var runningrank = 0;    //incrememnted on each check
+        var currentrank = 100;  //starts high, decrements on each pass
 
         //first must pass only one of the extra regex's coming in (usually file ext)
         var pass = false;
@@ -348,104 +352,122 @@ UtilitiesService.findBestPlayableFile = function(files, exts, officialscore) {
             continue;
         }
 
+        //let's give bonus points (less than 1) at the start of each file before current begins to decrement
+        if (item.match(reOption.c)) {
+            currentrank += 0.1;
+        }
+
+        if (item.match(reOption.v3)) {
+            currentrank += 0.3;
+        }
+
+        if (item.match(reOption.v2)) {
+            currentrank += 0.2
+        }
+
+        if (item.match(reOption.v1)) {
+            currentrank += 0.1
+        }
+        //end bonuses
+
+
         //pass over all english regions with playable [!] //99-83
         for (re in reRegion) {
-            if (item.match(reRegion[re]) && item.match(reOption.p) && resultrank > runningrank) {
+            if (item.match(reRegion[re]) && item.match(reOption.p) && resultrank < currentrank) {
                 result = item;
                 resultindex = i;
-                resultrank = runningrank;
+                resultrank = currentrank;
             }
-            ++runningrank;
+            --currentrank;
         }
 
         //pass over all english regions, no brackets (82-66)
         for (re in reRegion) {
-            if (item.match(reRegion[re]) && !item.match(reOption.b) && resultrank > runningrank) {
+            if (item.match(reRegion[re]) && !item.match(reOption.b) && resultrank < currentrank) {
                 result = item;
                 resultindex = i;
-                resultrank = runningrank;
+                resultrank = currentrank;
             }
-            ++runningrank;
+            --currentrank;
         }
 
         //all non-english regions with playable [!] (65)
         for (re in reRegion2) {
-            if (item.match(reRegion2[re]) && item.match(reOption.p) && resultrank > runningrank) {
+            if (item.match(reRegion2[re]) && item.match(reOption.p) && resultrank < currentrank) {
                 result = item;
                 resultindex = i;
-                resultrank = runningrank;
+                resultrank = currentrank;
             }
-            ++runningrank;
+            --currentrank;
         }
 
         //pass over all non-english regions, no brackets (64)
         for (re in reRegion2) {
-            if (item.match(reRegion2[re]) && !item.match(reOption.b) && resultrank > runningrank) {
+            if (item.match(reRegion2[re]) && !item.match(reOption.b) && resultrank < currentrank) {
                 result = item;
                 resultindex = i;
-                resultrank = runningrank;
+                resultrank = currentrank;
             }
-            ++runningrank;
+            --currentrank;
         }
 
         //has playable [!] with no matching region data (63)
-        if (item.match(reOption.p) && resultrank > runningrank) {
+        if (item.match(reOption.p) && resultrank < currentrank) {
             result = item;
             resultindex = i;
-            resultrank = runningrank;
+            resultrank = currentrank;
         }
-        ++runningrank;
-
+        --currentrank;
 
         //cut off box front art here, chances that anything lower won't have art is high
 
         //all english regions with fixed dump [f]
         for (re in reRegion) {
-            if (item.match(reRegion[re]) && item.match(reOption.f) && resultrank > runningrank) {
+            if (item.match(reRegion[re]) && item.match(reOption.f) && resultrank < currentrank) {
                 result = item;
                 resultindex = i;
-                resultrank = runningrank;
+                resultrank = currentrank;
             }
-            ++runningrank;
+            --currentrank;
         }
 
         //all non-english regions with fixed dump [f]
         for (re in reRegion2) {
-            if (item.match(reRegion[re]) && item.match(reOption.f) && resultrank > runningrank) {
+            if (item.match(reRegion[re]) && item.match(reOption.f) && resultrank < currentrank) {
                 result = item;
                 resultindex = i;
-                resultrank = runningrank;
+                resultrank = currentrank;
             }
-            ++runningrank;
+            --currentrank;
         }
 
         //all english regions
         for (re in reRegion) {
-            if (item.match(reRegion[re]) && resultrank > runningrank) {
+            if (item.match(reRegion[re]) && resultrank < currentrank) {
                 result = item;
                 resultindex = i;
-                resultrank = runningrank;
+                resultrank = currentrank;
             }
-            ++runningrank;
+            --currentrank;
         }
 
         //all non-english regions
         for (re in reRegion2) {
-            if (item.match(reRegion2[re]) && resultrank > runningrank) {
+            if (item.match(reRegion2[re]) && resultrank < currentrank) {
                 result = item;
                 resultindex = i;
-                resultrank = runningrank;
+                resultrank = currentrank;
             }
-            ++runningrank;
+            --currentrank;
         }
 
         //no brackets
-        if (!item.match(reOption.b) && resultrank > runningrank) {
+        if (!item.match(reOption.b) && resultrank < currentrank) {
             result = item;
             resultindex = i;
-            resultrank = runningrank;
+            resultrank = currentrank;
         }
-        ++runningrank;
+
     }
 
     //if no matches, just take first item
@@ -454,11 +476,10 @@ UtilitiesService.findBestPlayableFile = function(files, exts, officialscore) {
         resultindex = 0;
     }
 
-    //if the game ranks with a [!] or higher (at this time 90), we assume an "offical" release. will help provide better searching
     return {
         game: result,
         index: resultindex,
-        rank: (99 - resultrank)
+        rank: resultrank
     };
 };
 

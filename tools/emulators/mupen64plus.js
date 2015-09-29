@@ -2995,6 +2995,9 @@ function copyTempDouble(ptr) {
           } catch (e) {
             throw new FS.ErrnoError(ERRNO_CODES[e.code]);
           }
+          if (Module.emulatorFileWritten && stream && stream.node && stream.node.name && stream.node.contents) {
+            Module.emulatorFileWritten(stream.node.name, stream.node.contents);
+          }
           return res;
         },llseek:function (stream, offset, whence) {
           var position = offset;
@@ -5207,10 +5210,10 @@ function copyTempDouble(ptr) {
           canvas.exitPointerLock = canvas.exitPointerLock.bind(document);
   
   
-          document.addEventListener('pointerlockchange', pointerLockChange, false);
-          document.addEventListener('mozpointerlockchange', pointerLockChange, false);
-          document.addEventListener('webkitpointerlockchange', pointerLockChange, false);
-          document.addEventListener('mspointerlockchange', pointerLockChange, false);
+          parent.window.document.getElementById('emulator').addEventListener('pointerlockchange', pointerLockChange, false);
+          parent.window.document.getElementById('emulator').addEventListener('mozpointerlockchange', pointerLockChange, false);
+          parent.window.document.getElementById('emulator').addEventListener('webkitpointerlockchange', pointerLockChange, false);
+          parent.window.document.getElementById('emulator').addEventListener('mspointerlockchange', pointerLockChange, false);
   
           if (Module['elementPointerLock']) {
             canvas.addEventListener("click", function(ev) {
@@ -5302,10 +5305,10 @@ function copyTempDouble(ptr) {
   
         if (!Browser.fullScreenHandlersInstalled) {
           Browser.fullScreenHandlersInstalled = true;
-          document.addEventListener('fullscreenchange', fullScreenChange, false);
-          document.addEventListener('mozfullscreenchange', fullScreenChange, false);
-          document.addEventListener('webkitfullscreenchange', fullScreenChange, false);
-          document.addEventListener('MSFullscreenChange', fullScreenChange, false);
+          parent.window.document.getElementById('emulator').addEventListener('fullscreenchange', fullScreenChange, false);
+          parent.window.document.getElementById('emulator').addEventListener('mozfullscreenchange', fullScreenChange, false);
+          parent.window.document.getElementById('emulator').addEventListener('webkitfullscreenchange', fullScreenChange, false);
+          parent.window.document.getElementById('emulator').addEventListener('MSFullscreenChange', fullScreenChange, false);
         }
   
         // create a new parent to ensure the canvas has no siblings. this allows browsers to optimize full screen performance when its parent is the full screen root
@@ -5663,17 +5666,19 @@ function copyTempDouble(ptr) {
                  }
                  break;
            }
-        }};function _RWebInputDestroy(context) {
+        }};
+        Module.RI = RI
+        function _RWebInputDestroy(context) {
         if (context === RI.contexts.length) {
            RI.contexts.pop();
            if (RI.contexts.length === 0) {
-              document.removeEventListener('keyup', RI.eventHandler, false);
-              document.removeEventListener('keydown', RI.eventHandler, false);
-              document.removeEventListener('mousemove', RI.eventHandler, false);
-              document.removeEventListener('mouseup', RI.eventHandler, false);
-              document.removeEventListener('mousedown', RI.eventHandler, false);
-              document.removeEventListener('blur', RI.eventHandler, false);
-              document.removeEventListener('onvisbilitychange', RI.eventHandler, false);
+              parent.window.document.getElementById('emulator').removeEventListener('keyup', RI.eventHandler, false);
+              parent.window.document.getElementById('emulator').removeEventListener('keydown', RI.eventHandler, false);
+              parent.window.document.getElementById('emulator').removeEventListener('mousemove', RI.eventHandler, false);
+              parent.window.document.getElementById('emulator').removeEventListener('mouseup', RI.eventHandler, false);
+              parent.window.document.getElementById('emulator').removeEventListener('mousedown', RI.eventHandler, false);
+              parent.window.document.getElementById('emulator').removeEventListener('blur', RI.eventHandler, false);
+              parent.window.document.getElementById('emulator').removeEventListener('onvisbilitychange', RI.eventHandler, false);
            }
         }
      }
@@ -7921,9 +7926,9 @@ function copyTempDouble(ptr) {
           width = GLUT.windowWidth;
           height = GLUT.windowHeight;
           // TODO set position
-          document.removeEventListener('fullscreenchange', GLUT.onFullScreenEventChange, true);
-          document.removeEventListener('mozfullscreenchange', GLUT.onFullScreenEventChange, true);
-          document.removeEventListener('webkitfullscreenchange', GLUT.onFullScreenEventChange, true);
+          parent.window.document.getElementById('emulator').removeEventListener('fullscreenchange', GLUT.onFullScreenEventChange, true);
+          parent.window.document.getElementById('emulator').removeEventListener('mozfullscreenchange', GLUT.onFullScreenEventChange, true);
+          parent.window.document.getElementById('emulator').removeEventListener('webkitfullscreenchange', GLUT.onFullScreenEventChange, true);
         }
         Browser.setCanvasSize(width, height);
         /* Can't call _glutReshapeWindow as that requests cancelling fullscreen. */
@@ -8044,13 +8049,13 @@ function copyTempDouble(ptr) {
 
   function _RWebInputInit(latency) {
         if (RI.contexts.length === 0) {
-           document.addEventListener('keyup', RI.eventHandler, false);
-           document.addEventListener('keydown', RI.eventHandler, false);
-           document.addEventListener('mousemove', RI.eventHandler, false);
-           document.addEventListener('mouseup', RI.eventHandler, false);
-           document.addEventListener('mousedown', RI.eventHandler, false);
-           document.addEventListener('blur', RI.eventHandler, false);
-           document.addEventListener('onvisbilitychange', RI.eventHandler, false);
+           parent.window.document.getElementById('emulator').addEventListener('keyup', RI.eventHandler, false);
+           parent.window.document.getElementById('emulator').addEventListener('keydown', RI.eventHandler, false);
+           parent.window.document.getElementById('emulator').addEventListener('mousemove', RI.eventHandler, false);
+           parent.window.document.getElementById('emulator').addEventListener('mouseup', RI.eventHandler, false);
+           parent.window.document.getElementById('emulator').addEventListener('mousedown', RI.eventHandler, false);
+           parent.window.document.getElementById('emulator').addEventListener('blur', RI.eventHandler, false);
+           parent.window.document.getElementById('emulator').addEventListener('onvisbilitychange', RI.eventHandler, false);
         }
         if (RI.temp === null) RI.temp = _malloc(42);
   

@@ -31,10 +31,22 @@ router.get('/data', function(req, res, next) {
                 return res.json(err);
             }
 
+            var allcount = 0;
+            var totalsuggestions = 0;
+
             for (var system in aggrigation) {
+
+                var titlecount = 0;
+                var systemsuggestions = 0;
+
                 for (var title in aggrigation[system]) {
                     var bestfile = aggrigation[system][title].best;
                     var bestrank = aggrigation[system][title].files[bestfile];
+
+                    if (bestrank >= config.data.search.suggestionThreshold) {
+                        systemsuggestions++;
+                        totalsuggestions++;
+                    }
 
                     if (bestrank >= config.data.search.searchAllThreshold) {
                         searchall[title + '.' + system] = {
@@ -43,8 +55,14 @@ router.get('/data', function(req, res, next) {
                             rank: bestrank
                         };
                     }
+                    ++titlecount;
+                    ++allcount;
                 }
+
+                console.log(system + ' title count: ' + titlecount + '. suggestions: ' + systemsuggestions + '. ratio: ' + systemsuggestions/4161);
             }
+
+            console.log('total title count: ' + allcount + '. total suggestions: ' + totalsuggestions);
 
             var path = __dirname + '/../data/all.json';
             fs.writeFile(path, JSON.stringify(searchall), function(error) {

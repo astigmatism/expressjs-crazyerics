@@ -623,7 +623,16 @@ Crazyerics.prototype._loademulator = function(system, deffered) {
             //find module to run games
             var FS = this.contentWindow.FS;
             var Module = this.contentWindow.Module;
-            deffered.resolve(Module, FS, frame);
+
+            Module.monitorRunDependencies = function(left) {
+                if (left === 0) {
+                    deffered.resolve(Module, FS, frame);
+                }
+            };
+
+            if (Module.totalDependencies === 0) {
+                deffered.resolve(Module, FS, frame);
+            }
         }
     });
     $('body').append(frame);
@@ -704,7 +713,7 @@ Crazyerics.prototype._buildFileSystem = function(Module, system, file, data, sta
     //states
     for (var slot in states) {
         var statedata = self._decompress.bytearray(states[slot]);
-        var filenoextension = file.replace(new RegExp('\.[a-z]{1,3}$', 'gi'), '');
+        var filenoextension = file.replace(new RegExp('\.[a-z0-9]{1,3}$', 'gi'), '');
         var statefilename = '/' + filenoextension + '.state' + (slot == 0 ? '' : slot);
         Module.FS_createDataFile('/', statefilename, statedata, true, true);
     }
