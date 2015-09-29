@@ -624,6 +624,11 @@ Crazyerics.prototype._loademulator = function(system, deffered) {
             var FS = this.contentWindow.FS;
             var Module = this.contentWindow.Module;
 
+            /**
+             * override the monitorRunDependencies function for use with emulator loading
+             * @param  {number} left
+             * @return {undef}
+             */
             Module.monitorRunDependencies = function(left) {
                 if (left === 0) {
                     deffered.resolve(Module, FS, frame);

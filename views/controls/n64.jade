@@ -1,0 +1,179 @@
+style.
+	#wrapper {
+		position: relative;
+		height: 200px;
+		width: 600px;
+	}
+	#wrapper ul {
+		margin: 15px;
+		padding: 0;
+		float: right;
+	}
+	#wrapper li {
+		list-style: none;
+		text-align: right;
+	}
+	#diagramwrapper, #controllerwrapper {
+		left: 100px;
+		height: 100%;
+	}
+	#diagramwrapper {
+		position: absolute;
+		top: 0px;
+		
+	}
+	#controllerwrapper {
+		position: absolute;
+		top: 0;
+	}
+	#controller {
+		position: relative;
+		width: 200px;
+		height: 100%;
+	}
+	#controller img {
+		position: absolute;
+		margin-top: -100px;
+		top: 50%;
+		text-align: middle;
+	}
+	#diagram {
+		position: relative;
+		width: 200px;
+		height: 100%;
+	}
+	#dpad {
+		position: absolute;
+		top: 130px;
+		left: 81px;
+		color: #333;
+		vertical-align: middle;
+	}
+	#start {
+		position: absolute;
+		top: 37px;
+		left: 86px;
+		vertical-align: middle;
+		color: #333;
+	}
+	#l {
+		position: absolute;
+		top: 6px;
+		left: 34px;
+		vertical-align: middle;
+	}
+	#r {
+		position: absolute;
+		top: 6px;
+		left: 157px;
+		vertical-align: middle;
+	}
+	#z {
+		position: absolute;
+		top: 112px;
+		left: 50px;
+		vertical-align: middle;
+	}
+	#up {
+		position: absolute;
+		top: 43px;
+		left: -37px;
+		vertical-align: middle;
+	}
+	#down {
+		position: absolute;
+		top: 68px;
+		left: -39px;
+		vertical-align: middle;
+	}
+	#left {
+		position: absolute;
+		top: 55px;
+		left: -53px;
+		vertical-align: middle;
+	}
+	#right {
+		position: absolute;
+		top: 55px;
+		left: -25px;
+		vertical-align: middle;
+	}
+	#pad {
+		position: absolute;
+		top: 65px;
+		left: 224px;
+	}
+	#padinner {
+		position: relative;
+	}
+	#b {
+		position: absolute;
+		top: 10px;
+		left: 1px;
+		vertical-align: middle;
+	}
+	#a {
+		position: absolute;
+		top: -5px;
+		left: -15px;
+		vertical-align: middle;
+	}
+	#cu {
+		position: absolute;
+		top: -34px;
+		left: 16px;
+		vertical-align: middle;
+	}
+	#cd {
+		position: absolute;
+		top: -6px;
+		left: 16px;
+		vertical-align: middle;
+	}
+	#cl {
+		position: absolute;
+		top: -20px;
+		left: 1px;
+		vertical-align: middle;
+	}
+	#cr {
+		position: absolute;
+		top: -20px;
+		left: 31px;
+		vertical-align: middle;
+	}
+div#wrapper
+	ul
+		li Save State: 1
+		li Decrement State: 2
+		li Increment State: 3
+		li Load State: 4
+		li Pause: P
+		li FF: Space
+		li Rewind: Hold R
+		li Reset: H
+		li Mute: M
+		li Fullscreen: F
+
+	div#controllerwrapper
+		div#controller
+			img(src="/images/gamepads/n64.png")
+	div#diagramwrapper
+		div#diagram
+			div#up I
+			div#down K
+			div#left J
+			div#right L
+			div#dpad Arrows
+			div#start Enter
+			div#l Q
+			div#r W
+			div#z A
+			div#pad
+				div#padinner
+					div#b Z
+					div#a X
+					div#cu E
+					div#cd C
+					div#cl S
+					div#cr D
