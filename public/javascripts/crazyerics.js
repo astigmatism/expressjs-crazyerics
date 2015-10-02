@@ -434,7 +434,7 @@ Crazyerics.prototype._bootstrap = function(system, title, file, slot) {
         });
 
         self._loademulator(system, emulatorReady);
-        self._loadGame(key, system, title, file, gameReady);
+        self._loadGameData(key, system, title, file, gameReady);
         self._loadGameDetails(key, gameDetailsReady);
     });
 };
@@ -651,11 +651,19 @@ Crazyerics.prototype._loademulator = function(system, deffered) {
  * @param  {Object} deffered
  * @return {undef}
  */
-Crazyerics.prototype._loadGame = function(key, system, title, file, deffered) {
+Crazyerics.prototype._loadGameData = function(key, system, title, file, deffered) {
 
     var self = this;
+    var location = self._clientdata.rompath;
+    var flattened = self._clientdata.flattenedromfiles;
 
-    $.get('/load/game?key=' + encodeURIComponent(key), function(data) {
+    if (flattened) {
+        location += '/' + system + '/' + key;
+    } else {
+        location += '/' + system + '/' + title + '/' + file;
+    }
+
+    $.get(encodeURIComponent(location), function(data) {
         var inflated;
         try {
             inflated = pako.inflate(data); //inflate compressed string to arraybuffer

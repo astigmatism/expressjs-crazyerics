@@ -610,11 +610,12 @@ UtilitiesService.findGame = function(system, title, file, callback) {
 UtilitiesService.collectDataForClient = function(req, openonload, callback) {
 
     var result = {
-        retroarch: {}
+        retroarch: {},
+        rompath: {},
+        flatten: {}
     };
     var systems = config.get('systems');
     var retroarch = config.get('retroarch');
-    var assetpath = config.get('assetpath');
 
     var synchonous = function() {
         //retroarch configs
@@ -622,8 +623,14 @@ UtilitiesService.collectDataForClient = function(req, openonload, callback) {
             result.retroarch[system] = retroarch + systems[system].retroarch;
         }
 
+        //roms location
+        result.rompath = config.get('rompath');
+
+        //are rom dirtree structures flattened? (use gamekey as file name)
+        result.flattenedromfiles = config.get('flattenedromfiles');
+
         //asset location
-        result.assetpath = assetpath;
+        result.assetpath = config.get('assetpath');
 
         //play history from session
         result.playhistory = {};

@@ -156,7 +156,15 @@ Create a ./public/zipped folder
 
 Now run /build/zip/[system]
 
-6) Flatten.
+6) Flatten. beta.
+
+Right now I'm experimenting with the idea of placing the rom files on a CDN like S3. In order to be more discreet, I wanted to obfuscate the title names and their rom files by renaming all files as the game key I generate in code (a combination of system, title and file)
+
+Create ./public/flatten
+
+Now run /build/flatten/[system]
+
+This creates ./public/flatten/[system] into a structure that is ready for CDN deploy.
 
 various notes
 -------------

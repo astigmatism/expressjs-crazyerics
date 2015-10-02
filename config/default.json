@@ -1,5 +1,7 @@
 {
 	"assetpath": "http://d1qqz61v5b87wx.cloudfront.net/public",
+	"rompath":"http://d1qqz61v5b87wx.cloudfront.net/public/roms",
+	"flattenedromfiles": true,
 	"systems": {
 		"gb": {
 			"name": "Gameboy",
