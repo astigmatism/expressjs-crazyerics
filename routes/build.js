@@ -2,7 +2,7 @@ var express = require('express');
 var fs = require('fs');
 var async = require('async');
 var router = express.Router();
-var config = require('../config.js');
+var config = require('config');
 var pako = require('pako');
 var UtilitiesService = require('../services/utilities');
 
@@ -10,72 +10,67 @@ router.get('/data', function(req, res, next) {
 
     var aggrigation = {};
     var searchall   = {};
+    var systems = config.get('systems');
 
-    if (config && config.data && config.data.systems) {
+    //loop over each system
+    async.forEachOf(systems, function(systemdata, system, nextsystem) {
 
-        //loop over each system
-        async.forEachOf(config.data.systems, function(systemdata, system, nextsystem) {
+        UtilitiesService.buildData(system, function(err, result) {
+            if (err) {
+                return nextsystem(err);
+            }
 
-            UtilitiesService.buildData(system, function(err, result) {
-                if (err) {
-                    return nextsystem(err);
+            aggrigation[system] = result;
+            nextsystem();
+
+        }, systemdata.romfileextentions);
+
+    }, function(err) {
+        if (err) {
+            return res.json(err);
+        }
+
+        var allcount = 0;
+        var totalsuggestions = 0;
+
+        for (var system in aggrigation) {
+
+            var titlecount = 0;
+            var systemsuggestions = 0;
+
+            for (var title in aggrigation[system]) {
+                var bestfile = aggrigation[system][title].best;
+                var bestrank = aggrigation[system][title].files[bestfile];
+
+                if (bestrank >= config.data.search.suggestionThreshold) {
+                    systemsuggestions++;
+                    totalsuggestions++;
                 }
 
-                aggrigation[system] = result;
-                nextsystem();
+                if (bestrank >= config.data.search.searchAllThreshold) {
+                    searchall[title + '.' + system] = {
+                        system: system,
+                        file: bestfile,
+                        rank: bestrank
+                    };
+                }
+                ++titlecount;
+                ++allcount;
+            }
 
-            }, systemdata.romfileextentions);
+            console.log(system + ' title count: ' + titlecount + '. suggestions: ' + systemsuggestions + '. ratio: ' + systemsuggestions/4161);
+        }
 
-        }, function(err) {
+        console.log('total title count: ' + allcount + '. total suggestions: ' + totalsuggestions);
+
+        var path = __dirname + '/../data/all.json';
+        fs.writeFile(path, JSON.stringify(searchall), function(error) {
             if (err) {
                 return res.json(err);
             }
-
-            var allcount = 0;
-            var totalsuggestions = 0;
-
-            for (var system in aggrigation) {
-
-                var titlecount = 0;
-                var systemsuggestions = 0;
-
-                for (var title in aggrigation[system]) {
-                    var bestfile = aggrigation[system][title].best;
-                    var bestrank = aggrigation[system][title].files[bestfile];
-
-                    if (bestrank >= config.data.search.suggestionThreshold) {
-                        systemsuggestions++;
-                        totalsuggestions++;
-                    }
-
-                    if (bestrank >= config.data.search.searchAllThreshold) {
-                        searchall[title + '.' + system] = {
-                            system: system,
-                            file: bestfile,
-                            rank: bestrank
-                        };
-                    }
-                    ++titlecount;
-                    ++allcount;
-                }
-
-                console.log(system + ' title count: ' + titlecount + '. suggestions: ' + systemsuggestions + '. ratio: ' + systemsuggestions/4161);
-            }
-
-            console.log('total title count: ' + allcount + '. total suggestions: ' + totalsuggestions);
-
-            var path = __dirname + '/../data/all.json';
-            fs.writeFile(path, JSON.stringify(searchall), function(error) {
-                if (err) {
-                    return res.json(err);
-                }
-                res.json('File ' + path + ' written');
-            });
+            res.json('File ' + path + ' written');
         });
-
-    } else {
-        return res.json(system + ' is not found the config and is not a valid system');
-    }
+    });
 });
 
 router.get('/zip/:system', function(req, res, next) {
@@ -92,55 +87,71 @@ router.get('/zip/:system', function(req, res, next) {
                 return res.json(err);
             }
 
-            //loop over titles
-            async.eachSeries(titles, function(title, nexttitle) {
-
-                var stats = fs.statSync(__dirname + '/../public/roms/' + system + '/' + title);
-                if (stats.isFile()) {
-                    return nexttitle();
+            fs.mkdir(__dirname + '/../public/flat/' + system, function(err) {
+                if (err) {
+                    return res.json(err);
                 }
 
-                fs.readdir(__dirname + '/../public/roms/' + system + '/' + title, function(err, files) {
-                    if (err) {
-                        return nexttitle(err);
+                //loop over titles
+                async.eachSeries(titles, function(title, nexttitle) {
+
+                    var stats = fs.statSync(__dirname + '/../public/roms/' + system + '/' + title);
+                    if (stats.isFile()) {
+                        return nexttitle();
                     }
 
-                    fs.mkdir(__dirname + '/../public/zipped/' + system + '/' + title, function(err) {
+                    fs.readdir(__dirname + '/../public/roms/' + system + '/' + title, function(err, files) {
                         if (err) {
                             return nexttitle(err);
                         }
 
-                        //loop over files
-                        async.eachSeries(files, function(file, nextfile) {
+                        fs.mkdir(__dirname + '/../public/zipped/' + system + '/' + title, function(err) {
+                            if (err) {
+                                return nexttitle(err);
+                            }
 
-                            fs.readFile(__dirname + '/../public/roms/' + system + '/' + title + '/' + file, function(err, buffer) {
-                                if (err) {
-                                    return nextfile(err);
-                                }
+                            //loop over files
+                            async.eachSeries(files, function(file, nextfile) {
 
-                                //convert buffer to uint8array
-                                var ab = new ArrayBuffer(buffer.length);
-                                var view = new Uint8Array(ab);
-                                for (var i = 0; i < buffer.length; ++i) {
-                                    view[i] = buffer[i];
-                                }
-                                var deflated = pako.deflate(view, {to: 'string'});
-
-                                fs.writeFile(__dirname + '/../public/zipped/' + system + '/' + title + '/' + file, deflated, function(err) {
+                                fs.readFile(__dirname + '/../public/roms/' + system + '/' + title + '/' + file, function(err, buffer) {
                                     if (err) {
                                         return nextfile(err);
                                     }
 
-                                    console.log(file + ' --> ' + buffer.length + ' --> ' + deflated.length);
-                                    nextfile();
-                                });
-                            });
+                                    //convert buffer to uint8array
+                                    var ab = new ArrayBuffer(buffer.length);
+                                    var view = new Uint8Array(ab);
+                                    for (var i = 0; i < buffer.length; ++i) {
+                                        view[i] = buffer[i];
+                                    }
+                                    var deflated = pako.deflate(view, {to: 'string'});
 
-                        }, function(err, result) {
-                            if (err) {
-                                return res.json(err);
-                            }
-                            nexttitle();
+                                    fs.writeFile(__dirname + '/../public/zipped/' + system + '/' + title + '/' + file, deflated, function(err) {
+                                        if (err) {
+                                            return nextfile(err);
+                                        }
+
+                                        console.log(file + ' --> ' + buffer.length + ' --> ' + deflated.length);
+                                        
+                                        //rename file with key for flat folder structure
+                                        var key = UtilitiesService.compress.gamekey(system, title, file);
+
+                                        fs.writeFile(__dirname + '/../public/flat/' + system + '/' + key, deflated, function(err) {
+                                            if (err) {
+                                                return nextfile(err);
+                                            }
+
+                                            nextfile();
+                                        });
+                                    });
+                                });
+
+                            }, function(err, result) {
+                                if (err) {
+                                    return res.json(err);
+                                }
+                                nexttitle();
+                            });
                         });
                     });
                 });

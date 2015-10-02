@@ -3,6 +3,7 @@ var UtilitiesService = require('../services/utilities.js');
 var pako = require('pako');
 var atob = require('atob');
 var router = express.Router();
+var config = require('config');
 
 router.get('/', function(req, res, next) {
 
@@ -12,7 +13,8 @@ router.get('/', function(req, res, next) {
         }
         res.render('index', {
             layout: 'layout',
-            clientdata: clientdata
+            clientdata: clientdata,
+            assetpath: config.get('assetpath')
         });
     });
 });
@@ -35,7 +37,9 @@ router.get('/load/emulator/:system', function(req, res, next) {
 
     var system = req.params.system;
 
-    res.render('emulators/' + system);
+    res.render('emulators/' + system, {
+        assetpath: config.get('assetpath')
+    });
 });
 
 router.get('/load/game', function(req, res, next) {

@@ -995,8 +995,10 @@ Crazyerics.prototype._buildGameLink = function(system, title, file, size, close)
  */
 Crazyerics.prototype._getBoxFront = function(system, title, size) {
 
+    var self = this;
+
     //incldes swap to blank cart onerror
-    return $('<img onerror="this.src=\'/images/blanks/' + system + '_' + size + '.png\'" src="/images/boxes/' + system + '/' + title + '/' + size + '.jpg" />');
+    return $('<img onerror="this.src=\'' + self._clientdata.assetpath + '/images/blanks/' + system + '_' + size + '.png\'" src="' + self._clientdata.assetpath + '/images/boxes/' + system + '/' + title + '/' + size + '.jpg" />');
 };
 
 /**

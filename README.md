@@ -122,6 +122,10 @@ try {
   }
 
   */
+ 
+- fullscreen support
+
+Just a side note: I had to modify the mupen64plus emulator file significantly in order for fullscreen support to work. In the end I simply copied functions directly from one of the other working emulators (I used snes) and copied them wholesale into mupen64plus. This was the only emulator I had to do this with, but keep it in mind for the future.
 
 various notes
 -------------

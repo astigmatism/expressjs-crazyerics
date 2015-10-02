@@ -26,7 +26,7 @@ html
         div#container
             div#maincolumn
                 - titlebanner = Math.floor((Math.random() * 19) + 1);
-                div#titlebanner(style='background:url(/images/titlebanners/#{titlebanner}.jpg)')
+                div#titlebanner(style='background:url(#{assetpath}/images/titlebanners/#{titlebanner}.jpg)')
                     div(class='bannergradient')
                     div(class='titlewrapper')
                         h1 crazyerics.com

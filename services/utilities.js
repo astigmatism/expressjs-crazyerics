@@ -1,7 +1,7 @@
 
 var fs = require('fs');
 var async = require('async');
-var config = require('../config.js');
+var config = require('config');
 var pako = require('pako');
 var btoa = require('btoa');
 var atob = require('atob');
@@ -486,6 +486,7 @@ UtilitiesService.findBestPlayableFile = function(files, exts, officialscore) {
 UtilitiesService.findSuggestionsAll = function(items, callback) {
 
     var aggrigation = [];
+    var systems = config.get('systems');
 
     // for debugging:
     // var totaltosuggest = 0;
@@ -493,11 +494,11 @@ UtilitiesService.findSuggestionsAll = function(items, callback) {
     //     totaltosuggest += config.data.systems[system].gamestosuggest;
     // }
 
-    async.each(Object.keys(config.data.systems), function(system, nextsystem) {
+    async.each(Object.keys(systems), function(system, nextsystem) {
 
         // for debugging:
         // var ratio = config.data.systems[system].gamestosuggest / totaltosuggest;
-        var ratio = config.data.systems[system].ratiotoall;
+        var ratio = systems[system].ratiotoall;
 
         var tosuggest = (ratio * items);
 
@@ -534,6 +535,7 @@ UtilitiesService.findSuggestions = function(system, items, callback) {
 
     var results = [];
     var suggestions = [];
+    var search = config.get('search');
 
     DataService.getFile('/data/' + system + '.json', function(err, data) {
         if (err) {
@@ -545,7 +547,7 @@ UtilitiesService.findSuggestions = function(system, items, callback) {
             //greater than the threshold 
             var bestfile = data[game].best;
             var bestrank = data[game].files[bestfile];
-            if (bestrank >= config.data.search.suggestionThreshold) {
+            if (bestrank >= search.suggestionThreshold) {
                 suggestions.push(game);
             }
         }
@@ -571,50 +573,38 @@ UtilitiesService.loadGame = function(system, title, file, callback) {
 
     var self = this;
 
-    if (config && config.data && config.data.systems && config.data.systems[system]) {
+    //load the actual game content. thanks to compressed with pako, the content is stored as a compressed string
+    fs.readFile(__dirname + '/../public/roms/' + system + '/' + title + '/' + file, function(err, content) {
+        if (err) {
+            return callback(err);
+        }
 
-        //load the actual game content. thanks to compressed with pako, the content is stored as a compressed string
-        fs.readFile(__dirname + '/../public/roms/' + system + '/' + title + '/' + file, function(err, content) {
-            if (err) {
-                return callback(err);
-            }
-
-            //save play information to mongo
+        //save play information to mongo
 
 
-            callback(null, content);
-        });
-    } else {
-        callback(system + ' is not found the config and is not a valid system');
-    }
-
+        callback(null, content);
+    });
 };
 
 UtilitiesService.findGame = function(system, title, file, callback) {
 
-    if (config && config.data && config.data.systems && config.data.systems[system]) {
+    DataService.getFile('/data/' + system + '.json', function(err, games) {
+        if (err) {
+            return callback(err);
+        }
 
-        DataService.getFile('/data/' + system + '.json', function(err, games) {
-            if (err) {
-                return callback(err);
-            }
+        if (games[title] && games[title].files[file]) {
 
-            if (games[title] && games[title].files[file]) {
+            return callback(null, {
+                system: system,
+                title: title,
+                file: file,
+                files: games[title].files
+            });
 
-                return callback(null, {
-                    system: system,
-                    title: title,
-                    file: file,
-                    files: games[title].files
-                });
-
-            }
-            return callback(title + ' not found for ' + system + ' or ' + file + ' not found in ' + title);
-        });
-
-    } else {
-        callback(system + ' is not found the config and is not a valid system');
-    }
+        }
+        return callback(title + ' not found for ' + system + ' or ' + file + ' not found in ' + title);
+    });
 };
 
 UtilitiesService.collectDataForClient = function(req, openonload, callback) {
@@ -622,12 +612,18 @@ UtilitiesService.collectDataForClient = function(req, openonload, callback) {
     var result = {
         retroarch: {}
     };
+    var systems = config.get('systems');
+    var retroarch = config.get('retroarch');
+    var assetpath = config.get('assetpath');
 
     var synchonous = function() {
         //retroarch configs
-        for (system in config.data.systems) {
-            result.retroarch[system] = config.data.retroarch + config.data.systems[system].retroarch;
+        for (system in systems) {
+            result.retroarch[system] = retroarch + systems[system].retroarch;
         }
+
+        //asset location
+        result.assetpath = assetpath;
 
         //play history from session
         result.playhistory = {};
@@ -666,6 +662,13 @@ UtilitiesService.compress = {
         var deflate = pako.deflate(string, {to: 'string'});
         var base64 = btoa(deflate);
         return base64;
+    },
+    gamekey: function(system, title, file) {
+        return this.json({
+            system: system,
+            title: title,
+            file: file
+        });
     }
 };
 
