@@ -127,6 +127,37 @@ try {
 
 Just a side note: I had to modify the mupen64plus emulator file significantly in order for fullscreen support to work. In the end I simply copied functions directly from one of the other working emulators (I used snes) and copied them wholesale into mupen64plus. This was the only emulator I had to do this with, but keep it in mind for the future.
 
+adding roms
+-----------
+
+You're likely going to add more systems later in the future right? A number of steps need to be taken to ensure exact compatibility and consumption here.
+
+1) Add the system details to the configs. Check out ./config/default.json. You won't be able to add all the system details yet, but get as far as adding file extensions, we use those to filter out non-playable files when we look at the file system
+
+2) Ensure your collection is GoodTools compatible. I explicitly check for GoodTools nomenclature like regions (U), version (V1.1) and a host of other symbols as part of the rom's name. Likewise, we expect titles for a system to be folders with rom files inside them. This isn't always the case, so...
+
+3) Build Rom Folders. Separate out the titles which are folders and place them someplace safe. Leave behind, ./public/roms/[system] the rom files which were not in folders (they likely had just one file so whomever 7z'ed them didn't think they should get a folder).
+
+Now run /build/folders/[system]
+
+This will create a folder for each file and place the file into it. You can then rejoin all the other folders you set aside.
+
+The ./public/roms/[system] folder should now hold all titles, each as a folder with the rom files inside each title folder.
+
+4) Build Data. This step is going to iterate through all system folders and files and build the ./data/[system].json file for each system and in addition the ./data/all.json file used by the search engine. These files essentially encapsulate what are the game's db. Files contents are cached in memory and get retrieved very quickly by the app.
+
+Now run /build/data
+
+We have to rebuild each system in other to build a new all.json. This process will take a while as we calculate which rom file is best suited to load by default.
+
+5) Zip. The rom files cannot exist in an uncompressed format and our application expects them to be zipped.
+
+Create a ./public/zipped folder
+
+Now run /build/zip/[system]
+
+6) Flatten.
+
 various notes
 -------------
 

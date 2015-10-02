@@ -87,75 +87,124 @@ router.get('/zip/:system', function(req, res, next) {
                 return res.json(err);
             }
 
-            fs.mkdir(__dirname + '/../public/flat/' + system, function(err) {
-                if (err) {
-                    return res.json(err);
+            //loop over titles
+            async.eachSeries(titles, function(title, nexttitle) {
+
+                var stats = fs.statSync(__dirname + '/../public/roms/' + system + '/' + title);
+                if (stats.isFile()) {
+                    return nexttitle();
                 }
 
-                //loop over titles
-                async.eachSeries(titles, function(title, nexttitle) {
-
-                    var stats = fs.statSync(__dirname + '/../public/roms/' + system + '/' + title);
-                    if (stats.isFile()) {
-                        return nexttitle();
+                fs.readdir(__dirname + '/../public/roms/' + system + '/' + title, function(err, files) {
+                    if (err) {
+                        return nexttitle(err);
                     }
 
-                    fs.readdir(__dirname + '/../public/roms/' + system + '/' + title, function(err, files) {
+                    fs.mkdir(__dirname + '/../public/zipped/' + system + '/' + title, function(err) {
                         if (err) {
                             return nexttitle(err);
                         }
 
-                        fs.mkdir(__dirname + '/../public/zipped/' + system + '/' + title, function(err) {
-                            if (err) {
-                                return nexttitle(err);
-                            }
+                        //loop over files
+                        async.eachSeries(files, function(file, nextfile) {
 
-                            //loop over files
-                            async.eachSeries(files, function(file, nextfile) {
+                            fs.readFile(__dirname + '/../public/roms/' + system + '/' + title + '/' + file, function(err, buffer) {
+                                if (err) {
+                                    return nextfile(err);
+                                }
 
-                                fs.readFile(__dirname + '/../public/roms/' + system + '/' + title + '/' + file, function(err, buffer) {
+                                //convert buffer to uint8array
+                                var ab = new ArrayBuffer(buffer.length);
+                                var view = new Uint8Array(ab);
+                                for (var i = 0; i < buffer.length; ++i) {
+                                    view[i] = buffer[i];
+                                }
+                                var deflated = pako.deflate(view, {to: 'string'});
+
+                                fs.writeFile(__dirname + '/../public/zipped/' + system + '/' + title + '/' + file, deflated, function(err) {
                                     if (err) {
                                         return nextfile(err);
                                     }
 
-                                    //convert buffer to uint8array
-                                    var ab = new ArrayBuffer(buffer.length);
-                                    var view = new Uint8Array(ab);
-                                    for (var i = 0; i < buffer.length; ++i) {
-                                        view[i] = buffer[i];
-                                    }
-                                    var deflated = pako.deflate(view, {to: 'string'});
-
-                                    fs.writeFile(__dirname + '/../public/zipped/' + system + '/' + title + '/' + file, deflated, function(err) {
-                                        if (err) {
-                                            return nextfile(err);
-                                        }
-
-                                        console.log(file + ' --> ' + buffer.length + ' --> ' + deflated.length);
-                                        
-                                        //rename file with key for flat folder structure
-                                        var key = UtilitiesService.compress.gamekey(system, title, file);
-
-                                        fs.writeFile(__dirname + '/../public/flat/' + system + '/' + key, deflated, function(err) {
-                                            if (err) {
-                                                return nextfile(err);
-                                            }
-
-                                            nextfile();
-                                        });
-                                    });
+                                    console.log(file + ' --> ' + buffer.length + ' --> ' + deflated.length);
+                                    
+                                    nextfile();
                                 });
-
-                            }, function(err, result) {
-                                if (err) {
-                                    return res.json(err);
-                                }
-                                nexttitle();
                             });
+
+                        }, function(err, result) {
+                            if (err) {
+                                return res.json(err);
+                            }
+                            nexttitle();
                         });
                     });
                 });
+            });
+        }, function(err, result) {
+            if (err) {
+                return res.json(err);
+            }
+            res.json(result);
+        });
+    });
+});
 
+router.get('/flatten/:system', function(req, res, next) {
+
+    var system = req.params.system;
+
+    fs.readdir(__dirname + '/../public/roms/' + system, function(err, titles) {
+        if (err) {
+            return res.json(err);
+        }
+
+        fs.mkdir(__dirname + '/../public/flatten/' + system, function(err) {
+            if (err) {
+                return res.json(err);
+            }
+
+            //loop over titles
+            async.eachSeries(titles, function(title, nexttitle) {
+
+                var stats = fs.statSync(__dirname + '/../public/roms/' + system + '/' + title);
+                if (stats.isFile()) {
+                    return nexttitle();
+                }
+
+                fs.readdir(__dirname + '/../public/roms/' + system + '/' + title, function(err, files) {
+                    if (err) {
+                        return nexttitle(err);
+                    }
+
+                    //loop over files
+                    async.eachSeries(files, function(file, nextfile) {
+
+                        fs.readFile(__dirname + '/../public/roms/' + system + '/' + title + '/' + file, function(err, data) {
+                            if (err) {
+                                return nextfile(err);
+                            }
+
+                            var key = UtilitiesService.compress.gamekey(system, title, file);
+
+                            fs.writeFile(__dirname + '/../public/flatten/' + system + '/' + key, data, function(err) {
+                                if (err) {
+                                    return nextfile(err);
+                                }
+
+                                console.log(system + '/' + file + ' --> ' + system + '/' + key);
+                                
+                                nextfile();
+                            });
+                        });
+
+                    }, function(err, result) {
+                        if (err) {
+                            return res.json(err);
+                        }
+                        nexttitle();
+                    });
+                });
             });
         }, function(err, result) {
             if (err) {
