@@ -24,28 +24,6 @@ router.post('/save', function(req, res, next) {
     res.json();
 });
 
-router.get('/load', function(req, res, next) {
-
-    var key = decodeURIComponent(req.query.key);
-    var game = UtilitiesService.decompress.json(key);
-    var states = {};
-
-    if (req.session && req.session.games && req.session.games[key] && req.session.games[key].states) {
-        states = req.session.games[key].states;
-    }
-
-    UtilitiesService.findGame(game.system, game.title, game.file, function(err, details) {
-        if (err) {
-            return res.json(err);
-        }
-
-        res.json({
-            states: states,
-            files: UtilitiesService.compress.json(details.files)
-        });
-    });
-});
-
 router.delete('/delete', function(req, res, next) {
 
     var key = decodeURIComponent(req.query.key);

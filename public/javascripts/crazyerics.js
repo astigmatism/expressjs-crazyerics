@@ -435,7 +435,7 @@ Crazyerics.prototype._bootstrap = function(system, title, file, slot) {
 
         self._loademulator(system, emulatorReady);
         self._loadGameData(key, system, title, file, gameReady);
-        self._loadGameDetails(key, gameDetailsReady);
+        self._loadGame(key, gameDetailsReady);
     });
 };
 
@@ -687,12 +687,12 @@ Crazyerics.prototype._loadGameData = function(key, system, title, file, deffered
  * @param  {Object} deffered
  * @return {undef}
  */
-Crazyerics.prototype._loadGameDetails = function(key, deffered) {
+Crazyerics.prototype._loadGame = function(key, deffered) {
 
     var self = this;
     //call returns not only states but misc game details. I tried to make this
     //part of the loadGame call but the formatting for the compressed game got weird
-    $.get('/states/load?key=' + encodeURIComponent(key), function(data) {
+    $.get('/load/game?key=' + encodeURIComponent(key), function(data) {
         deffered.resolve({
             states: data.states,
             files: self._decompress.json(data.files)

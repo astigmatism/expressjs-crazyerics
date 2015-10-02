@@ -569,22 +569,22 @@ UtilitiesService.findSuggestions = function(system, items, callback) {
     });
 };  
 
-UtilitiesService.loadGame = function(system, title, file, callback) {
+// UtilitiesService.loadGame = function(system, title, file, callback) {
 
-    var self = this;
+//     var self = this;
 
-    //load the actual game content. thanks to compressed with pako, the content is stored as a compressed string
-    fs.readFile(__dirname + '/../public/roms/' + system + '/' + title + '/' + file, function(err, content) {
-        if (err) {
-            return callback(err);
-        }
+//     //load the actual game content. thanks to compressed with pako, the content is stored as a compressed string
+//     fs.readFile(__dirname + '/../public/roms/' + system + '/' + title + '/' + file, function(err, content) {
+//         if (err) {
+//             return callback(err);
+//         }
 
-        //save play information to mongo
+//         //save play information to mongo
 
 
-        callback(null, content);
-    });
-};
+//         callback(null, content);
+//     });
+// };
 
 UtilitiesService.findGame = function(system, title, file, callback) {
 
