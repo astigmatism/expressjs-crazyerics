@@ -159,7 +159,7 @@ router.get('/flatten/:system', function(req, res, next) {
             return res.json(err);
         }
 
-        fs.mkdir(__dirname + '/../public/flatten/' + system, function(err) {
+        fs.mkdir(__dirname + '/../public/flattened/' + system, function(err) {
             if (err) {
                 return res.json(err);
             }
@@ -185,9 +185,12 @@ router.get('/flatten/:system', function(req, res, next) {
                                 return nextfile(err);
                             }
 
-                            var key = UtilitiesService.compress.gamekey(system, title, file);
+                            var key = UtilitiesService.compress.json({
+                                "0": title,
+                                "1": file
+                            });
 
-                            fs.writeFile(__dirname + '/../public/flatten/' + system + '/' + key, data, function(err) {
+                            fs.writeFile(__dirname + '/../public/flattened/' + system + '/' + encodeURIComponent(key), data, function(err) {
                                 if (err) {
                                     return nextfile(err);
                                 }
@@ -204,6 +207,50 @@ router.get('/flatten/:system', function(req, res, next) {
                         }
                         nexttitle();
                     });
+                });
+            });
+        }, function(err, result) {
+            if (err) {
+                return res.json(err);
+            }
+            res.json(result);
+        });
+    });
+});
+
+router.get('/flatboxes/:system', function(req, res, next) {
+
+    var system = req.params.system;
+    var systemdir = __dirname + '/../public/images/flat/' + system;
+
+    fs.readdir(systemdir, function(err, titles) {
+        if (err) {
+            return res.json(err);
+        }
+
+        //loop over titles
+        async.eachSeries(titles, function(title, nexttitle) {
+
+            var stats = fs.statSync(systemdir + '/' + title);
+            if (stats.isFile()) {
+                return nexttitle();
+            }
+
+            fs.readdir(systemdir + '/' + title, function(err, files) {
+                if (err) {
+                    return nexttitle(err);
+                }
+
+                var key = encodeURIComponent(UtilitiesService.compress.string(title));
+
+                fs.rename(systemdir + '/' + title, systemdir + '/' + key, function(err) {
+                    if (err) {
+                        return nexttitle(err);
+                    }
+
+                    console.log(systemdir + '/' + title + ' --> ' + systemdir + '/' + key);
+
+                    nexttitle();
                 });
             });
         }, function(err, result) {

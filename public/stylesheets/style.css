@@ -528,7 +528,6 @@ p {
 	position: absolute;
 	width: 22px;
 	height: 22px;
-	background: url("/images/close.png") no-repeat center center;
 	display: none;
 	top: -5px;
 	right: -5px;
@@ -578,7 +577,6 @@ p {
 #loading .loadingicon {
 	height: 90px;	
 	width: 100%;
-	background: url('/images/triangle.svg') no-repeat center 0px;
 
 	-moz-transform: scaleY(-1);
     -o-transform: scaleY(-1);

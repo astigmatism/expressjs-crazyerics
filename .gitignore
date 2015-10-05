@@ -1,4 +1,6 @@
 node_modules/
 public/roms/
-public/images/games/
+public/images/boxes/
+public/images/flat
+public/flattened
 public/zipped

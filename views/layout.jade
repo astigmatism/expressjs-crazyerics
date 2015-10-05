@@ -22,6 +22,9 @@ html
         link(rel='stylesheet', type='text/css', href='http://fonts.googleapis.com/css?family=Open+Sans|Montserrat')
         script.
             clientdata='#{clientdata}';
+        style(type='text/css').
+            #loading .loadingicon { background: url('#{assetpath}/images/triangle.svg') no-repeat center 0px; }
+            #recentplayedwrapper li .remove { background: url('#{assetpath}/images/close.png') no-repeat center center; }
     body
         div#container
             div#maincolumn

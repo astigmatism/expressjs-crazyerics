@@ -435,7 +435,7 @@ Crazyerics.prototype._bootstrap = function(system, title, file, slot) {
 
         self._loademulator(system, emulatorReady);
         self._loadGameData(key, system, title, file, gameReady);
-        self._loadGame(key, gameDetailsReady);
+        self._loadGame(key, system, title, file, gameDetailsReady);
     });
 };
 
@@ -644,7 +644,7 @@ Crazyerics.prototype._loademulator = function(system, deffered) {
 };
 
 /**
- * load rom file from server. will come in as compressed string. after unpacked will resolve deffered. loads concurrently with emulator
+ * load rom file from whatever is defined in the config "rompath" (CDN or local). will come in as compressed string. after unpacked will resolve deffered. loads concurrently with emulator
  * @param  {string} system
  * @param  {string} title
  * @param  {string} file
@@ -658,12 +658,18 @@ Crazyerics.prototype._loadGameData = function(key, system, title, file, deffered
     var flattened = self._clientdata.flattenedromfiles;
 
     if (flattened) {
-        location += '/' + system + '/' + key;
+
+        key = self._compress.json({
+            "0": title,
+            "1": file
+        })
+
+        location += '/' + system + '/' + encodeURIComponent(encodeURIComponent(key));
     } else {
         location += '/' + system + '/' + title + '/' + file;
     }
 
-    $.get(encodeURIComponent(location), function(data) {
+    $.get(location, function(data) {
         var inflated;
         try {
             inflated = pako.inflate(data); //inflate compressed string to arraybuffer
@@ -671,9 +677,6 @@ Crazyerics.prototype._loadGameData = function(key, system, title, file, deffered
             deffered.resolve(e);
             return;
         }
-
-        //add to play history
-        self._addToPlayHistory(key, system, title, file);
 
         deffered.resolve(null, inflated);
     });
@@ -687,12 +690,16 @@ Crazyerics.prototype._loadGameData = function(key, system, title, file, deffered
  * @param  {Object} deffered
  * @return {undef}
  */
-Crazyerics.prototype._loadGame = function(key, deffered) {
+Crazyerics.prototype._loadGame = function(key, system, title, file, deffered) {
 
     var self = this;
     //call returns not only states but misc game details. I tried to make this
     //part of the loadGame call but the formatting for the compressed game got weird
     $.get('/load/game?key=' + encodeURIComponent(key), function(data) {
+
+        //add to play history
+        self._addToPlayHistory(key, system, title, file);
+
         deffered.resolve({
             states: data.states,
             files: self._decompress.json(data.files)
@@ -1005,8 +1012,14 @@ Crazyerics.prototype._getBoxFront = function(system, title, size) {
 
     var self = this;
 
+    //have box title's been compressed (to obfiscate on cdn)
+    if (self._clientdata.flattenedboxfiles) {
+        //double encode, once for the url, again for the actual file name (files saved with encoding becase they contain illegal characters without)
+        title = encodeURIComponent(encodeURIComponent(self._compress.string(title)));
+    }
+
     //incldes swap to blank cart onerror
-    return $('<img onerror="this.src=\'' + self._clientdata.assetpath + '/images/blanks/' + system + '_' + size + '.png\'" src="' + self._clientdata.assetpath + '/images/boxes/' + system + '/' + title + '/' + size + '.jpg" />');
+    return $('<img onerror="this.src=\'' + self._clientdata.assetpath + '/images/blanks/' + system + '_' + size + '.png\'" src="' + self._clientdata.boxpath + '/' + system + '/' + title + '/' + size + '.jpg" />');
 };
 
 /**

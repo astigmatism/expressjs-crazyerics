@@ -632,6 +632,10 @@ UtilitiesService.collectDataForClient = function(req, openonload, callback) {
         //asset location
         result.assetpath = config.get('assetpath');
 
+        //box art location
+        result.boxpath = config.get('boxpath');
+        result.flattenedboxfiles = config.get('flattenedboxfiles');
+
         //play history from session
         result.playhistory = {};
         if (req.session && req.session.games && req.session.games.history) {
