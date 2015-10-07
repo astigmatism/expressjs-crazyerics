@@ -1,8 +1,8 @@
 {
-	"assetpath": "http://d36a7iz2o1pafv.cloudfront.net",
-	"boxpath":"http://d3ju09sr8dbbry.cloudfront.net",
+	"assetpath": "https://googledrive.com/host/0B8ilcrXlr-i1NGQ5TWJEWjUxdzA/web",
+	"boxpath":"https://googledrive.com/host/0B8ilcrXlr-i1NGQ5TWJEWjUxdzA/boxes",
 	"flattenedboxfiles": true,
-	"rompath":"http://d1qxcrjnbwryr.cloudfront.net",
+	"rompath":"https://googledrive.com/host/0B8ilcrXlr-i1NGQ5TWJEWjUxdzA/roms",
 	"flattenedromfiles": true,
 	"systems": {
 		"gb": {

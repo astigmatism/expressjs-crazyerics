@@ -247,6 +247,37 @@ UtilitiesService.buildData = function(system, callback, exts) {
                         
                         result[title].best = details.game;  //key into files maps which represents the best playable file
 
+                        //separate?
+                        if (true) {      
+
+                            console.log(details.game);                      
+
+                            fs.exists(__dirname + '/../public/romssingle/' + system, function(exists, err) {
+
+                                var rest = function() {
+                                    fs.mkdir(__dirname + '/../public/romssingle/' + system + '/' + title, function(err) {
+                                        fs.rename(__dirname + '/../public/roms/' + system + '/' + title + '/' + details.game, __dirname + '/../public/romssingle/' + system + '/' + title + '/' + details.game, function (err) {
+                                            if (err) {
+                                                console.log(err);
+                                            }
+                                        });
+                                    });
+                                }
+
+                                if (!exists) {
+                                    fs.mkdir(__dirname + '/../public/romssingle/' + system, function(err) {
+                                        if (err) {
+
+                                        }
+                                        rest();
+                                    });
+                                } else {
+                                    rest();
+                                }
+                                
+                            });
+                        }
+
                         //get rank of each file
                         for (var j = 0; j < files.length; ++j) {
                             var filedetails = UtilitiesService.findBestPlayableFile([files[j]], exts);

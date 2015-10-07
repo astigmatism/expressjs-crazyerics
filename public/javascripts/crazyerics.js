@@ -660,9 +660,9 @@ Crazyerics.prototype._loadGameData = function(key, system, title, file, deffered
     if (flattened) {
 
         key = self._compress.json({
-            "0": title,
-            "1": file
-        })
+            '0': title,
+            '1': file
+        });
 
         location += '/' + system + '/' + encodeURIComponent(encodeURIComponent(key));
     } else {

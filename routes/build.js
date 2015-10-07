@@ -42,12 +42,12 @@ router.get('/data', function(req, res, next) {
                 var bestfile = aggrigation[system][title].best;
                 var bestrank = aggrigation[system][title].files[bestfile];
 
-                if (bestrank >= config.data.search.suggestionThreshold) {
+                if (bestrank >= config.get('search').suggestionThreshold) {
                     systemsuggestions++;
                     totalsuggestions++;
                 }
 
-                if (bestrank >= config.data.search.searchAllThreshold) {
+                if (bestrank >= config.get('search').searchAllThreshold) {
                     searchall[title + '.' + system] = {
                         system: system,
                         file: bestfile,
