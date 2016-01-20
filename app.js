@@ -37,8 +37,8 @@ app.use(session({
         maxAge: 1209600000 //two weeks
     },
     saveUninitialized: true, //this saves uninitiallized sessions making it so that simply visiting the site resets expiration
-    resave: false, 
-    rolling: true,
+    resave: true, //Forces the session to be saved back to the session store, even if the session was never modified during the request.
+    rolling: true, //Force a session identifier cookie to be set on every response. 
     store: new MongoStore({
         mongooseConnection: mongoose.connection
     })
