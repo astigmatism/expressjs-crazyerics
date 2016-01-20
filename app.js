@@ -37,7 +37,8 @@ app.use(session({
         maxAge: 1209600000 //two weeks
     },
     saveUninitialized: false,
-    resave: true,
+    resave: false,
+    rolling: true,
     store: new MongoStore({
         mongooseConnection: mongoose.connection
     })
