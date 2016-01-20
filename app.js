@@ -36,7 +36,7 @@ app.use(session({
     cookie: {
         maxAge: 1209600000 //two weeks
     },
-    saveUninitialized: false,
+    saveUninitialized: true,
     resave: true,
     rolling: true,
     store: new MongoStore({
