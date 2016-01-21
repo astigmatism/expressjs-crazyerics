@@ -1,6 +1,11 @@
 expressjs-crazyerics
 =====
 
+buliding the application
+__________________
+
+1/21/2016: I'm writing this well after setting up the build routine so I won't be able to possibly explain everything in detail. Basically you use gulp to both check your sytax and output build files. Specifically, those in public/build. To start, run "gulp" at the command line, it is now listening to any file changes you make in the application. When you save a file, it runs a gulp task which (at the time of this writing) performs these tasks: 'jscs', 'lint', 'minify-css', 'closure'. The final two write the files to the build folder.
+
 building emulators
 ------------------
 

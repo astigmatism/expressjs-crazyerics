@@ -730,6 +730,9 @@ Crazyerics.prototype._buildFileSystem = function(Module, system, file, data, sta
         Module.FS_createDataFile('/etc', 'retroarch.cfg', self._clientdata.retroarch[system], true, true);
     }
 
+    //shaders
+    Module.FS_createFolder('/', 'shaders', true, true);
+
     //states
     for (var slot in states) {
         var statedata = self._decompress.bytearray(states[slot]);
