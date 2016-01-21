@@ -97,7 +97,7 @@
 			"retroarch": "video_aspect_ratio = 1.142857143\ninput_player1_l2 = a\ninput_player1_l_x_plus = right\ninput_player1_l_x_minus = left\ninput_player1_l_y_plus = down\ninput_player1_l_y_minus = up\ninput_player1_left = S\ninput_player1_right = D\ninput_player1_up = E\ninput_player1_down = C\ninput_player1_r_x_plus = l\ninput_player1_r_x_minus = j\ninput_player1_r_y_plus = k\ninput_player1_r_y_minus = i\ninput_frame_advance = nul\n"
 		}
 	},
-	"retroarch": "input_screenshot = t\ninput_exit_emulator = end\ninput_save_state = num1\ninput_load_state = num4\ninput_state_slot_increase = num3\ninput_state_slot_decrease = num2\ninput_audio_mute = m\ninput_reset = h\ninput_toggle_fullscreen = f12\ninput_toggle_fast_forward = space\ninput_player1_select = shift\nvideo_vsync = false\naudio_latency = 96\nvideo_font_size = 32\nvideo_force_aspect = true\nvideo_smooth = true\nrewind_enable = true\n",
+	"retroarch": "input_screenshot = t\ninput_exit_emulator = end\ninput_save_state = num1\ninput_load_state = num4\ninput_state_slot_increase = num3\ninput_state_slot_decrease = num2\ninput_audio_mute = m\ninput_reset = h\ninput_toggle_fullscreen = f12\ninput_toggle_fast_forward = space\ninput_player1_select = shift\nvideo_vsync = false\naudio_latency = 96\nvideo_font_size = 32\nvideo_force_aspect = true\nvideo_smooth = false\nrewind_enable = true\n",
 	"search": {
 		"boxFrontThreshold": 63,
 		"searchAllThreshold": 66,
