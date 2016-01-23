@@ -210,6 +210,7 @@ Crazyerics.prototype._tips = [
     'Select a system filter to generate a new list of suggested games',
     'To search for more obsurace or forgeign titles, select a system filter first'
 ];
+Crazyerics.prototype._fileWriteTimers = {};
 Crazyerics.prototype._playhistory = {};
 Crazyerics.prototype._socket = null; //socket.io
 
@@ -363,7 +364,7 @@ Crazyerics.prototype._bootstrap = function(system, title, file, slot) {
              * @return {undef}
              */
             Module.emulatorFileWritten = function(filename, contents) {
-                self._emulatorFileWritten(key, system, title, file, filename, contents);
+                self._emulatorFileWriteListener(key, system, title, file, filename, contents);
             };
 
             //begin game
@@ -733,6 +734,13 @@ Crazyerics.prototype._buildFileSystem = function(Module, system, file, data, sta
     //shaders
     Module.FS_createFolder('/', 'shaders', true, true);
 
+    Module.FS_createDataFile('/shaders', 'stock.glsl', self._decompress.string('eJzdVVtv2jAUfs+vsNQXuk000PYJMYlBSiNxUwho0zRZaeIES4kdOQ6DVv3vc26OCdDRPW3LEz7fufic8/nj5gaMJ8sJSDaOhxhwUk4DRBBzOPLA0x64QTcIk7Ad79vaFfaBh3xMkNdaG5ZtfL3WciOE4rg05zMIwec+6Nzq2lXhCIbz6WJgw/XA+mbOxoCmvAkNbNsyv6xsA2DSxEQJe2UZgKMdTxnSrlCYoHO5tw7bYxKA8wUczhl+Sjk68mkU6o5EKeJhP+9PuIohQWPZjFpYxtDM+gYR8nAaxacvKN2qpI2LZ58fUocD6DMnQpBR7nBMSU875bpF7h2ALg0p6wiP7Es4S12eTTdOOfTSKNqDF0074f3aU/wxOeXeBXCLPURhgp9RTzWX0zkG1MIqetCVS1PCTwEeZsgt+31rFsXdi4bogiY4s3cUI9N1/b4eWr34HF4jJhoYUsq8sz7D+WRunUXto3DJvTJYPwMJfun5RYGWEuxTFoHI4Xdgul5MHUHKXU/aMeHgIWt9VI/lCBsWs6zsR3zM1zLPt7LM1/G2p10s9hJXk8icW4o90QYmLaEDL3l3knB0mDHukCTK9At7sTDQV1fT3n2QQ/mu/+g1PMsfHw9C9kpI57KQZyWke1nITyXkVobURJRxEspnIMwVqwprlVAAtmx6X8JBCKuEzXwZvRrJMlqJ2KNMryBTIkWuH6zBeGrM7HcL9u81Wbz9YueCmEG59Ut0WsIyLmteHv5UoeWharkmMHw0x49aLF4VTrL5bnCwiQu1qa5cg6Wi13Be7G/7A3iX/v8X8l+pU+JEcYhYd1SJ1+XK+68r7MGa4Xxl14IqDu1i2blSqC+nVV7hU6Ua1+W86/fXVxOUKEMiiFSakrP3F3NlJdM='), true, true);
+    Module.FS_createDataFile('/shaders', 'super-eagle.glsl', self._decompress.string('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'), true, true);
+    Module.FS_createDataFile('/shaders', 'scanline.glsl', self._decompress.string('eJztVVtP20oQfvevWIkXJ02N7QQKiqhEgwuRCImCi85RVa3ceBNWiu3IXtOYqv+9s7ve9SUJh9OnqqofIDvfNzM7l505PkbXt/e3KHsMQpKiIGfJisQkDRgJ0dcCLVbuap2trU1hGUd0iUKypDEJzQdv7nv/dAwhxBiO9+PpHcbo/QVy+rZxJIloNJ3MLn38cDn/d3x3jZKctaFL35+PP3zyPUTjNgYu/E9zDzGyZXlKjCOyzsgh209BWtB4hQ47CBhL6deckR1Oy5F7Ba7ikC5FfECFJGHvvq01m3ujMY8bRSSkebTZf0FNU0ZbF+ffcp0EDOFlGkQEpwkLGE3iobGP+kQWLsJJRFYBEPiXsTRfMJSBT7xIkjRE3w1jl/pjWCPTeJMzHOZRVDTZTzQkCc7oMxnWxWVmdgEoqbZURxsRLZI8ZvuAkKZkUcb6Uh7k3cHjADzOkoxyuSOE9Ujw+I4LJS+1bfu0ymHVBwJ+ICnENOLpOsgZTW+n890qKMw+qOjvWG7oQrvZhyFXhIWMPKbLJI1QFLABmjzMJgG073ao5TJXH3mqrqo07kFHMvsK2eleUcipqOO9KODLTF+2wmuo41jbfEpoCKHQ2ISp8V1EKHuIV3SUrJO02VbgpRTU+lr+y4ZKXdYYXdSraW27Olmf7S/DFrP88aahUtRUnNepPNdU3NepfKup9LVK1c5aT0MiLyBWjSilkBqQ+TreQiEyO5Z88UDhqTTNvuUMnBOwa3tv4E+3qjSkqlZMa9s51gWztj10arln7jn/pGKdW3RKp6s1VgG078+fSOvyvPPhwnuvz1tfYs1A+PNHfLTW9s/H+eX1xLvz//cG+u8lAwNNtiW8nVXZmK9ZPBrWejw3+vCrK0cfVMjVG8M34+sbYwNPn2Y8/Y909biRD19duQLLFVXBwtnfjfY7bLSUMMwXQsn1JzNXbjFXHJwGNGic+nrdwYHbUAM5C6LNmqTulZrX2uIWnui5PgW27Zy8vIxeWGH1PfWH7KM+wtkiiNfQe9We4ckVo6z+ds3Sc0+NNTUTZYr5kJPybjnahpW1PqDQ3qakwuitYYMmVtQxR411YaQn+ZogiqkY6MSy5ffOe2vbbg851okUnHKB0+mq7lLWXdANE2ZKQ73SjqPsyAXSaws62r9KHJ/hPGUQ83PXPLcGYoucnQm3sBWFL60l2l/eemBqG3wDVYeifnjevUJpq5q9F9Wz4gD8ztNYrRIxtH4COvneug=='), true, true);
+    
+    //screenshots
+    Module.FS_createFolder('/', 'screenshots', true, true);
+
     //states
     for (var slot in states) {
         var statedata = self._decompress.bytearray(states[slot]);
@@ -743,7 +751,7 @@ Crazyerics.prototype._buildFileSystem = function(Module, system, file, data, sta
 };
 
 /**
- * this function is registered with the emulator when a file is written, we only care about state saving
+ * this function is registered with the emulator when a file is written.
  * @param  {string} key      unique game key, used to save state
  * @param  {string} system
  * @param  {string} title
@@ -755,12 +763,13 @@ Crazyerics.prototype._buildFileSystem = function(Module, system, file, data, sta
 Crazyerics.prototype._emulatorFileWritten = function(key, system, title, file, filename, contents) {
 
     var self = this;
-    var match = filename.match(/\.state(\d*)$/); //match .state or .statex where x is a digit
+    var statematch = filename.match(/\.state(\d*)$/); //match .state or .statex where x is a digit
+    var screenshotmatch = filename.match(/\.bmp$/);
 
     // match will return an array when match was successful, our capture group with the slot value, its 1 index
-    if (match) {
+    if (statematch) {
 
-        var slot = match[1] === '' ? 0 : match[1]; //the 0 state does not use a digit
+        var slot = statematch[1] === '' ? 0 : statematch[1]; //the 0 state does not use a digit
         var data = self._compress.bytearray(contents);
 
         $.ajax({
@@ -783,6 +792,42 @@ Crazyerics.prototype._emulatorFileWritten = function(key, system, title, file, f
             }
         });
     }
+
+    if (screenshotmatch) {
+
+        document.getElementById('tester').src = "data:image/bmp;base64," + self._compress.bytearray(contents);
+        //download('data:image/bmp;base64,' + contents, filename, 'image/bmp' );
+    }
+};
+
+/**
+ * for screenshots, the emulator simply dumps the video buffer into a file 8 bytes at a time calling the write function
+ * with each segment in the buffer. it doesn't seem to trigger a "file closed" or "finished writing file" notification.
+ * To get around this, I'll use timers to understand when a file was essentially finished being written to.
+ * @param  {string} key      unique game key, used to save state
+ * @param  {string} system
+ * @param  {string} title
+ * @param  {string} file
+ * @param  {string} filename the file name being saved by the emulator
+ * @param  {UInt8Array} contents the contents of the file saved by the emulator
+ * @return {undef}
+ */
+Crazyerics.prototype._emulatorFileWriteListener = function(key, system, title, file, filename, contents) {
+
+    var self = this;
+
+    //clear timer if exists
+    if (self._fileWriteTimers.hasOwnProperty(filename)) {
+        clearTimeout(self._fileWriteTimers[filename]);    
+    }
+
+    //write new timer 
+    self._fileWriteTimers[filename] = setTimeout(function() {
+
+        //if timer runs out before being cleared again, delete it and call file written function
+        delete self._fileWriteTimers[filename];
+        self._emulatorFileWritten(key, system, title, file, filename, contents);
+    }, 1000);
 };
 
 /**
