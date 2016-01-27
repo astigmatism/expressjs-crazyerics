@@ -472,16 +472,12 @@ p {
 	transition-timing-function: cubic-bezier(0, 1, 0.5, 1);
 }
 
-#gamecontrolslist.closed {
-	/* max-width: 0px; */
-}
-
 #gamecontrolslist li {
 	cursor: pointer;
 	padding-right: 10px;
 }
 
-#controlsslider {
+div.slidingpanel {
 
 	display: none;
 	width: 100%;
@@ -489,6 +485,8 @@ p {
 	top: 32px;
 	left: 0;
 	height: 200px;
+	overflow-x: hidden;
+	overflow-y: scroll;
 }
 
 /* recently played */

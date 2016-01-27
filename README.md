@@ -35,7 +35,7 @@ else ifeq ($(platform), emscripten)
 
 emmake make -f ./Makefile platform=emscripten
 
-- If successful, you'll end up with a .bc file which represents byte-level code of the core. We can not use this when building RetroArch.
+- If successful, you'll end up with a .bc file which represents byte-level code of the core. We can now use this when building RetroArch.
 
 - Drop the .bc (one or several) into the ./dist-scripts/ folder in the RetroArch project. They'll now be directly alongside the dist-cores.sh file you'll run:
 

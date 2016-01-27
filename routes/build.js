@@ -274,4 +274,17 @@ router.get('/folders/:system', function(req, res, next) {
     });
 });
 
+router.get('/compressshaders', function(req, res, next) {
+
+    var source = __dirname + '/../public/shaders_glsl';
+
+    UtilitiesService.compressShaders(source, '', function(err, data) {
+        if (err) {
+            return res.json(err);
+        }
+        res.json(data);
+    });
+
+});
+
 module.exports = router;

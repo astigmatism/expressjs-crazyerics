@@ -5,6 +5,7 @@ var config = require('config');
 var pako = require('pako');
 var btoa = require('btoa');
 var atob = require('atob');
+var merge = require('merge');
 var DataService = require('../services/data.js');
 
 /**
@@ -692,6 +693,63 @@ UtilitiesService.collectDataForClient = function(req, openonload, callback) {
     }
 };
 
+UtilitiesService.compressShaders = function(base, dir, callback) {
+
+    var result = {};
+
+    fs.readdir(base + dir, function(err, items) {
+        if (err) {
+            return callback(err);
+        }
+
+        async.each(items, function(item, nextitem) {
+
+            //analyize file
+            fs.stat(base + dir + '/' + item, function (err, stats) {
+                if (err) {
+                    return nextitem(err);
+                }
+
+                //is dir
+                if (stats.isDirectory()) {
+
+                    UtilitiesService.compressShaders(base, dir + '/' + item, function(err, dirresult) {
+                        if (err) {
+                            return nextitem(err);
+                        }
+
+                        result = merge(result, dirresult);
+                        return nextitem();
+                    });
+                } 
+                //if file, open and read
+                else {
+
+                    fs.readFile(base + dir + '/' + item, 'utf8', function(err, content) {
+                        if (err) {
+                            return nextitem(err);
+                        }
+
+                        //corrections to source code
+                        content.replace('int FrameDirection', 'float FrameDirection');
+                        content.replace('int FrameCount', 'float FrameCount');
+
+                        result[dir + '/' + item] = UtilitiesService.compress.string(content);
+
+                        return nextitem();
+                    });
+                }
+            });
+
+        }, function(err) {
+            if (err) {
+                return callback(err);
+            }
+            callback(null, result);
+        });
+    });
+};
+
 //order: stringify, encode, deflate, unescape, base64
 UtilitiesService.compress = {
     json: function(json) {
@@ -728,6 +786,5 @@ UtilitiesService.decompress = {
         return inflate;
     }
 };
-
 
 module.exports = UtilitiesService;

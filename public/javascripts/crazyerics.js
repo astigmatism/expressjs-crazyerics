@@ -11,8 +11,13 @@ var Crazyerics = function() {
 
     $(document).ready(function() {
 
-        //decompress clientdata
+        //unpack clientdata
         self._clientdata = self._decompress.json(clientdata);
+
+        //unpack shaders
+        // for (shader in Shaders) {
+        //     Shaders[shader] = self._decompress.string(Shaders[shader]);
+        // }
 
         //incoming params to open game now?
         var openonload = self._clientdata.openonload || {};
@@ -160,38 +165,95 @@ var Crazyerics = function() {
             self._simulateEmulatorKeypress(82, 5000); // R
         });
 
-        $('#gamecontrolslist li.controls')
-        .on('mousedown', function() {
-
-            //override pausing emulator if it is active
-            if ($('#emulator').is(':focus')) {
-                self._pauseOverride = true;
-            }
-        })
-        .on('mouseup', function(event) {
-
-            //immediately give focus back if it had it
-            if (self._pauseOverride) {
-                $('#emulator').focus();
-                self._pauseOverride = false;
-            }
-
-            $('#controlsslider').animate({width: 'toggle', padding: 'toggle'}, 500);
-
-            if ($(this).attr('data-click-state') == 0) {
-                $(this).attr('data-click-state', 1);
-                $(this).find('img').animateRotate(0, 90, 500);
-
-            } else {
-                $(this).attr('data-click-state', 0);
-                $(this).find('img').animateRotate(90, 0, 500);
-            }
-        });
+        self.Sliders.init();
 
         self.replaceSuggestions('all');
 
         self._toolTips();
     });
+};
+
+Crazyerics.prototype.Sliders = {
+
+    /**
+     * initialize this object
+     * @return {undef}
+     */
+    init: function() {
+        this._bind();
+    },
+    /**
+     * bind events to dom elements
+     * @return {undef}
+     */
+    _bind: function() {
+
+        var self = this;
+
+        $('#gamecontrolslist li')
+        .on('mousedown mouseup click', function(event) {
+            event.preventDefault();
+            $('#emulator').focus();
+        })
+        .on('mouseup', function(event) {
+
+            self.open($(this).attr('class'));
+        });
+    },
+    /**
+     * go through list of silder controls and seek the correct one to open. if open, then close.
+     * @param  {string} key
+     * @return {undef}
+     */
+    open: function(key) {
+
+        var self = this;
+        $('#gamecontrolslist li').each(function(index, item) {
+
+            var slider = $('#' + $(this).attr('class'));
+
+            //if match found
+            if ($(item).hasClass(key)) {
+                //if closed, open, if open close
+                $(slider).toggleClass('closed');
+                self._toggle(item, slider);
+            } else {
+                //others in list
+                //if does not have class closed, its open, close it. else case is has closed
+                if (!$(slider).hasClass('closed')) {
+                    $(slider).addClass('closed');
+                    self._toggle(item, slider);
+                }
+            }
+
+        });
+    },
+    /**
+     * closes all sliders by asking to open one that does not exist
+     * @return {undef}
+     */
+    closeall: function() {
+        this.open('');
+    },
+    /**
+     * toggle simply changes the state of the slider, if open then close, if closed, then open. controled only by this class
+     * @param  {Object} li     list dom element, or button
+     * @param  {Object} slider div dom element which is the sliding panel
+     * @return {undef}
+     */
+    _toggle: function(li, slider) {
+        //toggle dom with id of this class name (which is the sliding element)
+        $(slider).animate({width: 'toggle', padding: 'toggle'}, 500);
+
+        if ($(li).attr('data-click-state') == 0) {
+            $(li).attr('data-click-state', 1);
+            $(li).find('img').animateRotate(0, 90, 500);
+
+        } else {
+            $(li).attr('data-click-state', 0);
+            $(li).find('img').animateRotate(90, 0, 500);
+        }
+    }
 };
 
 Crazyerics.prototype._clientdata = null;
@@ -200,6 +262,7 @@ Crazyerics.prototype._ModuleLoading = false; //oldskool way to prevent double lo
 Crazyerics.prototype._pauseOverride = false; //condition for blur event of emulator, sometimes we don't want it to pause when we're giving it back focus
 Crazyerics.prototype._activeFile = null;
 Crazyerics.prototype._keypresslocked = false; //when we're sending a keyboard event to the emulator, we want to wait until that event is complete before any additinal keypresses are made (prevents spamming)
+Crazyerics.prototype._fileWriteDelay = 500; //in ms. The delay in which the client should respond to a file written by the emulator (sometimes is goes out over the network and we don't want to spam the call)
 Crazyerics.prototype._tips = [
     'Back out of that mistake you made by holding the R key to rewind the game',
     'Press the Space key to fast forward through those boring story scenes',
@@ -213,6 +276,8 @@ Crazyerics.prototype._tips = [
 Crazyerics.prototype._fileWriteTimers = {};
 Crazyerics.prototype._playhistory = {};
 Crazyerics.prototype._socket = null; //socket.io
+
+Crazyerics.prototype._macroToShaderMenu = [[112, 100], 40, 40, 40, 88, 88, 40, 40, 40, 37, 37, 37, 38, 88]; //macro opens shader menu and clears all passes
 
 /**
  * function for handling the load and replacement of the suggestions content area
@@ -250,7 +315,7 @@ Crazyerics.prototype.replaceSuggestions = function(system, items) {
             $('#loading .loadingtext').text(loaded + '%');
 
             if (loaded === (count - 1)) {
-                $('#suggestionswrapper').slideDown();
+                //$('#suggestionswrapper').slideDown();
                 $('#loading').addClass('close');
             }
         });
@@ -312,11 +377,7 @@ Crazyerics.prototype._bootstrap = function(system, title, file, slot) {
     $('#gameloadingoverlay').fadeIn(500, function() {
 
         //close any sliders
-        $('#gamecontrolslist li').each(function() {
-            if ($(this).attr('data-click-state') == 1) {
-                $(this).mouseup();
-            }
-        });
+        self.Sliders.closeall();
 
         $('#gameloadingoverlaycontent').removeClass();
         $('#emulatorcontrolswrapper').show(); //show controls initially to reveal their presence
@@ -394,11 +455,7 @@ Crazyerics.prototype._bootstrap = function(system, title, file, slot) {
                         $('#emulatorcontrolswrapper').addClass('closed');
 
                         //becuse I have nothing else to show, reveal controls
-                        $('#gamecontrolslist li').each(function() {
-                            if ($(this).attr('data-click-state') == 0) {
-                                $(this).mouseup();
-                            }
-                        });
+                        self.Sliders.open('controlsslider');
                     }, 3000);
                 });
 
@@ -567,6 +624,40 @@ Crazyerics.prototype._simulateEmulatorKeypress = function(key, keyUpDelay, callb
 };
 
 /**
+ * Runs a series of keyboard instructions by keycode with optional delays between keystrokes
+ * @param  {Object|Array}   instructions
+ * @param  {Function} callback
+ * @return {undef}
+ */
+Crazyerics.prototype._runKeyboardMacro = function(instructions, callback) {
+
+    var self = this;
+
+    //base case, either not an array or no more instructions are on queue
+    if (!$.isArray(instructions) || instructions.length === 0) {
+        if (callback) {
+            callback();
+        }
+        return;
+    }
+
+    var keycode = instructions[0];
+    var pause = 0;
+
+    //if instruction contains code and pause length (in ms)
+    if ($.isArray(keycode)) {
+        keycode = keycode[0];
+        if (keycode[1]) {
+            pause = keycode[1];
+        }
+    }
+
+    self._simulateEmulatorKeypress(keycode, 1, function() {
+        self._runKeyboardMacro(instructions.slice(1), callback);
+    });
+};
+
+/**
  * intercepts all key presses heading to emulator. allows for additional application actions
  * @param  {string} system
  * @param  {string} title
@@ -594,6 +685,9 @@ Crazyerics.prototype._setupKeypressInterceptor = function(system, title, file) {
                     switch (key) {
                         case 70: // F
                             self._Module.requestFullScreen(true, true);
+                        break;
+                        case 67: //c
+                            self._runKeyboardMacro(self._macroToShaderMenu);
                         break;
                     }
                 break;
@@ -731,8 +825,36 @@ Crazyerics.prototype._buildFileSystem = function(Module, system, file, data, sta
         Module.FS_createDataFile('/etc', 'retroarch.cfg', self._clientdata.retroarch[system], true, true);
     }
 
-    self._writeShaderFiles(Module);
-    
+    //shaders (all shaders have already been unpacked for the client, just need to write them to the file system)
+    Module.FS_createFolder('/', 'shaders', true, true);
+    // for (shader in Shaders) {
+    //     var path = shader.split('/'); //split the destination path
+    //     var installpath = '/shaders'; //the install path on the FS
+
+    //     //loop over all path segments
+    //     for (var i = 1; i < path.length; ++i) {
+
+    //         //for final path segement, write file
+    //         if (i === path.length - 1) {
+    //             //we expect the path to exist, but an error in this routine will throw an Excep
+    //             try {
+    //                 Module.FS_createDataFile(installpath, path[i], Shaders[shader], true, true);
+    //             }
+    //             catch (e) {}
+    //         }
+
+    //         //otherwise create path
+    //         installpath += '/';
+    //         //I don't have a routine for checking if the path exists, this try catch will wrokaround that
+    //         try {
+    //             Module.FS_createFolder(installpath, path[i], true, true);
+    //         }
+    //         catch (e) {
+    //             //likely ErrnoError {errno: 17, code: "EEXIST", message: "File exists"}
+    //         }
+    //     }
+    // }
+
     //screenshots
     Module.FS_createFolder('/', 'screenshots', true, true);
 
@@ -790,8 +912,28 @@ Crazyerics.prototype._emulatorFileWritten = function(key, system, title, file, f
 
     if (screenshotmatch) {
 
-        document.getElementById('tester').src = "data:image/bmp;base64," + self._compress.bytearray(contents);
-        //download('data:image/bmp;base64,' + contents, filename, 'image/bmp' );
+        //get screen ratio from config
+        var screenratio = self._clientdata.retroarch[system].match(/video_aspect_ratio = (\d+\.+\d+)/);
+        if ($.isArray(screenratio) && screenratio.length > 1) {
+            screenratio = parseFloat(screenratio[1]);
+        } else {
+            screenratio = 1;
+        }
+
+        var arrayBufferView = new Uint8Array(contents);
+        var blob = new Blob([arrayBufferView], {
+            type: 'image/bmp'
+        });
+        var urlCreator = window.URL || window.webkitURL;
+        var imageUrl = urlCreator.createObjectURL(blob);
+        var img = new Image(100 * screenratio, 100);        //create new image with correct ratio
+        img.src = imageUrl;
+        var a = $('<a href="' + imageUrl + '" download></a>'); //html 5 spec downloads image
+        a.append(img);
+        $('#screenshotsslider').append(a);
+
+        //kick open the screenshot slider
+        self.Sliders.open('screenshotsslider');
     }
 };
 
@@ -813,16 +955,16 @@ Crazyerics.prototype._emulatorFileWriteListener = function(key, system, title, f
 
     //clear timer if exists
     if (self._fileWriteTimers.hasOwnProperty(filename)) {
-        clearTimeout(self._fileWriteTimers[filename]);    
+        clearTimeout(self._fileWriteTimers[filename]);
     }
 
-    //write new timer 
+    //write new timer
     self._fileWriteTimers[filename] = setTimeout(function() {
 
         //if timer runs out before being cleared again, delete it and call file written function
         delete self._fileWriteTimers[filename];
         self._emulatorFileWritten(key, system, title, file, filename, contents);
-    }, 1000);
+    }, self._fileWriteDelay);
 };
 
 /**
@@ -1246,40 +1388,6 @@ Crazyerics.prototype._asyncLoop = function(iterations, func, callback) {
     };
     loop.next();
     return loop;
-};
-
-Crazyerics.prototype._writeShaderFiles = function(Module) {
-
-    var self = this;
-
-    //root shader folder and glslp files
-    Module.FS_createFolder('/', 'shaders', true, true);
-    Module.FS_createDataFile('/shaders', '2x2xscalehq.glslp', self._decompress.string('eJx1kb1ywjAQhHs/BeMeGzvpNGloSBvyAJpDPowY/RDpHPDbR7YMQWBc6Xa/0e7J/gANOr/4WORveebHaTVMRamlF6XU0OISmmPnSaOholVeXcEqgl6AwsNPWV++h9PnVwLVETpL09gzNuVRGlEvg+dO6CYy20tF6LiSBiHm70F5DM54Oaf+hPwyGt52TgQnGlGri9X45fd4P4P3D3gaXL0KrmaCq9fBM3j/gGcncKCRprcncC0Sb0FrYNoaSdZNk/0NjADDw3OJ8Af45VnqmQfqHJC0hglryIEnpjotDRiBbOdkeyC+szbIW7Zh6zy7j4zd3qduSX606sl6LjP4q9taz81S/7/moFc3/do5VW8LpPL9Nun12xTcpOM6Gf8AliTqjQ=='), true, true);
-    
-    //misc folder
-    Module.FS_createFolder('/shaders', 'misc', true, true);
-    Module.FS_createDataFile('/shaders/misc', 'image-adjustment.glsl', self._decompress.string('eJztVVtv2jAUfs+vsNQX2ChNAmxCqJM6mnVIpSCaVZumycqIoZZIjByHAtP++3xJHCeBlu1hD9PCA/E53/l8bjnn4gLc3N7fguQxCBEFQcrIEsWIBgyF4PsOzJfucpWs2utd2zrDCxCiBY5R2HjwZr73uWlJIYT8eD+a3EEI3l0Cp2NbZwoIhpPx9MqHD1ezL6O7G0BSVlVd+f5s9P6T7wEcV3X8Cv/TzAMMbVlKkXWGVgk6xr0J6A7HS3D8goAxir+nDNUwlYvca35VHOKFjI9DeZKgd1+1ms684UjEDSIU4jRaH3ZQw3LSiuPi2aB5F8A5WRHqDKxDiMWKBAzABQ0iBClhAcMk5lDxJIymc8YTuE4ZDNMo2oEflpXxugBucIgITPAeDUxxFm1dwcukmUxtyYc5SWN2SBFiiuaZd895/nNg+G5eaThvJkXhlZBMSYIFjyOFZuRwdCeECkdt235TJLToBal+QJTnYEgIDY9ihpPbyeyo1q+Z63bMjO0jKt5ytvQdWGmMF4RGIApYF4wfpuOA9+l2oOUqgR9E/q6L3B7QDlVJck2tTWV1JzLT97KqzyN91R+nQEex5twQHPJQcNzg4+GHjFDXkgxFMcu9ZlSgkCaPeMHKuA2iyTyIeT8osFKqCoNLs5bt7Sudxa/2t0EFmb28LpnsDBPnNJO9YeKeZvJkmHS0SdHM2k6rZMK4OG9DKZXZ4cJGr21nj3du284rXYbmRal4GVkphcLe1xnbgfOMt8l9LuW/KJFwr1YHAVmuYB5DNQTxCVT8F60vbjzE9hOIIWpsmg+zq5uxd+f/9q55eZ3wmaP6kn88y6wzT1kxWq3tRAL04U+Xiz7kIRcfGfw4uvlorfm3jxOR40e8fFyrLz93uVBmy6hQy8v+yu76v7rqq6uyuShi0Fb7qQOgP572+CG7h5+6pVOndHJLp2LJ8YNgzCd0EkTrFaLudT7Azdvc/un76B/ZOzzwJGCVzdMR1YlzYTboRCLlrDK/20bmTiufW81BARcTOySsIU25bt+S5A3gth231+dPR07mFnjbdnqumNRvtcCVZ1si3KamzZ3l1JJL3tMC5p+Y0cWdfHQfBWrWPNqcFVR2R+tFgbpUe3f+xzxmAl3uz5o8NbR/7W0LOG27L36O673mVia+U8PvnsV3a/j9cXw1R9JBlcmO+uua3D2Oi3i/qTw4RZSCtPWioNkqbiylpC94g23Ga1dpXhI0las9zSlHjoqpq2Lqiyxnbzv9tq+7mFEUi+6ymGBCwd9TGud7W26IXye+MDI='), true, true);
-
-    //scalehq folder
-    Module.FS_createFolder('/shaders', 'scalehq', true, true);
-    Module.FS_createDataFile('/shaders/scalehq', '2xScaleHQ.glsl', self._decompress.string('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'), true, true);
-
-    //windowed folder
-    Module.FS_createFolder('/shaders', 'windowed', true, true);
-    Module.FS_createDataFile('/shaders/windowed', 'jinc2-sharper.glsl', self._decompress.string('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'), true, true);
-
-    // Module.FS_createDataFile('/shaders', '2x2xscalehq.glslp', self._decompress.string(''), true, true);
-    // Module.FS_createDataFile('/shaders', '2x2xscalehq.glslp', self._decompress.string(''), true, true);
-    // Module.FS_createDataFile('/shaders', '2x2xscalehq.glslp', self._decompress.string(''), true, true);
-    // Module.FS_createDataFile('/shaders', '2x2xscalehq.glslp', self._decompress.string(''), true, true);
-    // Module.FS_createDataFile('/shaders', '2x2xscalehq.glslp', self._decompress.string(''), true, true);
-
-
-    Module.FS_createDataFile('/shaders', 'stock.glsl', self._decompress.string('eJzdVVtv2jAUfs+vsNQXuk000PYJMYlBSiNxUwho0zRZaeIES4kdOQ6DVv3vc26OCdDRPW3LEz7fufic8/nj5gaMJ8sJSDaOhxhwUk4DRBBzOPLA0x64QTcIk7Ad79vaFfaBh3xMkNdaG5ZtfL3WciOE4rg05zMIwec+6Nzq2lXhCIbz6WJgw/XA+mbOxoCmvAkNbNsyv6xsA2DSxEQJe2UZgKMdTxnSrlCYoHO5tw7bYxKA8wUczhl+Sjk68mkU6o5EKeJhP+9PuIohQWPZjFpYxtDM+gYR8nAaxacvKN2qpI2LZ58fUocD6DMnQpBR7nBMSU875bpF7h2ALg0p6wiP7Es4S12eTTdOOfTSKNqDF0074f3aU/wxOeXeBXCLPURhgp9RTzWX0zkG1MIqetCVS1PCTwEeZsgt+31rFsXdi4bogiY4s3cUI9N1/b4eWr34HF4jJhoYUsq8sz7D+WRunUXto3DJvTJYPwMJfun5RYGWEuxTFoHI4Xdgul5MHUHKXU/aMeHgIWt9VI/lCBsWs6zsR3zM1zLPt7LM1/G2p10s9hJXk8icW4o90QYmLaEDL3l3knB0mDHukCTK9At7sTDQV1fT3n2QQ/mu/+g1PMsfHw9C9kpI57KQZyWke1nITyXkVobURJRxEspnIMwVqwprlVAAtmx6X8JBCKuEzXwZvRrJMlqJ2KNMryBTIkWuH6zBeGrM7HcL9u81Wbz9YueCmEG59Ut0WsIyLmteHv5UoeWharkmMHw0x49aLF4VTrL5bnCwiQu1qa5cg6Wi13Be7G/7A3iX/v8X8l+pU+JEcYhYd1SJ1+XK+68r7MGa4Xxl14IqDu1i2blSqC+nVV7hU6Ua1+W86/fXVxOUKEMiiFSakrP3F3NlJdM='), true, true);
-    Module.FS_createDataFile('/shaders', 'super-eagle.glsl', self._decompress.string('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'), true, true);
-    Module.FS_createDataFile('/shaders', 'scanline.glsl', self._decompress.string('eJztVVtP20oQfvevWIkXJ02N7QQKiqhEgwuRCImCi85RVa3ceBNWiu3IXtOYqv+9s7ve9SUJh9OnqqofIDvfNzM7l505PkbXt/e3KHsMQpKiIGfJisQkDRgJ0dcCLVbuap2trU1hGUd0iUKypDEJzQdv7nv/dAwhxBiO9+PpHcbo/QVy+rZxJIloNJ3MLn38cDn/d3x3jZKctaFL35+PP3zyPUTjNgYu/E9zDzGyZXlKjCOyzsgh209BWtB4hQ47CBhL6deckR1Oy5F7Ba7ikC5FfECFJGHvvq01m3ujMY8bRSSkebTZf0FNU0ZbF+ffcp0EDOFlGkQEpwkLGE3iobGP+kQWLsJJRFYBEPiXsTRfMJSBT7xIkjRE3w1jl/pjWCPTeJMzHOZRVDTZTzQkCc7oMxnWxWVmdgEoqbZURxsRLZI8ZvuAkKZkUcb6Uh7k3cHjADzOkoxyuSOE9Ujw+I4LJS+1bfu0ymHVBwJ+ICnENOLpOsgZTW+n890qKMw+qOjvWG7oQrvZhyFXhIWMPKbLJI1QFLABmjzMJgG073ao5TJXH3mqrqo07kFHMvsK2eleUcipqOO9KODLTF+2wmuo41jbfEpoCKHQ2ISp8V1EKHuIV3SUrJO02VbgpRTU+lr+y4ZKXdYYXdSraW27Olmf7S/DFrP88aahUtRUnNepPNdU3NepfKup9LVK1c5aT0MiLyBWjSilkBqQ+TreQiEyO5Z88UDhqTTNvuUMnBOwa3tv4E+3qjSkqlZMa9s51gWztj10arln7jn/pGKdW3RKp6s1VgG078+fSOvyvPPhwnuvz1tfYs1A+PNHfLTW9s/H+eX1xLvz//cG+u8lAwNNtiW8nVXZmK9ZPBrWejw3+vCrK0cfVMjVG8M34+sbYwNPn2Y8/Y909biRD19duQLLFVXBwtnfjfY7bLSUMMwXQsn1JzNXbjFXHJwGNGic+nrdwYHbUAM5C6LNmqTulZrX2uIWnui5PgW27Zy8vIxeWGH1PfWH7KM+wtkiiNfQe9We4ckVo6z+ds3Sc0+NNTUTZYr5kJPybjnahpW1PqDQ3qakwuitYYMmVtQxR411YaQn+ZogiqkY6MSy5ffOe2vbbg851okUnHKB0+mq7lLWXdANE2ZKQ73SjqPsyAXSaws62r9KHJ/hPGUQ83PXPLcGYoucnQm3sBWFL60l2l/eemBqG3wDVYeifnjevUJpq5q9F9Wz4gD8ztNYrRIxtH4COvneug=='), true, true);
-
-    return;
 };
 
 var crazyerics = new Crazyerics();
