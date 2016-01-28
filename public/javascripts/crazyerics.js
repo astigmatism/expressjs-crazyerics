@@ -317,7 +317,9 @@ Crazyerics.prototype._tips = [
     'We\'ll store all of your save states as long as you return within two weeks',
     'Pause your game with the P key',
     'Select a system filter to generate a new list of suggested games',
-    'To search for more obsurace or forgeign titles, select a system filter first'
+    'To search for more obsurace or forgeign titles, select a system filter first',
+    'Take a screenshot with the T key. Missed that moment? Rewind with R and capture again!',
+    'Screenshots are deleted when you leave or refresh the page. Download your favorites to keep them!'
 ];
 Crazyerics.prototype._fileWriteTimers = {};
 Crazyerics.prototype._playhistory = {};
@@ -509,12 +511,11 @@ Crazyerics.prototype._bootstrap = function(system, title, file, slot) {
                     //show controls initially to reveal their presence
                     setTimeout(function() {
                         self._ModuleLoading = false;
-                        //$('#emulatorcontrolswrapper').slideToggle({ direction: "down" }, 300);
                         $('#emulatorcontrolswrapper').addClass('closed');
 
-                        //becuse I have nothing else to show, reveal controls
+                        //to help new players, reveal controls after load
                         self.Sliders.open('controlsslider');
-                    }, 3000);
+                    }, 1000);
                 });
 
                 $('#emulator')
@@ -966,6 +967,8 @@ Crazyerics.prototype._emulatorFileWritten = function(key, system, title, file, f
     }
 
     if (screenshotmatch) {
+
+        $('p.screenshothelper').remove(); //remove helper text
 
         //get screen ratio from config
         var screenratio = self._clientdata.retroarch[system].match(/video_aspect_ratio = (\d+\.+\d+)/);
