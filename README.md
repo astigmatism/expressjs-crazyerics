@@ -176,4 +176,5 @@ various notes
 
 - using pako as a method to compress all strings, json and uintarrays
 - gulp produces two files in ./public/build: build.js (all compressed js file contents) and style.min.css (all compressed css file contents). The layout.jade on your production box references these files instead of the source content.
+- in creating icons, unpack the "350-MAI2013.zip" file and then "PSD_and_EPS.zip". Open the eps file in photoshop with a width of 1000. Select the icon, open a new image with it, resize to 32x32px. Invert colors, then max out contract and brightness.
 

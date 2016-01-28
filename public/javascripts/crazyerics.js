@@ -175,6 +175,9 @@ var Crazyerics = function() {
 
 Crazyerics.prototype.Sliders = {
 
+    _animating: false, //old skool way to prevent action while animating
+    _animationRate: 250, //in ms
+
     /**
      * initialize this object
      * @return {undef}
@@ -205,18 +208,47 @@ Crazyerics.prototype.Sliders = {
      * @param  {string} key
      * @return {undef}
      */
-    open: function(key) {
+    open: function(key, stayopen) {
+
+        if (this._animating) {
+            return;
+        }
 
         var self = this;
+        stayopen = stayopen || false; //if true and open, stay open. if false, will close if open
+        this._animating = true;
+
+
         $('#gamecontrolslist li').each(function(index, item) {
 
             var slider = $('#' + $(this).attr('class'));
 
             //if match found
             if ($(item).hasClass(key)) {
-                //if closed, open, if open close
-                $(slider).toggleClass('closed');
-                self._toggle(item, slider);
+
+                var selfToggle = function() {
+                    setTimeout(function() {
+                        self._toggle(item, slider, function() {
+                            self._animating = false;
+                        });
+                    }, self._animationRate);
+                }
+
+                //if closed, open                
+                if ($(slider).hasClass('closed')) {
+                    $(slider).removeClass('closed');
+                    selfToggle();
+                } else {
+                    //already open 
+                    //should I stay open?
+                    if (!stayopen) {
+                        $(slider).addClass('closed');
+                        selfToggle();  
+                    } else {
+                        //stay open
+                        self._animating = false;
+                    }
+                }
             } else {
                 //others in list
                 //if does not have class closed, its open, close it. else case is has closed
@@ -233,7 +265,13 @@ Crazyerics.prototype.Sliders = {
      * @return {undef}
      */
     closeall: function() {
+        var self = this;
         this.open('');
+
+        //since nothing is opening, we need to turn off the animation flag when all are closed
+        setTimeout(function() {
+            self._animating = false;
+        }, self._animationRate);
     },
     /**
      * toggle simply changes the state of the slider, if open then close, if closed, then open. controled only by this class
@@ -241,17 +279,25 @@ Crazyerics.prototype.Sliders = {
      * @param  {Object} slider div dom element which is the sliding panel
      * @return {undef}
      */
-    _toggle: function(li, slider) {
+    _toggle: function(li, slider, callback) {
+        
+        var self = this;
+        callback = callback || null;
+
         //toggle dom with id of this class name (which is the sliding element)
-        $(slider).animate({width: 'toggle', padding: 'toggle'}, 500);
+        $(slider).animate({width: 'toggle', padding: 'toggle'}, self._animationRate, function() {
+            if (callback) {
+                callback();
+            }
+        });
 
         if ($(li).attr('data-click-state') == 0) {
             $(li).attr('data-click-state', 1);
-            $(li).find('img').animateRotate(0, 90, 500);
+            $(li).find('img').animateRotate(0, 90, self._animationRate);
 
         } else {
             $(li).attr('data-click-state', 0);
-            $(li).find('img').animateRotate(90, 0, 500);
+            $(li).find('img').animateRotate(90, 0, self._animationRate);
         }
     }
 };
@@ -315,7 +361,7 @@ Crazyerics.prototype.replaceSuggestions = function(system, items) {
             $('#loading .loadingtext').text(loaded + '%');
 
             if (loaded === (count - 1)) {
-                //$('#suggestionswrapper').slideDown();
+                $('#suggestionswrapper').slideDown();
                 $('#loading').addClass('close');
             }
         });
@@ -373,14 +419,17 @@ Crazyerics.prototype._bootstrap = function(system, title, file, slot) {
         });
     }, 5000); //show tip for this long
 
+    $('#gamedetailsbackground').animate({ height: 0 }, 500); //close content area
+
     //fade in overlay
     $('#gameloadingoverlay').fadeIn(500, function() {
 
         //close any sliders
         self.Sliders.closeall();
 
-        $('#gameloadingoverlaycontent').removeClass();
+        $('#gameloadingoverlaycontent').show().removeClass();
         $('#emulatorcontrolswrapper').show(); //show controls initially to reveal their presence
+        $('#gameloadfailure').hide();
 
         self._cleanupEmulator();
 
@@ -397,6 +446,15 @@ Crazyerics.prototype._bootstrap = function(system, title, file, slot) {
         // });
 
         $.when(emulatorReady, gameReady, gameDetailsReady).done(function(emulator, loadedgame, gamecontent) {
+
+            //FOR NOW, PUT NES MESSAGE HERE
+            if (system === 'nes') {
+                $('#gameloadingoverlaycontent').hide();
+                $('#gameloadfailure').empty().append('<h2>Crazyerics cannot play NES games at this time</h2><p>Sorry for the inconvenience! I\'m a huge NES fanboy myself and hope to have this up soon.</p>').show();
+                self._ModuleLoading = false;
+                return;
+            }
+
 
             var Module = emulator[0];
             var fs = emulator[1];
@@ -516,21 +574,12 @@ Crazyerics.prototype._buildGameContent = function(system, title, callback) {
         $('#gametitle').empty().hide().append(title);
 
         // slide down background
-        // first measure the area the box will use. is it greater? use that distance to slide
-        var distance = this.height > 232 ? this.height : 232;
         $('#gamedetailsboxfront img').addClass('close');
-        $('#gamedetailsbackground').animate({
-            height: distance
-        }, 1000, function() {
+        $('#gamedetailsbackground').animate({ height: 250 }, 1000, function() {
 
             //fade in details
             $('#gamedetailswrapper').fadeIn(1000, function() {
 
-                $('#gametitle').bigText({
-                    textAlign: 'left',
-                    horizontalAlign: 'left'
-                }); //auto size text to fit
-                $('#gametitle').fadeIn(500);
                 $('#gamedetailsboxfront img').removeClass();
 
                 //load controls
@@ -541,6 +590,12 @@ Crazyerics.prototype._buildGameContent = function(system, title, callback) {
 
                 callback();
             });
+
+            //needs to occur after fade in to understand dimensions
+            $('#gametitle').bigText({
+                textAlign: 'left',
+                horizontalAlign: 'left'
+            }); //auto size text to fit
         });
     }, true);
 
@@ -926,14 +981,17 @@ Crazyerics.prototype._emulatorFileWritten = function(key, system, title, file, f
         });
         var urlCreator = window.URL || window.webkitURL;
         var imageUrl = urlCreator.createObjectURL(blob);
-        var img = new Image(100 * screenratio, 100);        //create new image with correct ratio
+        var width = $('#screenshotsslider div.slidercontainer').width() / 3; //550px is the size of the panel, the second number is how many screens to want to show per line
+        var img = new Image(width, width/screenratio);        //create new image with correct ratio
         img.src = imageUrl;
-        var a = $('<a href="' + imageUrl + '" download></a>'); //html 5 spec downloads image
-        a.append(img);
-        $('#screenshotsslider').append(a);
+        $(img).addClass('close').load(function() {
+            $(this).removeClass('close')
+        });
+        var a = $('<a class="screenshotthumb" href="' + imageUrl + '" download></a>'); //html 5 spec downloads image
+        a.append(img).insertAfter('#screenshotsslider p');
 
         //kick open the screenshot slider
-        self.Sliders.open('screenshotsslider');
+        self.Sliders.open('screenshotsslider', true);
     }
 };
 

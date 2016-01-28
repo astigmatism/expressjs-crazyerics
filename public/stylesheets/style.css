@@ -366,7 +366,7 @@ p {
     vertical-align: middle;
 }
 
-#gameloadingoverlaycontent {
+#gameloadingoverlaycontent, #gameloadfailure {
 	height: 250px;	
 	width: 100%;
 	text-align: center;
@@ -413,7 +413,7 @@ p {
 
 #gamedetailsbackground {
 	padding: 10px 0px;
-	height: auto;
+	height: 0px;
 	width: 100%;
 	background: rgba(0,0,0,1);
 }
@@ -453,14 +453,13 @@ p {
 
 #gametitlewrapper {
 	height: 32px;
-	margin-left: 40px;
 }
 
 /* game controls list and sliders */
 
 #gamecontrolslist {
 	position: absolute;
-	top: 0;
+	top: 40px;
 	left: 0;
 	list-style: none;
 	max-width: 42px;
@@ -480,13 +479,33 @@ p {
 div.slidingpanel {
 
 	display: none;
-	width: 100%;
+	width: 550px;
 	position: absolute;
-	top: 32px;
+	top: 40px;
 	left: 0;
 	height: 200px;
-	overflow-x: hidden;
-	overflow-y: scroll;
+	margin-left: 50px;
+	overflow-x: auto;
+	overflow-y: auto;
+}
+
+#screenshotsslider div.slidercontainer {
+	position: relative;
+	width: 550px;
+	height: 200px;
+}
+
+#screenshotsslider p {
+	font-size: 12px;
+	margin-top: 0;
+}
+
+#screenshotsslider img {
+	vertical-align: middle;
+	transition:All 200ms ease-in;
+	-webkit-transition:All 200ms ease-in;
+	-moz-transition:All 200ms ease-in;
+	-o-transition:All 200ms ease-in;
 }
 
 /* recently played */
