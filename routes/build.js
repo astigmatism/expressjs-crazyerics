@@ -276,7 +276,7 @@ router.get('/folders/:system', function(req, res, next) {
 
 router.get('/compressshaders', function(req, res, next) {
 
-    var source = __dirname + '/../public/shaders_glsl';
+    var source = __dirname + '/../public/shaderwork';
 
     UtilitiesService.compressShaders(source, '', function(err, data) {
         if (err) {

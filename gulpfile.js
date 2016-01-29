@@ -7,7 +7,7 @@ var rename = require('gulp-rename');
 var concat = require('gulp-concat');
 var runSequence = require('run-sequence');
 var closureCompiler = require('gulp-closure-compiler');
-var minifyCss = require('gulp-minify-css');
+var cssnano = require('gulp-cssnano');
 
 //ideally we are watching all javacript files inside this project
 var paths = [
@@ -97,7 +97,7 @@ gulp.task('closure', function() {
 
 gulp.task('minify-css', function() {
   return gulp.src('./public/stylesheets/*.css')
-    .pipe(minifyCss())
+    .pipe(cssnano())
     .pipe(concat('style.min.css'))
     .pipe(gulp.dest(DEST));
 });

@@ -1,5 +1,3 @@
-var FS = null;
-
 /**
  * namespace for all crazyerics client functionality
  */
@@ -13,11 +11,6 @@ var Crazyerics = function() {
 
         //unpack clientdata
         self._clientdata = self._decompress.json(clientdata);
-
-        //unpack shaders
-        // for (shader in Shaders) {
-        //     Shaders[shader] = self._decompress.string(Shaders[shader]);
-        // }
 
         //incoming params to open game now?
         var openonload = self._clientdata.openonload || {};
@@ -304,6 +297,7 @@ Crazyerics.prototype.Sliders = {
 
 Crazyerics.prototype._clientdata = null;
 Crazyerics.prototype._Module = null; //handle the emulator Module
+Crazyerics.prototype._FS = null; //handle to Module file system
 Crazyerics.prototype._ModuleLoading = false; //oldskool way to prevent double loading
 Crazyerics.prototype._pauseOverride = false; //condition for blur event of emulator, sometimes we don't want it to pause when we're giving it back focus
 Crazyerics.prototype._activeFile = null;
@@ -325,7 +319,7 @@ Crazyerics.prototype._fileWriteTimers = {};
 Crazyerics.prototype._playhistory = {};
 Crazyerics.prototype._socket = null; //socket.io
 
-Crazyerics.prototype._macroToShaderMenu = [[112, 100], 40, 40, 40, 88, 88, 40, 40, 40, 37, 37, 37, 38, 88]; //macro opens shader menu and clears all passes
+Crazyerics.prototype._macroToShaderMenu = [[112, 100], 40, 40, 40, 88, 88, 40, 40, 40, 37, 37, 37, 38, 88, 88, 90, 90, 38, 38, 38, 112]; //macro opens shader menu and clears all passes
 
 /**
  * function for handling the load and replacement of the suggestions content area
@@ -469,7 +463,7 @@ Crazyerics.prototype._bootstrap = function(system, title, file, slot) {
             var files = gamecontent.files;
 
             self._Module = Module; //handle to Module
-            FS = fs;
+            self._FS = fs;
             self.emulatorframe = frame; //handle to iframe
 
             //console.log(self._generateLink(system, title, file));
@@ -622,8 +616,8 @@ Crazyerics.prototype._cleanupEmulator = function() {
     $(document).unbind('mozpointerlockchange');
     $(document).unbind('webkitpointerlockchange');
 
-    if (FS) {
-        FS = null;
+    if (self._FS) {
+        self._FS = null;
     }
 
     if (self._Module) {
@@ -743,7 +737,7 @@ Crazyerics.prototype._setupKeypressInterceptor = function(system, title, file) {
                             self._Module.requestFullScreen(true, true);
                         break;
                         case 67: //c
-                            self._runKeyboardMacro(self._macroToShaderMenu);
+                            self.getShader('lcd-shader');
                         break;
                     }
                 break;
@@ -881,35 +875,8 @@ Crazyerics.prototype._buildFileSystem = function(Module, system, file, data, sta
         Module.FS_createDataFile('/etc', 'retroarch.cfg', self._clientdata.retroarch[system], true, true);
     }
 
-    //shaders (all shaders have already been unpacked for the client, just need to write them to the file system)
+    //shaders
     Module.FS_createFolder('/', 'shaders', true, true);
-    // for (shader in Shaders) {
-    //     var path = shader.split('/'); //split the destination path
-    //     var installpath = '/shaders'; //the install path on the FS
-
-    //     //loop over all path segments
-    //     for (var i = 1; i < path.length; ++i) {
-
-    //         //for final path segement, write file
-    //         if (i === path.length - 1) {
-    //             //we expect the path to exist, but an error in this routine will throw an Excep
-    //             try {
-    //                 Module.FS_createDataFile(installpath, path[i], Shaders[shader], true, true);
-    //             }
-    //             catch (e) {}
-    //         }
-
-    //         //otherwise create path
-    //         installpath += '/';
-    //         //I don't have a routine for checking if the path exists, this try catch will wrokaround that
-    //         try {
-    //             Module.FS_createFolder(installpath, path[i], true, true);
-    //         }
-    //         catch (e) {
-    //             //likely ErrnoError {errno: 17, code: "EEXIST", message: "File exists"}
-    //         }
-    //     }
-    // }
 
     //screenshots
     Module.FS_createFolder('/', 'screenshots', true, true);
@@ -921,6 +888,45 @@ Crazyerics.prototype._buildFileSystem = function(Module, system, file, data, sta
         var statefilename = '/' + filenoextension + '.state' + (slot == 0 ? '' : slot);
         Module.FS_createDataFile('/', statefilename, statedata, true, true);
     }
+};
+
+Crazyerics.prototype.getShader = function(key, callback) {
+
+    var self = this;
+
+    //ensure file system handle is defined before writing to it
+    if (self._FS) {
+
+        //make ajax call to server to get shader files
+        $.getJSON('/shaders/' + key, function(data) {
+            
+            //delete all currently used shader files (simplies the file system to use one shader at a time)
+            var files = self._FS.readdir('/shaders');
+            var i = 2; //first two indeces return "." and ".."
+            for (i; i < files.length; ++i) {
+                //wrap these calls, they throw on error
+                try {
+                    self._FS.unlink('/shaders/' + file);
+                } catch (e) {
+                    //not sure how to handle an error on deletion
+                }
+            }
+
+            //write new shaders files in
+            for (file in data) {
+                var content = self._decompress.bytearray(data[file]);
+                try {
+                    self._FS.createDataFile('/shaders', file, content, true, true);
+                } catch(e) {
+                    //an error on file write.
+                }
+            }
+
+            //self._runKeyboardMacro(self._macroToShaderMenu); 
+
+        });    
+    }
+    
 };
 
 /**

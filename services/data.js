@@ -30,7 +30,6 @@ DataService.getFile = function(path, callback, forceLoad, cacheLifetime, buffer)
 
     //attempt to retireve file contents. cachekey is file path
     nodecache.get(path, function(err, data) {
-
         if (err) {
             return callback(err);
         }

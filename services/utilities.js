@@ -712,29 +712,31 @@ UtilitiesService.compressShaders = function(base, dir, callback) {
 
                 //is dir
                 if (stats.isDirectory()) {
+                    
+                    return nextitem();
 
-                    UtilitiesService.compressShaders(base, dir + '/' + item, function(err, dirresult) {
-                        if (err) {
-                            return nextitem(err);
-                        }
+                    // UtilitiesService.compressShaders(base, dir + '/' + item, function(err, dirresult) {
+                    //     if (err) {
+                    //         return nextitem(err);
+                    //     }
 
-                        result = merge(result, dirresult);
-                        return nextitem();
-                    });
+                    //     result = merge(result, dirresult);
+                    //     return nextitem();
+                    // });
                 } 
                 //if file, open and read
                 else {
 
-                    fs.readFile(base + dir + '/' + item, 'utf8', function(err, content) {
+                    fs.readFile(base + dir + '/' + item, function(err, content) {
                         if (err) {
                             return nextitem(err);
                         }
 
                         //corrections to source code
-                        content.replace('int FrameDirection', 'float FrameDirection');
-                        content.replace('int FrameCount', 'float FrameCount');
+                        //content.replace('int FrameDirection', 'float FrameDirection');
+                        //content.replace('int FrameCount', 'float FrameCount');
 
-                        result[dir + '/' + item] = UtilitiesService.compress.string(content);
+                        result[dir + '/' + item] = UtilitiesService.compress.bytearray(content);
 
                         return nextitem();
                     });
@@ -750,8 +752,27 @@ UtilitiesService.compressShaders = function(base, dir, callback) {
     });
 };
 
+UtilitiesService.getShader = function(key, callback) {
+
+    DataService.getFile('/data/shaders.json', function(err, content) {
+        if (err) {
+            return callback(err);
+        }
+
+        if (content.hasOwnProperty(key)) {
+            return callback(null, content[key]);
+        }
+        return callback('key not found in shaders');
+    });
+
+};  
+
 //order: stringify, encode, deflate, unescape, base64
 UtilitiesService.compress = {
+    bytearray: function(uint8array) {
+        var deflated = pako.deflate(uint8array, {to: 'string'});
+        return btoa(deflated);
+    },
     json: function(json) {
         var string = JSON.stringify(json);
         var deflate = pako.deflate(string, {to: 'string'});
@@ -774,6 +795,10 @@ UtilitiesService.compress = {
 
 //order: base 64, escape, inflate, decode, parse
 UtilitiesService.decompress = {
+    bytearray: function(item) {
+        var decoded = new Uint8Array(atob(item).split('').map(function(c) {return c.charCodeAt(0);}));
+        return pako.inflate(decoded);
+    },
     json: function(item) {
         var base64 = atob(item);
         var inflate = pako.inflate(base64, {to: 'string'});
