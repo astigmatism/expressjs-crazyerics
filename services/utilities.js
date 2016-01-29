@@ -748,15 +748,11 @@ UtilitiesService.compressShaders = function(base, dir, callback) {
 
 UtilitiesService.getShader = function(key, callback) {
 
-    DataService.getFile('/data/shaders.json', function(err, content) {
+    DataService.getFile('/data/shaders/' + key + '.json', function(err, content) {
         if (err) {
             return callback(err);
         }
-
-        if (content.hasOwnProperty(key)) {
-            return callback(null, content[key]);
-        }
-        return callback('key not found in shaders');
+        callback(null, content);
     });
 
 };  
