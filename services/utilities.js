@@ -712,17 +712,15 @@ UtilitiesService.compressShaders = function(base, dir, callback) {
 
                 //is dir
                 if (stats.isDirectory()) {
-                    
-                    return nextitem();
 
-                    // UtilitiesService.compressShaders(base, dir + '/' + item, function(err, dirresult) {
-                    //     if (err) {
-                    //         return nextitem(err);
-                    //     }
+                    UtilitiesService.compressShaders(base, dir + '/' + item, function(err, dirresult) {
+                        if (err) {
+                            return nextitem(err);
+                        }
 
-                    //     result = merge(result, dirresult);
-                    //     return nextitem();
-                    // });
+                        result = merge(result, dirresult);
+                        return nextitem();
+                    });
                 } 
                 //if file, open and read
                 else {
@@ -731,10 +729,6 @@ UtilitiesService.compressShaders = function(base, dir, callback) {
                         if (err) {
                             return nextitem(err);
                         }
-
-                        //corrections to source code
-                        //content.replace('int FrameDirection', 'float FrameDirection');
-                        //content.replace('int FrameCount', 'float FrameCount');
 
                         result[dir + '/' + item] = UtilitiesService.compress.bytearray(content);
 
