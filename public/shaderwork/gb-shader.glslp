@@ -6,19 +6,19 @@ shader3 = gb-pass-3.glsl
 shader4 = gb-pass-4.glsl
 
 scale_type0 = viewport
-scale0 = 2
+scale0 = 1
 
 scale_type1 = source
-scale1 = 2
+scale1 = 1
 
 scale_type2 = source
-scale2 = 2
+scale2 = 1
 
 scale_type3 = source
-scale3 = 2
+scale3 = 1
 
 scale_type4 = source
-scale4 = 2
+scale4 = 1
 
 filter_linear0 = false
 filter_linear1 = false
