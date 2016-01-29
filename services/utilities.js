@@ -693,11 +693,11 @@ UtilitiesService.collectDataForClient = function(req, openonload, callback) {
     }
 };
 
-UtilitiesService.compressShaders = function(base, dir, callback) {
+UtilitiesService.compressShaders = function(name, path, callback) {
 
     var result = {};
 
-    fs.readdir(base + dir, function(err, items) {
+    fs.readdir(path, function(err, items) {
         if (err) {
             return callback(err);
         }
@@ -705,32 +705,23 @@ UtilitiesService.compressShaders = function(base, dir, callback) {
         async.each(items, function(item, nextitem) {
 
             //analyize file
-            fs.stat(base + dir + '/' + item, function (err, stats) {
+            fs.stat(path + '/' + item, function (err, stats) {
                 if (err) {
                     return nextitem(err);
                 }
 
-                //is dir
-                if (stats.isDirectory()) {
+                //files only
+                if (stats.isFile()) {
 
-                    UtilitiesService.compressShaders(base, dir + '/' + item, function(err, dirresult) {
+                    fs.readFile(path + '/' + item, function(err, content) {
                         if (err) {
                             return nextitem(err);
                         }
 
-                        result = merge(result, dirresult);
-                        return nextitem();
-                    });
-                } 
-                //if file, open and read
-                else {
-
-                    fs.readFile(base + dir + '/' + item, function(err, content) {
-                        if (err) {
-                            return nextitem(err);
+                        //dumb DS_Store
+                        if (item !== '.DS_Store') {
+                            result[item] = UtilitiesService.compress.bytearray(content);
                         }
-
-                        result[dir + '/' + item] = UtilitiesService.compress.bytearray(content);
 
                         return nextitem();
                     });
@@ -741,7 +732,14 @@ UtilitiesService.compressShaders = function(base, dir, callback) {
             if (err) {
                 return callback(err);
             }
-            callback(null, result);
+
+            //write result to file using name parameter
+            fs.writeFile(__dirname + '/../data/shaders/' + name + '.json', JSON.stringify(result), 'utf8', function(err) {
+                if (err) {
+                    return callback(err);
+                }
+                callback(null, 'file saved.');
+            });
         });
     });
 };

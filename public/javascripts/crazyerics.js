@@ -737,7 +737,7 @@ Crazyerics.prototype._setupKeypressInterceptor = function(system, title, file) {
                             self._Module.requestFullScreen(true, true);
                         break;
                         case 67: //c
-                            self.getShader('nds-color');
+                            self.getShader('bicubic-normal');
                         break;
                     }
                 break;

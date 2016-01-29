@@ -274,11 +274,12 @@ router.get('/folders/:system', function(req, res, next) {
     });
 });
 
-router.get('/compressshaders', function(req, res, next) {
+router.get('/compressshaders/:name', function(req, res, next) {
 
-    var source = __dirname + '/../public/shaderwork';
+    var path = __dirname + '/../public/shaderwork';
+    var name = req.params.name;
 
-    UtilitiesService.compressShaders(source, '', function(err, data) {
+    UtilitiesService.compressShaders(name, path, function(err, data) {
         if (err) {
             return res.json(err);
         }
