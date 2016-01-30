@@ -17,7 +17,6 @@ var routes = require('./routes/index');
 var build = require('./routes/build');
 var states = require('./routes/states');
 var suggest = require('./routes/suggest');
-var shaders = require('./routes/shaders');
 
 var app = express();
 
@@ -49,7 +48,6 @@ app.use('/', routes);
 app.use('/build', build);
 app.use('/states', states);
 app.use('/suggest', suggest);
-app.use('/shaders', shaders);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

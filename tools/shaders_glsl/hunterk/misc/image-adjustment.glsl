@@ -91,8 +91,8 @@ COMPAT_VARYING vec4 COL0;
 COMPAT_VARYING vec4 TEX0;
  
 uniform mat4 MVPMatrix;
-uniform int FrameDirection;
-uniform int FrameCount;
+uniform float FrameDirection;
+uniform float FrameCount;
 uniform COMPAT_PRECISION vec2 OutputSize;
 uniform COMPAT_PRECISION vec2 TextureSize;
 uniform COMPAT_PRECISION vec2 InputSize;
@@ -168,8 +168,8 @@ vec3 grayscale(vec3 col)
    return vec3(dot(col, vec3(0.2126, 0.7152, 0.0722)));
 }
  
-uniform int FrameDirection;
-uniform int FrameCount;
+uniform float FrameDirection;
+uniform float FrameCount;
 uniform COMPAT_PRECISION vec2 OutputSize;
 uniform COMPAT_PRECISION vec2 TextureSize;
 uniform COMPAT_PRECISION vec2 InputSize;

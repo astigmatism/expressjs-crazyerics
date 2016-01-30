@@ -293,8 +293,8 @@ float _geom_overscan_x;
 float _geom_overscan_y;
  
 uniform mat4 MVPMatrix;
-uniform int FrameDirection;
-uniform int FrameCount;
+uniform float FrameDirection;
+uniform float FrameCount;
 uniform COMPAT_PRECISION vec2 OutputSize;
 uniform COMPAT_PRECISION vec2 TextureSize;
 uniform COMPAT_PRECISION vec2 InputSize;
@@ -1394,8 +1394,8 @@ float _geom_view_dist;
 float _border_darkness;
 float _border_compress;
  
-uniform int FrameDirection;
-uniform int FrameCount;
+uniform float FrameDirection;
+uniform float FrameCount;
 uniform COMPAT_PRECISION vec2 OutputSize;
 uniform COMPAT_PRECISION vec2 TextureSize;
 uniform COMPAT_PRECISION vec2 InputSize;

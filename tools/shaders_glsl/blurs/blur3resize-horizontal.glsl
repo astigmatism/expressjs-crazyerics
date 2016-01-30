@@ -42,8 +42,8 @@ COMPAT_VARYING vec4 TEX0;
 COMPAT_VARYING vec4 TEX1;
  
 uniform mat4 MVPMatrix;
-uniform int FrameDirection;
-uniform int FrameCount;
+uniform float FrameDirection;
+uniform float FrameCount;
 uniform COMPAT_PRECISION vec2 OutputSize;
 uniform COMPAT_PRECISION vec2 TextureSize;
 uniform COMPAT_PRECISION vec2 InputSize;
@@ -118,8 +118,8 @@ vec4 _color0035;
 COMPAT_VARYING vec4 TEX0;
 COMPAT_VARYING vec4 TEX1;
  
-uniform int FrameDirection;
-uniform int FrameCount;
+uniform float FrameDirection;
+uniform float FrameCount;
 uniform COMPAT_PRECISION vec2 OutputSize;
 uniform COMPAT_PRECISION vec2 TextureSize;
 uniform COMPAT_PRECISION vec2 InputSize;

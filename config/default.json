@@ -16,8 +16,15 @@
 			"titles": 2087,
 			"suggestions": 848,
 			"ratiotoall": 0.203,
-			"recommendedshaders": {
-			}
+			"recommendedshaders": [ 
+				"gb-shader",
+				"lcd-shader",
+				"super-eagle",
+				"nds",
+				"gb-pocket-shader",
+				"gb-light-shader",
+				"hq2x"
+			]
 		},
 		"gba": {
 			"name": "Gameboy Advance",
@@ -28,7 +35,8 @@
 			"titles": 2040,
 			"suggestions": 586,
 			"ratiotoall": 0.140,
-			"retroarch": "video_aspect_ratio = 1.5"
+			"retroarch": "video_aspect_ratio = 1.5",
+			"recommendedshaders": []
 		},
 		"nes": {
 			"name": "Nintendo Entermainment System",
@@ -39,7 +47,8 @@
 			"titles": 1971,
 			"suggestions": 692,
 			"ratiotoall": 0.166,
-			"retroarch": "video_aspect_ratio = 1.06666667"
+			"retroarch": "video_aspect_ratio = 1.06666667",
+			"recommendedshaders": []
 		},
 		"snes": {
 			"name": "Super Nintendo Entermainment System",
@@ -50,7 +59,11 @@
 			"titles": 2120,
 			"suggestions": 704,
 			"ratiotoall": 0.169,
-			"retroarch": "video_aspect_ratio = 1.14285714"
+			"retroarch": "video_aspect_ratio = 1.14285714",
+			"recommendedshaders": [
+				"hq4x",
+				"scale3xSFX"
+			]
 		},
 		"gen": {
 			"name": "Sega Genesis",
@@ -62,7 +75,8 @@
 			"titles": 1112,
 			"suggestions": 721,
 			"ratiotoall": 0.173,
-			"retroarch": "video_aspect_ratio = 1.42857143"
+			"retroarch": "video_aspect_ratio = 1.42857143",
+			"recommendedshaders": []
 		},
 		"sms": {
 			"name": "Sega Master System",
@@ -73,7 +87,8 @@
 			"titles": 516,
 			"suggestions": 99,
 			"ratiotoall": 0.023,
-			"retroarch": "video_aspect_ratio = 1.33333333"
+			"retroarch": "video_aspect_ratio = 1.33333333",
+			"recommendedshaders": []
 		},
 		"gg": {
 			"name": "Sega Game Gear",
@@ -84,7 +99,8 @@
 			"titles": 376,
 			"suggestions": 214,
 			"ratiotoall": 0.051,
-			"retroarch": "video_aspect_ratio = 1.11111111"
+			"retroarch": "video_aspect_ratio = 1.11111111",
+			"recommendedshaders": []
 		},
 		"n64": {
 			"name": "Nintendo 64",
@@ -96,7 +112,11 @@
 			"titles": 414,
 			"suggestions": 297,
 			"ratiotoall": 0.071,
-			"retroarch": "video_aspect_ratio = 1.142857143\ninput_player1_l2 = a\ninput_player1_l_x_plus = right\ninput_player1_l_x_minus = left\ninput_player1_l_y_plus = down\ninput_player1_l_y_minus = up\ninput_player1_left = S\ninput_player1_right = D\ninput_player1_up = E\ninput_player1_down = C\ninput_player1_r_x_plus = l\ninput_player1_r_x_minus = j\ninput_player1_r_y_plus = k\ninput_player1_r_y_minus = i\n"
+			"retroarch": "video_aspect_ratio = 1.142857143\ninput_player1_l2 = a\ninput_player1_l_x_plus = right\ninput_player1_l_x_minus = left\ninput_player1_l_y_plus = down\ninput_player1_l_y_minus = up\ninput_player1_left = S\ninput_player1_right = D\ninput_player1_up = E\ninput_player1_down = C\ninput_player1_r_x_plus = l\ninput_player1_r_x_minus = j\ninput_player1_r_y_plus = k\ninput_player1_r_y_minus = i\n",
+			"recommendedshaders": [
+				"aa-shader-4.o",
+				"reverse-aa"
+			]
 		}
 	},
 	"retroarch": "video_shader_enable = true\ninput_shader_next = rightbracket\ninput_shader_prev = leftbracket\nvideo_shader_dir = \"/shaders\"\nscreenshot_directory =\"/screenshots\"\ninput_screenshot = t\nvideo_gpu_screenshot = false\ninput_exit_emulator = end\ninput_save_state = num1\ninput_load_state = num4\ninput_state_slot_increase = num3\ninput_state_slot_decrease = num2\ninput_audio_mute = m\ninput_reset = h\ninput_toggle_fullscreen = f12\ninput_hold_fast_forward = space\ninput_player1_select = shift\nvideo_vsync = false\naudio_latency = 96\nvideo_font_size = 32\nvideo_force_aspect = true\nvideo_smooth = false\nrewind_enable = true\ninput_frame_advance = nul\n",
@@ -104,5 +124,123 @@
 		"boxFrontThreshold": 63,
 		"searchAllThreshold": 66,
 		"suggestionThreshold": 89
+	},
+	"shaders": {
+		"gb-shader" : {
+			"title": "Game Boy",
+			"shader": "gb-shader"
+		},
+		"lcd-shader": {
+			"title": "90's LCD",
+			"shader": "lcd-shader"
+		},
+		"super-eagle": {
+			"title": "Super Eagle",
+			"shader": "super-eagle" 
+		},
+		"3dfx_4x1": {
+			"title": "3dfx 4x1",
+			"shader": "3dfx_4x1"
+		},
+		"aa-shader-4.o":  {
+			"title": "ePSXe AA Shader 4.o",
+			"shader": "aa-shader-4.o"
+		},
+		"advanced-aa": {
+			"title": "advanced-aa",
+			"shader": "advanced-aa"
+		},
+		"bicubic-fast": {
+			"title": "Bicubic (Fast)",
+			"shader": "bicubic-fast"
+		},
+		"bicubic-normal": {
+			"title": "Bicubic (Normal)",
+			"shader": "bicubic-normal"
+		},
+		"bicubic-sharp": {
+			"title": "Bicubic (Sharp)",
+			"shader": "bicubic-sharp"
+		},
+		"bicubic-sharper": {
+			"title": "Bicubic (Sharper)",
+			"shader": "bicubic-sharper"
+		},
+		"fx-aa": {
+			"title": "Nvidia FXAA",
+			"shader": "fx-aa"
+		},
+		"fxaa-edge-detect": {
+			"title": "Nvidia FXAA Edge Detect",
+			"shader": "fxaa-edge-detect"
+		},
+		"nds-color": {
+			"title": "nds-color",
+			"shader": "nds-color"
+		},
+		"nds": {
+			"title": "Nintendo DS",
+			"shader": "nds"
+		},
+		"reverse-aa": {
+			"title": "Reverse AA",
+			"shader": "reverse-aa"
+		},
+		"gb-pocket-shader": {
+			"title": "Game Boy Pocket",
+			"shader": "gb-pocket-shader"
+		},
+		"gb-light-shader": {
+			"title": "Game Boy Light",
+			"shader": "gb-light-shader"
+		},
+		"hq2x": {
+			"title": "Hq2x",
+			"shader": "hq2x"
+		},
+		"hq3x": {
+			"title": "Hq3x",
+			"shader": "hq3x"
+		},
+		"hq4x": {
+			"title": "Hq4x",
+			"shader": "hq4x"
+		},
+		"scale2x": {
+			"title": "Scale2x",
+			"year": "2001",
+			"notes":"Eric's Pixel Expansion (EPX) is an algorithm developed by Eric Johnston at LucasArts around 1992 when porting the SCUMM engine games from the IBM PC (which ran at 320×200×256 colors) to the early color Macintosh computers, which ran at more or less double that resolution. Later implementations of this same algorithm (as AdvMAME2× and Scale2×) have a slightly more efficient but functionally identical implementation.",
+			"shader": "scale2x"
+		},
+		"scale2xplus": {
+			"title": "Scale2x-PLUS",
+			"year":"2014",
+			"notes": "An improved version of the Scale2X algorithm modified to work better with 24-bit RGB images.",
+			"shader": "scale2xplus"
+		},
+		"scale2xSFX": {
+			"title": "Scale2xSFX",
+			"notes":"An improved version of the Scale2X algorithm",
+			"shader": "scale2xSFX"
+		},
+		"scale3x": {
+			"title": "Scale3x",
+			"year":"2001",
+			"shader": "scale3x",
+			"notes": "The AdvMAME3×/Scale3× algorithm can be thought of as a generalization of Scale2x to the 3× case. The corner pixels are calculated identically to Scale2x."
+		},
+		"scale3xSFX": {
+			"title": "Scale3xSFX",
+			"notes":"An improved version of the Scale3X algorithm",
+			"shader": "scale3xSFX"
+		},
+		"aaaaa": {
+			"title": "aaaaaaa",
+			"shader": "aaaaaaa"
+		},
+		"aaaaa": {
+			"title": "aaaaaaa",
+			"shader": "aaaaaaa"
+		}
 	}
 }

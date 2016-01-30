@@ -6,7 +6,7 @@ var uglify = require('gulp-uglify');
 var rename = require('gulp-rename');
 var concat = require('gulp-concat');
 var runSequence = require('run-sequence');
-var closureCompiler = require('gulp-closure-compiler');
+var closure = require('gulp-closure-compiler-service');
 var cssnano = require('gulp-cssnano');
 
 //ideally we are watching all javacript files inside this project
@@ -34,7 +34,7 @@ watcher.on('change', function(event) {
 gulp.task('watch', function() {
     //run these sequences in this order:
     //runSequence('jscsfixjustwhitespace', 'jscs', 'lint', function() {
-    runSequence('jscs', 'lint', 'minify-css', 'closure', function() {
+    runSequence('jscs', 'lint', 'minify-css', function() {
         return;
     });
 });
@@ -68,7 +68,8 @@ function jscsErrorHandler(error) {
 
 gulp.task('jscs', function() {
   return gulp.src(changedFiles)
-    .pipe(jscs());
+    .pipe(jscs())
+    .pipe(jscs.reporter());
 });
 
 //use closure instead
@@ -84,13 +85,9 @@ gulp.task('mini', function() {
 
 gulp.task('closure', function() {
   return gulp.src('./public/javascripts/*.js')
-    .pipe(closureCompiler({
-      compilerPath: './compiler.jar',
-      fileName: 'build.js',
-      continueWithWarnings: true,
-      compilerFlags: {
+    .pipe(closure({
+        language: 'ECMASCRIPT5',
         compilation_level: 'SIMPLE_OPTIMIZATIONS'
-      }
     }))
     .pipe(gulp.dest(DEST));
 });

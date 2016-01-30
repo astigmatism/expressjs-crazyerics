@@ -21,7 +21,8 @@ html
         link(rel='stylesheet', href='/stylesheets/tooltipster-shadow.css')
         link(rel='stylesheet', type='text/css', href='http://fonts.googleapis.com/css?family=Open+Sans|Montserrat')
         script.
-            clientdata='#{clientdata}';
+            clientconfig='#{clientconfig}';
+            playerdata='#{playerdata}';
         script.
               (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
               (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
@@ -37,10 +38,10 @@ html
         div#container
             div#maincolumn
                 - titlebanner = Math.floor((Math.random() * 19) + 1);
-                div#titlebanner(style='background:url(#{assetpath}/images/titlebanners/#{titlebanner}.jpg)')
-                    div(class='bannergradient')
-                    div(class='titlewrapper')
-                        h1 crazyerics.com
-                        p retro gaming commmunity
+                //- div#titlebanner(style='background:url(#{assetpath}/images/titlebanners/#{titlebanner}.jpg)')
+                //-     div(class='bannergradient')
+                //-     div(class='titlewrapper')
+                //-         h1 crazyerics.com
+                //-         p retro gaming commmunity
                 block content
             - //div#menucolumn

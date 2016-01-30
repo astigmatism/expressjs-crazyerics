@@ -366,7 +366,7 @@ p {
     vertical-align: middle;
 }
 
-#gameloadingoverlaycontent, #gameloadfailure {
+#gameloadingoverlaycontent, #gameloadfailure, #systemshaderseletorwrapper {
 	height: 250px;	
 	width: 100%;
 	text-align: center;

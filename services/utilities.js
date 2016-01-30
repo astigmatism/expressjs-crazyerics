@@ -639,45 +639,71 @@ UtilitiesService.findGame = function(system, title, file, callback) {
     });
 };
 
-UtilitiesService.collectDataForClient = function(req, openonload, callback) {
+UtilitiesService.collectConfigDataForClient = function(req, callback) {
 
-    var result = {
+    var clientdata = {
         retroarch: {},
         rompath: {},
-        flatten: {}
+        flatten: {},
+        recommendedshaders: {}
     };
     var systems = config.get('systems');
     var retroarch = config.get('retroarch');
 
-    var synchonous = function() {
-        //retroarch configs
-        for (system in systems) {
-            result.retroarch[system] = retroarch + systems[system].retroarch;
-        }
+    //system specific configs
+    for (system in systems) {
+        clientdata.retroarch[system] = retroarch + systems[system].retroarch;
+        clientdata.recommendedshaders[system] = systems[system].recommendedshaders;
+    }
+    //roms location
+    clientdata.rompath = config.get('rompath');
 
-        //roms location
-        result.rompath = config.get('rompath');
+    //are rom dirtree structures flattened? (use gamekey as file name)
+    clientdata.flattenedromfiles = config.get('flattenedromfiles');
 
-        //are rom dirtree structures flattened? (use gamekey as file name)
-        result.flattenedromfiles = config.get('flattenedromfiles');
+    //asset location
+    clientdata.assetpath = config.get('assetpath');
 
-        //asset location
-        result.assetpath = config.get('assetpath');
+    //shader manifest
+    clientdata.shaders = config.get('shaders');
 
-        //box art location
-        result.boxpath = config.get('boxpath');
-        result.flattenedboxfiles = config.get('flattenedboxfiles');
+    //box art location
+    clientdata.boxpath = config.get('boxpath');
+    clientdata.flattenedboxfiles = config.get('flattenedboxfiles');
 
-        //play history from session
-        result.playhistory = {};
-        if (req.session && req.session.games && req.session.games.history) {
-            result.playhistory = req.session.games.history;
+    //because this json object is going over the wire, compress (client will decompress)
+    clientdata = UtilitiesService.compress.json(clientdata);
+
+    return callback(null, clientdata);
+};
+
+UtilitiesService.collectPlayerDataForClient = function(req, openonload, callback) {
+
+    var playerdata = {};
+
+    var synchonous = function() {   
+
+        
+        playerdata.playhistory = {};
+        playerdata.shaders = {};
+
+        if (req.session) {
+
+            //play history from session
+            if (req.session.games && req.session.games.history) {
+                playerdata.playhistory = req.session.games.history;
+            }
+
+            //shaders from session
+            if (req.session.shaders) {
+                playerdata.shaders = req.session.shaders;
+            }
         }
 
         //because this json object is going over the wire, compress (client will decompress)
-        result = UtilitiesService.compress.json(result);
+        playerdata = UtilitiesService.compress.json(playerdata);
 
-        return callback(null, result);
+        return callback(null, playerdata);
     };
 
     if (openonload && openonload.title && openonload.system && openonload.file) {
@@ -685,7 +711,7 @@ UtilitiesService.collectDataForClient = function(req, openonload, callback) {
             if (err) {
                 return callback(err);
             }
-            result.openonload = data;
+            playerdata.openonload = data;
             synchonous();
         });
     } else {
@@ -744,15 +770,16 @@ UtilitiesService.compressShaders = function(name, path, callback) {
     });
 };
 
+//load a shader file with a given file name or key. if key not a string or zero length, no prob, just send back empty data
+//error case unique: if no any reason we cant load the file or no key is given, return a zero length string
 UtilitiesService.getShader = function(key, callback) {
 
     DataService.getFile('/data/shaders/' + key + '.json', function(err, content) {
         if (err) {
-            return callback(err);
+            callback(err);
         }
-        callback(null, content);
+        return callback(null, content);
     });
-
 };  
 
 //order: stringify, encode, deflate, unescape, base64

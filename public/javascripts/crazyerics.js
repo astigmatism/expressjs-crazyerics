@@ -5,20 +5,21 @@ var Crazyerics = function() {
 
     var self = this;
 
-    //self._socket = io.connect(window.location.hostname + ':3000');
-
     $(document).ready(function() {
 
-        //unpack clientdata
-        self._clientdata = self._decompress.json(clientdata);
+        //unpack playerdata
+        self.PlayerData.init(playerdata); //player data is user specific, can be dynmic
+
+        //unpack client data
+        self.ClientConfig.init(clientconfig); //clientdata is generally static - configuration values for client, etc
 
         //incoming params to open game now?
-        var openonload = self._clientdata.openonload || {};
+        var openonload = self.PlayerData.get('openonload') || {};
         if ('system' in openonload && 'title' in openonload && 'file' in openonload) {
             self._bootstrap(openonload.system, openonload.title, openonload.file);
         }
 
-        self._buildRecentlyPlayed(self._clientdata.playhistory);
+        self._buildRecentlyPlayed(self.PlayerData.get('playhistory'));
 
         //console select
         $('#searchform select').selectOrDie({
@@ -166,6 +167,69 @@ var Crazyerics = function() {
     });
 };
 
+Crazyerics.prototype._Module = null; //handle the emulator Module
+Crazyerics.prototype._FS = null; //handle to Module file system
+Crazyerics.prototype._ModuleLoading = false; //oldskool way to prevent double loading
+Crazyerics.prototype._pauseOverride = false; //condition for blur event of emulator, sometimes we don't want it to pause when we're giving it back focus
+Crazyerics.prototype._activeFile = null;
+Crazyerics.prototype._keypresslocked = false; //when we're sending a keyboard event to the emulator, we want to wait until that event is complete before any additinal keypresses are made (prevents spamming)
+Crazyerics.prototype._fileWriteDelay = 500; //in ms. The delay in which the client should respond to a file written by the emulator (sometimes is goes out over the network and we don't want to spam the call)
+Crazyerics.prototype._tips = [
+    'Back out of that mistake you made by holding the R key to rewind the game',
+    'Press the Space key to fast forward through those boring story scenes',
+    'If your browser supports it, you can go fullscreen by pressing the F key',
+    'You can save your progress by pressing the 1 key, return to it anytime with the 4 key',
+    'We\'ll store all of your save states as long as you return within two weeks',
+    'Pause your game with the P key',
+    'Select a system filter to generate a new list of suggested games',
+    'To search for more obsurace or forgeign titles, select a system filter first',
+    'Take a screenshot with the T key. Missed that moment? Rewind with R and capture again!',
+    'Screenshots are deleted when you leave or refresh the page. Download your favorites to keep them!'
+];
+Crazyerics.prototype._fileWriteTimers = {};
+Crazyerics.prototype._playhistory = {};
+Crazyerics.prototype._socket = null; //socket.io
+Crazyerics.prototype._macroToShaderMenu = [[112, 100], 40, 40, 40, 88, 88, 40, 40, 40, 37, 37, 37, 38, 88, 88, 90, 90, 38, 38, 38, 112]; //macro opens shader menu and clears all passes
+
+Crazyerics.prototype.PlayerData = {
+
+    _data: {},
+
+    init: function(data) {
+        this._data = Crazyerics.prototype._decompress.json(data);
+    },
+
+    get: function(key) {
+        if (this._data.hasOwnProperty(key)) {
+            return this._data[key];
+        }
+        return null;
+    },
+
+    getShader: function(system) {
+        if (this._data.shaders && this._data.shaders.hasOwnProperty(system)) {
+            return this._data.shaders[system];
+        }
+        return null;
+    }
+};
+
+Crazyerics.prototype.ClientConfig = {
+
+    _data: {},
+
+    init: function(data) {
+        this._data = Crazyerics.prototype._decompress.json(data);
+    },
+
+    get: function(key) {
+        if (this._data.hasOwnProperty(key)) {
+            return this._data[key];
+        }
+        return null;
+    }
+};
+
 Crazyerics.prototype.Sliders = {
 
     _animating: false, //old skool way to prevent action while animating
@@ -211,7 +275,6 @@ Crazyerics.prototype.Sliders = {
         stayopen = stayopen || false; //if true and open, stay open. if false, will close if open
         this._animating = true;
 
-
         $('#gamecontrolslist li').each(function(index, item) {
 
             var slider = $('#' + $(this).attr('class'));
@@ -219,24 +282,28 @@ Crazyerics.prototype.Sliders = {
             //if match found
             if ($(item).hasClass(key)) {
 
+                /**
+                 * a quick anon function to toggle the slider intended
+                 * @return {undef}
+                 */
                 var selfToggle = function() {
                     setTimeout(function() {
                         self._toggle(item, slider, function() {
                             self._animating = false;
                         });
                     }, self._animationRate);
-                }
+                };
 
-                //if closed, open                
+                //if closed, open
                 if ($(slider).hasClass('closed')) {
                     $(slider).removeClass('closed');
                     selfToggle();
                 } else {
-                    //already open 
+                    //already open
                     //should I stay open?
                     if (!stayopen) {
                         $(slider).addClass('closed');
-                        selfToggle();  
+                        selfToggle();
                     } else {
                         //stay open
                         self._animating = false;
@@ -273,7 +340,7 @@ Crazyerics.prototype.Sliders = {
      * @return {undef}
      */
     _toggle: function(li, slider, callback) {
-        
+
         var self = this;
         callback = callback || null;
 
@@ -294,33 +361,6 @@ Crazyerics.prototype.Sliders = {
         }
     }
 };
-
-Crazyerics.prototype._clientdata = null;
-Crazyerics.prototype._Module = null; //handle the emulator Module
-Crazyerics.prototype._FS = null; //handle to Module file system
-Crazyerics.prototype._ModuleLoading = false; //oldskool way to prevent double loading
-Crazyerics.prototype._pauseOverride = false; //condition for blur event of emulator, sometimes we don't want it to pause when we're giving it back focus
-Crazyerics.prototype._activeFile = null;
-Crazyerics.prototype._keypresslocked = false; //when we're sending a keyboard event to the emulator, we want to wait until that event is complete before any additinal keypresses are made (prevents spamming)
-Crazyerics.prototype._fileWriteDelay = 500; //in ms. The delay in which the client should respond to a file written by the emulator (sometimes is goes out over the network and we don't want to spam the call)
-Crazyerics.prototype._tips = [
-    'Back out of that mistake you made by holding the R key to rewind the game',
-    'Press the Space key to fast forward through those boring story scenes',
-    'If your browser supports it, you can go fullscreen by pressing the F key',
-    'You can save your progress by pressing the 1 key, return to it anytime with the 4 key',
-    'We\'ll store all of your save states as long as you return within two weeks',
-    'Pause your game with the P key',
-    'Select a system filter to generate a new list of suggested games',
-    'To search for more obsurace or forgeign titles, select a system filter first',
-    'Take a screenshot with the T key. Missed that moment? Rewind with R and capture again!',
-    'Screenshots are deleted when you leave or refresh the page. Download your favorites to keep them!'
-];
-Crazyerics.prototype._fileWriteTimers = {};
-Crazyerics.prototype._playhistory = {};
-Crazyerics.prototype._socket = null; //socket.io
-
-Crazyerics.prototype._macroToShaderMenu = [[112, 100], 40, 40, 40, 88, 88, 40, 40, 40, 37, 37, 37, 38, 88, 88, 90, 90, 38, 38, 38, 112]; //macro opens shader menu and clears all passes
-
 /**
  * function for handling the load and replacement of the suggestions content area
  * @param  {string} system
@@ -379,23 +419,26 @@ Crazyerics.prototype._bootstrap = function(system, title, file, slot) {
     var self = this;
     var key = self._compress.gamekey(system, title, file); //for anything that might need it
 
+    //bail if attempted to load before current has finished
     if (self._ModuleLoading) {
         return;
     }
     self._ModuleLoading = true;
     self._pauseOverride = false;
 
-    $('#gameloadingname').text(title);
-
     //fade out content
     $('#gamedetailsboxfront img').addClass('close');
     $('#gamedetailswrapper').fadeOut();
 
-    //move welcome and emulator into view (first time only)
+    //move welcome and emulator out of view (first time only)
     $('#startmessage').slideUp(1000);
     $('#emulatorwrapper').slideDown(1000);
 
-    //loading image
+    //close content area (under emulator)
+    $('#gamedetailsbackground').animate({height: 0}, 500);
+
+    //loading content image and title
+    $('#gameloadingname').text(title);
     $('#gameloadingoverlaycontentimage').empty();
 
     var box = self._getBoxFront(system, title, 170);
@@ -405,149 +448,207 @@ Crazyerics.prototype._bootstrap = function(system, title, file, slot) {
     });
     $('#gameloadingoverlaycontentimage').append(box);
 
-    var tipInterval = setInterval(function() {
-        $('#tip').fadeOut(500, function() {
-            var tip = Crazyerics.prototype._tips[Math.floor(Math.random() * Crazyerics.prototype._tips.length)];
-
-            if (!$('#gameloadingoverlay').is(':animated')) {
-                $('#tip').empty().append('Tip: ' + tip).fadeIn(500);
-            }
-        });
-    }, 5000); //show tip for this long
-
-    $('#gamedetailsbackground').animate({ height: 0 }, 500); //close content area
-
-    //fade in overlay
+    //fade in loading overlay
     $('#gameloadingoverlay').fadeIn(500, function() {
+
+        //cleanup previous play
+        self._cleanupEmulator();
 
         //close any sliders
         self.Sliders.closeall();
 
-        $('#gameloadingoverlaycontent').show().removeClass();
-        $('#emulatorcontrolswrapper').show(); //show controls initially to reveal their presence
-        $('#gameloadfailure').hide();
+        //FOR NOW, PUT NES MESSAGE HERE
+        if (system === 'nes') {
+            $('#gameloadfailure')
+            .empty()
+            .append('<h2>Crazyerics cannot play NES games at this time</h2><p>Sorry for the inconvenience! I\'m a huge NES fanboy myself and hope to have this up soon.</p>')
+            .show()
+            .removeClass();
+            self._ModuleLoading = false;
+            return;
+        }
 
-        self._cleanupEmulator();
+        $('#gameloadfailure').hide().addClass('close'); //hide load failure element (if previously showing)
 
-        //create new canvas
-        $('#emulatorcanvas').append('<canvas tabindex="0" id="emulator"></canvas>');
+        //self._ModuleLoading = false; //during shader select, allow other games to load
 
-        //deffered for emulator and game to load them concurrently
-        var emulatorReady = $.Deferred();
-        var gameReady = $.Deferred();
-        var gameDetailsReady = $.Deferred();
+        //show shader selector
+        self._showShaderSelect(system, function(shadertoload) {
 
-        // self._socket.emit('start', 'test', function (data) {
-        //     console.log(data); // data will be 'woot'
-        // });
+            //self._ModuleLoading = true; //lock loading after shader select
 
-        $.when(emulatorReady, gameReady, gameDetailsReady).done(function(emulator, loadedgame, gamecontent) {
+            $('#gameloadingoverlaycontent').show().removeClass(); //show loading
 
-            //FOR NOW, PUT NES MESSAGE HERE
-            if (system === 'nes') {
-                $('#gameloadingoverlaycontent').hide();
-                $('#gameloadfailure').empty().append('<h2>Crazyerics cannot play NES games at this time</h2><p>Sorry for the inconvenience! I\'m a huge NES fanboy myself and hope to have this up soon.</p>').show();
-                self._ModuleLoading = false;
-                return;
-            }
+            //show tips on loading
+            var tipInterval = setInterval(function() {
+                $('#tip').fadeOut(500, function() {
+                    var tip = Crazyerics.prototype._tips[Math.floor(Math.random() * Crazyerics.prototype._tips.length)];
 
-
-            var Module = emulator[0];
-            var fs = emulator[1];
-            var frame = emulator[2];
-
-            var err = loadedgame[0];
-            var gamedata = loadedgame[1];
-
-            var states = gamecontent.states;
-            var files = gamecontent.files;
-
-            self._Module = Module; //handle to Module
-            self._FS = fs;
-            self.emulatorframe = frame; //handle to iframe
-
-            //console.log(self._generateLink(system, title, file));
-
-            self._setupKeypressInterceptor(system, title, file);
-
-            self._buildFileSystem(Module, system, file, gamedata, states);
-
-            /**
-             * register a callback function when the emulator saves a file
-             * @param  {string} filename
-             * @param  {UInt8Array} contents
-             * @return {undef}
-             */
-            Module.emulatorFileWritten = function(filename, contents) {
-                self._emulatorFileWriteListener(key, system, title, file, filename, contents);
-            };
-
-            //begin game
-            Module.callMain(Module.arguments);
-
-            /**
-             * the action to perform once all keypresses for loading state have completed (or not if not necessary)
-             * @return {undef}
-             */
-            var removeVail = function() {
-                //handle title and content fadein steps
-                self._buildGameContent(system, title, function() {
-
+                    if (!$('#gameloadingoverlay').is(':animated')) {
+                        $('#tip').empty().append('Tip: ' + tip).fadeIn(500);
+                    }
                 });
+            }, 5000); //show tip for this long
 
-                $('#gameloadingoverlaycontent').addClass('close');
-                $('#gameloadingoverlay').fadeOut(1000, function() {
+            //deffered for emulator and game to load them concurrently
+            var emulatorReady = $.Deferred();
+            var gameReady = $.Deferred();
+            var gameDetailsReady = $.Deferred();
 
-                    //hide tips
-                    $('#tips').stop().hide();
-                    clearInterval(tipInterval);
+            //create new canvas (canvas must exist before call to get emulator (expects to find it right away))
+            $('#emulatorcanvas').append('<canvas tabindex="0" id="emulator"></canvas>');
 
-                    //show controls initially to reveal their presence
-                    setTimeout(function() {
-                        self._ModuleLoading = false;
-                        $('#emulatorcontrolswrapper').addClass('closed');
+            $.when(emulatorReady, gameReady, gameDetailsReady).done(function(emulator, loadedgame, gamecontent) {
 
-                        //to help new players, reveal controls after load
-                        self.Sliders.open('controlsslider');
-                    }, 1000);
-                });
+                var Module = emulator[0];
+                var fs = emulator[1];
+                var frame = emulator[2];
 
-                $('#emulator')
-                    .blur(function(event) {
-                        if (!self._pauseOverride) {
-                            Module.pauseMainLoop();
-                            $('#emulatorwrapperoverlay').fadeIn();
-                        }
-                    })
-                    .focus(function() {
-                        Module.resumeMainLoop();
-                        $('#emulatorwrapperoverlay').hide();
-                    })
-                    .focus();
-            };
+                var err = loadedgame[0];
+                var gamedata = loadedgame[1];
 
-            // load state?
-            // we need to handle mulitple keypresses asyncrounsly to ensure the emulator recieved input
-            if (slot) {
-                self._asyncLoop(parseInt(slot, 10), function(loop) {
+                var states = gamecontent.states;
+                var files = gamecontent.files;
+                var shader = null;
 
-                    self._simulateEmulatorKeypress(51, 10, function() {
-                        loop.next();
+                if (gamecontent.hasOwnProperty('shader')) {
+                    shader = gamecontent.shader;
+                }
+
+                self._Module = Module; //handle to Module
+                self._FS = fs;
+                self.emulatorframe = frame; //handle to iframe
+
+                $('#emulatorcontrolswrapper').show(); //show controls tool bar (still has closed class applied)
+
+                //console.log(self._generateLink(system, title, file));
+
+                self._setupKeypressInterceptor(system, title, file);
+
+                self._buildFileSystem(Module, system, file, gamedata, states, shader);
+
+                /**
+                 * register a callback function when the emulator saves a file
+                 * @param  {string} filename
+                 * @param  {UInt8Array} contents
+                 * @return {undef}
+                 */
+                Module.emulatorFileWritten = function(filename, contents) {
+                    self._emulatorFileWriteListener(key, system, title, file, filename, contents);
+                };
+
+                //begin game
+                Module.callMain(Module.arguments);
+
+                /**
+                 * the action to perform once all keypresses for loading state have completed (or not if not necessary)
+                 * @return {undef}
+                 */
+                var removeVail = function() {
+                    //handle title and content fadein steps
+                    self._buildGameContent(system, title, function() {
+
                     });
 
-                }, function() {
-                    self._simulateEmulatorKeypress(52); //4 load state
-                    removeVail();
-                });
-            } else {
-                removeVail();
-            }
-        });
+                    $('#gameloadingoverlaycontent').addClass('close');
+                    $('#gameloadingoverlay').fadeOut(1000, function() {
 
-        self._loademulator(system, emulatorReady);
-        self._loadGameData(key, system, title, file, gameReady);
-        self._loadGame(key, system, title, file, gameDetailsReady);
+                        //hide tips
+                        $('#tips').stop().hide();
+                        clearInterval(tipInterval);
+
+                        //show controls initially to reveal their presence
+                        setTimeout(function() {
+                            self._ModuleLoading = false;
+                            $('#emulatorcontrolswrapper').addClass('closed');
+
+                            //to help new players, reveal controls after load
+                            self.Sliders.open('controlsslider');
+                        }, 1000);
+                    });
+
+                    $('#emulator')
+                        .blur(function(event) {
+                            if (!self._pauseOverride) {
+                                Module.pauseMainLoop();
+                                $('#emulatorwrapperoverlay').fadeIn();
+                            }
+                        })
+                        .focus(function() {
+                            Module.resumeMainLoop();
+                            $('#emulatorwrapperoverlay').hide();
+                        })
+                        .focus();
+                };
+
+                // load state?
+                // we need to handle mulitple keypresses asyncrounsly to ensure the emulator recieved input
+                if (slot) {
+                    self._asyncLoop(parseInt(slot, 10), function(loop) {
+
+                        self._simulateEmulatorKeypress(51, 10, function() {
+                            loop.next();
+                        });
+
+                    }, function() {
+                        self._simulateEmulatorKeypress(52); //4 load state
+                        removeVail();
+                    });
+                } else {
+                    removeVail();
+                }
+            });
+
+            self._loademulator(system, emulatorReady);
+            self._loadGameData(key, system, title, file, gameReady);
+            self._loadGame(key, system, title, file, shadertoload, gameDetailsReady);
+        });
     });
+};
+
+Crazyerics.prototype._showShaderSelect = function(system, callback) {
+
+    var self = this;
+
+    //check if shader already defined for this system
+    
+
+    //if no shader predefined for use, show the selector
+    
+    //get the recommended shaders list
+    var recommended = self.ClientConfig.get('recommendedshaders')[system];
+    var shaders = self.ClientConfig.get('shaders');
+    var i = 0;
+
+    $('#systemshaderseletorwrapper div').remove(); //cleanup from before. temp construct
+
+    for (i; i < recommended.length; ++i) {
+
+        //if in shader manifest from config file
+        if (shaders.hasOwnProperty(recommended[i])) {
+
+            var shader = shaders[recommended[i]];
+
+            var shaderwrapper = $('<div>' + shader.title + '</div>');
+            shaderwrapper.addClass(shader.shader); //save shader file name to class (if you ever wanna style it)
+
+            shaderwrapper.on('click', function(e) {
+                onFinish($(this).attr('class'));
+            });
+
+            $('#systemshaderseletorwrapper').append(shaderwrapper);
+        }
+    }
+
+    var onFinish = function(shader) {
+        $('#systemshaderseletorwrapper').addClass('close');
+        setTimeout(function() {
+            $('#systemshaderseletorwrapper').hide();
+            callback(shader);
+        }, 250);
+    };
+
+    $('#systemshaderseletorwrapper').show().removeClass();
 };
 
 /**
@@ -570,7 +671,7 @@ Crazyerics.prototype._buildGameContent = function(system, title, callback) {
 
         // slide down background
         $('#gamedetailsboxfront img').addClass('close');
-        $('#gamedetailsbackground').animate({ height: 250 }, 1000, function() {
+        $('#gamedetailsbackground').animate({height: 250}, 1000, function() {
 
             //fade in details
             $('#gamedetailswrapper').fadeIn(1000, function() {
@@ -736,9 +837,6 @@ Crazyerics.prototype._setupKeypressInterceptor = function(system, title, file) {
                         case 70: // F
                             self._Module.requestFullScreen(true, true);
                         break;
-                        case 67: //c
-                            self.getShader('gb-shader');
-                        break;
                     }
                 break;
             }
@@ -799,8 +897,8 @@ Crazyerics.prototype._loademulator = function(system, deffered) {
 Crazyerics.prototype._loadGameData = function(key, system, title, file, deffered) {
 
     var self = this;
-    var location = self._clientdata.rompath;
-    var flattened = self._clientdata.flattenedromfiles;
+    var location = self.ClientConfig.get('rompath');
+    var flattened = self.ClientConfig.get('flattenedromfiles');
 
     if (flattened) {
 
@@ -835,20 +933,18 @@ Crazyerics.prototype._loadGameData = function(key, system, title, file, deffered
  * @param  {Object} deffered
  * @return {undef}
  */
-Crazyerics.prototype._loadGame = function(key, system, title, file, deffered) {
+Crazyerics.prototype._loadGame = function(key, system, title, file, shadertoload, deffered) {
 
     var self = this;
+
     //call returns not only states but misc game details. I tried to make this
     //part of the loadGame call but the formatting for the compressed game got weird
-    $.get('/load/game?key=' + encodeURIComponent(key), function(data) {
+    $.get('/load/game?key=' + encodeURIComponent(key) + (shadertoload ? '&shader=' + shadertoload : ''), function(data) {
 
         //add to play history
         self._addToPlayHistory(key, system, title, file);
 
-        deffered.resolve({
-            states: data.states,
-            files: self._decompress.json(data.files)
-        });
+        deffered.resolve(self._decompress.json(data));
     });
 };
 
@@ -858,9 +954,11 @@ Crazyerics.prototype._loadGame = function(key, system, title, file, deffered) {
  * @param  {string} system
  * @param  {string} file
  * @param  {string} data
+ * @param  {Object} states
+ * @param  {Object} shader
  * @return {undef}
  */
-Crazyerics.prototype._buildFileSystem = function(Module, system, file, data, states) {
+Crazyerics.prototype._buildFileSystem = function(Module, system, file, data, states, shader) {
 
     var self = this;
 
@@ -869,14 +967,40 @@ Crazyerics.prototype._buildFileSystem = function(Module, system, file, data, sta
     Module.arguments = ['-v', '/' + file];
     //Module.arguments = ['-v', '--menu'];
 
-    //config
-    Module.FS_createFolder('/', 'etc', true, true);
-    if (self._clientdata.retroarch && self._clientdata.retroarch[system]) {
-        Module.FS_createDataFile('/etc', 'retroarch.cfg', self._clientdata.retroarch[system], true, true);
-    }
-
     //shaders
     Module.FS_createFolder('/', 'shaders', true, true);
+
+    //if in coming shader parameter is an object, then it has shader files defined. self._FS is a handle to the 
+    //module's file system. Yes, the other operations here reference the file system through the Module, you just don't have to anymore!
+    var presetToLoad = null;
+    if (shader && self._FS) {
+
+        for (shaderfile in shader) {
+            var content = self._decompress.bytearray(shader[shaderfile]);
+            try {
+                self._FS.createDataFile('/shaders', shaderfile, content, true, true);
+            } catch (e) {
+                //an error on file write.
+            }
+
+            //is file preset? if so, save to define in config for auto load
+            if (shaderfile.match(/\.glslp$/g)) {
+                shaderPresetToLoad = shaderfile;
+            }
+        }
+    }
+
+    //config, must be after shader
+    Module.FS_createFolder('/', 'etc', true, true);
+    if (self.ClientConfig.get('retroarch') && self.ClientConfig.get('retroarch')[system]) {
+        
+        var configToLoad = self.ClientConfig.get('retroarch')[system];
+
+        if (shaderPresetToLoad) {
+            configToLoad = 'video_shader =\"/shaders/' + shaderPresetToLoad + '\"\n' + configToLoad;
+        }
+        Module.FS_createDataFile('/etc', 'retroarch.cfg', configToLoad, true, true);
+    }
 
     //screenshots
     Module.FS_createFolder('/', 'screenshots', true, true);
@@ -888,45 +1012,6 @@ Crazyerics.prototype._buildFileSystem = function(Module, system, file, data, sta
         var statefilename = '/' + filenoextension + '.state' + (slot == 0 ? '' : slot);
         Module.FS_createDataFile('/', statefilename, statedata, true, true);
     }
-};
-
-Crazyerics.prototype.getShader = function(key, callback) {
-
-    var self = this;
-
-    //ensure file system handle is defined before writing to it
-    if (self._FS) {
-
-        //make ajax call to server to get shader files
-        $.getJSON('/shaders/' + key, function(data) {
-            
-            //delete all currently used shader files (simplies the file system to use one shader at a time)
-            var files = self._FS.readdir('/shaders');
-            var i = 2; //first two indeces return "." and ".."
-            for (i; i < files.length; ++i) {
-                //wrap these calls, they throw on error
-                try {
-                    self._FS.unlink('/shaders/' + file);
-                } catch (e) {
-                    //not sure how to handle an error on deletion
-                }
-            }
-
-            //write new shaders files in
-            for (file in data) {
-                var content = self._decompress.bytearray(data[file]);
-                try {
-                    self._FS.createDataFile('/shaders', file, content, true, true);
-                } catch(e) {
-                    //an error on file write.
-                }
-            }
-
-            //self._runKeyboardMacro(self._macroToShaderMenu); 
-
-        });    
-    }
-    
 };
 
 /**
@@ -976,12 +1061,14 @@ Crazyerics.prototype._emulatorFileWritten = function(key, system, title, file, f
 
         $('p.screenshothelper').remove(); //remove helper text
 
+        var screenratio = 1;
+
         //get screen ratio from config
-        var screenratio = self._clientdata.retroarch[system].match(/video_aspect_ratio = (\d+\.+\d+)/);
-        if ($.isArray(screenratio) && screenratio.length > 1) {
-            screenratio = parseFloat(screenratio[1]);
-        } else {
-            screenratio = 1;
+        if (self.ClientConfig.get('retroarch') && self.ClientConfig.get('retroarch')[system]) {
+            screenratio = self.ClientConfig.get('retroarch')[system].match(/video_aspect_ratio = (\d+\.+\d+)/);
+            if ($.isArray(screenratio) && screenratio.length > 1) {
+                screenratio = parseFloat(screenratio[1]);
+            }
         }
 
         var arrayBufferView = new Uint8Array(contents);
@@ -991,10 +1078,10 @@ Crazyerics.prototype._emulatorFileWritten = function(key, system, title, file, f
         var urlCreator = window.URL || window.webkitURL;
         var imageUrl = urlCreator.createObjectURL(blob);
         var width = $('#screenshotsslider div.slidercontainer').width() / 3; //550px is the size of the panel, the second number is how many screens to want to show per line
-        var img = new Image(width, width/screenratio);        //create new image with correct ratio
+        var img = new Image(width, width / screenratio);        //create new image with correct ratio
         img.src = imageUrl;
         $(img).addClass('close').load(function() {
-            $(this).removeClass('close')
+            $(this).removeClass('close');
         });
         var a = $('<a class="screenshotthumb" href="' + imageUrl + '" download></a>'); //html 5 spec downloads image
         a.append(img).insertAfter('#screenshotsslider p');
@@ -1265,13 +1352,13 @@ Crazyerics.prototype._getBoxFront = function(system, title, size) {
     var self = this;
 
     //have box title's been compressed (to obfiscate on cdn)
-    if (self._clientdata.flattenedboxfiles) {
+    if (self.ClientConfig.get('flattenedboxfiles')) {
         //double encode, once for the url, again for the actual file name (files saved with encoding becase they contain illegal characters without)
         title = encodeURIComponent(encodeURIComponent(self._compress.string(title)));
     }
 
     //incldes swap to blank cart onerror
-    return $('<img onerror="this.src=\'' + self._clientdata.assetpath + '/images/blanks/' + system + '_' + size + '.png\'" src="' + self._clientdata.boxpath + '/' + system + '/' + title + '/' + size + '.jpg" />');
+    return $('<img onerror="this.src=\'' + self.ClientConfig.get('assetpath') + '/images/blanks/' + system + '_' + size + '.png\'" src="' + self.ClientConfig.get('boxpath') + '/' + system + '/' + title + '/' + size + '.jpg" />');
 };
 
 /**

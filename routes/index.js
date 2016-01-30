@@ -7,14 +7,24 @@ var config = require('config');
 
 router.get('/', function(req, res, next) {
 
-    UtilitiesService.collectDataForClient(req, null, function(err, clientdata) {
+    //get general client config data
+    UtilitiesService.collectConfigDataForClient(req, function(err, clientconfig) {
         if (err) {
             return res.json(err);
         }
-        res.render('index', {
-            layout: 'layout',
-            clientdata: clientdata,
-            assetpath: config.get('assetpath')
+
+        //now get player specific data
+        UtilitiesService.collectPlayerDataForClient(req, null, function(err, playerdata) {
+            if (err) {
+                return res.json(err);
+            }
+
+            res.render('index', {
+                layout: 'layout',
+                playerdata: playerdata, //player perferences, can handled dynamically in client
+                clientconfig: clientconfig, //client-needed configuration values, static in nature
+                assetpath: config.get('assetpath') //defined outside of client data because it is used in layout
+            });
         });
     });
 });
@@ -47,6 +57,7 @@ router.get('/load/emulator/:system', function(req, res, next) {
 router.get('/load/game', function(req, res, next) {
 
     var key = decodeURIComponent(req.query.key); //key has been uriencoded, compressed and base64 encoded
+    var shader = req.query.shader; //if we are to load a shader definition with this game, it was passed here
     var game = UtilitiesService.decompress.json(key); //extract values
     var states = {};
 
@@ -78,9 +89,20 @@ router.get('/load/game', function(req, res, next) {
                 return res.json(err);
             }
 
-            res.json({
+            var result = {
                 states: states,
-                files: UtilitiesService.compress.json(details.files)
+                files: details.files
+            };
+
+            //do we also want to load a shader definition? if no shader defined, comes back as empty string
+            UtilitiesService.getShader(shader, function(err, shaderdata) {
+                //no error handling here!
+                //in the case of an error, just return without shader info
+                if (shaderdata) {
+                    result.shader = shaderdata;
+                }
+
+                res.json(UtilitiesService.compress.json(result));
             });
         });
     }
