@@ -622,15 +622,20 @@ Crazyerics.prototype._showShaderSelect = function(system, callback) {
 
     $('#systemshaderseletorwrapper div').remove(); //cleanup from before. temp construct
 
+    $('#systemshaderseletorwrapper').append($('<div>Pixels</div>').on('click', function(e) {
+        onFinish();
+    }));
+
     for (i; i < recommended.length; ++i) {
 
         //if in shader manifest from config file
         if (shaders.hasOwnProperty(recommended[i])) {
 
-            var shader = shaders[recommended[i]];
+            var key = recommended[i];
+            var shader = shaders[key];
 
-            var shaderwrapper = $('<div>' + shader.title + '</div>');
-            shaderwrapper.addClass(shader.shader); //save shader file name to class (if you ever wanna style it)
+            var shaderwrapper = $('<div>' + shader.name + '</div>');
+            shaderwrapper.addClass(key); //save shader file name to class (if you ever wanna style it)
 
             shaderwrapper.on('click', function(e) {
                 onFinish($(this).attr('class'));
@@ -972,7 +977,7 @@ Crazyerics.prototype._buildFileSystem = function(Module, system, file, data, sta
 
     //if in coming shader parameter is an object, then it has shader files defined. self._FS is a handle to the 
     //module's file system. Yes, the other operations here reference the file system through the Module, you just don't have to anymore!
-    var presetToLoad = null;
+    var shaderPresetToLoad = null;
     if (shader && self._FS) {
 
         for (shaderfile in shader) {

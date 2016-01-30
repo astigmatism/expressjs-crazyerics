@@ -776,7 +776,7 @@ UtilitiesService.getShader = function(key, callback) {
 
     DataService.getFile('/data/shaders/' + key + '.json', function(err, content) {
         if (err) {
-            callback(err);
+            return callback(err);
         }
         return callback(null, content);
     });
