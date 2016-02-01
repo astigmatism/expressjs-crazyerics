@@ -173,7 +173,7 @@ Crazyerics.prototype._ModuleLoading = false; //oldskool way to prevent double lo
 Crazyerics.prototype._pauseOverride = false; //condition for blur event of emulator, sometimes we don't want it to pause when we're giving it back focus
 Crazyerics.prototype._activeFile = null;
 Crazyerics.prototype._keypresslocked = false; //when we're sending a keyboard event to the emulator, we want to wait until that event is complete before any additinal keypresses are made (prevents spamming)
-Crazyerics.prototype._fileWriteDelay = 500; //in ms. The delay in which the client should respond to a file written by the emulator (sometimes is goes out over the network and we don't want to spam the call)
+Crazyerics.prototype._fileWriteDelay = 1500; //in ms. The delay in which the client should respond to a file written by the emulator (sometimes is goes out over the network and we don't want to spam the call)
 Crazyerics.prototype._tips = [
     'Back out of that mistake you made by holding the R key to rewind the game',
     'Press the Space key to fast forward through those boring story scenes',
@@ -437,6 +437,10 @@ Crazyerics.prototype._bootstrap = function(system, title, file, slot) {
     //close content area (under emulator)
     $('#gamedetailsbackground').animate({height: 0}, 500);
 
+    //cleanup any pregame details
+    $('#gameloadfailure').hide().addClass('close'); //hide load failure element (if previously showing)
+    $('#systemshaderseletorwrapper').addClass('close');
+
     //loading content image and title
     $('#gameloadingname').text(title);
     $('#gameloadingoverlaycontentimage').empty();
@@ -449,7 +453,9 @@ Crazyerics.prototype._bootstrap = function(system, title, file, slot) {
     $('#gameloadingoverlaycontentimage').append(box);
 
     //fade in loading overlay
-    $('#gameloadingoverlay').fadeIn(500, function() {
+    $('#gameloadingoverlay').fadeIn(1000);
+    //this used to be a callback for the previous call but since its possible for the loading overlay to aready be faded in, we still want to preserve this delay
+    setTimeout(function() {
 
         //cleanup previous play
         self._cleanupEmulator();
@@ -468,14 +474,12 @@ Crazyerics.prototype._bootstrap = function(system, title, file, slot) {
             return;
         }
 
-        $('#gameloadfailure').hide().addClass('close'); //hide load failure element (if previously showing)
-
-        //self._ModuleLoading = false; //during shader select, allow other games to load
+        self._ModuleLoading = false; //during shader select, allow other games to load
 
         //show shader selector
         self._showShaderSelect(system, function(shadertoload) {
 
-            //self._ModuleLoading = true; //lock loading after shader select
+            self._ModuleLoading = true; //lock loading after shader select
 
             $('#gameloadingoverlaycontent').show().removeClass(); //show loading
 
@@ -525,7 +529,7 @@ Crazyerics.prototype._bootstrap = function(system, title, file, slot) {
 
                 self._setupKeypressInterceptor(system, title, file);
 
-                self._buildFileSystem(Module, system, file, gamedata, states, shader);
+                self._buildFileSystem(Module, system, file, gamedata, states, shader); //write to emulator file system. this is synconous since the fs is emulated in js
 
                 /**
                  * register a callback function when the emulator saves a file
@@ -538,7 +542,14 @@ Crazyerics.prototype._bootstrap = function(system, title, file, slot) {
                 };
 
                 //begin game
-                Module.callMain(Module.arguments);
+                setTimeout(function() {
+                    Module.callMain(Module.arguments);
+
+                    // setTimeout(function() {
+                    //     self._simulateEmulatorKeypress(112);
+                    // }, 11000);
+
+                }, 2000); //testing fixing raced start 
 
                 /**
                  * the action to perform once all keypresses for loading state have completed (or not if not necessary)
@@ -603,12 +614,14 @@ Crazyerics.prototype._bootstrap = function(system, title, file, slot) {
             self._loadGameData(key, system, title, file, gameReady);
             self._loadGame(key, system, title, file, shadertoload, gameDetailsReady);
         });
-    });
+    }, 1000);
 };
 
 Crazyerics.prototype._showShaderSelect = function(system, callback) {
 
     var self = this;
+
+    $('#shaderselectlist').empty(); //clear all previous content
 
     //check if shader already defined for this system
     
@@ -617,32 +630,29 @@ Crazyerics.prototype._showShaderSelect = function(system, callback) {
     
     //get the recommended shaders list
     var recommended = self.ClientConfig.get('recommendedshaders')[system];
-    var shaders = self.ClientConfig.get('shaders');
+    var shaderfamilies = self.ClientConfig.get('shaders');
     var i = 0;
 
-    $('#systemshaderseletorwrapper div').remove(); //cleanup from before. temp construct
+    //suggest all (for debugging)
+    // for (shaderfamily in shaderfamilies) {
+    //     for (shader in shaderfamilies[shaderfamily]) {
+    //         $('#shaderselectlist').append($('<div style="display:inline-block;padding:0px 5px;" data-shader="' + shader + '">' + shader + '</div>').on('click', function(e) {
+    //             onFinish($(this).attr('data-shader'));
+    //         }));
+    //     }
+    // }
 
-    $('#systemshaderseletorwrapper').append($('<div>Pixels</div>').on('click', function(e) {
-        onFinish();
+    $('#shaderselectlist').append($('<li class="zoom" data-shader=""><h3>Pixels!</h3><img src="' + self.ClientConfig.get('assetpath') + '/images/shaders/' + system + '/pixels.png" /><p>No Picture Processing</p></li>').on('click', function(e) {
+        onFinish($(this).attr('data-shader'));
     }));
 
     for (i; i < recommended.length; ++i) {
 
-        //if in shader manifest from config file
-        if (shaders.hasOwnProperty(recommended[i])) {
+        var key = recommended[i];
 
-            var key = recommended[i];
-            var shader = shaders[key];
-
-            var shaderwrapper = $('<div>' + shader.name + '</div>');
-            shaderwrapper.addClass(key); //save shader file name to class (if you ever wanna style it)
-
-            shaderwrapper.on('click', function(e) {
-                onFinish($(this).attr('class'));
-            });
-
-            $('#systemshaderseletorwrapper').append(shaderwrapper);
-        }
+        $('#shaderselectlist').append($('<li class="zoom" data-shader="' + key.shader + '"><h3>' + key.title + '</h3><img src="' + self.ClientConfig.get('assetpath') + '/images/shaders/' + system + '/' + i + '.png" /><p>Filter: ' + key.shader + '</p></li>').on('click', function(e) {
+            onFinish($(this).attr('data-shader'));
+        }));
     }
 
     var onFinish = function(shader) {

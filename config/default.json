@@ -17,14 +17,14 @@
 			"suggestions": 848,
 			"ratiotoall": 0.203,
 			"recommendedshaders": [ 
-				"gb-shader",
-				"lcd-shader",
-				"super-eagle",
-				"nds",
-				"gb-pocket-shader",
-				"gb-light-shader",
-				"super-xbr-6p",
-				"pixellate"
+				{
+					"title": "Game Boy Advance LCD",
+					"shader": "lcd-grid-gba-color"
+				},
+				{
+					"title": "Smooth",
+					"shader": "xbr-hybrid"
+				}
 			]
 		},
 		"gba": {
@@ -38,11 +38,14 @@
 			"ratiotoall": 0.140,
 			"retroarch": "video_aspect_ratio = 1.5",
 			"recommendedshaders": [
-				"super-xbr-6p",
-				"lcd-shader",
-				"nds",
-				"pixellate",
-				"gba-color"
+				{
+					"title": "Game Boy Advance",
+					"shader": "lcd-grid-gba-color"
+				},
+				{
+					"title": "Nintendo DS",
+					"shader": "nds"
+				}
 			]
 		},
 		"nes": {
@@ -68,9 +71,14 @@
 			"ratiotoall": 0.169,
 			"retroarch": "video_aspect_ratio = 1.14285714",
 			"recommendedshaders": [
-				"hq4x",
-				"scale3xSFX",
-				"super-xbr-6p"
+				{
+					"title": "Vintage Television",
+					"shader": "crt-easymode"
+				},
+				{
+					"title": "Smoothed",
+					"shader": "xbr-hybrid"
+				}
 			]
 		},
 		"gen": {
@@ -85,7 +93,14 @@
 			"ratiotoall": 0.173,
 			"retroarch": "video_aspect_ratio = 1.42857143",
 			"recommendedshaders": [
-				"super-xbr-6p"
+				{
+					"title": "Vintage Television",
+					"shader": "crt-easymode"
+				},
+				{
+					"title": "Smoothed",
+					"shader": "xbr-hybrid"
+				}
 			]
 		},
 		"sms": {
@@ -99,7 +114,14 @@
 			"ratiotoall": 0.023,
 			"retroarch": "video_aspect_ratio = 1.33333333",
 			"recommendedshaders": [
-				"super-xbr-6p"
+				{
+					"title": "Vintage Television",
+					"shader": "crt-easymode"
+				},
+				{
+					"title": "Smooth",
+					"shader": "xbr-hybrid"
+				}
 			]
 		},
 		"gg": {
@@ -113,8 +135,14 @@
 			"ratiotoall": 0.051,
 			"retroarch": "video_aspect_ratio = 1.11111111",
 			"recommendedshaders": [
-				"super-xbr-6p",
-				"lcd-shader"
+				{
+					"title": "Vintage LCD",
+					"shader": "lcd-shader"
+				},
+				{
+					"title": "Smooth",
+					"shader": "xbr-hybrid"
+				}
 			]
 		},
 		"n64": {
@@ -129,13 +157,18 @@
 			"ratiotoall": 0.071,
 			"retroarch": "video_aspect_ratio = 1.142857143\ninput_player1_l2 = a\ninput_player1_l_x_plus = right\ninput_player1_l_x_minus = left\ninput_player1_l_y_plus = down\ninput_player1_l_y_minus = up\ninput_player1_left = S\ninput_player1_right = D\ninput_player1_up = E\ninput_player1_down = C\ninput_player1_r_x_plus = l\ninput_player1_r_x_minus = j\ninput_player1_r_y_plus = k\ninput_player1_r_y_minus = i\n",
 			"recommendedshaders": [
-				"aa-shader-4.o",
-				"reverse-aa",
-				"xbr-hybrid"
+				{
+					"title": "Vintage Television",
+					"shader": "crt-easymode"
+				},
+				{
+					"title": "Smooth",
+					"shader": "xbr-hybrid"
+				}
 			]
 		}
 	},
-	"retroarch": "video_shader_enable = true\ninput_shader_next = rightbracket\ninput_shader_prev = leftbracket\nvideo_shader_dir = \"/shaders\"\nscreenshot_directory =\"/screenshots\"\ninput_screenshot = t\nvideo_gpu_screenshot = false\ninput_exit_emulator = end\ninput_save_state = num1\ninput_load_state = num4\ninput_state_slot_increase = num3\ninput_state_slot_decrease = num2\ninput_audio_mute = m\ninput_reset = h\ninput_toggle_fullscreen = f12\ninput_hold_fast_forward = space\ninput_player1_select = shift\nvideo_vsync = false\naudio_latency = 96\nvideo_font_size = 32\nvideo_force_aspect = true\nvideo_smooth = false\nrewind_enable = true\ninput_frame_advance = nul\n",
+	"retroarch": "video_shader_enable = true\ninput_shader_next = rightbracket\ninput_shader_prev = leftbracket\nvideo_shader_dir = \"/shaders\"\nscreenshot_directory =\"/screenshots\"\ninput_screenshot = t\nvideo_gpu_screenshot = true\ninput_exit_emulator = end\ninput_save_state = num1\ninput_load_state = num4\ninput_state_slot_increase = num3\ninput_state_slot_decrease = num2\ninput_audio_mute = m\ninput_reset = h\ninput_toggle_fullscreen = f12\ninput_hold_fast_forward = space\ninput_player1_select = shift\nvideo_vsync = false\naudio_latency = 96\nvideo_font_size = 32\nvideo_force_aspect = true\nvideo_smooth = false\nrewind_enable = true\ninput_frame_advance = nul\n",
 	"search": {
 		"boxFrontThreshold": 63,
 		"searchAllThreshold": 66,
@@ -145,146 +178,130 @@
 		"Super xBR": {
 			"notes": "Super xBR is an algorithm developed by Hyllian. It uses some combinations of known linear filters along with xBR edge detection rules in a non-linear way. It works in two passes and can only scale an image by two(or multiples of two by reapplying it and also has anti-ringing filter).",
 			"year": "2015"
+		},
+		"SABR": {
+			"notes": "Closely related to xBR are the SABR shader by Joshua Street and Zenju's xBRZ CPU filter. SABR was written by Mr. Street as part of a school project and it differs from xBR in a couple of ways, including using antialiasing on edges."
+		},
+		"2xSaI": {
+			"notes": "2×SaI, short for 2× Scale and Interpolation engine, was inspired by Eagle. It was designed by Derek Liauw Kie Fa, also known as Kreed, primarily for use in console and computer emulators, and it has remained fairly popular in this niche. Super 2×SaI, which is also written by Kreed, is a filter that smooths the graphics, but it blends more than the Super Eagle engine."
+		},
+		"HQx": {
+			"notes": "The HQX filters, namely hq2x, hq3x and hq4x, are well-known pixel art scalers. They are mainly used by old console (such as NES) emulators to provide a smooth rendering of the games. It was developed around 2003 by Maxim Stepin."
+		},
+		"xBR": {
+			"notes": "A Brazilian programmer by the name of Hyllian (aka Jararaca) developed a new algorithm that actually improves on HQx, known as xBR (stands for \"a filter that scales By Rules\"). xBR works much the same way as HQx insofar as it is based on pattern recognition, and it would upscale the above pattern with the same result. However, it goes further than HQx by using a 2-stage set of interpolation rules, which better handle more complex patterns such as antialiased lines and curves. The two main points that can be fine-tuned are the formula used to measure the distance between colors and the way the algorithm treats corners (more on the corners later).",
+			"year": "2011"
+		},
+		"Scale2x": {
+			"notes": "Scale2x is real-time graphics effect able to increase the size of small bitmaps guessing the missing pixels without blurring the images. It was originally developed for the AdvanceMAME project in the year 2001 to improve the quality of old games with a low video resolution."
 		}
 	},
 	"shaders": {
-		"gba-color": {
-			"name": "gba-color"
+		"Custom": {
+			"lcd-grid-gba-color": "GBA Color Grid",
+			"pixellate": "Pixellate",
+			"gb-shader" : "Original GameBoy",
+			"gb-pocket-shader": "GameBoy Pocket",
+			"gb-light-shader": "GameBoy Light",
+			"lcd-shader": "90's LCD",
+			"super-eagle": "Super Eagle",
+			"3dfx_4x1": "3dfx 4x1",
+			"aa-shader-4.o": "ePSXe AA Shader 4.o",
+			"advanced-aa": "advanced-aa",
+			"fx-aa": "Nvidia FXAA",
+			"fxaa-edge-detect": "Nvidia FXAA Edge Detect",
+			"nds-color": "nds-color",
+			"nds": "Nintendo DS LCD",
+			"reverse-aa": "Reverse-AA",
+			"ntsc-256px": "NTSC 256",
+			"ntsc-256px-gauss-scanline": "NTSC 256 Gauss and Scanlines",
+			"phosphor-trails": "phosphor-trails",
+			"4xsoft": "4xsoft",
+			"nedi": "nedi",
+			"composite": "composite",
+			"svideo": "svideo",
+			"480p": "480p"
 		},
-		"pixellate": {
-			"name": "Pixellate"
+		"Bicubic": {
+			"bicubic-fast": "Bicubic (Fast)",
+			"bicubic-normal": "Bicubic (Normal)",
+			"bicubic-sharp": "Bicubic (Sharp)",
+			"bicubic-sharper": "Bicubic (Sharper)"
 		},
-		"gb-shader" : {
-			"name": "Game Boy"
+		"Scale2x": {
+			"scale2x": "Scale2x",
+			"scale2xplus": "Scale2x-PLUS",
+			"scale2xSFX": "Scale2xSFX",
+			"scale3x": "Scale3x",
+			"scale3xSFX": "Scale3xSFX"
 		},
-		"lcd-shader": {
-			"name": "90's LCD"
+		"2xSaI": {
+			"2xsal": "2×SaI",
+			"super-2xsai": "Super 2×SaI"
 		},
-		"super-eagle": {
-			"name": "Super Eagle",
-			"notes": "Super Eagle, which is also written by Kreed, is similar to the 2×SaI engine, but does more blending."
+		"HQx": {
+			"hq2x": "Hq2x",
+			"hq3x": "Hq3x",
+			"hq4x": "Hq4x"
 		},
-		"3dfx_4x1": {
-			"name": "3dfx 4x1"
+		"Super xBR": {
+			"super-xbr-2p": "Super xBR 2-pass",
+			"super-xbr-3p-smoother": "Super xBR 3-pass (Smoother)",
+			"super-xbr-6p": "Super xBR 6-pass",
+			"super-xbr-fast-6p": "Super xBR 6-pass (Faster)",
+			"super-xbr-deposterize": "Super xBR Deposterize",
+			"super-xbr-fast-3p": "Super xBR 3-pass (Faster)"
 		},
-		"aa-shader-4.o":  {
-			"name": "ePSXe AA Shader 4.o"
+		"xBR": {
+			"xbr-lv1-noblend": "xBR Level 1 (No Blend)",
+			"xbr-lv2-deposterize": "xBR Level 2 (Deposterize)",
+			"xbr-lv2-fast": "xbr-lv2-fast",
+			"xbr-lv2-multipass": "xbr-lv2-multipass",
+			"xbr-lv2-noblend": "xbr-lv2-noblend",
+			"xbr-lv2": "xbr-lv2",
+			"xbr-lv3-multipass": "xbr-lv3-multipass",
+			"xbr-lv3-noblend": "xbr-lv3-noblend",
+			"xbr-lv3": "xbr-lv3",
+			"xbr-hybrid": "xbr-hybrid",
+			"5xbr-v4.0-noblend": "5xbr-v4.0-noblend"
 		},
-		"advanced-aa": {
-			"name": "advanced-aa"
+		"SABR": {
+			"sabr-v1.1": "SABR v1.1",
+			"sabr-v3.0": "SABR v3.0"
 		},
-		"bicubic-fast": {
-			"name": "Bicubic (Fast)"
+		"CGP": {
+			"2x2xscalehq": "2x2xscalehq"
 		},
-		"bicubic-normal": {
-			"name": "Bicubic (Normal)"
+		"CRT": {
+			"crt-geom": "crt-geom",
+			"crt-hyllian": "Hyllian CRT",
+			"crt-lottes": "crt-lottes",
+			"2xbr-crt-hyllian": "2xbr-crt-hyllian",
+			"crt-royale": "crt-royale",
+			"tvout-tweaks": "tvout-tweaks",
+			"tv-highcontrast-hd": "tv-highcontrast-hd",
+			"tv-highcontrast-hd-1152x672": "tv-highcontrast-hd-1152x672",
+			"phosphor": "phosphor",
+			"dotmask": "dotmask",
+			"crt-caligari": "crt-caligari",
+			"ntsc-shadowmask-interlacing": "ntsc-shadowmask-interlacing",
+			"crt-easymode": "crt-easymode",
+			"gtuv50": "gtuv50"
 		},
-		"bicubic-sharp": {
-			"name": "Bicubic (Sharp)"
+		"DDT": {
+			"ddt": "ddt",
+			"ddt-extended": "ddt-extended",
+			"ddt-waterpaint": "ddt-waterpaint"
 		},
-		"bicubic-sharper": {
-			"name": "Bicubic (Sharper)"
-		},
-		"fx-aa": {
-			"name": "Nvidia FXAA"
-		},
-		"fxaa-edge-detect": {
-			"name": "Nvidia FXAA Edge Detect"
-		},
-		"nds-color": {
-			"name": "nds-color"
-		},
-		"nds": {
-			"name": "Nintendo DS"
-		},
-		"reverse-aa": {
-			"name": "Reverse-AA"
-		},
-		"gb-pocket-shader": {
-			"name": "Game Boy Pocket"
-		},
-		"gb-light-shader": {
-			"name": "Game Boy Light"
-		},
-		"hq2x": {
-			"name": "Hq2x",
-			"year": "2003",
-			"notes": "The HQX filters, namely hq2x, hq3x and hq4x, are well-known pixel art scalers developed by Maxim Stepin. The Hq2x algoritum is applied to a pixel block of 2x2."
-		},
-		"hq3x": {
-			"name": "Hq3x",
-			"year": "2003",
-			"notes": "The HQX filters, namely hq2x, hq3x and hq4x, are well-known pixel art scalers developed by Maxim Stepin. The Hq3x algoritum is applied to a pixel block of 3x3."
-		},
-		"hq4x": {
-			"name": "Hq4x",
-			"year": "2003",
-			"notes": "The HQX filters, namely hq2x, hq3x and hq4x, are well-known pixel art scalers developed by Maxim Stepin. The Hq4x algoritum is applied to a pixel block of 4x4."
-		},
-		"scale2x": {
-			"name": "Scale2x",
-			"year": "2001",
-			"notes":"Eric's Pixel Expansion (EPX) is an algorithm developed by Eric Johnston at LucasArts around 1992 when porting the SCUMM engine games from the IBM PC (which ran at 320×200×256 colors) to the early color Macintosh computers, which ran at more or less double that resolution. Later implementations of this same algorithm (as AdvMAME2× and Scale2×) have a slightly more efficient but functionally identical implementation.",
-			"shader": "scale2x"
-		},
-		"scale2xplus": {
-			"name": "Scale2x-PLUS",
-			"year":"2014",
-			"notes": "An improved version of the Scale2X algorithm modified to work better with 24-bit RGB images.",
-			"shader": "scale2xplus"
-		},
-		"scale2xSFX": {
-			"name": "Scale2xSFX",
-			"notes":"An improved version of the Scale2X algorithm."
-		},
-		"scale3x": {
-			"name": "Scale3x",
-			"year":"2001",
-			"notes": "The AdvMAME3×/Scale3× algorithm can be thought of as a generalization of Scale2x to the 3× case. The corner pixels are calculated identically to Scale2x."
-		},
-		"scale3xSFX": {
-			"name": "Scale3xSFX",
-			"notes":"An improved version of the Scale3X algorithm. "
-		},
-		"2xsal": {
-			"name": "2×SaI",
-			"year": "1999",
-			"notes": "2×SaI, short for 2× Scale and Interpolation engine, was inspired by Eagle. It was designed by Derek Liauw Kie Fa, also known as Kreed, primarily for use in console and computer emulators, and it has remained fairly popular in this niche."
-		},
-		"super-2xsai": {
-			"name": "Super 2×SaI",
-			"notes": "Super 2×SaI, which is also written by Kreed, is a filter that smooths the graphics, but it blends more than the Super Eagle engine."
-		},
-		"xbr-hybrid": {
-			"name": "xBR-Hybrid",
-			"notes": "The xBR family of filters are created by Hyllian and work much the same way as HQx. xBR-Hybrid combines an xBR filter with Reverse-AA."
-		},
-		"super-xbr-2p": {
-			"name": "Super xBR 2-pass",
-			"year": "2015",
-			"notes": "The 2-pass algorithm is the most basic of the Super xBR filters designed for performance."
-		},
-		"super-xbr-3p-smoother": {
-			"name": "Super xBR 3-pass (Smoother)",
-			"year": "2015"
-		},
-		"super-xbr-6p": {
-			"name": "Super xBR 6-pass",
-			"year": "2015",
-			"notes": "Super xBR is an algorithm developed by Hyllian. It uses some combinations of known linear filters along with xBR edge detection rules in a non-linear way. It works in two passes and can only scale an image by two(or multiples of two by reapplying it and also has anti-ringing filter). The 6-pass is the most aggressive application of the Super xBR algorithm. If you experience performance issues, try the 6-pass (Faster) or fewer passes (3 or 2)."
-		},
-		"super-xbr-fast-6p": {
-			"name": "Super xBR 6-pass (Faster)",
-			"notes": "Essentially the same as the standard 6-pass with a greater emphasis on performance over quality."
-		},
-		"super-xbr-deposterize": {
-			"name": "Super xBR Deposterize",
-			"notes": "Posterization of an image entails conversion of a continuous gradation of tone to several regions of fewer tones, with abrupt changes from one tone to another. This algorithm attempts to remove posterization while still appling the Super xBR filter."		
-		},
-		"super-xbr-fast-3p": {
-			"name": "Super xBR 3-pass (Faster)",
-			"year": "2015",
-			"notes": "Essentially the same as the standard 3-pass with a greater emphasis on performance over quality."
+		"Dithering": {
+			"cbod_v1": "cbod_v1",
+			"gdapt": "gdapt",
+			"gdapt+xbr-hybrid+aa": "gdapt+xbr-hybrid+aa",
+			"gdapt+xbr-hybrid+ddt": "gdapt+xbr-hybrid+ddt",
+			"gendither": "gendither",
+			"mdapt": "mdapt",
+			"mdapt+xbr-hybrid+aa": "mdapt+xbr-hybrid+aa",
+			"mdapt+xbr-hybrid+ddt": "mdapt+xbr-hybrid+ddt"
 		}
 	}
 }

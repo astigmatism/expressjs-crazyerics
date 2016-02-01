@@ -409,6 +409,40 @@ p {
 	bottom: 50px;
 }
 
+/* shader select */
+
+#systemshaderseletorwrapper {
+	margin-top: 100px;
+	height: 450px;
+}
+
+#shaderselectlist {
+	margin: 50px auto;
+	list-style: none;
+	padding: 0;
+	width: 800px;
+}
+
+#shaderselectlist li {
+	height: 200px;
+	width: 200px;
+	margin: 10px 20px;
+	display: inline-block;
+	cursor: pointer;
+}
+
+#shaderselectlist li h3 {
+	margin: 0;
+	padding: 10px 0;
+	font-size: 1.2em;
+}
+
+#shaderselectlist li p {
+	margin: 0;
+	padding: 0;
+	font-size: 12px;
+}
+
 /* game details wrapper */
 
 #gamedetailsbackground {
