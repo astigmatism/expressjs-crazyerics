@@ -169,10 +169,10 @@ var Crazyerics = function() {
 
 
         //please remove this later
-        // setTimeout(function() {
-        //     var system = 'gg'
-        //     self._autoCaptureHarness(system, self._config.autocapture[system].shaders);
-        // }, 5000);
+        setTimeout(function() {
+            var system = 'gg'
+            self._autoCaptureHarness(system, self._config.autocapture[system].shaders, 1000, 2);
+        }, 5000);
     });
 };
 
@@ -998,7 +998,7 @@ Crazyerics.prototype._buildFileSystem = function(Module, system, file, data, sta
     var shaderPresetToLoad = null;
     if (shader && self._FS) {
 
-        for (shaderfile in shader) {
+        for (var shaderfile in shader) {
             var content = self._decompress.bytearray(shader[shaderfile]);
             try {
                 self._FS.createDataFile('/shaders', shaderfile, content, true, true);
@@ -1565,37 +1565,6 @@ Crazyerics.prototype._asyncLoop = function(iterations, func, callback) {
     };
     loop.next();
     return loop;
-};
-
-Crazyerics.prototype._autoCaptureHarness = function(system, shaderqueue) {
-
-    var self = this;
-
-    if (shaderqueue.length === 0) {
-        return;
-    }
-
-    //get capture details
-    var data = self._config.autocapture[system];
-    
-    self._bootstrap(system, data.title, data.file, null, shaderqueue[0], function() {
-
-        //this function is run when the game begins
-        
-        setTimeout(function() {
-            self._simulateEmulatorKeypress(112, null, function() {
-
-                //down, down, cature screenshot
-                self._runKeyboardMacro([40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 88], function() {
-
-                    //next in queue
-                    shaderqueue.shift();
-                    self._autoCaptureHarness(system, shaderqueue);
-                });
-            });
-        }, 20480);
-    });    
-
 };
 
 var crazyerics = new Crazyerics();
