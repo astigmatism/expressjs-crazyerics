@@ -161,15 +161,17 @@ Create a ./public/zipped folder
 
 Now run /build/zip/[system]
 
+These files all exist on the Synology under Storage/crazyerics.com/roms/complete compressed
+
 6) Flatten 
 
 Okay! Update. It looks like I can't just read files from google drive without throwing a CORS issue in Safari (perhaps others but Chrome doesn't seem to care). A JSONP call to google drive resolves this issue, but the content of the file must be in json format. This is a little troublesome since the lightest weight file has to be an object with a property and value. It would be cool to contain all files for a title in a single JSON file but of course this makes it too large for Tx. The only solution is create on json file per file and use the file name as the key as well as well :P
 
-Create ./public/jsonifyTitle
+Create ./public/jsonify
 
-Now run /build/jsonifyTitle/[system]
+Now run /build/jsonify/[system]
 
-This creates ./public/jsonifyTitle/[system] into a structure that is ready for CDN deploy.
+This creates ./public/jsonify/[system] into a structure that is ready for CDN deploy.
 
 
 various notes

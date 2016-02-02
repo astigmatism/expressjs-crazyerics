@@ -151,7 +151,15 @@
 					"title": "Smooth",
 					"shader": "xbr-hybrid"
 				}
-			]
+			],
+			"autocapture": {
+				"title": "Land of Illusion Starring Mickey Mouse",
+				"file": "Land of Illusion Starring Mickey Mouse (UE) [!].gg",
+				"timer": "20480",
+				"shaders": [
+					"", "lcd-shader", "xbr-hybrid"
+				]
+			}
 		},
 		"n64": {
 			"name": "Nintendo 64",

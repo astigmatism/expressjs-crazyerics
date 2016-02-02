@@ -8,7 +8,7 @@ body {
 	margin: 0;
 	padding: 0;
 	height:100%;
-	font-family: 'Open Sans', sans-serif;
+	font-family: 'Poppins', sans-serif;
 	font-size: 12px;
 	color: #ccc;
 	text-align: left;
@@ -125,8 +125,9 @@ p {
 	margin: 0;
 }
 #titlebanner h1 {
-	font-size: 32px;
-	font-family: 'Montserrat', sans-serif;
+	font-size: 40px;
+	font-family: 'Kanit', sans-serif;
+	line-height: 1.0;
 }
 #titlebanner h1, #titlebanner p  {
 	padding: 0;
@@ -417,7 +418,7 @@ p {
 }
 
 #shaderselectlist {
-	margin: 50px auto;
+	margin: 30px auto;
 	list-style: none;
 	padding: 0;
 	width: 800px;

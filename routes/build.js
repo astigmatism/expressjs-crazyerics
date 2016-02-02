@@ -151,22 +151,8 @@ router.get('/zip/:system', function(req, res, next) {
     });
 });
 
-//takes all roms for a given game and puts them in a json structure. result is written to file which represents title:
-//
-// Donkey Kong
-//      Donkey Kong (U).rom
-//      Donkey Kong (J).rom
-//      
-// to
-// 
-// Donkey Kong.json 
-// 
-// {
-//      Donkey Kong (U): 'rom contents dlkjasldkjasd',
-//      Donkey Kong (J): 'rom contents sklajsdlkjsdd'
-// }
-//
-router.get('/jsonifyTitle/:system', function(req, res, next) {
+//converts all compressed rom files to json and flattens the file structure for the system (ready for CDN)
+router.get('/jsonify/:system', function(req, res, next) {
 
     var system = req.params.system;
 
@@ -205,12 +191,10 @@ router.get('/jsonifyTitle/:system', function(req, res, next) {
                             }
 
                             var filename = UtilitiesService.compress.string(title + file);
-                            var contents = {
-                                'tx': UtilitiesService.compress.bytearray(data) //the tx name means nothing.
-                            };
+                            var contents = 'jsonpDelegate("' + UtilitiesService.compress.string(data) + '")'; //wrap compressed content in jsonpdelegate call (for xdomain)
 
                             //write out new json file which has all games in json format
-                            fs.writeFile(__dirname + '/../public/jsonifiedTitles/' + system + '/' + encodeURIComponent(filename) + '.json', JSON.stringify(contents), 'utf8', function(err) {
+                            fs.writeFile(__dirname + '/../public/jsonifiedTitles/' + system + '/' + encodeURIComponent(filename) + '.json', contents, 'utf8', function(err) {
                                 if (err) {
                                     return nextfile(err);
                                 }

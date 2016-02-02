@@ -170,7 +170,7 @@ var Crazyerics = function() {
 
         //please remove this later
         // setTimeout(function() {
-        //     var system = 'snes'
+        //     var system = 'gg'
         //     self._autoCaptureHarness(system, self._config.autocapture[system].shaders);
         // }, 5000);
     });
@@ -183,7 +183,7 @@ Crazyerics.prototype._ModuleLoading = false; //oldskool way to prevent double lo
 Crazyerics.prototype._pauseOverride = false; //condition for blur event of emulator, sometimes we don't want it to pause when we're giving it back focus
 Crazyerics.prototype._activeFile = null;
 Crazyerics.prototype._keypresslocked = false; //when we're sending a keyboard event to the emulator, we want to wait until that event is complete before any additinal keypresses are made (prevents spamming)
-Crazyerics.prototype._fileWriteDelay = 1500; //in ms. The delay in which the client should respond to a file written by the emulator (sometimes is goes out over the network and we don't want to spam the call)
+Crazyerics.prototype._fileWriteDelay = 500; //in ms. The delay in which the client should respond to a file written by the emulator (sometimes is goes out over the network and we don't want to spam the call)
 Crazyerics.prototype._tips = [
     'Back out of that mistake you made by holding the R key to rewind the game',
     'Press the Space key to fast forward through those boring story scenes',
@@ -196,9 +196,9 @@ Crazyerics.prototype._tips = [
     'Take a screenshot with the T key. Missed that moment? Rewind with R and capture again!',
     'Screenshots are deleted when you leave or refresh the page. Download your favorites to keep them!'
 ];
+Crazyerics.prototype._jsonpHandler = null;
 Crazyerics.prototype._fileWriteTimers = {};
 Crazyerics.prototype._playhistory = {};
-Crazyerics.prototype._socket = null; //socket.io
 Crazyerics.prototype._macroToShaderMenu = [[112, 100], 40, 40, 40, 88, 88, 40, 40, 40, 37, 37, 37, 38, 88, 88, 90, 90, 38, 38, 38, 112]; //macro opens shader menu and clears all passes
 
 Crazyerics.prototype.PlayerData = {
@@ -621,6 +621,7 @@ Crazyerics.prototype._showShaderSelect = function(system, preselectedShader, cal
 
     //check if shader already defined for this system
     if (typeof preselectedShader !== 'undefined') {
+        $('#systemshaderseletorwrapper').hide().addClass('close');
         callback(preselectedShader);
         return;
     }
@@ -641,7 +642,7 @@ Crazyerics.prototype._showShaderSelect = function(system, preselectedShader, cal
     //     }
     // }
 
-    $('#shaderselectlist').append($('<li class="zoom" data-shader=""><h3>Pixels!</h3><img src="' + self._config.assetpath + '/images/shaders/' + system + '/pixels.png" /><p>No Picture Processing</p></li>').on('click', function(e) {
+    $('#shaderselectlist').append($('<li class="zoom" data-shader=""><h3>Pixels</h3><img src="' + self._config.assetpath + '/images/shaders/' + system + '/pixels.png" /><p>No Picture Processing</p></li>').on('click', function(e) {
         onFinish($(this).attr('data-shader'));
     }));
 
@@ -918,29 +919,32 @@ Crazyerics.prototype._loadGameData = function(key, system, title, file, deffered
     if (flattened) {
 
         var filename = self._compress.string(title + file);
+        //location += '/' + system + '/a.json'; //encode twice: once for the trip, the second because the files are saved that way on the CDN
         location += '/' + system + '/' + encodeURIComponent(encodeURIComponent(filename)) + '.json'; //encode twice: once for the trip, the second because the files are saved that way on the CDN
     } else {
         location += '/' + system + '/' + title + '/' + file;
     }
 
+    //assign jsonp response handler
+    self._jsonpHandler = function(response) {
+
+        var inflated;
+        try {
+            var decompressed = self._decompress.string(response);
+            inflated = pako.inflate(decompressed); //inflate compressed file contents (pako deflated to string in file on CDN)
+        } catch (e) {
+            deffered.resolve(e);
+            return;
+        }
+
+        deffered.resolve(null, inflated);
+    };
+
     //very important that this is a jsonp call - works around xdomain call to google drive
     $.ajax({
         url: location,
         type: 'GET',
-        dataType: 'jsonp',
-        success: function(data) {
-            console.log(data);
-            debugger;
-            var inflated;
-            try {
-                inflated = pako.inflate(data); //inflate compressed string to arraybuffer
-            } catch (e) {
-                deffered.resolve(e);
-                return;
-            }
-
-            deffered.resolve(null, inflated);
-        }
+        dataType: 'jsonp'
     });
 };
 
@@ -1589,9 +1593,13 @@ Crazyerics.prototype._autoCaptureHarness = function(system, shaderqueue) {
                     self._autoCaptureHarness(system, shaderqueue);
                 });
             });
-        }, data.timer);
+        }, 20480);
     });    
 
 };
 
 var crazyerics = new Crazyerics();
+
+var jsonpDelegate = function(response) {
+    crazyerics._jsonpHandler(response);
+};
