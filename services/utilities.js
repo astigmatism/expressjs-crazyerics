@@ -639,49 +639,43 @@ UtilitiesService.findGame = function(system, title, file, callback) {
     });
 };
 
-UtilitiesService.collectConfigDataForClient = function(req, callback) {
+UtilitiesService.collectDataForClient = function(req, openonload, callback) {
 
-    var clientdata = {
+    var playerdata = {};
+
+    var configdata = {
         retroarch: {},
         rompath: {},
         flatten: {},
-        recommendedshaders: {}
+        recommendedshaders: {},
+        autocapture: {}
     };
     var systems = config.get('systems');
     var retroarch = config.get('retroarch');
 
     //system specific configs
     for (system in systems) {
-        clientdata.retroarch[system] = retroarch + systems[system].retroarch;
-        clientdata.recommendedshaders[system] = systems[system].recommendedshaders;
+        configdata.retroarch[system] = retroarch + systems[system].retroarch;
+        configdata.recommendedshaders[system] = systems[system].recommendedshaders;
+        configdata.autocapture[system] = systems[system].autocapture;
     }
     //roms location
-    clientdata.rompath = config.get('rompath');
+    configdata.rompath = config.get('rompath');
 
     //are rom dirtree structures flattened? (use gamekey as file name)
-    clientdata.flattenedromfiles = config.get('flattenedromfiles');
+    configdata.flattenedromfiles = config.get('flattenedromfiles');
 
     //asset location
-    clientdata.assetpath = config.get('assetpath');
+    configdata.assetpath = config.get('assetpath');
 
     //shader manifest
-    clientdata.shaders = config.get('shaders');
+    configdata.shaders = config.get('shaders');
 
     //box art location
-    clientdata.boxpath = config.get('boxpath');
-    clientdata.flattenedboxfiles = config.get('flattenedboxfiles');
+    configdata.boxpath = config.get('boxpath');
+    configdata.flattenedboxfiles = config.get('flattenedboxfiles');
 
-    //because this json object is going over the wire, compress (client will decompress)
-    clientdata = UtilitiesService.compress.json(clientdata);
-
-    return callback(null, clientdata);
-};
-
-UtilitiesService.collectPlayerDataForClient = function(req, openonload, callback) {
-
-    var playerdata = {};
-
-    var synchonous = function() {   
+    var onFinish = function() {   
 
         
         playerdata.playhistory = {};
@@ -700,10 +694,13 @@ UtilitiesService.collectPlayerDataForClient = function(req, openonload, callback
             }
         }
 
-        //because this json object is going over the wire, compress (client will decompress)
-        playerdata = UtilitiesService.compress.json(playerdata);
+        var result = {
+            playerdata: playerdata,
+            configdata: configdata
+        };
 
-        return callback(null, playerdata);
+        //because this json object is going over the wire, compress (client will decompress)
+        return callback(null, UtilitiesService.compress.json(result));
     };
 
     if (openonload && openonload.title && openonload.system && openonload.file) {
@@ -712,10 +709,10 @@ UtilitiesService.collectPlayerDataForClient = function(req, openonload, callback
                 return callback(err);
             }
             playerdata.openonload = data;
-            synchonous();
+            onFinish();
         });
     } else {
-        synchonous();
+        onFinish();
     }
 };
 

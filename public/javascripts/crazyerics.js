@@ -7,11 +7,13 @@ var Crazyerics = function() {
 
     $(document).ready(function() {
 
-        //unpack playerdata
-        self.PlayerData.init(playerdata); //player data is user specific, can be dynmic
-
         //unpack client data
-        self.ClientConfig.init(clientconfig); //clientdata is generally static - configuration values for client, etc
+        var clientdata = Crazyerics.prototype._decompress.json(c20); //this name is only used for obfiscation
+
+        self._config = clientdata.configdata;
+
+        //unpack playerdata
+        self.PlayerData.init(clientdata.playerdata); //player data is user specific, can be dynmic
 
         //incoming params to open game now?
         var openonload = self.PlayerData.get('openonload') || {};
@@ -164,9 +166,17 @@ var Crazyerics = function() {
         self.replaceSuggestions('all');
 
         self._toolTips();
+
+
+        //please remove this later
+        // setTimeout(function() {
+        //     var system = 'snes'
+        //     self._autoCaptureHarness(system, self._config.autocapture[system].shaders);
+        // }, 5000);
     });
 };
 
+Crazyerics.prototype._config = {}; //the necessary server configuration data provided to the client
 Crazyerics.prototype._Module = null; //handle the emulator Module
 Crazyerics.prototype._FS = null; //handle to Module file system
 Crazyerics.prototype._ModuleLoading = false; //oldskool way to prevent double loading
@@ -196,7 +206,7 @@ Crazyerics.prototype.PlayerData = {
     _data: {},
 
     init: function(data) {
-        this._data = Crazyerics.prototype._decompress.json(data);
+        this._data = data;
     },
 
     get: function(key) {
@@ -209,22 +219,6 @@ Crazyerics.prototype.PlayerData = {
     getShader: function(system) {
         if (this._data.shaders && this._data.shaders.hasOwnProperty(system)) {
             return this._data.shaders[system];
-        }
-        return null;
-    }
-};
-
-Crazyerics.prototype.ClientConfig = {
-
-    _data: {},
-
-    init: function(data) {
-        this._data = Crazyerics.prototype._decompress.json(data);
-    },
-
-    get: function(key) {
-        if (this._data.hasOwnProperty(key)) {
-            return this._data[key];
         }
         return null;
     }
@@ -412,9 +406,11 @@ Crazyerics.prototype.replaceSuggestions = function(system, items) {
  * @param  {string} title       the rom game title (seen as the folder name in the file system)
  * @param  {string} file        the rom file which to load
  * @param  {number} state       optional. restore a saved state with the slot value (0, 1, 2, etc)
+ * @param  {string} shader      optional. preselected shader. if supplied, will skip the shader selection
+ * @param  {Function} onStart  optional. a function to call when emulation begins
  * @return {undef}
  */
-Crazyerics.prototype._bootstrap = function(system, title, file, slot) {
+Crazyerics.prototype._bootstrap = function(system, title, file, slot, shader, onStart) {
 
     var self = this;
     var key = self._compress.gamekey(system, title, file); //for anything that might need it
@@ -477,7 +473,7 @@ Crazyerics.prototype._bootstrap = function(system, title, file, slot) {
         self._ModuleLoading = false; //during shader select, allow other games to load
 
         //show shader selector
-        self._showShaderSelect(system, function(shadertoload) {
+        self._showShaderSelect(system, shader, function(shadertoload) {
 
             self._ModuleLoading = true; //lock loading after shader select
 
@@ -544,10 +540,10 @@ Crazyerics.prototype._bootstrap = function(system, title, file, slot) {
                 //begin game
                 setTimeout(function() {
                     Module.callMain(Module.arguments);
-
-                    // setTimeout(function() {
-                    //     self._simulateEmulatorKeypress(112);
-                    // }, 11000);
+                    
+                    if (onStart) {
+                        onStart();
+                    }
 
                 }, 2000); //testing fixing raced start 
 
@@ -617,20 +613,23 @@ Crazyerics.prototype._bootstrap = function(system, title, file, slot) {
     }, 1000);
 };
 
-Crazyerics.prototype._showShaderSelect = function(system, callback) {
+Crazyerics.prototype._showShaderSelect = function(system, preselectedShader, callback) {
 
     var self = this;
 
     $('#shaderselectlist').empty(); //clear all previous content
 
     //check if shader already defined for this system
-    
+    if (typeof preselectedShader !== 'undefined') {
+        callback(preselectedShader);
+        return;
+    }
 
     //if no shader predefined for use, show the selector
     
     //get the recommended shaders list
-    var recommended = self.ClientConfig.get('recommendedshaders')[system];
-    var shaderfamilies = self.ClientConfig.get('shaders');
+    var recommended = self._config.recommendedshaders[system];
+    var shaderfamilies = self._config.shaders;
     var i = 0;
 
     //suggest all (for debugging)
@@ -642,7 +641,7 @@ Crazyerics.prototype._showShaderSelect = function(system, callback) {
     //     }
     // }
 
-    $('#shaderselectlist').append($('<li class="zoom" data-shader=""><h3>Pixels!</h3><img src="' + self.ClientConfig.get('assetpath') + '/images/shaders/' + system + '/pixels.png" /><p>No Picture Processing</p></li>').on('click', function(e) {
+    $('#shaderselectlist').append($('<li class="zoom" data-shader=""><h3>Pixels!</h3><img src="' + self._config.assetpath + '/images/shaders/' + system + '/pixels.png" /><p>No Picture Processing</p></li>').on('click', function(e) {
         onFinish($(this).attr('data-shader'));
     }));
 
@@ -650,7 +649,7 @@ Crazyerics.prototype._showShaderSelect = function(system, callback) {
 
         var key = recommended[i];
 
-        $('#shaderselectlist').append($('<li class="zoom" data-shader="' + key.shader + '"><h3>' + key.title + '</h3><img src="' + self.ClientConfig.get('assetpath') + '/images/shaders/' + system + '/' + i + '.png" /><p>Filter: ' + key.shader + '</p></li>').on('click', function(e) {
+        $('#shaderselectlist').append($('<li class="zoom" data-shader="' + key.shader + '"><h3>' + key.title + '</h3><img src="' + self._config.assetpath + '/images/shaders/' + system + '/' + i + '.png" /><p>Filter: ' + key.shader + '</p></li>').on('click', function(e) {
             onFinish($(this).attr('data-shader'));
         }));
     }
@@ -902,7 +901,7 @@ Crazyerics.prototype._loademulator = function(system, deffered) {
 };
 
 /**
- * load rom file from whatever is defined in the config "rompath" (CDN or local). will come in as compressed string. after unpacked will resolve deffered. loads concurrently with emulator
+ * load rom file from whatever is defined in the config "rompath" (CDN/crossdomain or local). will come in as compressed string. after unpacked will resolve deffered. loads concurrently with emulator
  * @param  {string} system
  * @param  {string} title
  * @param  {string} file
@@ -912,36 +911,41 @@ Crazyerics.prototype._loademulator = function(system, deffered) {
 Crazyerics.prototype._loadGameData = function(key, system, title, file, deffered) {
 
     var self = this;
-    var location = self.ClientConfig.get('rompath');
-    var flattened = self.ClientConfig.get('flattenedromfiles');
+    var location = self._config.rompath;
+    var flattened = self._config.flattenedromfiles;
 
+    //if rom struture is flattened, this means that all rom files have been converted to single json files
     if (flattened) {
 
-        key = self._compress.json({
-            '0': title,
-            '1': file
-        });
-
-        location += '/' + system + '/' + encodeURIComponent(encodeURIComponent(key));
+        var filename = self._compress.string(title + file);
+        location += '/' + system + '/' + encodeURIComponent(encodeURIComponent(filename)) + '.json'; //encode twice: once for the trip, the second because the files are saved that way on the CDN
     } else {
         location += '/' + system + '/' + title + '/' + file;
     }
 
-    $.get(location, function(data) {
-        var inflated;
-        try {
-            inflated = pako.inflate(data); //inflate compressed string to arraybuffer
-        } catch (e) {
-            deffered.resolve(e);
-            return;
-        }
+    //very important that this is a jsonp call - works around xdomain call to google drive
+    $.ajax({
+        url: location,
+        type: 'GET',
+        dataType: 'jsonp',
+        success: function(data) {
+            console.log(data);
+            debugger;
+            var inflated;
+            try {
+                inflated = pako.inflate(data); //inflate compressed string to arraybuffer
+            } catch (e) {
+                deffered.resolve(e);
+                return;
+            }
 
-        deffered.resolve(null, inflated);
+            deffered.resolve(null, inflated);
+        }
     });
 };
 
 /**
- * a trip to the server to load an extra details about a game at load: states, rom files, ...
+ * a trip to the server (same domain) to load an extra details about a game at load: states, rom files, ...
  * @param  {string} system
  * @param  {string} title
  * @param  {string} file
@@ -1007,9 +1011,9 @@ Crazyerics.prototype._buildFileSystem = function(Module, system, file, data, sta
 
     //config, must be after shader
     Module.FS_createFolder('/', 'etc', true, true);
-    if (self.ClientConfig.get('retroarch') && self.ClientConfig.get('retroarch')[system]) {
+    if (self._config.retroarch && self._config.retroarch[system]) {
         
-        var configToLoad = self.ClientConfig.get('retroarch')[system];
+        var configToLoad = self._config.retroarch[system];
 
         if (shaderPresetToLoad) {
             configToLoad = 'video_shader =\"/shaders/' + shaderPresetToLoad + '\"\n' + configToLoad;
@@ -1079,8 +1083,8 @@ Crazyerics.prototype._emulatorFileWritten = function(key, system, title, file, f
         var screenratio = 1;
 
         //get screen ratio from config
-        if (self.ClientConfig.get('retroarch') && self.ClientConfig.get('retroarch')[system]) {
-            screenratio = self.ClientConfig.get('retroarch')[system].match(/video_aspect_ratio = (\d+\.+\d+)/);
+        if (self._config.retroarch && self._config.retroarch[system]) {
+            screenratio = self._config.retroarch[system].match(/video_aspect_ratio = (\d+\.+\d+)/);
             if ($.isArray(screenratio) && screenratio.length > 1) {
                 screenratio = parseFloat(screenratio[1]);
             }
@@ -1098,7 +1102,7 @@ Crazyerics.prototype._emulatorFileWritten = function(key, system, title, file, f
         $(img).addClass('close').load(function() {
             $(this).removeClass('close');
         });
-        var a = $('<a class="screenshotthumb" href="' + imageUrl + '" download></a>'); //html 5 spec downloads image
+        var a = $('<a class="screenshotthumb" href="' + imageUrl + '" download="' + title + '-' + filename + '"></a>'); //html 5 spec downloads image
         a.append(img).insertAfter('#screenshotsslider p');
 
         //kick open the screenshot slider
@@ -1367,13 +1371,13 @@ Crazyerics.prototype._getBoxFront = function(system, title, size) {
     var self = this;
 
     //have box title's been compressed (to obfiscate on cdn)
-    if (self.ClientConfig.get('flattenedboxfiles')) {
+    if (self._config.flattenedboxfiles) {
         //double encode, once for the url, again for the actual file name (files saved with encoding becase they contain illegal characters without)
         title = encodeURIComponent(encodeURIComponent(self._compress.string(title)));
     }
 
     //incldes swap to blank cart onerror
-    return $('<img onerror="this.src=\'' + self.ClientConfig.get('assetpath') + '/images/blanks/' + system + '_' + size + '.png\'" src="' + self.ClientConfig.get('boxpath') + '/' + system + '/' + title + '/' + size + '.jpg" />');
+    return $('<img onerror="this.src=\'' + self._config.assetpath + '/images/blanks/' + system + '_' + size + '.png\'" src="' + self._config.boxpath + '/' + system + '/' + title + '/' + size + '.jpg" />');
 };
 
 /**
@@ -1557,6 +1561,37 @@ Crazyerics.prototype._asyncLoop = function(iterations, func, callback) {
     };
     loop.next();
     return loop;
+};
+
+Crazyerics.prototype._autoCaptureHarness = function(system, shaderqueue) {
+
+    var self = this;
+
+    if (shaderqueue.length === 0) {
+        return;
+    }
+
+    //get capture details
+    var data = self._config.autocapture[system];
+    
+    self._bootstrap(system, data.title, data.file, null, shaderqueue[0], function() {
+
+        //this function is run when the game begins
+        
+        setTimeout(function() {
+            self._simulateEmulatorKeypress(112, null, function() {
+
+                //down, down, cature screenshot
+                self._runKeyboardMacro([40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 88], function() {
+
+                    //next in queue
+                    shaderqueue.shift();
+                    self._autoCaptureHarness(system, shaderqueue);
+                });
+            });
+        }, data.timer);
+    });    
+
 };
 
 var crazyerics = new Crazyerics();

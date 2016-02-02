@@ -79,7 +79,15 @@
 					"title": "Smoothed",
 					"shader": "xbr-hybrid"
 				}
-			]
+			],
+			"autocapture": {
+				"title": "Super Mario World",
+				"file": "Super Mario World (U) [!].smc",
+				"timer": "14000",
+				"shaders": [
+					"", "crt-easymode", "xbr-hybrid"
+				]
+			}
 		},
 		"gen": {
 			"name": "Sega Genesis",

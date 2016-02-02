@@ -8,23 +8,15 @@ var config = require('config');
 router.get('/', function(req, res, next) {
 
     //get general client config data
-    UtilitiesService.collectConfigDataForClient(req, function(err, clientconfig) {
+    UtilitiesService.collectDataForClient(req, null, function(err, clientdata) {
         if (err) {
             return res.json(err);
         }
 
-        //now get player specific data
-        UtilitiesService.collectPlayerDataForClient(req, null, function(err, playerdata) {
-            if (err) {
-                return res.json(err);
-            }
-
-            res.render('index', {
-                layout: 'layout',
-                playerdata: playerdata, //player perferences, can handled dynamically in client
-                clientconfig: clientconfig, //client-needed configuration values, static in nature
-                assetpath: config.get('assetpath') //defined outside of client data because it is used in layout
-            });
+        res.render('index', {
+            layout: 'layout',
+            clientdata: clientdata, //all data client needs. config and player data
+            assetpath: config.get('assetpath') //defined outside of client data because it is used in layout
         });
     });
 });

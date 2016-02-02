@@ -73,6 +73,7 @@ router.get('/data', function(req, res, next) {
     });
 });
 
+//compresses roms with pako into files with the same name
 router.get('/zip/:system', function(req, res, next) {
 
     var system = req.params.system;
@@ -150,7 +151,22 @@ router.get('/zip/:system', function(req, res, next) {
     });
 });
 
-router.get('/flatten/:system', function(req, res, next) {
+//takes all roms for a given game and puts them in a json structure. result is written to file which represents title:
+//
+// Donkey Kong
+//      Donkey Kong (U).rom
+//      Donkey Kong (J).rom
+//      
+// to
+// 
+// Donkey Kong.json 
+// 
+// {
+//      Donkey Kong (U): 'rom contents dlkjasldkjasd',
+//      Donkey Kong (J): 'rom contents sklajsdlkjsdd'
+// }
+//
+router.get('/jsonifyTitle/:system', function(req, res, next) {
 
     var system = req.params.system;
 
@@ -159,7 +175,7 @@ router.get('/flatten/:system', function(req, res, next) {
             return res.json(err);
         }
 
-        fs.mkdir(__dirname + '/../public/flattened/' + system, function(err) {
+        fs.mkdir(__dirname + '/../public/jsonifiedTitles/' + system, function(err) {
             if (err) {
                 return res.json(err);
             }
@@ -167,11 +183,13 @@ router.get('/flatten/:system', function(req, res, next) {
             //loop over titles
             async.eachSeries(titles, function(title, nexttitle) {
 
+                //get stat, is file, next title
                 var stats = fs.statSync(__dirname + '/../public/roms/' + system + '/' + title);
                 if (stats.isFile()) {
                     return nexttitle();
                 }
 
+                //read title dir
                 fs.readdir(__dirname + '/../public/roms/' + system + '/' + title, function(err, files) {
                     if (err) {
                         return nexttitle(err);
@@ -180,24 +198,25 @@ router.get('/flatten/:system', function(req, res, next) {
                     //loop over files
                     async.eachSeries(files, function(file, nextfile) {
 
+                        //read rom file
                         fs.readFile(__dirname + '/../public/roms/' + system + '/' + title + '/' + file, function(err, data) {
                             if (err) {
                                 return nextfile(err);
                             }
 
-                            var key = UtilitiesService.compress.json({
-                                "0": title,
-                                "1": file
-                            });
+                            var filename = UtilitiesService.compress.string(title + file);
+                            var contents = {
+                                'tx': UtilitiesService.compress.bytearray(data) //the tx name means nothing.
+                            };
 
-                            fs.writeFile(__dirname + '/../public/flattened/' + system + '/' + encodeURIComponent(key), data, function(err) {
+                            //write out new json file which has all games in json format
+                            fs.writeFile(__dirname + '/../public/jsonifiedTitles/' + system + '/' + encodeURIComponent(filename) + '.json', JSON.stringify(contents), 'utf8', function(err) {
                                 if (err) {
                                     return nextfile(err);
                                 }
+                                console.log(system + '/' + title + ' --> ' + system + '/' + filename);
 
-                                console.log(system + '/' + file + ' --> ' + system + '/' + key);
-                                
-                                nextfile();
+                                nextfile(); 
                             });
                         });
 
@@ -205,6 +224,8 @@ router.get('/flatten/:system', function(req, res, next) {
                         if (err) {
                             return res.json(err);
                         }
+
+                        //done reading all files for this title
                         nexttitle();
                     });
                 });
@@ -286,6 +307,11 @@ router.get('/compressshaders/:name', function(req, res, next) {
         res.json(data);
     });
 
+});
+
+router.get('/test', function(req, res, next) {
+
+    res.json({});
 });
 
 module.exports = router;
