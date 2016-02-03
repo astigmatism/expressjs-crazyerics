@@ -135,43 +135,7 @@ Just a side note: I had to modify the mupen64plus emulator file significantly in
 adding roms
 -----------
 
-You're likely going to add more systems later in the future right? A number of steps need to be taken to ensure exact compatibility and consumption here.
-
-1) Add the system details to the configs. Check out ./config/default.json. You won't be able to add all the system details yet, but get as far as adding file extensions, we use those to filter out non-playable files when we look at the file system
-
-2) Ensure your collection is GoodTools compatible. I explicitly check for GoodTools nomenclature like regions (U), version (V1.1) and a host of other symbols as part of the rom's name. Likewise, we expect titles for a system to be folders with rom files inside them. This isn't always the case, so...
-
-3) Build Rom Folders. Separate out the titles which are folders and place them someplace safe. Leave behind, ./public/roms/[system] the rom files which were not in folders (they likely had just one file so whomever 7z'ed them didn't think they should get a folder).
-
-Now run /build/folders/[system]
-
-This will create a folder for each file and place the file into it. You can then rejoin all the other folders you set aside.
-
-The ./public/roms/[system] folder should now hold all titles, each as a folder with the rom files inside each title folder.
-
-4) Build Data. This step is going to iterate through all system folders and files and build the ./data/[system].json file for each system and in addition the ./data/all.json file used by the search engine. These files essentially encapsulate what are the game's db. Files contents are cached in memory and get retrieved very quickly by the app.
-
-Now run /build/data
-
-We have to rebuild each system in other to build a new all.json. This process will take a while as we calculate which rom file is best suited to load by default.
-
-5) Zip. The rom files cannot exist in an uncompressed format and our application expects them to be zipped.
-
-Create a ./public/zipped folder
-
-Now run /build/zip/[system]
-
-These files all exist on the Synology under Storage/crazyerics.com/roms/complete compressed
-
-6) Flatten 
-
-Okay! Update. It looks like I can't just read files from google drive without throwing a CORS issue in Safari (perhaps others but Chrome doesn't seem to care). A JSONP call to google drive resolves this issue, but the content of the file must be in json format. This is a little troublesome since the lightest weight file has to be an object with a property and value. It would be cool to contain all files for a title in a single JSON file but of course this makes it too large for Tx. The only solution is create on json file per file and use the file name as the key as well as well :P
-
-Create ./public/jsonify
-
-Now run /build/jsonify/[system]
-
-This creates ./public/jsonify/[system] into a structure that is ready for CDN deploy.
+see sister project romsort which builds the correct file structure and data files
 
 
 various notes
