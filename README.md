@@ -4,7 +4,9 @@ expressjs-crazyerics
 buliding the application
 __________________
 
-1/21/2016: I'm writing this well after setting up the build routine so I won't be able to possibly explain everything in detail. Basically you use gulp to both check your sytax and output build files. Specifically, those in public/build. To start, run "gulp" at the command line, it is now listening to any file changes you make in the application. When you save a file, it runs a gulp task which (at the time of this writing) performs these tasks: 'jscs', 'lint', 'minify-css', 'closure'. The final two write the files to the build folder. On your production server, you've simply modifed the file "layout.jade" to use only the built files, do not check this in obviously.
+Gulp.
+
+I prefer Gulp to Grunt for its "code centric" focus on syntax/error checking, streaming and building. Your gulp tasks are maintained in ./gulpfile.js. By default, you watch for any saves to js files in ./public/javascripts to automatically start a task which checkes for errors and builds. On any javascript save - check syntax with JSCS, look for linting issues, minify css and compress js. This final step also builds a soruce map file. All build products are saved tp ./public/build
 
 building emulators
 ------------------
@@ -142,6 +144,6 @@ various notes
 -------------
 
 - using pako as a method to compress all strings, json and uintarrays
-- gulp produces two files in ./public/build: build.js (all compressed js file contents) and style.min.css (all compressed css file contents). The layout.jade on your production box references these files instead of the source content.
+- gulp produces 3 files in ./public/build: build.js (all compressed js file contents), a source map file and style.min.css (all compressed css file contents). The layout.jade on your production box references these files instead of the source content.
 - in creating icons, unpack the "350-MAI2013.zip" file and then "PSD_and_EPS.zip". Open the eps file in photoshop with a width of 1000. Select the icon, open a new image with it, resize to 32x32px. Invert colors, then max out contract and brightness.
 

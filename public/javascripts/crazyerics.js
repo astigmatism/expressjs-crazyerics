@@ -7,6 +7,12 @@ var Crazyerics = function() {
 
     $(document).ready(function() {
 
+        //please remove this later
+        // setTimeout(function() {
+        //     var system = 'snes'
+        //     self._autoCaptureHarness(system, self._config.autocapture[system].shaders, 3000, 30);
+        // }, 5000);
+
         //unpack client data
         var clientdata = Crazyerics.prototype._decompress.json(c20); //this name is only used for obfiscation
 
@@ -166,13 +172,6 @@ var Crazyerics = function() {
         self.replaceSuggestions('all');
 
         self._toolTips();
-
-
-        //please remove this later
-        setTimeout(function() {
-            var system = 'gg'
-            self._autoCaptureHarness(system, self._config.autocapture[system].shaders, 1000, 2);
-        }, 5000);
     });
 };
 
@@ -201,21 +200,37 @@ Crazyerics.prototype._fileWriteTimers = {};
 Crazyerics.prototype._playhistory = {};
 Crazyerics.prototype._macroToShaderMenu = [[112, 100], 40, 40, 40, 88, 88, 40, 40, 40, 37, 37, 37, 38, 88, 88, 90, 90, 38, 38, 38, 112]; //macro opens shader menu and clears all passes
 
+/**
+ * Object which wraps common functions related to player preferences, data that comes form the server initially but can be changed
+ * @type {Object}
+ */
 Crazyerics.prototype.PlayerData = {
 
     _data: {},
-
+    /**
+     * init data
+     * @param  {Object} data
+     * @return {undef}
+     */
     init: function(data) {
         this._data = data;
     },
-
+    /**
+     * get player preference property
+     * @param  {string} key
+     * @return {string}
+     */
     get: function(key) {
         if (this._data.hasOwnProperty(key)) {
             return this._data[key];
         }
         return null;
     },
-
+    /**
+     * returns player's shader preference for the system specified
+     * @param  {string} system
+     * @return {string}
+     */
     getShader: function(system) {
         if (this._data.shaders && this._data.shaders.hasOwnProperty(system)) {
             return this._data.shaders[system];
@@ -540,12 +555,12 @@ Crazyerics.prototype._bootstrap = function(system, title, file, slot, shader, on
                 //begin game
                 setTimeout(function() {
                     Module.callMain(Module.arguments);
-                    
+
                     if (onStart) {
                         onStart();
                     }
 
-                }, 2000); //testing fixing raced start 
+                }, 2000); //testing fixing raced start
 
                 /**
                  * the action to perform once all keypresses for loading state have completed (or not if not necessary)
@@ -613,6 +628,13 @@ Crazyerics.prototype._bootstrap = function(system, title, file, slot, shader, on
     }, 1000);
 };
 
+/**
+ * this functio handles showing the shader selection before a game is loaded
+ * @param  {string}   system
+ * @param  {string}   preselectedShader if a shader is predefined in the bootstap, it is passed along here
+ * @param  {Function} callback
+ * @return {undef}
+ */
 Crazyerics.prototype._showShaderSelect = function(system, preselectedShader, callback) {
 
     var self = this;
@@ -627,13 +649,13 @@ Crazyerics.prototype._showShaderSelect = function(system, preselectedShader, cal
     }
 
     //if no shader predefined for use, show the selector
-    
+
     //get the recommended shaders list
     var recommended = self._config.recommendedshaders[system];
     var shaderfamilies = self._config.shaders;
     var i = 0;
 
-    //suggest all (for debugging)
+    //suggest all (for debugging), remove when the ability to test all shaders is present
     // for (shaderfamily in shaderfamilies) {
     //     for (shader in shaderfamilies[shaderfamily]) {
     //         $('#shaderselectlist').append($('<div style="display:inline-block;padding:0px 5px;" data-shader="' + shader + '">' + shader + '</div>').on('click', function(e) {
@@ -655,6 +677,11 @@ Crazyerics.prototype._showShaderSelect = function(system, preselectedShader, cal
         }));
     }
 
+    /**
+     * when shader has been selected
+     * @param  {string} shader
+     * @return {undef}
+     */
     var onFinish = function(shader) {
         $('#systemshaderseletorwrapper').addClass('close');
         setTimeout(function() {
@@ -925,7 +952,11 @@ Crazyerics.prototype._loadGameData = function(key, system, title, file, deffered
         location += '/' + system + '/' + title + '/' + file;
     }
 
-    //assign jsonp response handler
+    /**
+     * loading game jsonp handler is called upon response from CDN
+     * @param  {string} response compressed game data
+     * @return {undefined}
+     */
     self._jsonpHandler = function(response) {
 
         var inflated;
@@ -993,7 +1024,7 @@ Crazyerics.prototype._buildFileSystem = function(Module, system, file, data, sta
     //shaders
     Module.FS_createFolder('/', 'shaders', true, true);
 
-    //if in coming shader parameter is an object, then it has shader files defined. self._FS is a handle to the 
+    //if in coming shader parameter is an object, then it has shader files defined. self._FS is a handle to the
     //module's file system. Yes, the other operations here reference the file system through the Module, you just don't have to anymore!
     var shaderPresetToLoad = null;
     if (shader && self._FS) {
@@ -1016,7 +1047,7 @@ Crazyerics.prototype._buildFileSystem = function(Module, system, file, data, sta
     //config, must be after shader
     Module.FS_createFolder('/', 'etc', true, true);
     if (self._config.retroarch && self._config.retroarch[system]) {
-        
+
         var configToLoad = self._config.retroarch[system];
 
         if (shaderPresetToLoad) {
@@ -1567,8 +1598,97 @@ Crazyerics.prototype._asyncLoop = function(iterations, func, callback) {
     return loop;
 };
 
+/**
+ * function to manage the capturing of screenshots automatically
+ * @param  {string} system          game system
+ * @param  {Array} shaderqueue      array of shaders to capture
+ * @param  {number} capturedelta    the amount of time in ms to wait before the next capture
+ * @param  {number} numberofshots   maximum number of shots to take per shader
+ * @return {undef}
+ */
+Crazyerics.prototype._autoCaptureHarness = function(system, shaderqueue, capturedelta, numberofshots) {
+
+    var self = this;
+
+    if (shaderqueue.length === 0) {
+        self._simulateEmulatorKeypress(112); //press f1 on finish to pause
+        self.downloadAllScreens();
+        return;
+    }
+
+    var remaining = numberofshots;
+
+    //get capture details
+    var data = self._config.autocapture[system];
+    
+    self._bootstrap(system, data.title, data.file, null, shaderqueue[0], function() {
+
+
+        //capture function takes in a macro of key presses to accomplish a click.
+        //since this changes from the first shot to the subsequent
+        var capture = function(marco) {
+
+            //wait to capture, let the game run
+            setTimeout(function() {
+
+                //press F1 to pause the game
+                self._simulateEmulatorKeypress(112, null, function() {
+
+                    //run marco to capture a screenshot
+                    self._runKeyboardMacro(marco, function() {
+
+                        console.log(shaderqueue[0] + ' shot: ' + remaining);
+
+                        //press F1 again to continue playing game
+                        self._simulateEmulatorKeypress(112, null, function() {
+
+                            remaining--;
+
+                            //if remaining shots need to be taken, run the capture function again, otherwise move to next shader
+                            if (remaining === 0) {
+                                //next in queue
+                                shaderqueue.shift();
+                                self._autoCaptureHarness(system, shaderqueue, capturedelta, numberofshots);
+                                return;
+                            } else {
+                                capture([88]); //continue capturing
+                            }
+                        });
+                    });
+                });
+            }, capturedelta);
+        };
+        capture([40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 88]);
+    });    
+
+};
+
+/**
+ * a quick function that downlaods all captured screens
+ * @return {undef}
+ */
+Crazyerics.prototype.downloadAllScreens = function() {
+
+    var delay = 500;
+    var time = delay;
+
+    $('.screenshotthumb').each(function(index) {
+        
+        var self = this;
+        setTimeout(function() {
+            $(self)[0].click();
+        }, delay);
+        time += delay;
+    });
+};
+
 var crazyerics = new Crazyerics();
 
+/**
+ * globally defined jsonp deletegate. runs when jsonp is fetched. common scheme is to define a handler for calling jsonp
+ * @param  {Object} response
+ * @return {undef}
+ */
 var jsonpDelegate = function(response) {
     crazyerics._jsonpHandler(response);
 };
