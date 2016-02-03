@@ -117,18 +117,6 @@ router.get('/flatboxes/:system', function(req, res, next) {
     });
 });
 
-router.get('/folders/:system', function(req, res, next) {
-
-    var system = req.params.system;
-
-    UtilitiesService.buildRomFolders(system, function(err, data) {
-        if (err) {
-            return res.json(err);
-        }
-        res.json(data);
-    });
-});
-
 router.get('/compressshaders/:name', function(req, res, next) {
 
     var path = __dirname + '/../public/shaderwork';
