@@ -14,6 +14,79 @@ var DataService = require('../services/data.js');
 UtilitiesService = function() {
 };
 
+UtilitiesService.onApplicationStart = function(callback) {
+
+    //put into cache all the data files
+    var systems = config.get('systems');
+    var search = {};
+    var counts = {
+        'all': {
+            'suggestions': 0,
+            'titles': 0
+        }
+    };
+    
+
+    async.each(Object.keys(systems), function(system, nextsystem) {
+
+        DataService.getFile('/data/' + system + '.json', function(err, data) {
+            if (err) {
+                console.log('Could not find data file for ' + system + ' even though they are defined in config');
+                return nextsystem();
+            }
+
+            counts[system] = {
+                'suggestions': 0,
+                'titles': 0
+            };
+
+            //ok, let's build the all.json file with the data from each file
+            for (var title in data) {
+
+                var bestfile = data[title].best;
+                var bestrank = data[title].files[bestfile];
+
+                //if the rank of the best playable file for the title us above the threshold for acceptable suggestion
+                if (bestrank >= config.get('search').suggestionThreshold) {
+                    ++counts[system]['suggestions'];
+                    ++counts['all']['suggestions'];
+                }
+
+                //if the rank of the best playable file for the titel is above the threshold for part of all-console search
+                if (bestrank >= config.get('search').searchAllThreshold) {
+                    search[title + '.' + system] = {
+                        system: system,
+                        file: bestfile,
+                        rank: bestrank
+                    };
+                }
+                ++counts[system]['titles'];
+                ++counts['all']['titles'];
+            }
+
+            nextsystem();
+        });
+
+    }, function(err) {
+        if (err) {
+            return callback(err);
+        }
+
+        DataService.setCache('counts', counts, 0, function() {
+            
+            //at the end, let's write an all.json data file to cache
+            //use the same key as if it were a file (it used to be)
+            DataService.setCache('/data/all.json', search, 0, function() {
+
+                callback();
+            }); 
+        });
+    });
+
+
+
+};
+
 /**
  * Given a search term, searches and returns the most valid games
  * @param  {string} system
@@ -40,6 +113,8 @@ UtilitiesService.search = function(systemfilter, term, maximum, callback) {
 
         //pass over all titles just once
         for (title in data) {
+
+            //var log = ''; //for debugging scores of results. please include in result
 
             //edge case for "all" searches - the file is in a different format
             if (systemfilter === 'all') {
@@ -68,24 +143,56 @@ UtilitiesService.search = function(systemfilter, term, maximum, callback) {
             //pass over all search terms
             for (i = 0; i < words.length; ++i) {
 
-                var beginswith = new RegExp('^' + words[i],'i');                    //word is a whole or partial word at at the beginning of the result
+                var titlewords = title.split(' '); //split title's terms
+
+                var wholeterm = new RegExp('^' + words[i] + '(\\s|$)','i');        //word is a whole word at at the beginning of the result
                 var wordinside = new RegExp('\\s' + words[i] + '(\\s|$)', 'i');     //word is a whole word someplace in the result (space or endstring after word)
+                var beginswith = new RegExp('(^|\\s)' + words[i],'i');              //is a partial word at at the beginning of the result or one of the words within
                 var partof     = new RegExp(words[i], 'i');                         //word is partial word anyplace in the result
 
                 var termdepthscore = (words.length - i) * 10; //word path score gives highest score to first term in entry (most likely what user is searching for)
 
                 //check each word against possible location in title and give score based on position
                 //continue at each check to prevent same word scoring mutliple times
-                if (title.match(beginswith)) {
+                if (title.match(wholeterm)) {
                     searchscore += (300 + termdepthscore); //most points awarded to first word in query
+                    //log += words[i] + '=' + (300 + termdepthscore) + ' wholeterm (' + termdepthscore + '). ';
                     continue;
                 }
                 if (title.match(wordinside)) {
-                    searchscore += (200 + termdepthscore);
+                    
+                    var  wordinsidescore = 200;
+
+                    //ok, which whole word inside title? more depth determines score
+                    for (var j = 0; j < titlewords.length; ++j) {
+                        if (words[i].toLowerCase() === titlewords[j].toLowerCase()) {
+                            wordinsidescore -= (10 * j);
+                        }
+                    }
+
+                    searchscore += (wordinsidescore + termdepthscore);
+                    //log += words[i] + '=' + (wordinsidescore + termdepthscore) + ' wordinside (' + termdepthscore + '). ';
+                    continue;
+                }
+                if (title.match(beginswith) && !title.match(wholeterm)) {
+                    
+                    var beginswithscore = 150;
+
+                    //ok, which word inside title? more depth lessens score
+                    for (var j = 0; j < titlewords.length; ++j) {
+                        var match = new RegExp(words[i],'i');
+                        if (titlewords[j].match(match)) {
+                            beginswithscore -= (10 * j);
+                        }
+                    }
+
+                    searchscore += (beginswithscore + termdepthscore);
+                    //log += words[i] + '=' + (beginswithscore + termdepthscore) + ' beginswith (' + termdepthscore + '). ';
                     continue;
                 }
                 if (title.match(partof)) {
                     searchscore += (100 + termdepthscore);
+                    //log += words[i] + '=' + (100 + termdepthscore) + ' partof (' + termdepthscore + '). ';
                     continue;
                 }
             }
@@ -93,8 +200,8 @@ UtilitiesService.search = function(systemfilter, term, maximum, callback) {
             if (searchscore > 0) {
 
                 //the one's digit is a score based on how many words the title's title is. The fewer, the beter the match given the terms
-                var titlewords = title.split(' ');
                 searchscore += (10 - titlewords.length);
+                //log += 'title penalty: ' + (10 - titlewords.length) + '. ';
 
                 //the decimal places in the score represent the "playability" of the title. This way, titles with (U) and [!] will rank higher than those that are hacks or have brackets
                 searchscore += (rank * 0.1); //between 9.9 and 0.0
@@ -140,46 +247,46 @@ UtilitiesService.findSuggestionsAll = function(items, callback) {
     var aggrigation = [];
     var systems = config.get('systems');
 
-    // for debugging:
-    // var totaltosuggest = 0;
-    // for (system in config.data.systems) {
-    //     totaltosuggest += config.data.systems[system].gamestosuggest;
-    // }
+    DataService.getCache('counts', function(err, systems) {
 
-    async.each(Object.keys(systems), function(system, nextsystem) {
+        async.each(Object.keys(systems), function(system, nextsystem) {
 
-        // for debugging:
-        // var ratio = config.data.systems[system].gamestosuggest / totaltosuggest;
-        var ratio = systems[system].ratiotoall;
+            if (system == 'all') {
+                return nextsystem();
+            }
 
-        var tosuggest = (ratio * items);
+            //the ratio of suggestable titles of this system to all titles playable
+            var ratio = systems[system]['suggestions'] / systems['all']['suggestions'];
 
-        UtilitiesService.findSuggestions(system, tosuggest, function(err, suggestions) {
+            //how many of the items to suggest overall should be from this system?
+            var tosuggest = (ratio * items);
+
+            UtilitiesService.findSuggestions(system, tosuggest, function(err, suggestions) {
+                if (err) {
+                    return nextsystem(err);
+                }
+                for (var i = 0; i < suggestions.length; ++i) {
+                    aggrigation.push({
+                        system: system,
+                        title: suggestions[i].title,
+                        file: suggestions[i].file
+                    });
+                }
+                nextsystem();
+            });
+        }, function(err) {
             if (err) {
-                return nextsystem(err);
+                return callback(err);
             }
-            for (var i = 0; i < suggestions.length; ++i) {
-                aggrigation.push({
-                    system: system,
-                    title: suggestions[i].title,
-                    file: suggestions[i].file
-                });
-            }
-            nextsystem();
+
+            //retain original amount (possible to go over because we found suggests as items / systems.length)
+            aggrigation = aggrigation.slice(0, items);
+
+            //randomize 
+            aggrigation = UtilitiesService.shuffle(aggrigation);
+
+            callback(null, aggrigation);
         });
-
-    }, function(err) {
-        if (err) {
-            return callback(err);
-        }
-
-        //retain original amount (possible to go over because we found suggests as items / systems.length)
-        aggrigation = aggrigation.slice(0, items);
-
-        //randomize 
-        aggrigation = UtilitiesService.shuffle(aggrigation);
-
-        callback(null, aggrigation);
     });
 };
 
@@ -189,6 +296,7 @@ UtilitiesService.findSuggestions = function(system, items, callback) {
     var suggestions = [];
     var search = config.get('search');
 
+    //this got cached on app start
     DataService.getFile('/data/' + system + '.json', function(err, data) {
         if (err) {
             return callback(err);

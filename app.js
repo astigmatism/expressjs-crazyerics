@@ -8,13 +8,12 @@ var bodyParser = require('body-parser');
 var favicon = require('serve-favicon');
 var mongoose = require('mongoose');
 var session = require('express-session');
+var UtilitiesService = require('./services/utilities');
 var MongoStore = require('connect-mongo')(session);
-var io = require('./socket.io');
 
 mongoose.connect('mongodb://localhost/crazyerics');
 
 var routes = require('./routes/index');
-var build = require('./routes/build');
 var states = require('./routes/states');
 var suggest = require('./routes/suggest');
 
@@ -45,7 +44,6 @@ app.use(session({
 }));
 
 app.use('/', routes);
-app.use('/build', build);
 app.use('/states', states);
 app.use('/suggest', suggest);
 
@@ -54,6 +52,12 @@ app.use(function(req, res, next) {
     var err = new Error('Not Found');
     err.status = 404;
     next(err);
+});
+
+
+//run on app start
+UtilitiesService.onApplicationStart(function() {
+    
 });
 
 // error handlers

@@ -7,16 +7,13 @@ var Crazyerics = function() {
 
     $(document).ready(function() {
 
-        //please remove this later
-        // setTimeout(function() {
-        //     var system = 'snes'
-        //     self._autoCaptureHarness(system, self._config.autocapture[system].shaders, 3000, 30);
-        // }, 5000);
-
         //unpack client data
         var clientdata = Crazyerics.prototype._decompress.json(c20); //this name is only used for obfiscation
 
         self._config = clientdata.configdata;
+
+        //please remove this later
+        //self._autoCaptureHarness('gg', self._config.autocapture['gg'].shaders, 19500, 1, 10000);
 
         //unpack playerdata
         self.PlayerData.init(clientdata.playerdata); //player data is user specific, can be dynmic
@@ -1606,7 +1603,7 @@ Crazyerics.prototype._asyncLoop = function(iterations, func, callback) {
  * @param  {number} numberofshots   maximum number of shots to take per shader
  * @return {undef}
  */
-Crazyerics.prototype._autoCaptureHarness = function(system, shaderqueue, capturedelta, numberofshots) {
+Crazyerics.prototype._autoCaptureHarness = function(system, shaderqueue, capturedelta, numberofshots, delay) {
 
     var self = this;
 
@@ -1621,46 +1618,48 @@ Crazyerics.prototype._autoCaptureHarness = function(system, shaderqueue, capture
     //get capture details
     var data = self._config.autocapture[system];
     
-    self._bootstrap(system, data.title, data.file, null, shaderqueue[0], function() {
+    setTimeout(function() {
 
+        self._bootstrap(system, data.title, data.file, null, shaderqueue[0], function() {
 
-        //capture function takes in a macro of key presses to accomplish a click.
-        //since this changes from the first shot to the subsequent
-        var capture = function(marco) {
+            //capture function takes in a macro of key presses to accomplish a click.
+            //since this changes from the first shot to the subsequent
+            var capture = function(marco) {
 
-            //wait to capture, let the game run
-            setTimeout(function() {
+                //wait to capture, let the game run
+                setTimeout(function() {
 
-                //press F1 to pause the game
-                self._simulateEmulatorKeypress(112, null, function() {
+                    //press F1 to pause the game
+                    self._simulateEmulatorKeypress(112, null, function() {
 
-                    //run marco to capture a screenshot
-                    self._runKeyboardMacro(marco, function() {
+                        //run marco to capture a screenshot
+                        self._runKeyboardMacro(marco, function() {
 
-                        console.log(shaderqueue[0] + ' shot: ' + remaining);
+                            console.log(shaderqueue[0] + ' shot: ' + remaining);
 
-                        //press F1 again to continue playing game
-                        self._simulateEmulatorKeypress(112, null, function() {
+                            //press F1 again to continue playing game
+                            self._simulateEmulatorKeypress(112, null, function() {
 
-                            remaining--;
+                                remaining--;
 
-                            //if remaining shots need to be taken, run the capture function again, otherwise move to next shader
-                            if (remaining === 0) {
-                                //next in queue
-                                shaderqueue.shift();
-                                self._autoCaptureHarness(system, shaderqueue, capturedelta, numberofshots);
-                                return;
-                            } else {
-                                capture([88]); //continue capturing
-                            }
+                                //if remaining shots need to be taken, run the capture function again, otherwise move to next shader
+                                if (remaining === 0) {
+                                    //next in queue
+                                    shaderqueue.shift();
+                                    self._autoCaptureHarness(system, shaderqueue, capturedelta, numberofshots);
+                                    return;
+                                } else {
+                                    capture([88]); //continue capturing
+                                }
+                            });
                         });
                     });
-                });
-            }, capturedelta);
-        };
-        capture([40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 88]);
-    });    
+                }, capturedelta);
+            };
+            capture([40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 88]);
+        });    
 
+    }, delay);
 };
 
 /**

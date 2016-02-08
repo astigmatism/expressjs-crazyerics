@@ -24,12 +24,14 @@ DataService = function() {
  */
 DataService.getFile = function(path, callback, forceLoad, cacheLifetime, buffer) {
 
+    var self = this;
+
     cacheLifetime    = cacheLifetime || 0; //how long should this file's content persist in cache? 0 = forever, -1 = don't put in cache at all
     forceLoad        = forceLoad || false; //ignore cache attempt and load data from source
     buffer           = buffer || false; //false attempts to format file contents as JSON.
 
     //attempt to retireve file contents. cachekey is file path
-    nodecache.get(path, function(err, data) {
+    self.getCache(path, function(err, data) {
         if (err) {
             return callback(err);
         }
@@ -56,71 +58,27 @@ DataService.getFile = function(path, callback, forceLoad, cacheLifetime, buffer)
                 }
             }
 
-            nodecache.set(path, content, cacheLifetime, function() {
+            self.setCache(path, content, cacheLifetime, function() {
                 return callback(null, content);
             });
         });
     });
 };
 
-/**
- * Get's data stored in cache given a key or keys
- * @param  {Array|string}   keys
- * @param  {Function} callback
- * @return {Function}
- */
-DataService.getCache = function(keys, callback) {
+DataService.getCache = function(key, callback) {
 
-    if (!type.is(keys, Array)) {
-        keys = [keys];
-    }
-
-    nodecache.get(keys, function(err, results) {
+    nodecache.get(key, function(err, data) {
         if (err) {
-            console.error(err);
-            return callback({}); //on error, return empty set instead of error
+            return callback(err);
         }
-        if (keys.length > 1) {
-            return callback(results);
-        }
-        return callback(results[keys[0]]); //if lookup performed on one key, return result without key
+        callback(null, data);
     });
 };
 
-/**
- * Sets content in cache given a key and content
- * @param {Object|Array|Object}   manifest          The manifest needs to be an object with key and content properties (or an array these objects)
- * @param {Function} callback
- * @param {number}   cacheLifetime  default value is 0 = lives in cache forever
- */
-DataService.setCache = function(manifest, callback, cacheLifetime) {
-
-    cacheLifetime = cacheLifetime || 0;
-
-    if (!type.is(manifest, Array)) {
-        manifest = [manifest];
-    }
-
-    async.eachSeries(manifest, function(item, next) {
-
-        if (cacheLifetime === -1) {
-            next();
-        } else {
-
-            nodecache.set(item.key, item.content, cacheLifetime, function(err) {
-                if (err) {
-                    console.error(err); //in the case we cannot save cache, alert the console only
-                }
-                next();
-            });
-        }
-    },
-    // Final callback after each item has been iterated over.
-    function() {
-        if (callback) {
-            callback();
-        }
-        return;
+DataService.setCache = function(key, data, cacheLifetime, callback) {
+    
+    nodecache.set(key, data, 0, function() {
+        return callback(null, data);
     });
 };
 
