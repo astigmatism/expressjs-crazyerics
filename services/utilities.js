@@ -45,14 +45,15 @@ UtilitiesService.onApplicationStart = function(callback) {
 
                 var bestfile = data[title].best;
                 var bestrank = data[title].files[bestfile];
+                var hasart = data[title].hasOwnProperty('art') ? data[title].art : false;
 
-                //if the rank of the best playable file for the title us above the threshold for acceptable suggestion
-                if (bestrank >= config.get('search').suggestionThreshold) {
+                //all a game needs in order to be suggested is art
+                if (hasart) {
                     ++counts[system]['suggestions'];
                     ++counts['all']['suggestions'];
                 }
 
-                //if the rank of the best playable file for the titel is above the threshold for part of all-console search
+                //if the rank of the best playable file for the title is above the threshold for part of all-console search
                 if (bestrank >= config.get('search').searchAllThreshold) {
                     search[title + '.' + system] = {
                         system: system,
@@ -302,27 +303,26 @@ UtilitiesService.findSuggestions = function(system, items, callback) {
             return callback(err);
         }
 
-        //narrow down our list of random games to choose based on the theshold
+        //all a game needs in order to be suggested is box art
         for (game in data) {
-            //greater than the threshold 
-            var bestfile = data[game].best;
-            var bestrank = data[game].files[bestfile];
-            if (bestrank >= search.suggestionThreshold) {
+
+            var hasart = data[game].hasOwnProperty('art') ? data[game].art : false;
+
+            if (hasart) {
                 suggestions.push(game);
             }
         }
         
-        //run over all games
-        for (var i = 0; i < items; ++i) {            
+        suggestions = UtilitiesService.shuffle(suggestions);
 
-            //randomly select a game
-            var randomgame = suggestions[suggestions.length * Math.random() << 0];
+        //run over all games
+        for (var i = 0; i < items; ++i) {
                 
             //in the result, use the game as the key and its values the file and rank
             results.push({
                 system: system,
-                title: randomgame,
-                file: data[randomgame].best
+                title: suggestions[i % suggestions.length],
+                file: data[suggestions[i % suggestions.length]].best
             });
         }
         callback(null, results);
