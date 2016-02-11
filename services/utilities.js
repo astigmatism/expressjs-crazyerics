@@ -47,8 +47,8 @@ UtilitiesService.onApplicationStart = function(callback) {
                 var bestrank = data[title].files[bestfile];
                 var hasart = data[title].hasOwnProperty('art') ? data[title].art : false;
 
-                //all a game needs in order to be suggested is art
-                if (hasart) {
+                //in order to be suggested must have art and must need minimum rank to be preferable playing game (likely US game)
+                if ((bestrank >= config.get('search').suggestionThreshold) && hasart) {
                     ++counts[system]['suggestions'];
                     ++counts['all']['suggestions'];
                 }
@@ -303,12 +303,16 @@ UtilitiesService.findSuggestions = function(system, items, callback) {
             return callback(err);
         }
 
-        //all a game needs in order to be suggested is box art
+        //in order to be suggested:
+        //has box art
+        //if above the rank for what we find to be a US game (our target audience although we can change this)
         for (game in data) {
 
+            var bestfile = data[game].best;
+            var bestrank = data[game].files[bestfile];
             var hasart = data[game].hasOwnProperty('art') ? data[game].art : false;
 
-            if (hasart) {
+            if ((bestrank >= config.get('search').suggestionThreshold) && hasart) {
                 suggestions.push(game);
             }
         }
