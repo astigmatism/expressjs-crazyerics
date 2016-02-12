@@ -14,17 +14,26 @@ var DataService = require('../services/data.js');
 UtilitiesService = function() {
 };
 
+/**
+ * This runs on application start. The goal here is to mainly cache freqently accessed data.
+ * @param  {Function} callback
+ * @return {undef}
+ */
 UtilitiesService.onApplicationStart = function(callback) {
 
     //put into cache all the data files
     var systems = config.get('systems');
     var search = {};
-    var counts = {
-        'all': {
-            'suggestions': 0,
-            'titles': 0
+    
+    //when suggesting titles for all consoles we'll use this object, 
+    //it's structure considers system to evenly suggest titles by system
+    //the keys will be systems (except for data which I use for other things)
+    var suggestionsall = {
+        'data': {
+            'alltitlecount': 0,
+            'allsuggestioncount': 0
         }
-    };
+    }; 
     
 
     async.each(Object.keys(systems), function(system, nextsystem) {
@@ -35,9 +44,17 @@ UtilitiesService.onApplicationStart = function(callback) {
                 return nextsystem();
             }
 
-            counts[system] = {
-                'suggestions': 0,
-                'titles': 0
+            //we'll cache a separate structure for each system (to avoid using the heavier all suggestions cache)
+            var suggestions = {
+                'best': [],
+                'foreign': [],
+                'data': {}
+            };
+
+            //add new key for this system to all suggestions
+            suggestionsall[system] = {
+                'best': [],
+                'data': {}
             };
 
             //ok, let's build the all.json file with the data from each file
@@ -48,9 +65,29 @@ UtilitiesService.onApplicationStart = function(callback) {
                 var hasart = data[title].hasOwnProperty('art') ? data[title].art : false;
 
                 //in order to be suggested must have art and must need minimum rank to be preferable playing game (likely US game)
-                if ((bestrank >= config.get('search').suggestionThreshold) && hasart) {
-                    ++counts[system]['suggestions'];
-                    ++counts['all']['suggestions'];
+                if (hasart) {
+
+                    if (bestrank >= config.get('search').suggestionThreshold) {
+                        
+                        //add to system suggestions
+                        suggestions.best.push(title);
+                        suggestions.data[title] = data[title];
+
+                        //add to all suggestions
+                        suggestionsall[system].best.push(title);
+                        suggestionsall[system].data[title] = data[title];   
+
+                        //increase counter
+                        ++suggestionsall.data.allsuggestioncount;                     
+
+                    } else {
+                        
+                        //foreign suggestion (has art but doesn't meet the suggestion threshold)
+                        
+                        //add to system suggestions
+                        suggestions.foreign.push(title);
+                        suggestions.data[title] = data[title];
+                    }
                 }
 
                 //if the rank of the best playable file for the title is above the threshold for part of all-console search
@@ -61,9 +98,13 @@ UtilitiesService.onApplicationStart = function(callback) {
                         rank: bestrank
                     };
                 }
-                ++counts[system]['titles'];
-                ++counts['all']['titles'];
+                
+                //increase counter
+                ++suggestionsall.data.alltitlecount;
             }
+
+            //cache suggestions for this system
+            DataService.setCache('suggestions.' + system, suggestions); //ok to be sync
 
             nextsystem();
         });
@@ -73,14 +114,14 @@ UtilitiesService.onApplicationStart = function(callback) {
             return callback(err);
         }
 
-        DataService.setCache('counts', counts, 0, function() {
-            
-            //at the end, let's write an all.json data file to cache
-            //use the same key as if it were a file (it used to be)
-            DataService.setCache('/data/all.json', search, 0, function() {
-
-                callback();
-            }); 
+        DataService.wholescaleSetCache({
+            'suggestions.all': suggestionsall,
+            '/data/all.json': search
+        }, 0, function(err) {
+            if (err) {
+                return callback(err);
+            }
+            callback();
         });
     });
 
@@ -243,38 +284,47 @@ UtilitiesService.shuffle = function(o) {
     return o;
 };
 
+/**
+ * Getting suggestions for all system involves a custom routine which uses the cache we built on the start of the app which contains
+ * a json object of all suggestable games for all systems. It is pretty heavyweight but better than openning each system suggestions
+ * cache file individually. We evenly take suggestions from each system based on the overall number of suggestions that system has to
+ * offer
+ * @param  {number}   items    the number of suggestions to return
+ * @param  {Function} callback
+ * @return {undef}
+ */
 UtilitiesService.findSuggestionsAll = function(items, callback) {
 
     var aggrigation = [];
     var systems = config.get('systems');
 
-    DataService.getCache('counts', function(err, systems) {
+    DataService.getCache('suggestions.all', function(err, suggestionsCache) {
 
-        async.each(Object.keys(systems), function(system, nextsystem) {
+        async.each(Object.keys(suggestionsCache), function(system, nextsystem) {
 
-            if (system == 'all') {
+            //this is a child of the all suggestions cache which is used for data
+            if (system == 'data') {
                 return nextsystem();
             }
 
-            //the ratio of suggestable titles of this system to all titles playable
-            var ratio = systems[system]['suggestions'] / systems['all']['suggestions'];
+            //the ratio of suggestable titles of this system to all titles suggestable from all systems
+            var ratio = suggestionsCache[system].best.length / suggestionsCache.data.allsuggestioncount;
 
             //how many of the items to suggest overall should be from this system?
             var tosuggest = (ratio * items);
 
-            UtilitiesService.findSuggestions(system, tosuggest, function(err, suggestions) {
-                if (err) {
-                    return nextsystem(err);
-                }
-                for (var i = 0; i < suggestions.length; ++i) {
-                    aggrigation.push({
-                        system: system,
-                        title: suggestions[i].title,
-                        file: suggestions[i].file
-                    });
-                }
-                nextsystem();
-            });
+            //randomize the titles for this system
+            var systemsuggestions = UtilitiesService.shuffle(suggestionsCache[system].best);
+
+            for (var i = 0; i < tosuggest; ++i) {
+                aggrigation.push({
+                    system: system,
+                    title: systemsuggestions[i],
+                    file: suggestionsCache[system].data[systemsuggestions[i]].best //the best file is the playable one
+                });
+            }
+            nextsystem();
+
         }, function(err) {
             if (err) {
                 return callback(err);
@@ -283,50 +333,58 @@ UtilitiesService.findSuggestionsAll = function(items, callback) {
             //retain original amount (possible to go over because we found suggests as items / systems.length)
             aggrigation = aggrigation.slice(0, items);
 
-            //randomize 
+            //randomize (otherwise all system games are grouped together)
             aggrigation = UtilitiesService.shuffle(aggrigation);
 
             callback(null, aggrigation);
         });
+
     });
 };
 
-UtilitiesService.findSuggestions = function(system, items, callback) {
+/**
+ * Using the cache we built on the start of the application, get "items" number of suggestable games from that list.
+ * We can adjust the amount of possibility of getting back foreign titles as well
+ * @param  {string}   system
+ * @param  {number}   items
+ * @param  {number}   forgienMixPerc
+ * @param  {Function} callback
+ * @return {undef}
+ */
+UtilitiesService.findSuggestions = function(system, items, forgienMixPerc, callback) {
 
     var results = [];
-    var suggestions = [];
-    var search = config.get('search');
+    var i;
 
-    //this got cached on app start
-    DataService.getFile('/data/' + system + '.json', function(err, data) {
-        if (err) {
-            return callback(err);
-        }
+    //get suggestions cache
+    DataService.getCache('suggestions.' + system, function(err, suggestionsCache) {
 
-        //in order to be suggested:
-        //has box art
-        //if above the rank for what we find to be a US game (our target audience although we can change this)
-        for (game in data) {
+        var suggestions = suggestionsCache.best; //shuffle all suggestions to randomize
 
-            var bestfile = data[game].best;
-            var bestrank = data[game].files[bestfile];
-            var hasart = data[game].hasOwnProperty('art') ? data[game].art : false;
+        //should we mix in foreign titles?
+        if (forgienMixPerc > 0) {
 
-            if ((bestrank >= config.get('search').suggestionThreshold) && hasart) {
-                suggestions.push(game);
+            foreignsuggestions = UtilitiesService.shuffle(suggestionsCache.foreign); //shuffle up foreign titles
+
+            var foreigns = suggestions.length * forgienMixPerc; //number of formeign titles to mix into total
+
+            console.log('foreigns mixed in: ' + foreigns);
+
+            for (i = 0; i < foreigns; ++i) {
+                suggestions.push(foreignsuggestions[i]); //push them into the other suggestions array
             }
         }
-        
-        suggestions = UtilitiesService.shuffle(suggestions);
+
+        suggestions = UtilitiesService.shuffle(suggestions); //randomize all results
 
         //run over all games
-        for (var i = 0; i < items; ++i) {
+        for (i = 0; i < items; ++i) {
                 
             //in the result, use the game as the key and its values the file and rank
             results.push({
                 system: system,
                 title: suggestions[i % suggestions.length],
-                file: data[suggestions[i % suggestions.length]].best
+                file: suggestionsCache.data[suggestions[i % suggestions.length]].best
             });
         }
         callback(null, results);

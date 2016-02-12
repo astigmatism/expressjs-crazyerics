@@ -35,7 +35,7 @@ var Crazyerics = function() {
              * @return {undef}
              */
             onChange: function() {
-                self.replaceSuggestions($(this).val());
+                self.replaceSuggestions($(this).val(), 200);
             }
         });
 
@@ -376,7 +376,9 @@ Crazyerics.prototype.Sliders = {
 Crazyerics.prototype.replaceSuggestions = function(system, items) {
 
     var self = this;
-    items = items || 100;
+    items = items || 150;
+
+    $('#loading .loadingtext').text('0%');
 
     //show loading icon
     $('#suggestionswrapper').hide();
@@ -400,7 +402,9 @@ Crazyerics.prototype.replaceSuggestions = function(system, items) {
         //when all images have loaded, show suggestions
         $('#suggestionswrapper').waitForImages().progress(function(loaded, count, success) {
 
-            $('#loading .loadingtext').text(loaded + '%');
+            var perc = parseInt((loaded / items) * 100, 10);
+
+            $('#loading .loadingtext').text(perc + '%');
 
             if (loaded === (count - 1)) {
                 $('#suggestionswrapper').slideDown();

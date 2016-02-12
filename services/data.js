@@ -65,20 +65,49 @@ DataService.getFile = function(path, callback, forceLoad, cacheLifetime, buffer)
     });
 };
 
+//writes each object property/value to cache
+DataService.wholescaleSetCache = function(object, cacheLifetime, callback) {
+
+    var self        = this;
+    cacheLifetime   = cacheLifetime || 0; //how long should this file's content persist in cache? 0 = forever, -1 = don't put in cache at all
+
+    async.forEach(Object.keys(object), function (item, nextcache){ 
+        
+        self.setCache(item, object[item], cacheLifetime, function(err, data) {
+            nextcache();
+        });
+
+    }, function(err) {
+        if (err) {
+            return callback(err);
+        }
+        callback();
+    });
+
+};
+
 DataService.getCache = function(key, callback) {
 
     nodecache.get(key, function(err, data) {
         if (err) {
+            console.log('cache miss: ' + key);
             return callback(err);
         }
+        console.log('cache hit: ' + key);
         callback(null, data);
     });
 };
 
 DataService.setCache = function(key, data, cacheLifetime, callback) {
     
-    nodecache.set(key, data, 0, function() {
-        return callback(null, data);
+    cacheLifetime    = cacheLifetime || 0; //how long should this file's content persist in cache? 0 = forever, -1 = don't put in cache at all
+
+    nodecache.set(key, data, cacheLifetime, function() {
+        console.log('cache set: ' + key);        
+        if (callback) {
+            return callback(null, data);
+        }
+        return;
     });
 };
 
