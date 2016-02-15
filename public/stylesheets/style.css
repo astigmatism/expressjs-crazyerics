@@ -436,22 +436,17 @@ p {
 	display: none;
 }
 
-#gameloadingoverlaytable {
-	display: table;
-	width: 100%;
-	height: 100%;
-}
+#gameloadingoverlaycontent, #systemshaderseletorwrapper {
+	
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	margin: 0 auto;
 
-#gameloadingoverlaycell {
-	display: table-cell;
-    vertical-align: middle;
-}
-
-#gameloadingoverlaycontent, #gameloadfailure, #systemshaderseletorwrapper {
 	height: 250px;	
-	width: 100%;
+	width: 800px;
 	text-align: center;
-	position: relative;
+	margin: -125px 0 0 -400px;
 
 	transition:All 200ms ease-in;
 	-webkit-transition:All 200ms ease-in;
@@ -472,7 +467,7 @@ p {
 }
 
 #gameloadingoverlaycontent h2 {
-	margin-bottom: 30px;
+	margin-bottom: 10px;
 }
 
 #gameloadingname {
@@ -493,8 +488,8 @@ p {
 /* shader select */
 
 #systemshaderseletorwrapper {
-	margin-top: 100px;
 	height: 450px;
+	margin: -225px 0 0 -400px;
 }
 
 #shaderselectlist {

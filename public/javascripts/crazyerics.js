@@ -478,15 +478,9 @@ Crazyerics.prototype._bootstrap = function(system, title, file, slot, shader, on
     $('#gameloadingname').text(title);
     $('#gameloadingoverlaycontentimage').empty();
 
-    var box = self._getBoxFront(system, title, 170);
-    box.addClass('tada');
-    box.load(function() {
-        $(this).fadeIn(200);
-    });
-    $('#gameloadingoverlaycontentimage').append(box);
-
     //fade in loading overlay
     $('#gameloadingoverlay').fadeIn(1000);
+
     //this used to be a callback for the previous call but since its possible for the loading overlay to aready be faded in, we still want to preserve this delay
     setTimeout(function() {
 
@@ -496,23 +490,35 @@ Crazyerics.prototype._bootstrap = function(system, title, file, slot, shader, on
         //close any sliders
         self.Sliders.closeall();
 
-        //FOR NOW, PUT NES MESSAGE HERE
-        if (system === 'nes') {
-            $('#gameloadfailure')
-            .empty()
-            .append('<h2>Crazyerics cannot play NES games at this time</h2><p>Sorry for the inconvenience! I\'m a huge NES fanboy myself and hope to have this up soon.</p>')
-            .show()
-            .removeClass();
-            self._ModuleLoading = false;
-            return;
-        }
-
         self._ModuleLoading = false; //during shader select, allow other games to load
+
+        //deffered for emulator and game to load them concurrently
+        var emulatorReady = $.Deferred();
+        var gameReady = $.Deferred();
+        var gameDetailsReady = $.Deferred();
+
+        //create new canvas (canvas must exist before call to get emulator (expects to find it right away))
+        $('#emulatorcanvas').append('<canvas tabindex="0" id="emulator"></canvas>');
+
+        //begin game and emulator from cdn while the user is looking at the shader dialog
+        self._loademulator(system, emulatorReady);
+        self._loadGame(key, system, title, file, gameReady);
 
         //show shader selector
         self._showShaderSelect(system, shader, function(shadertoload) {
 
             self._ModuleLoading = true; //lock loading after shader select
+
+            //the final deffered call goes to our own server to get states, shaders, etc
+            self._loadGameDetails(key, system, title, file, shadertoload, gameDetailsReady);
+
+            //build loading box
+            var box = self._getBoxFront(system, title, 170);
+            box.addClass('tada');
+            box.load(function() {
+                $(this).fadeIn(200);
+            });
+            $('#gameloadingoverlaycontentimage').append(box);
 
             $('#gameloadingoverlaycontent').show().removeClass(); //show loading
 
@@ -527,14 +533,7 @@ Crazyerics.prototype._bootstrap = function(system, title, file, slot, shader, on
                 });
             }, 5000); //show tip for this long
 
-            //deffered for emulator and game to load them concurrently
-            var emulatorReady = $.Deferred();
-            var gameReady = $.Deferred();
-            var gameDetailsReady = $.Deferred();
-
-            //create new canvas (canvas must exist before call to get emulator (expects to find it right away))
-            $('#emulatorcanvas').append('<canvas tabindex="0" id="emulator"></canvas>');
-
+            //when all deffered calls are ready
             $.when(emulatorReady, gameReady, gameDetailsReady).done(function(emulator, loadedgame, gamecontent) {
 
                 var Module = emulator[0];
@@ -582,70 +581,65 @@ Crazyerics.prototype._bootstrap = function(system, title, file, slot, shader, on
                         onStart();
                     }
 
-                }, 2000); //testing fixing raced start
+                    /**
+                     * the action to perform once all keypresses for loading state have completed (or not if not necessary)
+                     * @return {undef}
+                     */
+                    var removeVail = function() {
+                        //handle title and content fadein steps
+                        self._buildGameContent(system, title, function() {
 
-                /**
-                 * the action to perform once all keypresses for loading state have completed (or not if not necessary)
-                 * @return {undef}
-                 */
-                var removeVail = function() {
-                    //handle title and content fadein steps
-                    self._buildGameContent(system, title, function() {
-
-                    });
-
-                    $('#gameloadingoverlaycontent').addClass('close');
-                    $('#gameloadingoverlay').fadeOut(1000, function() {
-
-                        //hide tips
-                        $('#tips').stop().hide();
-                        clearInterval(tipInterval);
-
-                        //show controls initially to reveal their presence
-                        setTimeout(function() {
-                            self._ModuleLoading = false;
-                            $('#emulatorcontrolswrapper').addClass('closed');
-
-                            //to help new players, reveal controls after load
-                            self.Sliders.open('controlsslider');
-                        }, 1000);
-                    });
-
-                    $('#emulator')
-                        .blur(function(event) {
-                            if (!self._pauseOverride) {
-                                Module.pauseMainLoop();
-                                $('#emulatorwrapperoverlay').fadeIn();
-                            }
-                        })
-                        .focus(function() {
-                            Module.resumeMainLoop();
-                            $('#emulatorwrapperoverlay').hide();
-                        })
-                        .focus();
-                };
-
-                // load state?
-                // we need to handle mulitple keypresses asyncrounsly to ensure the emulator recieved input
-                if (slot) {
-                    self._asyncLoop(parseInt(slot, 10), function(loop) {
-
-                        self._simulateEmulatorKeypress(51, 10, function() {
-                            loop.next();
                         });
 
-                    }, function() {
-                        self._simulateEmulatorKeypress(52); //4 load state
-                        removeVail();
-                    });
-                } else {
-                    removeVail();
-                }
-            });
+                        $('#gameloadingoverlaycontent').addClass('close');
+                        $('#gameloadingoverlay').fadeOut(1000, function() {
 
-            self._loademulator(system, emulatorReady);
-            self._loadGameData(key, system, title, file, gameReady);
-            self._loadGame(key, system, title, file, shadertoload, gameDetailsReady);
+                            //hide tips
+                            $('#tips').stop().hide();
+                            clearInterval(tipInterval);
+
+                            //show controls initially to reveal their presence
+                            setTimeout(function() {
+                                self._ModuleLoading = false;
+                                $('#emulatorcontrolswrapper').addClass('closed');
+
+                                //to help new players, reveal controls after load
+                                self.Sliders.open('controlsslider');
+                            }, 1000);
+                        });
+
+                        $('#emulator')
+                            .blur(function(event) {
+                                if (!self._pauseOverride) {
+                                    Module.pauseMainLoop();
+                                    $('#emulatorwrapperoverlay').fadeIn();
+                                }
+                            })
+                            .focus(function() {
+                                Module.resumeMainLoop();
+                                $('#emulatorwrapperoverlay').hide();
+                            })
+                            .focus();
+                    };
+
+                    // load state?
+                    // we need to handle mulitple keypresses asyncrounsly to ensure the emulator recieved input
+                    if (slot) {
+                        self._asyncLoop(parseInt(slot, 10), function(loop) {
+
+                            self._simulateEmulatorKeypress(51, 10, function() {
+                                loop.next();
+                            });
+
+                        }, function() {
+                            self._simulateEmulatorKeypress(52); //4 load state
+                            removeVail();
+                        });
+                    } else {
+                        removeVail();
+                    }
+                }, 3000); //testing fixing raced start
+            });
         });
     }, 1000);
 };
@@ -958,7 +952,7 @@ Crazyerics.prototype._loademulator = function(system, deffered) {
  * @param  {Object} deffered
  * @return {undef}
  */
-Crazyerics.prototype._loadGameData = function(key, system, title, file, deffered) {
+Crazyerics.prototype._loadGame = function(key, system, title, file, deffered) {
 
     var self = this;
     var location = self._config.rompath;
@@ -1009,7 +1003,7 @@ Crazyerics.prototype._loadGameData = function(key, system, title, file, deffered
  * @param  {Object} deffered
  * @return {undef}
  */
-Crazyerics.prototype._loadGame = function(key, system, title, file, shadertoload, deffered) {
+Crazyerics.prototype._loadGameDetails = function(key, system, title, file, shadertoload, deffered) {
 
     var self = this;
 
