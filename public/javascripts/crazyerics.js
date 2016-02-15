@@ -13,7 +13,7 @@ var Crazyerics = function() {
         self._config = clientdata.configdata;
 
         //please remove this later
-        //self._autoCaptureHarness('gg', self._config.autocapture['gg'].shaders, 19500, 1, 10000);
+        //self._autoCaptureHarness('n64', self._config.autocapture['n64'].shaders, 7000, 1, 10000);
 
         //unpack playerdata
         self.PlayerData.init(clientdata.playerdata); //player data is user specific, can be dynmic
@@ -35,7 +35,15 @@ var Crazyerics = function() {
              * @return {undef}
              */
             onChange: function() {
-                self.replaceSuggestions($(this).val(), 200);
+                var system = $(this).val();
+                self.replaceSuggestions('/suggest/' + system + '/200');
+
+                //show or hide the alpha bar in the suggestions panel
+                if (system === 'all') {
+                    $('#alphabar').hide();
+                } else {
+                    $('#alphabar').show();
+                }
             }
         });
 
@@ -164,9 +172,18 @@ var Crazyerics = function() {
             self._simulateEmulatorKeypress(82, 5000); // R
         });
 
+        //for browsing, set up links
+        $('#suggestionswrapper a').each(function(index, item) {
+            $(item).on('click', function(e) {
+                var system = $('#searchform select').val();
+                var term = $(item).text();
+                self.replaceSuggestions('/suggest/browse/' + system + '?term=' + term);
+            });
+        });
+
         self.Sliders.init();
 
-        self.replaceSuggestions('all');
+        self.replaceSuggestions('/suggest/all/150'); //begin by showing 150 all console suggestions
 
         self._toolTips();
     });
@@ -373,10 +390,9 @@ Crazyerics.prototype.Sliders = {
  * @param  {number} items  the number of items to load and show
  * @return {undef}
  */
-Crazyerics.prototype.replaceSuggestions = function(system, items) {
+Crazyerics.prototype.replaceSuggestions = function(url) {
 
     var self = this;
-    items = items || 150;
 
     $('#loading .loadingtext').text('0%');
 
@@ -384,7 +400,7 @@ Crazyerics.prototype.replaceSuggestions = function(system, items) {
     $('#suggestionswrapper').hide();
     $('#loading').removeClass('close');
 
-    $.getJSON('/suggest/' + system + '/' + items, function(response) {
+    $.getJSON(url, function(response) {
 
         response = self._decompress.json(response);
 
@@ -402,7 +418,8 @@ Crazyerics.prototype.replaceSuggestions = function(system, items) {
         //when all images have loaded, show suggestions
         $('#suggestionswrapper').waitForImages().progress(function(loaded, count, success) {
 
-            var perc = parseInt((loaded / items) * 100, 10);
+            //perc loaded is the number loaded to the number included in the response * 100
+            var perc = parseInt((loaded / response.length) * 100, 10);
 
             $('#loading .loadingtext').text(perc + '%');
 
@@ -430,6 +447,10 @@ Crazyerics.prototype._bootstrap = function(system, title, file, slot, shader, on
 
     var self = this;
     var key = self._compress.gamekey(system, title, file); //for anything that might need it
+
+    console.log(system);
+    console.log(title);
+    console.log(file);
 
     //bail if attempted to load before current has finished
     if (self._ModuleLoading) {
@@ -1373,6 +1394,11 @@ Crazyerics.prototype._buildGameLink = function(system, title, file, size, close)
 
     imagewrapper.append(box);
 
+    //also when box load fails, in addition to showing the blank cartridge, let's create a fake label for it
+    box.error(function(e) {
+        $(this).parent().append('<div class="boxlabel boxlabel-' + system + '"><p>' + title + '</p></div>');
+    });
+
     li.append(imagewrapper);
 
     var remove = null;
@@ -1621,13 +1647,17 @@ Crazyerics.prototype._autoCaptureHarness = function(system, shaderqueue, capture
 
     //get capture details
     var data = self._config.autocapture[system];
-    
+
     setTimeout(function() {
 
         self._bootstrap(system, data.title, data.file, null, shaderqueue[0], function() {
 
-            //capture function takes in a macro of key presses to accomplish a click.
-            //since this changes from the first shot to the subsequent
+            /**
+             * capture function takes in a macro of key presses to accomplish a click.
+             * since this changes from the first shot to the subsequent
+             * @param  {Array} marco
+             * @return {undef}
+             */
             var capture = function(marco) {
 
                 //wait to capture, let the game run
@@ -1661,7 +1691,7 @@ Crazyerics.prototype._autoCaptureHarness = function(system, shaderqueue, capture
                 }, capturedelta);
             };
             capture([40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 88]);
-        });    
+        });
 
     }, delay);
 };
@@ -1676,7 +1706,7 @@ Crazyerics.prototype.downloadAllScreens = function() {
     var time = delay;
 
     $('.screenshotthumb').each(function(index) {
-        
+
         var self = this;
         setTimeout(function() {
             $(self)[0].click();

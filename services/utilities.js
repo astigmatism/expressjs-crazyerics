@@ -391,6 +391,37 @@ UtilitiesService.findSuggestions = function(system, items, forgienMixPerc, callb
     });
 };  
 
+UtilitiesService.browse = function(system, term, callback) {
+
+    var results = [];
+
+    var regex = new RegExp('^' + (term ? term : '[^a-z]'), 'i');
+
+    DataService.getFile('/data/' + system + '.json', function(err, titles) {
+        if (err) {
+            return callback(err);
+        }
+
+        async.each(Object.keys(titles), function(title, nexttitle) {
+
+            if (title.match(regex)) {
+                results.push({
+                    system: system,
+                    title: title,
+                    file: titles[title].best
+                });
+            }
+            nexttitle();
+
+        }, function(err) {
+            if (err) {
+                return callback(err);
+            }
+            callback(null, results);
+        });
+    });
+};
+
 UtilitiesService.findGame = function(system, title, file, callback) {
 
     DataService.getFile('/data/' + system + '.json', function(err, games) {

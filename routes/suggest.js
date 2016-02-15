@@ -16,6 +16,20 @@ router.get('/all/:items', function(req, res, next) {
     });
 });
 
+router.get('/browse/:system', function(req, res, next) {
+
+    var system = req.params.system;
+    var term = req.query.term;
+
+    UtilitiesService.browse(system, term, function(err, suggestions) {
+        if (err) {
+            return res.json(err);
+        }
+        var compressed = UtilitiesService.compress.json(suggestions);
+        res.json(compressed);
+    });
+});
+
 router.get('/:system/:items', function(req, res, next) {
 
     var system = req.params.system;

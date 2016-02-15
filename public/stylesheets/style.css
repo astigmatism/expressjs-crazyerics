@@ -206,6 +206,85 @@ p {
 	cursor: pointer;
 }
 
+.boxlabel {
+	text-align: center;
+	display: inline-block;
+	overflow: hidden;
+	position: absolute;
+	pointer-events: none;
+	/* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#d6d6d6+0,45484d+100&0.4+0,0.4+100 */
+	background: -moz-linear-gradient(top,  rgba(214,214,214,0.4) 0%, rgba(69,72,77,0.4) 100%); /* FF3.6-15 */
+	background: -webkit-linear-gradient(top,  rgba(214,214,214,0.4) 0%,rgba(69,72,77,0.4) 100%); /* Chrome10-25,Safari5.1-6 */
+	background: linear-gradient(to bottom,  rgba(214,214,214,0.4) 0%,rgba(69,72,77,0.4) 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#66d6d6d6', endColorstr='#6645484d',GradientType=0 ); /* IE6-9 */
+}
+
+.boxlabel p {
+	padding: 3px 5px 0px 5px;
+	margin: 0 auto;
+  	font-family: 'Open+Sans', sans-serif;
+  	font-size: 11px;
+  	color: #101921;
+  	text-align: center;
+}
+
+.boxlabel-gb {
+	width: 88px;
+	height: 77px;
+	top: 38px;
+	left: 16px;
+	border-radius: 3px;	
+}
+
+.boxlabel-gba {
+	width: 82px;
+	height: 45px;
+	top: 17px;
+	left: 19px;
+	border-radius: 3px;	
+}
+
+.boxlabel-gen {
+	width: 72px;
+	height: 67px;
+	top: 5px;
+	left: 24px;
+	border-radius: 3px;	
+}
+
+.boxlabel-gg {
+	width: 92px;
+	height: 65px;
+	top: 28px;
+	left: 14px;
+	border-radius: 11px 11px 0px 0px;	
+}
+
+.boxlabel-n64 {
+	width: 69px;
+	height: 60px;
+	top: 8px;
+	left: 26px;
+	border-radius: 8px 8px 1px 1px;
+	padding-top: 5px;
+}
+
+.boxlabel-snes {
+	width: 75px;
+	height: 35px;
+	top: 2px;
+	left: 23px;
+	border-radius: 3px;
+}
+
+.boxlabel-sms {
+	width: 105px;
+	height: 44px;
+	top: 29px;
+	left: 8px;
+	border-radius: 1px;
+}
+
 .gamelink .statebutton {
 	cursor: pointer;	
 }
@@ -478,6 +557,7 @@ p {
 	-webkit-transition:All 200ms ease-in;
 	-moz-transition:All 200ms ease-in;
 	-o-transition:All 200ms ease-in;
+	max-height: 250px;
 }
 
 #gamedetailscontent {
@@ -604,6 +684,19 @@ div.slidingpanel {
 
 #suggestionswrapper {
 	padding: 10px;
+}
+
+#alphabar {
+	display: none;
+	font-size: 1.2em;
+	margin: 10px 0px 20px 0px;
+	text-align: center;
+}
+
+#alphabar a {
+	padding: 0px 5px;
+	cursor: pointer;
+	text-decoration: none;
 }
 
 #suggestionswrapper ul {
