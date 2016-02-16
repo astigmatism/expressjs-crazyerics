@@ -708,27 +708,13 @@ div.slidingpanel {
 }
 
 #loading {
-	margin-top: 20px;
+	width: 100px;
+	margin: 50px auto;
 
 	transition:All 100ms ease-in;
 	-webkit-transition:All 100ms ease-in;
 	-moz-transition:All 100ms ease-in;
 	-o-transition:All 100ms ease-in;
-}
-#loading .loadingicon {
-	height: 90px;	
-	width: 100%;
-
-	-moz-transform: scaleY(-1);
-    -o-transform: scaleY(-1);
-    -webkit-transform: scaleY(-1);
-    transform: scaleY(-1);
-    filter: FlipV;
-    -ms-filter: "FlipV";
-}
-#loading .loadingtext {
-	text-align: center;
-	font-size: 1.5em;
 }
 
 #output {

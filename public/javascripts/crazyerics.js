@@ -26,6 +26,11 @@ var Crazyerics = function() {
 
         self._buildRecentlyPlayed(self.PlayerData.get('playhistory'));
 
+        //loading dial
+        $('.dial').knob({
+            'change' : function (v) { console.log(v); }
+        });
+
         //console select
         $('#searchform select').selectOrDie({
             customID: 'selectordie',
@@ -394,7 +399,8 @@ Crazyerics.prototype.replaceSuggestions = function(url) {
 
     var self = this;
 
-    $('#loading .loadingtext').text('0%');
+    //reset dial
+    $('.dial').val(0).trigger('change');
 
     //show loading icon
     $('#suggestionswrapper').hide();
@@ -421,7 +427,8 @@ Crazyerics.prototype.replaceSuggestions = function(url) {
             //perc loaded is the number loaded to the number included in the response * 100
             var perc = parseInt((loaded / response.length) * 100, 10);
 
-            $('#loading .loadingtext').text(perc + '%');
+            //set loading progress on dial
+            $('.dial').val(perc).trigger('change');
 
             if (loaded === (count - 1)) {
                 $('#suggestionswrapper').slideDown();
