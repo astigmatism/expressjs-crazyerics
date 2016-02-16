@@ -5,4 +5,5 @@ public/images/flat
 public/flattened
 public/zipped
 public/jsonify/
-/node_modules
+/node_modules/
+/package.json
