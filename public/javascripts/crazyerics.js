@@ -200,6 +200,8 @@ Crazyerics.prototype._FS = null; //handle to Module file system
 Crazyerics.prototype._ModuleLoading = false; //oldskool way to prevent double loading
 Crazyerics.prototype._pauseOverride = false; //condition for blur event of emulator, sometimes we don't want it to pause when we're giving it back focus
 Crazyerics.prototype._activeFile = null;
+Crazyerics.prototype._activeStateSlot = 0;
+Crazyerics.prototype._saveStateDeffers = {}; //since saving state to server requires both state and screenshot data, setup these deffers since tracking which comes back first is unknown
 Crazyerics.prototype._keypresslocked = false; //when we're sending a keyboard event to the emulator, we want to wait until that event is complete before any additinal keypresses are made (prevents spamming)
 Crazyerics.prototype._fileWriteDelay = 500; //in ms. The delay in which the client should respond to a file written by the emulator (sometimes is goes out over the network and we don't want to spam the call)
 Crazyerics.prototype._tips = [
@@ -562,6 +564,9 @@ Crazyerics.prototype._bootstrap = function(system, title, file, slot, shader, on
                 self._FS = fs;
                 self.emulatorframe = frame; //handle to iframe
 
+                //emulator always starts with state slot 0
+                self._activeStateSlot = 0;
+
                 $('#emulatorcontrolswrapper').show(); //show controls tool bar (still has closed class applied)
 
                 //console.log(self._generateLink(system, title, file));
@@ -634,6 +639,7 @@ Crazyerics.prototype._bootstrap = function(system, title, file, slot, shader, on
                     if (slot) {
                         self._asyncLoop(parseInt(slot, 10), function(loop) {
 
+                            //simulate increasing state slot (will also set self._activeStateSlot)
                             self._simulateEmulatorKeypress(51, 10, function() {
                                 loop.next();
                             });
@@ -804,6 +810,7 @@ Crazyerics.prototype._cleanupEmulator = function() {
 /**
  * simulator keypress on emulator. used to allow interaction of dom elements
  * @param  {number} key ascii key code
+ * @param {number} keyUpDelay the time delay (in ms) the key will be in the down position before lift
  * @return {undef}
  */
 Crazyerics.prototype._simulateEmulatorKeypress = function(key, keyUpDelay, callback) {
@@ -899,8 +906,36 @@ Crazyerics.prototype._setupKeypressInterceptor = function(system, title, file) {
                 case 'keyup':
                     var key = event.keyCode;
                     switch (key) {
-                        case 70: // F
+                        case 70: // F - fullscreen
                             self._Module.requestFullScreen(true, true);
+                        break;
+                        case 49: //1 - save state
+                            //setup deffered call to save state to server, need callbacks from state file and screenshot capture
+                            self._saveStateDeffers.state = $.Deferred();
+                            self._saveStateDeffers.screen = $.Deferred();
+                            
+                            //use a timeout to clear deffers incase one of them never comes back, 1 sec is plenty. i see this return in about 50ms generally
+                            var clearStateDeffers = setTimeout(function() {
+                                self._saveStateDeffers = {};
+                            }, 1000);
+
+                            $.when(self._saveStateDeffers.state, self._saveStateDeffers.screen).done(function(statedetails, screendetails) {
+                                
+                                clearTimeout(clearStateDeffers); //clear timeout from erasing deffers
+                                self._saveStateDeffers = {}; //do the clear ourselves
+
+                                self._saveStateToServer(statedetails, screendetails);
+                            });
+                            self._simulateEmulatorKeypress(84); //initiaze screenshot after its defer is in place.
+                        break;
+                        case 50: //2 - state slot decrease
+                            self._activeStateSlot--;
+                            if (self._activeStateSlot < 0) {
+                                self._activeStateSlot = 0;
+                            }
+                        break;
+                        case 51: //3 - state slot increase
+                            self._activeStateSlot++;
                         break;
                     }
                 break;
@@ -1091,6 +1126,39 @@ Crazyerics.prototype._buildFileSystem = function(Module, system, file, data, sta
     }
 };
 
+Crazyerics.prototype._saveStateToServer = function(statedetails, screendetails) {
+
+    var self = this;
+
+    //state details is a resolve on a deferred. all return data in array
+    var key = statedetails[0];
+    var system = statedetails[1];
+    var title = statedetails[2];
+    var file = statedetails[3];
+    var slot = statedetails[4];
+    var statedata = statedetails[5];
+
+    $.ajax({
+        url: '/states/save?key=' + encodeURIComponent(key) + '&slot=' + slot,
+        data: statedata,
+        processData: false,
+        contentType: 'text/plain',
+        type: 'POST',
+        /**
+         * on completion of state save
+         * @param  {string} data
+         * @return {undef}
+         */
+        complete: function(data) {
+
+            //when complete, we have something to load. show in recently played
+            var statedetails = {};
+            statedetails[slot] = Date.now();
+            self._addToPlayHistory(key, system, title, file, null, statedetails);
+        }
+    });
+};
+
 /**
  * this function is registered with the emulator when a file is written.
  * @param  {string} key      unique game key, used to save state
@@ -1113,32 +1181,32 @@ Crazyerics.prototype._emulatorFileWritten = function(key, system, title, file, f
         var slot = statematch[1] === '' ? 0 : statematch[1]; //the 0 state does not use a digit
         var data = self._compress.bytearray(contents);
 
-        $.ajax({
-            url: '/states/save?key=' + encodeURIComponent(key) + '&slot=' + slot,
-            data: data,
-            processData: false,
-            contentType: 'text/plain',
-            type: 'POST',
-            /**
-             * on completion of state save
-             * @param  {string} data
-             * @return {undef}
-             */
-            complete: function(data) {
+        //if a deffered is setup for recieveing save state data, call it. otherwise, throw this state away (should never happen though!)
+        if (self._saveStateDeffers.hasOwnProperty('state')) {
+            self._saveStateDeffers.state.resolve(key, system, title, file, slot, data);
+        }
 
-                //when complete, we have something to load. show in recently played
-                var statedetails = {};
-                statedetails[slot] = Date.now();
-                self._addToPlayHistory(key, system, title, file, null, statedetails);
-            }
-        });
+        return;
     }
 
     if (screenshotmatch) {
 
+        //construct image into blob for use
+        var arrayBufferView = new Uint8Array(contents);
+
+        //if a deffered from save state exists, use this screenshot for it and return
+        if (self._saveStateDeffers.hasOwnProperty('screen')) {
+            self._saveStateDeffers.screen.resolve(arrayBufferView);
+            return;
+        }
+
         $('p.screenshothelper').remove(); //remove helper text
 
         var screenratio = 1;
+
+        var blob = new Blob([arrayBufferView], {
+            type: 'image/bmp'
+        });
 
         //get screen ratio from config
         if (self._config.retroarch && self._config.retroarch[system]) {
@@ -1148,10 +1216,6 @@ Crazyerics.prototype._emulatorFileWritten = function(key, system, title, file, f
             }
         }
 
-        var arrayBufferView = new Uint8Array(contents);
-        var blob = new Blob([arrayBufferView], {
-            type: 'image/bmp'
-        });
         var urlCreator = window.URL || window.webkitURL;
         var imageUrl = urlCreator.createObjectURL(blob);
         var width = $('#screenshotsslider div.slidercontainer').width() / 3; //550px is the size of the panel, the second number is how many screens to want to show per line
