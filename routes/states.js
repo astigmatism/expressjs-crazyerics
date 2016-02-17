@@ -7,17 +7,20 @@ router.post('/save', function(req, res, next) {
     
     var key = decodeURIComponent(req.query.key);
     var slot = req.query.slot;
-    var data = req.body;
+    var postdata = UtilitiesService.decompress.json(req.body); //unpack form data
 
     if (req.session) {
         req.session.games = req.session.games ? req.session.games : {};
         req.session.games[key] = req.session.games[key] ? req.session.games[key] : {};
         req.session.games[key].states = req.session.games[key].states ? req.session.games[key].states : {};
-        req.session.games[key].states[slot] = data;
+        req.session.games[key].states[slot] = postdata.state;
 
-        //save state time in play history
+        //save state time and screenshot in play history
         if (req.session.games.history && req.session.games.history[key]) {
-            req.session.games.history[key].slots[slot] = Date.now();
+            req.session.games.history[key].slots[slot] = {
+                time: Date.now(),
+                screenshot: postdata.screenshot
+            }
         }
 
     }

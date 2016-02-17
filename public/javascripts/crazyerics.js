@@ -1138,9 +1138,17 @@ Crazyerics.prototype._saveStateToServer = function(statedetails, screendetails) 
     var slot = statedetails[4];
     var statedata = statedetails[5];
 
+    var screenshot = self._compress.bytearray(screendetails);
+
+    //compress payload for server
+    var data = self._compress.json({
+        'state': statedata,
+        'screenshot': screenshot
+    });
+
     $.ajax({
         url: '/states/save?key=' + encodeURIComponent(key) + '&slot=' + slot,
-        data: statedata,
+        data: data,
         processData: false,
         contentType: 'text/plain',
         type: 'POST',
@@ -1153,7 +1161,10 @@ Crazyerics.prototype._saveStateToServer = function(statedetails, screendetails) 
 
             //when complete, we have something to load. show in recently played
             var statedetails = {};
-            statedetails[slot] = Date.now();
+            statedetails[slot] = {
+                time: Date.now(),
+                screenshot: screenshot
+            };
             self._addToPlayHistory(key, system, title, file, null, statedetails);
         }
     });
@@ -1202,25 +1213,9 @@ Crazyerics.prototype._emulatorFileWritten = function(key, system, title, file, f
 
         $('p.screenshothelper').remove(); //remove helper text
 
-        var screenratio = 1;
-
-        var blob = new Blob([arrayBufferView], {
-            type: 'image/bmp'
-        });
-
-        //get screen ratio from config
-        if (self._config.retroarch && self._config.retroarch[system]) {
-            screenratio = self._config.retroarch[system].match(/video_aspect_ratio = (\d+\.+\d+)/);
-            if ($.isArray(screenratio) && screenratio.length > 1) {
-                screenratio = parseFloat(screenratio[1]);
-            }
-        }
-
-        var urlCreator = window.URL || window.webkitURL;
-        var imageUrl = urlCreator.createObjectURL(blob);
         var width = $('#screenshotsslider div.slidercontainer').width() / 3; //550px is the size of the panel, the second number is how many screens to want to show per line
-        var img = new Image(width, width / screenratio);        //create new image with correct ratio
-        img.src = imageUrl;
+        var img = self._buildScreenshot(system, arrayBufferView, width);
+
         $(img).addClass('close').load(function() {
             $(this).removeClass('close');
         });
@@ -1230,6 +1225,39 @@ Crazyerics.prototype._emulatorFileWritten = function(key, system, title, file, f
         //kick open the screenshot slider
         self.Sliders.open('screenshotsslider', true);
     }
+};
+
+/**
+ * common function to take arraybufferview of screenshot data and return a dom image. prodive width of image and we'll lookup aspect ration in config data
+ * @param {string} system the system for which this screenshot belongs. used to look up aspect ratio
+ * @param  {Array} arraybufferview
+ * @param  {number} width
+ * @return {Object}
+ */
+Crazyerics.prototype._buildScreenshot = function(system, arraybufferview, width) {
+
+    var self = this;
+
+    var screenratio = 1;
+
+    var blob = new Blob([arraybufferview], {
+        type: 'image/bmp'
+    });
+
+    //get screen ratio from config
+    if (self._config.retroarch && self._config.retroarch[system]) {
+        screenratio = self._config.retroarch[system].match(/video_aspect_ratio = (\d+\.+\d+)/);
+        if ($.isArray(screenratio) && screenratio.length > 1) {
+            screenratio = parseFloat(screenratio[1]);
+        }
+    }
+
+    var urlCreator = window.URL || window.webkitURL;
+    var imageUrl = urlCreator.createObjectURL(blob);
+    var img = new Image(width, width / screenratio);        //create new image with correct ratio
+    img.src = imageUrl;
+
+    return img;
 };
 
 /**
@@ -1379,12 +1407,17 @@ Crazyerics.prototype._addToPlayHistory = function(key, system, title, file, play
  * @param {Object} details       this function is called from the _addToPlayHistory function which passes a data blob of game details
  * @param {Object} stateswrapper dom element
  * @param {number} slot
- * @param {Date} date
+ * @param {Object} slot time and sceenshot of state saved
  */
-Crazyerics.prototype._addStateToPlayHistory = function(details, stateswrapper, slot, date) {
+Crazyerics.prototype._addStateToPlayHistory = function(details, stateswrapper, slot, statedetails) {
 
     var self = this;
-    date = new Date(date);
+
+    var date = new Date(statedetails.time);
+    var screenshot = self._decompress.bytearray(statedetails.screenshot);
+
+    var image = self._buildScreenshot(details.system, screenshot, 100); //build dom image of screenshot
+
     var formatteddate = $.format.date(date, 'E MM/dd/yyyy h:mm:ss a'); //using the jquery dateFormat plugin
 
     var loadstate = $('<div data-slot="' + slot + '" class="statebutton zoom tooltip" title="Load State Saved ' + formatteddate + '">' + slot + '</div>')
@@ -1396,6 +1429,8 @@ Crazyerics.prototype._addStateToPlayHistory = function(details, stateswrapper, s
         self._bootstrap(details.system, details.title, details.file, slot);
         window.scrollTo(0,0);
     });
+
+    loadstate.append(image);
 
     //two conditions here - the same state is being saved (replace) or a new state is saved and we need to insert it correctly
     var gotinserted = false;
