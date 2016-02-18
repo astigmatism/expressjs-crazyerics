@@ -625,6 +625,7 @@ div.slidingpanel {
 	width: 780px;
 	padding: 0px 10px;
 	display: none;
+	position: relative;
 	background: -moz-linear-gradient(top,  rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%); /* FF3.6+ */
 	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(0,0,0,1)), color-stop(100%,rgba(0,0,0,0))); /* Chrome,Safari4+ */
 	background: -webkit-linear-gradient(top,  rgba(0,0,0,1) 0%,rgba(0,0,0,0) 100%); /* Chrome10+,Safari5.1+ */
@@ -634,7 +635,7 @@ div.slidingpanel {
 	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#000000', endColorstr='#00000000',GradientType=0 ); /* IE6-9 */
 }
 
-#recentplayedwrapper ul {
+#recentplayedwrapper ul.column {
 	width: 120px;
 	display: inline-block;
 	margin: 0px 5px;
@@ -642,7 +643,7 @@ div.slidingpanel {
 	vertical-align: top;
 }
 
-#recentplayedwrapper li {
+#recentplayedwrapper li.gamelink {
 	list-style: none;
 	margin: 5px 0px;
 
@@ -662,18 +663,59 @@ div.slidingpanel {
 	z-index: 100;
 }
 
-#recentplayedwrapper li .statewrapper div {
-	text-align: center;
-	vertical-align: center;
-	background: rgb(81,97,112);
-	display: inline-block;
-	padding: 0px 5px;
-	margin: 2px;
-	-moz-border-radius: 2px;
-	border-radius: 5px;
-	min-width: 14px;
+#statewrappersource {
+	display: none;
 }
 
+#recentplayedwrapper .statewrapper {
+	position: absolute;
+	padding: 20px;
+	background: rgb(81,97,112);
+	-moz-border-radius: 2px;
+	border-radius: 5px;
+	z-index: 100;
+	display: none;
+}
+
+#recentplayedwrapper .triangle {
+	position: absolute;
+	top: -20px;
+	width: 0;
+	height: 0;
+	border-left: 10px solid transparent;
+	border-right: 10px solid transparent;
+	border-bottom: 20px solid rgb(81,97,112);
+}
+
+#recentplayedwrapper .statewrapper h3 {
+	margin: 0px 0px 10px 0px;
+	padding: 0;
+}
+
+#recentplayedwrapper .statewrapper ul {
+	margin: 0;
+	padding: 0;
+}
+
+#recentplayedwrapper .statewrapper li {
+	list-style: none;
+	cursor: pointer;
+	display: inline-block;
+	margin-left: 5px;
+
+	transition:All 200ms ease-in;
+	-webkit-transition:All 200ms ease-in;
+	-moz-transition:All 200ms ease-in;
+	-o-transition:All 200ms ease-in;
+}
+
+#recentplayedwrapper .statewrapper li.nostate {
+	width: 100px;
+}
+
+#recentplayedwrapper .statewrapper li .caption {
+	text-align: center;
+}
 
 /* suggestions */
 

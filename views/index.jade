@@ -92,12 +92,18 @@ block content
                 p#gameloadingname
             p#tip Did you know that you rewind that mistake by holding the R key?
     div#recentplayedwrapper
-        ul
-        ul
-        ul
-        ul
-        ul
-        ul
+        div#statewrappersource(class="statewrapper")
+            div(class="triangle")
+            h3 Please select a state to load:
+            ul
+                li(class="nostate")
+                    div(class="caption") No State
+        ul(class="column")
+        ul(class="column")
+        ul(class="column")
+        ul(class="column")
+        ul(class="column")
+        ul(class="column")
 
     div#suggestionswrapper
         div#alphabar Browse: 

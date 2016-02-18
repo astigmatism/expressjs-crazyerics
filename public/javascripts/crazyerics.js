@@ -419,7 +419,8 @@ Crazyerics.prototype.replaceSuggestions = function(url) {
 
         //use modulus to evenly disperse across all columns
         for (var i = 0; i < response.length; ++i) {
-            var gamelink = self._buildGameLink(response[i].system, response[i].title, response[i].file, 120);
+            var gamelink = self._buildGameLink(response[i].system, response[i].title, 120); //build dom elements
+            self._addBootstrapOnClick(gamelink.img, response[i].system, response[i].title, response[i].file); //assign standard boot when clicked
             $(columns[i % columns.length]).append(gamelink.li);
         }
 
@@ -1328,18 +1329,18 @@ Crazyerics.prototype._addToPlayHistory = function(key, system, title, file, play
         self._playhistory[key].played = Date.now();
 
         //update any states saved:
-        if (slots) {
-            for (slot in slots) {
-                self._addStateToPlayHistory(self._playhistory[key], self._playhistory[key].stateswrapper, slot, slots[slot]);
-            }
-        }
+        // if (slots) {
+        //     for (slot in slots) {
+        //         self._addStateToPlayHistory(self._playhistory[key], self._playhistory[key].stateswrapper, slot, slots[slot]);
+        //     }
+        // }
         self._toolTips();
         return;
     }
 
     //not a dupe, let's create a new play histry game
 
-    var gamelink = self._buildGameLink(system, title, file, 120, true, slots); //get a game link
+    var gamelink = self._buildGameLink(system, title, 120, true); //get a game link
 
     gamelink.li.addClass('close');
 
@@ -1369,8 +1370,13 @@ Crazyerics.prototype._addToPlayHistory = function(key, system, title, file, play
     });
 
     //create the saved state area and add states to it
-    var stateswrapper = $('<div class="statewrapper"></div>');
-    gamelink.li.append(stateswrapper);
+    var stateswrapper = $('#statewrappersource').clone();
+    stateswrapper.attr('id', '').data('key', key);
+    $(stateswrapper).on('mouseout', function(e) {
+        //$(this).hide().addClass('close');
+    });
+
+    $('#recentplayedwrapper').append(stateswrapper);
 
     //create a local store to take this with handle to dom elements
     self._playhistory[key] = {
@@ -1384,18 +1390,35 @@ Crazyerics.prototype._addToPlayHistory = function(key, system, title, file, play
 
     //append states, if any
     if (slots) {
+
         for (slot in slots) {
             self._addStateToPlayHistory(self._playhistory[key], stateswrapper, slot, slots[slot]);
         }
+
+        //when clicked, shows statewrapper
+        gamelink.img.on('click', function(e) {
+            $(stateswrapper).toggle();
+        });
+
+    } else {
+        //standard boot loader when clicked
+        self._addBootstrapOnClick(gamelink.img, system, title, file);
     }
 
     //figure out where to insert this gamelink in the recently played area
-    var columns = $('#recentplayedwrapper ul');
+    var columns = $('#recentplayedwrapper ul.column');
     var column = columns[0];
+    var columndepth = 0;
     for (var i = 0; i < columns.length; ++i) {
-        column = ($(columns[i]).children().length < $(column).children().length) ? columns[i] : column;
+        if ($(columns[i]).children().length < $(column).children().length) {
+            column = columns[i];
+            columndepth = i;
+        }
     }
     $(column).append(gamelink.li); //append to recently played area
+
+    //set state arrow to correct column
+    $(stateswrapper).find('.triangle').css('left', ((120 * columndepth) + (50 + (columndepth * 10))) + 'px');
 
     $('#recentplayedwrapper').show(); //ensure it is showing (will be hidden first time)
 
@@ -1419,6 +1442,18 @@ Crazyerics.prototype._addStateToPlayHistory = function(details, stateswrapper, s
     var image = self._buildScreenshot(details.system, screenshot, 100); //build dom image of screenshot
 
     var formatteddate = $.format.date(date, 'E MM/dd/yyyy h:mm:ss a'); //using the jquery dateFormat plugin
+
+    var li = $('<li class="zoom tooltip" title="' + formatteddate + '"></li>');
+    li.append(image);
+
+    li.append('<div class="caption">' + slot + '</div>');
+
+    self._addBootstrapOnClick(li, details.system, details.title, details.file, slot);
+
+    $(stateswrapper).find('ul').append(li);
+
+
+    return;
 
     var loadstate = $('<div data-slot="' + slot + '" class="statebutton zoom tooltip" title="Load State Saved ' + formatteddate + '">' + slot + '</div>')
     .on('mousedown', function() {
@@ -1462,12 +1497,11 @@ Crazyerics.prototype._addStateToPlayHistory = function(details, stateswrapper, s
  * a common function which returns an li of a game box which acts as a link to bootstrap load the game and emulator
  * @param  {string} system
  * @param  {string} title
- * @param  {string} file
  * @param  {number} size        the size of the box front image to load (114, 150)
  * @param  {boolean} close      if true, shows the close button at the corner, no event attached
  * @return {Object}             Contains reference to the li, img and close button
  */
-Crazyerics.prototype._buildGameLink = function(system, title, file, size, close) {
+Crazyerics.prototype._buildGameLink = function(system, title, size, close) {
     var self = this;
     close = close || false;
 
@@ -1477,17 +1511,9 @@ Crazyerics.prototype._buildGameLink = function(system, title, file, size, close)
     box.addClass('tooltip close');
     box.attr('title', title);
 
+    //show box art when finished loading
     box.load(function() {
-        $(this)
-        .removeClass('close')
-        .on('mousedown', function() {
-            self._pauseOverride = true; //prevent current game from pausng before fadeout
-        })
-        .on('mouseup', function() {
-
-            self._bootstrap(system, title, file);
-            window.scrollTo(0,0);
-        });
+        $(this).removeClass('close');
     });
 
     var imagewrapper = $('<div class="box zoom"></div>');
@@ -1519,6 +1545,22 @@ Crazyerics.prototype._buildGameLink = function(system, title, file, size, close)
         img: box,
         remove: remove
     };
+};
+
+Crazyerics.prototype._addBootstrapOnClick = function(item, system, title, file, slot) {
+
+    var self = this;
+
+    $(item).on('mousedown', function() {
+        self._pauseOverride = true; //prevent current game from pausng before fadeout
+    })
+    .on('mouseup', function() {
+
+        self._bootstrap(system, title, file, slot);
+        window.scrollTo(0,0);
+    });
+
+    return item;
 };
 
 /**
