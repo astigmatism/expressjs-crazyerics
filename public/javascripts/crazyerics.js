@@ -12,7 +12,7 @@ var Crazyerics = function() {
 
         self._config = clientdata.configdata;
 
-        //please remove this later
+        //auto capture trigger. comment out to avoid build
         //self._autoCaptureHarness('n64', self._config.autocapture['n64'].shaders, 7000, 1, 10000);
 
         //unpack playerdata
@@ -457,10 +457,6 @@ Crazyerics.prototype._bootstrap = function(system, title, file, slot, shader, on
 
     var self = this;
     var key = self._compress.gamekey(system, title, file); //for anything that might need it
-
-    console.log(system);
-    console.log(title);
-    console.log(file);
 
     //bail if attempted to load before current has finished
     if (self._ModuleLoading) {
@@ -1376,7 +1372,7 @@ Crazyerics.prototype._addToPlayHistory = function(key, system, title, file, play
         //$(this).hide().addClass('close');
     });
 
-    $('#recentplayedwrapper').append(stateswrapper);
+    $(gamelink.li).append(stateswrapper);
 
     //create a local store to take this with handle to dom elements
     self._playhistory[key] = {
@@ -1389,7 +1385,7 @@ Crazyerics.prototype._addToPlayHistory = function(key, system, title, file, play
     };
 
     //append states, if any
-    if (slots) {
+    if (Object.keys(slots).length > 0) {
 
         for (slot in slots) {
             self._addStateToPlayHistory(self._playhistory[key], stateswrapper, slot, slots[slot]);
@@ -1418,7 +1414,7 @@ Crazyerics.prototype._addToPlayHistory = function(key, system, title, file, play
     $(column).append(gamelink.li); //append to recently played area
 
     //set state arrow to correct column
-    $(stateswrapper).find('.triangle').css('left', ((120 * columndepth) + (50 + (columndepth * 10))) + 'px');
+    //$(stateswrapper).find('.triangle').css('left', ((120 * columndepth) + (50 + (columndepth * 10))) + 'px');
 
     $('#recentplayedwrapper').show(); //ensure it is showing (will be hidden first time)
 
@@ -1769,74 +1765,75 @@ Crazyerics.prototype._asyncLoop = function(iterations, func, callback) {
 
 /**
  * function to manage the capturing of screenshots automatically
+ * this function is commented out when not in use to avoid getting built
  * @param  {string} system          game system
  * @param  {Array} shaderqueue      array of shaders to capture
  * @param  {number} capturedelta    the amount of time in ms to wait before the next capture
  * @param  {number} numberofshots   maximum number of shots to take per shader
  * @return {undef}
  */
-Crazyerics.prototype._autoCaptureHarness = function(system, shaderqueue, capturedelta, numberofshots, delay) {
+// Crazyerics.prototype._autoCaptureHarness = function(system, shaderqueue, capturedelta, numberofshots, delay) {
 
-    var self = this;
+//     var self = this;
 
-    if (shaderqueue.length === 0) {
-        self._simulateEmulatorKeypress(112); //press f1 on finish to pause
-        self.downloadAllScreens();
-        return;
-    }
+//     if (shaderqueue.length === 0) {
+//         self._simulateEmulatorKeypress(112); //press f1 on finish to pause
+//         self.downloadAllScreens();
+//         return;
+//     }
 
-    var remaining = numberofshots;
+//     var remaining = numberofshots;
 
-    //get capture details
-    var data = self._config.autocapture[system];
+//     //get capture details
+//     var data = self._config.autocapture[system];
 
-    setTimeout(function() {
+//     setTimeout(function() {
 
-        self._bootstrap(system, data.title, data.file, null, shaderqueue[0], function() {
+//         self._bootstrap(system, data.title, data.file, null, shaderqueue[0], function() {
 
-            /**
-             * capture function takes in a macro of key presses to accomplish a click.
-             * since this changes from the first shot to the subsequent
-             * @param  {Array} marco
-             * @return {undef}
-             */
-            var capture = function(marco) {
+//             /**
+//              * capture function takes in a macro of key presses to accomplish a click.
+//              * since this changes from the first shot to the subsequent
+//              * @param  {Array} marco
+//              * @return {undef}
+//              */
+//             var capture = function(marco) {
 
-                //wait to capture, let the game run
-                setTimeout(function() {
+//                 //wait to capture, let the game run
+//                 setTimeout(function() {
 
-                    //press F1 to pause the game
-                    self._simulateEmulatorKeypress(112, null, function() {
+//                     //press F1 to pause the game
+//                     self._simulateEmulatorKeypress(112, null, function() {
 
-                        //run marco to capture a screenshot
-                        self._runKeyboardMacro(marco, function() {
+//                         //run marco to capture a screenshot
+//                         self._runKeyboardMacro(marco, function() {
 
-                            console.log(shaderqueue[0] + ' shot: ' + remaining);
+//                             console.log(shaderqueue[0] + ' shot: ' + remaining);
 
-                            //press F1 again to continue playing game
-                            self._simulateEmulatorKeypress(112, null, function() {
+//                             //press F1 again to continue playing game
+//                             self._simulateEmulatorKeypress(112, null, function() {
 
-                                remaining--;
+//                                 remaining--;
 
-                                //if remaining shots need to be taken, run the capture function again, otherwise move to next shader
-                                if (remaining === 0) {
-                                    //next in queue
-                                    shaderqueue.shift();
-                                    self._autoCaptureHarness(system, shaderqueue, capturedelta, numberofshots);
-                                    return;
-                                } else {
-                                    capture([88]); //continue capturing
-                                }
-                            });
-                        });
-                    });
-                }, capturedelta);
-            };
-            capture([40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 88]);
-        });
+//                                 //if remaining shots need to be taken, run the capture function again, otherwise move to next shader
+//                                 if (remaining === 0) {
+//                                     //next in queue
+//                                     shaderqueue.shift();
+//                                     self._autoCaptureHarness(system, shaderqueue, capturedelta, numberofshots);
+//                                     return;
+//                                 } else {
+//                                     capture([88]); //continue capturing
+//                                 }
+//                             });
+//                         });
+//                     });
+//                 }, capturedelta);
+//             };
+//             capture([40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 88]);
+//         });
 
-    }, delay);
-};
+//     }, delay);
+// };
 
 /**
  * a quick function that downlaods all captured screens
