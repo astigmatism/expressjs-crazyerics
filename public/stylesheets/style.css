@@ -675,7 +675,6 @@ div.slidingpanel {
 	border-radius: 5px;
 	z-index: 100;
 	display: none;
-	left: 50%;
 }
 
 #recentplayedwrapper .triangle {
@@ -708,10 +707,6 @@ div.slidingpanel {
 	-webkit-transition:All 200ms ease-in;
 	-moz-transition:All 200ms ease-in;
 	-o-transition:All 200ms ease-in;
-}
-
-#recentplayedwrapper .statewrapper li.nostate {
-	width: 100px;
 }
 
 #recentplayedwrapper .statewrapper li .caption {

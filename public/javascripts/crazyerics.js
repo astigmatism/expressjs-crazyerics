@@ -419,8 +419,7 @@ Crazyerics.prototype.replaceSuggestions = function(url) {
 
         //use modulus to evenly disperse across all columns
         for (var i = 0; i < response.length; ++i) {
-            var gamelink = self._buildGameLink(response[i].system, response[i].title, 120); //build dom elements
-            self._addBootstrapOnClick(gamelink.img, response[i].system, response[i].title, response[i].file); //assign standard boot when clicked
+            var gamelink = self._buildGameLink(response[i].system, response[i].title, response[i].file, 120); //build dom elements
             $(columns[i % columns.length]).append(gamelink.li);
         }
 
@@ -1336,7 +1335,7 @@ Crazyerics.prototype._addToPlayHistory = function(key, system, title, file, play
 
     //not a dupe, let's create a new play histry game
 
-    var gamelink = self._buildGameLink(system, title, 120, true); //get a game link
+    var gamelink = self._buildGameLink(system, title, file, 120, true); //get a game link
 
     gamelink.li.addClass('close');
 
@@ -1368,9 +1367,6 @@ Crazyerics.prototype._addToPlayHistory = function(key, system, title, file, play
     //create the saved state area and add states to it
     var stateswrapper = $('#statewrappersource').clone();
     stateswrapper.attr('id', '').data('key', key);
-    $(stateswrapper).on('mouseout', function(e) {
-        //$(this).hide().addClass('close');
-    });
 
     $(gamelink.li).append(stateswrapper);
 
@@ -1391,14 +1387,13 @@ Crazyerics.prototype._addToPlayHistory = function(key, system, title, file, play
             self._addStateToPlayHistory(self._playhistory[key], stateswrapper, slot, slots[slot]);
         }
 
-        //when clicked, shows statewrapper
-        gamelink.img.on('click', function(e) {
-            $(stateswrapper).toggle();
+        gamelink.li.on('mouseover', function(e) {
+            $(stateswrapper).show();
         });
 
-    } else {
-        //standard boot loader when clicked
-        self._addBootstrapOnClick(gamelink.img, system, title, file);
+        gamelink.li.on('mouseout', function(e) {
+            $(stateswrapper).hide();
+        })
     }
 
     //figure out where to insert this gamelink in the recently played area
@@ -1443,8 +1438,6 @@ Crazyerics.prototype._addStateToPlayHistory = function(details, stateswrapper, s
     li.append(image);
 
     li.append('<div class="caption">' + slot + '</div>');
-
-    self._addBootstrapOnClick(li, details.system, details.title, details.file, slot);
 
     $(stateswrapper).find('ul').append(li);
 
@@ -1497,7 +1490,7 @@ Crazyerics.prototype._addStateToPlayHistory = function(details, stateswrapper, s
  * @param  {boolean} close      if true, shows the close button at the corner, no event attached
  * @return {Object}             Contains reference to the li, img and close button
  */
-Crazyerics.prototype._buildGameLink = function(system, title, size, close) {
+Crazyerics.prototype._buildGameLink = function(system, title, file, size, close) {
     var self = this;
     close = close || false;
 
@@ -1509,7 +1502,16 @@ Crazyerics.prototype._buildGameLink = function(system, title, size, close) {
 
     //show box art when finished loading
     box.load(function() {
-        $(this).removeClass('close');
+        $(this)
+        .removeClass('close')
+        .on('mousedown', function() {
+            self._pauseOverride = true; //prevent current game from pausng before fadeout
+        })
+        .on('mouseup', function() {
+
+            self._bootstrap(system, title, file);
+            window.scrollTo(0,0);
+        });
     });
 
     var imagewrapper = $('<div class="box zoom"></div>');
@@ -1541,22 +1543,6 @@ Crazyerics.prototype._buildGameLink = function(system, title, size, close) {
         img: box,
         remove: remove
     };
-};
-
-Crazyerics.prototype._addBootstrapOnClick = function(item, system, title, file, slot) {
-
-    var self = this;
-
-    $(item).on('mousedown', function() {
-        self._pauseOverride = true; //prevent current game from pausng before fadeout
-    })
-    .on('mouseup', function() {
-
-        self._bootstrap(system, title, file, slot);
-        window.scrollTo(0,0);
-    });
-
-    return item;
 };
 
 /**
