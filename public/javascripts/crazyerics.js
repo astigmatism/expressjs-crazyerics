@@ -26,6 +26,11 @@ var Crazyerics = function() {
 
         self._buildRecentlyPlayed(self.PlayerData.get('playhistory'));
 
+        //build console select for search
+        for (system in self._config.systemdetails) {
+            $('#searchform select').append('<option value="' + system + '">' + self._config.systemdetails[system].shortname + '</option>')
+        }
+
         //loading dial
         $('.dial').knob({
             'change' : function (v) { console.log(v); }
@@ -257,6 +262,17 @@ Crazyerics.prototype.PlayerData = {
             return this._data.shaders[system];
         }
         return null;
+    },
+    /**
+     * set's a player's shader preference for the system specified.
+     * @param {string} system
+     * @param {string} value
+     */
+    setShader: function(system, value) {
+        if (this._data.shaders) {
+            this._data.shaders[system] = value;
+        }
+        return;
     }
 };
 
@@ -509,13 +525,16 @@ Crazyerics.prototype._bootstrap = function(system, title, file, slot, shader, on
         self._loademulator(system, emulatorReady);
         self._loadGame(key, system, title, file, gameReady);
 
+        //fix text on shader screen
+        $('#systemshaderseletorwrapper span').text(self._config.systemdetails[system].shortname);
+
         //show shader selector
-        self._showShaderSelect(system, shader, function(shadertoload) {
+        self._showShaderSelect(system, shader, function(shaderselection) {
 
             self._ModuleLoading = true; //lock loading after shader select
 
             //the final deffered call goes to our own server to get states, shaders, etc
-            self._loadGameDetails(key, system, title, file, shadertoload, gameDetailsReady);
+            self._loadGameDetails(key, system, title, file, shaderselection, gameDetailsReady);
 
             //build loading box
             var box = self._getBoxFront(system, title, 170);
@@ -669,11 +688,22 @@ Crazyerics.prototype._showShaderSelect = function(system, preselectedShader, cal
     //check if shader already defined for this system
     if (typeof preselectedShader !== 'undefined') {
         $('#systemshaderseletorwrapper').hide().addClass('close');
-        callback(preselectedShader);
+        callback({
+            'shader': preselectedShader,
+            'save': false
+        });
         return;
     }
 
-    //if no shader predefined for use, show the selector
+    //check if user checked to use a shader for this system everytime
+    var userpreference = self.PlayerData.getShader(system);
+    if (userpreference) {
+        callback({
+            'shader': userpreference,
+            'save': false
+        });
+        return;
+    }
 
     //get the recommended shaders list
     var recommended = self._config.recommendedshaders[system];
@@ -709,9 +739,21 @@ Crazyerics.prototype._showShaderSelect = function(system, preselectedShader, cal
      */
     var onFinish = function(shader) {
         $('#systemshaderseletorwrapper').addClass('close');
+        
+        var saveselection = false;
+
+        //get result of checkbox
+        if ($('#systemshaderseletorwrapper input').prop('checked')) {
+            saveselection = true;
+            self.PlayerData.setShader(system, shader); //set this is player data now (refresh pulls session data)
+        }
+
         setTimeout(function() {
             $('#systemshaderseletorwrapper').hide();
-            callback(shader);
+            callback({
+                'shader': shader,
+                'save': saveselection
+            });
         }, 250);
     };
 
@@ -1038,16 +1080,22 @@ Crazyerics.prototype._loadGame = function(key, system, title, file, deffered) {
  * @param  {string} system
  * @param  {string} title
  * @param  {string} file
+ * @param  {Object} shaderdetails
  * @param  {Object} deffered
  * @return {undef}
  */
-Crazyerics.prototype._loadGameDetails = function(key, system, title, file, shadertoload, deffered) {
+Crazyerics.prototype._loadGameDetails = function(key, system, title, file, shaderdetails, deffered) {
 
     var self = this;
+    var qs = {
+        'key': encodeURIComponent(key),
+        'shader': shaderdetails.shader,
+        'save': shaderdetails.save
+    }
 
     //call returns not only states but misc game details. I tried to make this
     //part of the loadGame call but the formatting for the compressed game got weird
-    $.get('/load/game?key=' + encodeURIComponent(key) + (shadertoload ? '&shader=' + shadertoload : ''), function(data) {
+    $.get('/load/game?' + $.param(qs), function(data) {
 
         //add to play history
         self._addToPlayHistory(key, system, title, file);
@@ -1115,7 +1163,7 @@ Crazyerics.prototype._buildFileSystem = function(Module, system, file, data, sta
 
     //states
     for (var slot in states) {
-        var statedata = self._decompress.bytearray(states[slot]);
+        var statedata = self._decompress.bytearray(states[slot].state);
         var filenoextension = file.replace(new RegExp('\.[a-z0-9]{1,3}$', 'gi'), '');
         var statefilename = '/' + filenoextension + '.state' + (slot == 0 ? '' : slot);
         Module.FS_createDataFile('/', statefilename, statedata, true, true);
@@ -1365,10 +1413,12 @@ Crazyerics.prototype._addToPlayHistory = function(key, system, title, file, play
     });
 
     //create the saved state area and add states to it
-    var stateswrapper = $('#statewrappersource').clone();
-    stateswrapper.attr('id', '').data('key', key);
+    //var stateswrapper = $('#statewrappersource').clone();
+    //stateswrapper.attr('id', '').data('key', key);
+    
+    //var stateswrapper = $('<ul class="statewrappertest"></ul>');
 
-    $(gamelink.li).append(stateswrapper);
+    //$(gamelink.li).append(stateswrapper);
 
     //create a local store to take this with handle to dom elements
     self._playhistory[key] = {
@@ -1376,23 +1426,25 @@ Crazyerics.prototype._addToPlayHistory = function(key, system, title, file, play
         title: title,
         file: file,
         played: played || Date.now(),
-        slots: slots || {},
-        stateswrapper: stateswrapper
+        slots: slots || {}
+        //stateswrapper: stateswrapper
     };
 
     //append states, if any
-    if (Object.keys(slots).length > 0) {
+    if (false && slots && Object.keys(slots).length > 0) {
 
         for (slot in slots) {
             self._addStateToPlayHistory(self._playhistory[key], stateswrapper, slot, slots[slot]);
         }
 
         gamelink.li.on('mouseover', function(e) {
-            $(stateswrapper).show();
+            $(stateswrapper).slideDown(500);
+            gamelink.li.addClass('selected');
         });
 
-        gamelink.li.on('mouseout', function(e) {
-            $(stateswrapper).hide();
+        $(stateswrapper).on('mouseout', function(e) {
+            $(stateswrapper).slideUp(500);
+            gamelink.li.removeClass('selected'); 
         })
     }
 
@@ -1408,8 +1460,11 @@ Crazyerics.prototype._addToPlayHistory = function(key, system, title, file, play
     }
     $(column).append(gamelink.li); //append to recently played area
 
+    //position statewrapper in correct region of screen
+
     //set state arrow to correct column
-    //$(stateswrapper).find('.triangle').css('left', ((120 * columndepth) + (50 + (columndepth * 10))) + 'px');
+    //$(stateswrapper).css('left', columndepth + '5%');
+    //$(stateswrapper).find('.triangle').css('left', ((columndepth * 15) + 5) + '%');
 
     $('#recentplayedwrapper').show(); //ensure it is showing (will be hidden first time)
 
@@ -1423,64 +1478,73 @@ Crazyerics.prototype._addToPlayHistory = function(key, system, title, file, play
  * @param {number} slot
  * @param {Object} slot time and sceenshot of state saved
  */
-Crazyerics.prototype._addStateToPlayHistory = function(details, stateswrapper, slot, statedetails) {
+// Crazyerics.prototype._addStateToPlayHistory = function(details, stateswrapper, slot, statedetails) {
 
-    var self = this;
+//     var self = this;
 
-    var date = new Date(statedetails.time);
-    var screenshot = self._decompress.bytearray(statedetails.screenshot);
+//     var date = new Date(statedetails.time);
+//     var screenshot = self._decompress.bytearray(statedetails.screenshot);
 
-    var image = self._buildScreenshot(details.system, screenshot, 100); //build dom image of screenshot
+//     var image = self._buildScreenshot(details.system, screenshot, 100); //build dom image of screenshot
 
-    var formatteddate = $.format.date(date, 'E MM/dd/yyyy h:mm:ss a'); //using the jquery dateFormat plugin
+//     var formatteddate = $.format.date(date, 'E MM/dd/yyyy h:mm:ss a'); //using the jquery dateFormat plugin
 
-    var li = $('<li class="zoom tooltip" title="' + formatteddate + '"></li>');
-    li.append(image);
+//     var li = $('<li class="zoom tooltip" title="' + formatteddate + '"></li>')
+//     .on('mousedown', function() {
+//         self._pauseOverride = true; //prevent current game from pausng before fadeout
+//     })
+//     .on('mouseup', function() {
 
-    li.append('<div class="caption">' + slot + '</div>');
+//         self._bootstrap(details.system, details.title, details.file, slot);
+//         window.scrollTo(0,0);
+//     });
 
-    $(stateswrapper).find('ul').append(li);
+//     li.append(image);
+
+//     li.append('<div class="caption">' + slot + '</div>');
+
+//     $(stateswrapper).append(li);
 
 
-    return;
+//     return;
 
-    var loadstate = $('<div data-slot="' + slot + '" class="statebutton zoom tooltip" title="Load State Saved ' + formatteddate + '">' + slot + '</div>')
-    .on('mousedown', function() {
-        self._pauseOverride = true; //prevent current game from pausng before fadeout
-    })
-    .on('mouseup', function() {
+//     var loadstate = $('<div data-slot="' + slot + '" class="statebutton zoom tooltip" title="Load State Saved ' + formatteddate + '">' + slot + '</div>')
+//     .on('mousedown', function() {
+//         self._pauseOverride = true; //prevent current game from pausng before fadeout
+//     })
+//     .on('mouseup', function() {
 
-        self._bootstrap(details.system, details.title, details.file, slot);
-        window.scrollTo(0,0);
-    });
+//         self._bootstrap(details.system, details.title, details.file, slot);
+//         window.scrollTo(0,0);
+//     });
 
-    loadstate.append(image);
+//     loadstate.append(image);
 
-    //two conditions here - the same state is being saved (replace) or a new state is saved and we need to insert it correctly
-    var gotinserted = false;
-    stateswrapper.children().each(function() {
+//     //two conditions here - the same state is being saved (replace) or a new state is saved and we need to insert it correctly
+//     var gotinserted = false;
+//     stateswrapper.children().each(function() {
 
-        //convert both to numbers for comparison (they are strings because they are used as properties in an object)
-        var currentslot = parseInt($(this).attr('data-slot'), 10);
-        slot = parseInt(slot, 10);
+//         //convert both to numbers for comparison (they are strings because they are used as properties in an object)
+//         var currentslot = parseInt($(this).attr('data-slot'), 10);
+//         slot = parseInt(slot, 10);
 
-        if (currentslot === slot) {
-            loadstate.insertBefore(this);
-            $(this).remove();
-            gotinserted = true;
-            return false;
-        } else if (currentslot > slot) {
-            loadstate.insertBefore(this);
-            gotinserted = true;
-            return false;
-        }
-    });
+//         if (currentslot === slot) {
+//             loadstate.insertBefore(this);
+//             $(this).remove();
+//             gotinserted = true;
+//             return false;
+//         } else if (currentslot > slot) {
+//             loadstate.insertBefore(this);
+//             gotinserted = true;
+//             return false;
+//         }
+//     });
 
-    //if it didn't get insert its either the first state saved or the greatest
-    if (!gotinserted) {
-        stateswrapper.append(loadstate);
-    }
-};
+//     //if it didn't get insert its either the first state saved or the greatest
+//     if (!gotinserted) {
+//         stateswrapper.append(loadstate);
+//     }
+// };
 
 /**
  * a common function which returns an li of a game box which acts as a link to bootstrap load the game and emulator

@@ -452,16 +452,27 @@ UtilitiesService.collectDataForClient = function(req, openonload, callback) {
         rompath: {},
         flatten: {},
         recommendedshaders: {},
-        autocapture: {}
+        autocapture: {},
+        systemdetails: {}
     };
     var systems = config.get('systems');
     var retroarch = config.get('retroarch');
 
     //system specific configs
     for (system in systems) {
-        configdata.retroarch[system] = retroarch + systems[system].retroarch;
-        configdata.recommendedshaders[system] = systems[system].recommendedshaders;
-        configdata.autocapture[system] = systems[system].autocapture;
+        
+        //if system is "live" (ready to show for production)
+        if (systems[system].live) {
+
+            configdata.retroarch[system] = retroarch + systems[system].retroarch;
+            configdata.recommendedshaders[system] = systems[system].recommendedshaders;
+            configdata.autocapture[system] = systems[system].autocapture;
+
+            configdata.systemdetails[system] = {
+                'name': systems[system].name,
+                'shortname': systems[system].shortname
+            };
+        }
     }
     //roms location
     configdata.rompath = config.get('rompath');

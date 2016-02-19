@@ -493,7 +493,7 @@ p {
 }
 
 #shaderselectlist {
-	margin: 30px auto;
+	margin: 40px auto;
 	list-style: none;
 	padding: 0;
 	width: 800px;
@@ -517,6 +517,11 @@ p {
 	margin: 0;
 	padding: 0;
 	font-size: 12px;
+}
+
+#systemshaderseletorwrapper label {
+	font-size: 1.2em;
+	margin-left: 10px;	
 }
 
 /* game details wrapper */
@@ -544,6 +549,14 @@ p {
 	display: table-cell;
 	width: 200px;
 }
+
+/* saved state selector */
+
+#savedstateseletorwrapper {
+
+}
+
+
 
 #gamedetailsboxfront img {
 	margin: 0px 15px;
@@ -661,56 +674,6 @@ div.slidingpanel {
 	top: -5px;
 	right: -5px;
 	z-index: 100;
-}
-
-#statewrappersource {
-	display: none;
-}
-
-#recentplayedwrapper .statewrapper {
-	position: absolute;
-	padding: 20px;
-	background: rgb(81,97,112);
-	-moz-border-radius: 2px;
-	border-radius: 5px;
-	z-index: 100;
-	display: none;
-}
-
-#recentplayedwrapper .triangle {
-	position: absolute;
-	top: -20px;
-	width: 0;
-	height: 0;
-	border-left: 10px solid transparent;
-	border-right: 10px solid transparent;
-	border-bottom: 20px solid rgb(81,97,112);
-}
-
-#recentplayedwrapper .statewrapper h3 {
-	margin: 0px 0px 10px 0px;
-	padding: 0;
-}
-
-#recentplayedwrapper .statewrapper ul {
-	margin: 0;
-	padding: 0;
-}
-
-#recentplayedwrapper .statewrapper li {
-	list-style: none;
-	cursor: pointer;
-	display: inline-block;
-	margin-left: 5px;
-
-	transition:All 200ms ease-in;
-	-webkit-transition:All 200ms ease-in;
-	-moz-transition:All 200ms ease-in;
-	-o-transition:All 200ms ease-in;
-}
-
-#recentplayedwrapper .statewrapper li .caption {
-	text-align: center;
 }
 
 /* suggestions */

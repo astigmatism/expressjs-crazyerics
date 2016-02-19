@@ -4,14 +4,6 @@ block content
     div#searchform
         select(title="Filter your search to a specific system")
             option(value='all') All Consoles
-            - //option(value='nes') Nintendo
-            option(value='snes') Super Nintendo
-            option(value='n64') Nintendo 64
-            option(value='gb') Game Boy
-            option(value='gba') Game Boy Advance
-            option(value='sms') Master System
-            option(value='gen') Genesis
-            option(value='gg') Game Gear
         div
             input(class="tooltip" title="Begin typing a name to see a list of results. Select a system for foreign or unofficial titles." type='text', name='search', data-hotkey='q', placeholder='Search')
 
@@ -84,7 +76,9 @@ block content
             div#systemshaderseletorwrapper(class="close")
                 h2 How do you want your game to appear?
                 ul#shaderselectlist
-                p We have an even larger collection of pixel shaders to chose from later.
+                input(type="checkbox", checked) 
+                label Save this choice for all future #[span] games. You can reset this later.
+            div#savedstateseletorwrapper(class="close")
             div#gameloadingoverlaycontent(class="close")
                 h2 Now Loading
                 div#gameloadingoverlaycontentimage
@@ -92,10 +86,6 @@ block content
                 p#gameloadingname
             p#tip Did you know that you rewind that mistake by holding the R key?
     div#recentplayedwrapper
-        div#statewrappersource(class="statewrapper")
-            div(class="triangle")
-            h3 Load this game with a saved state:
-            ul
         ul(class="column")
         ul(class="column")
         ul(class="column")

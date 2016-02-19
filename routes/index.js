@@ -50,8 +50,11 @@ router.get('/load/game', function(req, res, next) {
 
     var key = decodeURIComponent(req.query.key); //key has been uriencoded, compressed and base64 encoded
     var shader = req.query.shader; //if we are to load a shader definition with this game, it was passed here
+    var save = req.query.save; //should be save this shader selection for all games of this system?
     var game = UtilitiesService.decompress.json(key); //extract values
     var states = {};
+
+    save = (save === 'true') ? true : false; //boolean correction
 
     if (req.session) {
         req.session.games = req.session.games ? req.session.games : {};
@@ -92,6 +95,12 @@ router.get('/load/game', function(req, res, next) {
                 //in the case of an error, just return without shader info
                 if (shaderdata) {
                     result.shader = shaderdata;
+                }
+
+                //did the user check the box for using this shader for all future system games?
+                if (save) {
+                    req.session.shaders = req.session.shaders ? req.session.shaders : {};
+                    req.session.shaders[game.system] = shader;
                 }
 
                 res.json(UtilitiesService.compress.json(result));

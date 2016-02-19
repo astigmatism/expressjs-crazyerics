@@ -13,16 +13,13 @@ router.post('/save', function(req, res, next) {
         req.session.games = req.session.games ? req.session.games : {};
         req.session.games[key] = req.session.games[key] ? req.session.games[key] : {};
         req.session.games[key].states = req.session.games[key].states ? req.session.games[key].states : {};
-        req.session.games[key].states[slot] = postdata.state;
-
-        //save state time and screenshot in play history
-        if (req.session.games.history && req.session.games.history[key]) {
-            req.session.games.history[key].slots[slot] = {
-                time: Date.now(),
-                screenshot: postdata.screenshot
-            }
-        }
-
+        
+        //save state data, screenshot and timestamp in session
+        req.session.games[key].states[slot] = {
+            state: postdata.state,
+            screenshot: postdata.screenshot,
+            time: Date.now()
+        };
     }
     res.json();
 });
