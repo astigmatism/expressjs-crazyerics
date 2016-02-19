@@ -436,7 +436,7 @@ p {
 	display: none;
 }
 
-#gameloadingoverlaycontent, #systemshaderseletorwrapper {
+#gameloadingoverlaycontent, #systemshaderseletorwrapper, #savedstateseletorwrapper {
 	
 	position: absolute;
 	top: 50%;
@@ -482,7 +482,7 @@ p {
 	text-align: center;
 	width: 100%;
 	position: absolute;
-	bottom: 50px;
+	bottom: -100px;
 }
 
 /* shader select */
@@ -524,6 +524,28 @@ p {
 	margin-left: 10px;	
 }
 
+/* saved state selector */
+
+#savedstateseletorwrapper {
+	height: 500px;
+	margin: -250px 0 0 -400px;
+	overflow-y: scroll;
+}
+
+#stateselectlist {
+	margin: 10px;
+	padding: 0;
+}
+
+#stateselectlist li {
+	list-style: none;
+	display: inline-block;
+	margin: 0px 5px;
+	cursor: pointer;
+}
+
+
+
 /* game details wrapper */
 
 #gamedetailsbackground {
@@ -549,14 +571,6 @@ p {
 	display: table-cell;
 	width: 200px;
 }
-
-/* saved state selector */
-
-#savedstateseletorwrapper {
-
-}
-
-
 
 #gamedetailsboxfront img {
 	margin: 0px 15px;
@@ -648,7 +662,7 @@ div.slidingpanel {
 	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#000000', endColorstr='#00000000',GradientType=0 ); /* IE6-9 */
 }
 
-#recentplayedwrapper ul.column {
+#recentplayedwrapper ul {
 	width: 120px;
 	display: inline-block;
 	margin: 0px 5px;

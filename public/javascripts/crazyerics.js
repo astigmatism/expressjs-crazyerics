@@ -600,73 +600,87 @@ Crazyerics.prototype._bootstrap = function(system, title, file, slot, shader, on
                     self._emulatorFileWriteListener(key, system, title, file, filename, contents);
                 };
 
-                //begin game
                 setTimeout(function() {
-                    Module.callMain(Module.arguments);
 
-                    if (onStart) {
-                        onStart();
-                    }
+                    //close loading screen and tips
+                    $('#gameloadingoverlaycontent').addClass('close');
+                    $('#tips').stop().hide();
+                    clearInterval(tipInterval);
 
-                    /**
-                     * the action to perform once all keypresses for loading state have completed (or not if not necessary)
-                     * @return {undef}
-                     */
-                    var removeVail = function() {
-                        //handle title and content fadein steps
-                        self._buildGameContent(system, title, function() {
+                    //are there states to load? Let's show a dialog to chose from, if not - will go straight to start
+                    self._showStateSelect(system, title, file, gamecontent.states, function(slot) {
+                        
+                        $('#gameloadingoverlaycontent').removeClass('close');
 
-                        });
+                        //begin game
+                        Module.callMain(Module.arguments);
 
-                        $('#gameloadingoverlaycontent').addClass('close');
-                        $('#gameloadingoverlay').fadeOut(1000, function() {
+                        if (onStart) {
+                            onStart();
+                        }
 
-                            //hide tips
-                            $('#tips').stop().hide();
-                            clearInterval(tipInterval);
+                        /**
+                         * the action to perform once all keypresses for loading state have completed (or not if not necessary)
+                         * @return {undef}
+                         */
+                        var removeVail = function() {
+                            //handle title and content fadein steps
+                            self._buildGameContent(system, title, function() {
 
-                            //show controls initially to reveal their presence
-                            setTimeout(function() {
-                                self._ModuleLoading = false;
-                                $('#emulatorcontrolswrapper').addClass('closed');
-
-                                //to help new players, reveal controls after load
-                                self.Sliders.open('controlsslider');
-                            }, 1000);
-                        });
-
-                        $('#emulator')
-                            .blur(function(event) {
-                                if (!self._pauseOverride) {
-                                    Module.pauseMainLoop();
-                                    $('#emulatorwrapperoverlay').fadeIn();
-                                }
-                            })
-                            .focus(function() {
-                                Module.resumeMainLoop();
-                                $('#emulatorwrapperoverlay').hide();
-                            })
-                            .focus();
-                    };
-
-                    // load state?
-                    // we need to handle mulitple keypresses asyncrounsly to ensure the emulator recieved input
-                    if (slot) {
-                        self._asyncLoop(parseInt(slot, 10), function(loop) {
-
-                            //simulate increasing state slot (will also set self._activeStateSlot)
-                            self._simulateEmulatorKeypress(51, 10, function() {
-                                loop.next();
                             });
 
-                        }, function() {
-                            self._simulateEmulatorKeypress(52); //4 load state
+                            $('#gameloadingoverlay').fadeOut(1000, function() {
+
+                                $('#gameloadingoverlaycontent').addClass('close');
+
+                                //show controls initially to reveal their presence
+                                setTimeout(function() {
+                                    self._ModuleLoading = false;
+                                    $('#emulatorcontrolswrapper').addClass('closed');
+
+                                    //to help new players, reveal controls after load
+                                    self.Sliders.open('controlsslider');
+                                }, 1000);
+                            });
+
+                            $('#emulator')
+                                .blur(function(event) {
+                                    if (!self._pauseOverride) {
+                                        Module.pauseMainLoop();
+                                        $('#emulatorwrapperoverlay').fadeIn();
+                                    }
+                                })
+                                .focus(function() {
+                                    Module.resumeMainLoop();
+                                    $('#emulatorwrapperoverlay').hide();
+                                })
+                                .focus();
+                        };
+
+                        // load state?
+                        // we need to handle mulitple keypresses asyncrounsly to ensure the emulator recieved input
+                        if (slot) {
+                            
+                            //mute sound
+                            self._simulateEmulatorKeypress(77);
+
+                            self._asyncLoop(parseInt(slot, 10), function(loop) {
+
+                                //simulate increasing state slot (will also set self._activeStateSlot)
+                                self._simulateEmulatorKeypress(51, 10, function() {
+                                    loop.next();
+                                });
+
+                            }, function() {
+                                self._simulateEmulatorKeypress(52); //4 load state
+                                self._simulateEmulatorKeypress(77); //unmute
+                                removeVail();
+                            });
+                        } else {
                             removeVail();
-                        });
-                    } else {
-                        removeVail();
-                    }
-                }, 3000); //testing fixing raced start
+                        }
+                    });
+                }, 3000); //after emu file setup and before state selector
             });
         });
     }, 1000);
@@ -758,6 +772,46 @@ Crazyerics.prototype._showShaderSelect = function(system, preselectedShader, cal
     };
 
     $('#systemshaderseletorwrapper').show().removeClass();
+};
+
+/**
+ * saved state selection dialog. 
+ * @param  {Object}   states   structure with states, screenshot and timestap. empty when no states exist
+ * @param  {Function} callback
+ * @return {undef}
+ */
+Crazyerics.prototype._showStateSelect = function(system, title, file, states, callback) {
+
+    var self = this;
+
+    if (Object.keys(states).length === 0) {
+        callback();
+        return;
+    }
+
+    for (slot in states) {
+        
+        var date = new Date(states[slot].time);
+        var formatteddate = $.format.date(date, 'E MM/dd/yyyy h:mm:ss a'); //using the jquery dateFormat plugin
+
+        var screenshot = self._decompress.bytearray(states[slot].screenshot);
+        var image = self._buildScreenshot(system, screenshot, 180);
+        
+        var li = $('<li class="zoom tooltip" title="' + formatteddate + '"></li>')
+        .on('mouseup', function() {
+
+            //on selection, callback with slot
+            callback(slot);
+            $('#savedstateseletorwrapper').addClass('close');
+
+        });
+        $(li).append(image);
+
+        $('#stateselectlist').append(li);
+    }  
+
+
+    $('#savedstateseletorwrapper').show().removeClass();
 };
 
 /**
@@ -1449,7 +1503,7 @@ Crazyerics.prototype._addToPlayHistory = function(key, system, title, file, play
     }
 
     //figure out where to insert this gamelink in the recently played area
-    var columns = $('#recentplayedwrapper ul.column');
+    var columns = $('#recentplayedwrapper ul');
     var column = columns[0];
     var columndepth = 0;
     for (var i = 0; i < columns.length; ++i) {
@@ -1470,81 +1524,6 @@ Crazyerics.prototype._addToPlayHistory = function(key, system, title, file, play
 
     self._toolTips();
 };
-
-/**
- * adding a state button for a game to the play history area
- * @param {Object} details       this function is called from the _addToPlayHistory function which passes a data blob of game details
- * @param {Object} stateswrapper dom element
- * @param {number} slot
- * @param {Object} slot time and sceenshot of state saved
- */
-// Crazyerics.prototype._addStateToPlayHistory = function(details, stateswrapper, slot, statedetails) {
-
-//     var self = this;
-
-//     var date = new Date(statedetails.time);
-//     var screenshot = self._decompress.bytearray(statedetails.screenshot);
-
-//     var image = self._buildScreenshot(details.system, screenshot, 100); //build dom image of screenshot
-
-//     var formatteddate = $.format.date(date, 'E MM/dd/yyyy h:mm:ss a'); //using the jquery dateFormat plugin
-
-//     var li = $('<li class="zoom tooltip" title="' + formatteddate + '"></li>')
-//     .on('mousedown', function() {
-//         self._pauseOverride = true; //prevent current game from pausng before fadeout
-//     })
-//     .on('mouseup', function() {
-
-//         self._bootstrap(details.system, details.title, details.file, slot);
-//         window.scrollTo(0,0);
-//     });
-
-//     li.append(image);
-
-//     li.append('<div class="caption">' + slot + '</div>');
-
-//     $(stateswrapper).append(li);
-
-
-//     return;
-
-//     var loadstate = $('<div data-slot="' + slot + '" class="statebutton zoom tooltip" title="Load State Saved ' + formatteddate + '">' + slot + '</div>')
-//     .on('mousedown', function() {
-//         self._pauseOverride = true; //prevent current game from pausng before fadeout
-//     })
-//     .on('mouseup', function() {
-
-//         self._bootstrap(details.system, details.title, details.file, slot);
-//         window.scrollTo(0,0);
-//     });
-
-//     loadstate.append(image);
-
-//     //two conditions here - the same state is being saved (replace) or a new state is saved and we need to insert it correctly
-//     var gotinserted = false;
-//     stateswrapper.children().each(function() {
-
-//         //convert both to numbers for comparison (they are strings because they are used as properties in an object)
-//         var currentslot = parseInt($(this).attr('data-slot'), 10);
-//         slot = parseInt(slot, 10);
-
-//         if (currentslot === slot) {
-//             loadstate.insertBefore(this);
-//             $(this).remove();
-//             gotinserted = true;
-//             return false;
-//         } else if (currentslot > slot) {
-//             loadstate.insertBefore(this);
-//             gotinserted = true;
-//             return false;
-//         }
-//     });
-
-//     //if it didn't get insert its either the first state saved or the greatest
-//     if (!gotinserted) {
-//         stateswrapper.append(loadstate);
-//     }
-// };
 
 /**
  * a common function which returns an li of a game box which acts as a link to bootstrap load the game and emulator

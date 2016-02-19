@@ -76,22 +76,24 @@ block content
             div#systemshaderseletorwrapper(class="close")
                 h2 How do you want your game to appear?
                 ul#shaderselectlist
-                input(type="checkbox", checked) 
+                input(type="checkbox") 
                 label Save this choice for all future #[span] games. You can reset this later.
             div#savedstateseletorwrapper(class="close")
+                h2 Did you want to load a previously saved state?
+                ul#stateselectlist
             div#gameloadingoverlaycontent(class="close")
                 h2 Now Loading
                 div#gameloadingoverlaycontentimage
                     img(class="tada")
                 p#gameloadingname
-            p#tip Did you know that you rewind that mistake by holding the R key?
+                p#tip Did you know that you rewind that mistake by holding the R key?
     div#recentplayedwrapper
-        ul(class="column")
-        ul(class="column")
-        ul(class="column")
-        ul(class="column")
-        ul(class="column")
-        ul(class="column")
+        ul
+        ul
+        ul
+        ul
+        ul
+        ul
 
     div#suggestionswrapper
         div#alphabar Browse: 
