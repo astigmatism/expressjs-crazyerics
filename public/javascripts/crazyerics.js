@@ -28,13 +28,11 @@ var Crazyerics = function() {
 
         //build console select for search
         for (system in self._config.systemdetails) {
-            $('#searchform select').append('<option value="' + system + '">' + self._config.systemdetails[system].shortname + '</option>')
+            $('#searchform select').append('<option value="' + system + '">' + self._config.systemdetails[system].shortname + '</option>');
         }
 
         //loading dial
-        $('.dial').knob({
-            'change' : function (v) { console.log(v); }
-        });
+        $('.dial').knob();
 
         //console select
         $('#searchform select').selectOrDie({
@@ -492,8 +490,8 @@ Crazyerics.prototype._bootstrap = function(system, title, file, slot, shader, on
     $('#gamedetailsbackground').animate({height: 0}, 500);
 
     //cleanup any pregame details
-    $('#gameloadfailure').hide().addClass('close'); //hide load failure element (if previously showing)
     $('#systemshaderseletorwrapper').addClass('close');
+    $('#savedstateseletorwrapper').addClass('close');
 
     //loading content image and title
     $('#gameloadingname').text(title);
@@ -607,10 +605,14 @@ Crazyerics.prototype._bootstrap = function(system, title, file, slot, shader, on
                     $('#tips').stop().hide();
                     clearInterval(tipInterval);
 
+                    self._ModuleLoading = false; //during shader select, allow other games to load
+
                     //are there states to load? Let's show a dialog to chose from, if not - will go straight to start
                     self._showStateSelect(system, title, file, gamecontent.states, function(slot) {
                         
-                        $('#gameloadingoverlaycontent').removeClass('close');
+                        self._ModuleLoading = true;
+
+                        //$('#gameloadingoverlaycontent').removeClass('close');
 
                         //begin game
                         Module.callMain(Module.arguments);
@@ -660,9 +662,6 @@ Crazyerics.prototype._bootstrap = function(system, title, file, slot, shader, on
                         // load state?
                         // we need to handle mulitple keypresses asyncrounsly to ensure the emulator recieved input
                         if (slot) {
-                            
-                            //mute sound
-                            self._simulateEmulatorKeypress(77);
 
                             self._asyncLoop(parseInt(slot, 10), function(loop) {
 
@@ -673,7 +672,6 @@ Crazyerics.prototype._bootstrap = function(system, title, file, slot, shader, on
 
                             }, function() {
                                 self._simulateEmulatorKeypress(52); //4 load state
-                                self._simulateEmulatorKeypress(77); //unmute
                                 removeVail();
                             });
                         } else {
@@ -775,7 +773,7 @@ Crazyerics.prototype._showShaderSelect = function(system, preselectedShader, cal
 };
 
 /**
- * saved state selection dialog. 
+ * saved state selection dialog.
  * @param  {Object}   states   structure with states, screenshot and timestap. empty when no states exist
  * @param  {Function} callback
  * @return {undef}
@@ -789,28 +787,33 @@ Crazyerics.prototype._showStateSelect = function(system, title, file, states, ca
         return;
     }
 
+    $('#stateselectlist').empty(); //empty list from last load
+    $('#savedstateseletorwrapper').scrollTop(0); //in case they scrolled down
+
     for (slot in states) {
-        
-        var date = new Date(states[slot].time);
-        var formatteddate = $.format.date(date, 'E MM/dd/yyyy h:mm:ss a'); //using the jquery dateFormat plugin
 
-        var screenshot = self._decompress.bytearray(states[slot].screenshot);
-        var image = self._buildScreenshot(system, screenshot, 180);
-        
-        var li = $('<li class="zoom tooltip" title="' + formatteddate + '"></li>')
-        .on('mouseup', function() {
+        (function(slot) {
+            var date = new Date(states[slot].time);
+            var formatteddate = $.format.date(date, 'E MM.dd.yy h:mm a'); //using the jquery dateFormat plugin
 
-            //on selection, callback with slot
-            callback(slot);
-            $('#savedstateseletorwrapper').addClass('close');
+            var screenshot = self._decompress.bytearray(states[slot].screenshot);
+            var image = self._buildScreenshot(system, screenshot, 180);
 
-        });
-        $(li).append(image);
+            var li = $('<li class="zoom tooltip" title="Slot ' + slot + ': ' + formatteddate + '"></li>')
+            .on('mouseup', function() {
 
-        $('#stateselectlist').append(li);
-    }  
+                //on selection, callback with slot
+                callback(slot);
+                $('#savedstateseletorwrapper').addClass('close');
 
+            });
+            $(li).prepend(image);
 
+            $('#stateselectlist').append(li);
+        })(slot);
+    }
+
+    self._toolTips();
     $('#savedstateseletorwrapper').show().removeClass();
 };
 
@@ -1005,14 +1008,14 @@ Crazyerics.prototype._setupKeypressInterceptor = function(system, title, file) {
                             //setup deffered call to save state to server, need callbacks from state file and screenshot capture
                             self._saveStateDeffers.state = $.Deferred();
                             self._saveStateDeffers.screen = $.Deferred();
-                            
+
                             //use a timeout to clear deffers incase one of them never comes back, 1 sec is plenty. i see this return in about 50ms generally
                             var clearStateDeffers = setTimeout(function() {
                                 self._saveStateDeffers = {};
                             }, 1000);
 
                             $.when(self._saveStateDeffers.state, self._saveStateDeffers.screen).done(function(statedetails, screendetails) {
-                                
+
                                 clearTimeout(clearStateDeffers); //clear timeout from erasing deffers
                                 self._saveStateDeffers = {}; //do the clear ourselves
 
@@ -1145,7 +1148,7 @@ Crazyerics.prototype._loadGameDetails = function(key, system, title, file, shade
         'key': encodeURIComponent(key),
         'shader': shaderdetails.shader,
         'save': shaderdetails.save
-    }
+    };
 
     //call returns not only states but misc game details. I tried to make this
     //part of the loadGame call but the formatting for the compressed game got weird
@@ -1224,6 +1227,12 @@ Crazyerics.prototype._buildFileSystem = function(Module, system, file, data, sta
     }
 };
 
+/**
+ * saves state to server
+ * @param  {Object} statedetails
+ * @param  {Object} screendetails
+ * @return {undef}               
+ */
 Crazyerics.prototype._saveStateToServer = function(statedetails, screendetails) {
 
     var self = this;
@@ -1466,14 +1475,6 @@ Crazyerics.prototype._addToPlayHistory = function(key, system, title, file, play
         });
     });
 
-    //create the saved state area and add states to it
-    //var stateswrapper = $('#statewrappersource').clone();
-    //stateswrapper.attr('id', '').data('key', key);
-    
-    //var stateswrapper = $('<ul class="statewrappertest"></ul>');
-
-    //$(gamelink.li).append(stateswrapper);
-
     //create a local store to take this with handle to dom elements
     self._playhistory[key] = {
         system: system,
@@ -1498,8 +1499,8 @@ Crazyerics.prototype._addToPlayHistory = function(key, system, title, file, play
 
         $(stateswrapper).on('mouseout', function(e) {
             $(stateswrapper).slideUp(500);
-            gamelink.li.removeClass('selected'); 
-        })
+            gamelink.li.removeClass('selected');
+        });
     }
 
     //figure out where to insert this gamelink in the recently played area

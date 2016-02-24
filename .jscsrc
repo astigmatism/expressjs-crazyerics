@@ -1,7 +1,7 @@
 {
   "preset": "google",
   "plugins": [],
-  "disallowTrailingWhitespace": true,
+  "disallowTrailingWhitespace": false,
   "excludeFiles": [
   ],
   "requireCamelCaseOrUpperCaseIdentifiers": false,
