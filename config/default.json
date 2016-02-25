@@ -58,6 +58,22 @@
 			"retroarch": "video_aspect_ratio = 1.06666667",
 			"recommendedshaders": []
 		},
+		"segacd": {
+			"name": "Sega CD",
+			"shortname": "Sega CD",
+			"live": true,
+			"retroarch": "video_aspect_ratio = 1.42857143",
+			"recommendedshaders": [
+				{
+					"title": "Vintage Television",
+					"shader": "crt-easymode"
+				},
+				{
+					"title": "Smoothed",
+					"shader": "xbr-hybrid"
+				}
+			]
+		},
 		"snes": {
 			"name": "Super Nintendo Entermainment System",
 			"shortname": "Super Nintendo",

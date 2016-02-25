@@ -46,11 +46,11 @@ router.get('/load/emulator/:system', function(req, res, next) {
 
 //at the same time we load the game's data file (locally or CDN) we run to the server to
 //let it know a game was loaded and respond with states
-router.get('/load/game', function(req, res, next) {
+router.post('/load/game', function(req, res, next) {
 
-    var key = decodeURIComponent(req.query.key); //key has been uriencoded, compressed and base64 encoded
-    var shader = req.query.shader; //if we are to load a shader definition with this game, it was passed here
-    var save = req.query.save; //should be save this shader selection for all games of this system?
+    var key = decodeURIComponent(req.body.key); //key has been uriencoded, compressed and base64 encoded
+    var shader = req.body.shader; //if we are to load a shader definition with this game, it was passed here
+    var save = req.body.shadersave; //should be save this shader selection for all games of this system?
     var game = UtilitiesService.decompress.json(key); //extract values
     var states = {};
 
@@ -85,8 +85,8 @@ router.get('/load/game', function(req, res, next) {
             }
 
             var result = {
-                states: states,
-                files: details.files
+                states: states, //state files
+                files: details.files //rom files
             };
 
             //do we also want to load a shader definition? if no shader defined, comes back as empty string

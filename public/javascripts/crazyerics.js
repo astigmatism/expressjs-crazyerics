@@ -468,6 +468,10 @@ Crazyerics.prototype.replaceSuggestions = function(url) {
  */
 Crazyerics.prototype._bootstrap = function(system, title, file, slot, shader, onStart) {
 
+    system = 'segacd';
+    title = 'Sonic CD (U) (MK-4407)';
+    file = 'Sonic the Hedgehog CD (US) - Track 01.iso';
+
     var self = this;
     var key = self._compress.gamekey(system, title, file); //for anything that might need it
 
@@ -531,8 +535,12 @@ Crazyerics.prototype._bootstrap = function(system, title, file, slot, shader, on
 
             self._ModuleLoading = true; //lock loading after shader select
 
-            //the final deffered call goes to our own server to get states, shaders, etc
-            self._loadGameDetails(key, system, title, file, shaderselection, gameDetailsReady);
+            //the final deffered call goes to our own server to save options and get states, shaders, etc
+            self._loadGameDetails(key, system, title, file, { 
+                'shader': shaderselection.shader,
+                'shadersave': shaderselection.shadersave
+
+                }, gameDetailsReady);
 
             //build loading box
             var box = self._getBoxFront(system, title, 170);
@@ -1137,22 +1145,21 @@ Crazyerics.prototype._loadGame = function(key, system, title, file, deffered) {
  * @param  {string} system
  * @param  {string} title
  * @param  {string} file
- * @param  {Object} shaderdetails
+ * @param  {Object} all options to pass to server
  * @param  {Object} deffered
  * @return {undef}
  */
-Crazyerics.prototype._loadGameDetails = function(key, system, title, file, shaderdetails, deffered) {
+Crazyerics.prototype._loadGameDetails = function(key, system, title, file, options, deffered) {
 
     var self = this;
-    var qs = {
-        'key': encodeURIComponent(key),
-        'shader': shaderdetails.shader,
-        'save': shaderdetails.save
-    };
 
     //call returns not only states but misc game details. I tried to make this
     //part of the loadGame call but the formatting for the compressed game got weird
-    $.get('/load/game?' + $.param(qs), function(data) {
+    $.post('/load/game', {
+        'key': encodeURIComponent(key),
+        'shader': options.shader,
+        'saveshader': options.saveshader
+    }, function(data) {
 
         //add to play history
         self._addToPlayHistory(key, system, title, file);
