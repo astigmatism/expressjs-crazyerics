@@ -89,22 +89,13 @@ router.post('/load/game', function(req, res, next) {
                 files: details.files //rom files
             };
 
-            //do we also want to load a shader definition? if no shader defined, comes back as empty string
-            UtilitiesService.getShader(shader, function(err, shaderdata) {
-                //no error handling here!
-                //in the case of an error, just return without shader info
-                if (shaderdata) {
-                    result.shader = shaderdata;
-                }
+            //did the user check the box for using this shader for all future system games?
+            if (save) {
+                req.session.shaders = req.session.shaders ? req.session.shaders : {};
+                req.session.shaders[game.system] = shader;
+            }
 
-                //did the user check the box for using this shader for all future system games?
-                if (save) {
-                    req.session.shaders = req.session.shaders ? req.session.shaders : {};
-                    req.session.shaders[game.system] = shader;
-                }
-
-                res.json(UtilitiesService.compress.json(result));
-            });
+            res.json(UtilitiesService.compress.json(result));
         });
     }
 });

@@ -450,6 +450,7 @@ UtilitiesService.collectDataForClient = function(req, openonload, callback) {
     var configdata = {
         retroarch: {},
         rompath: {},
+        shaderpath: {},
         flatten: {},
         recommendedshaders: {},
         autocapture: {},
@@ -476,6 +477,9 @@ UtilitiesService.collectDataForClient = function(req, openonload, callback) {
     }
     //roms location
     configdata.rompath = config.get('rompath');
+
+    //shaders location
+    configdata.shaderpath = config.get('shaderpath');
 
     //are rom dirtree structures flattened? (use gamekey as file name)
     configdata.flattenedromfiles = config.get('flattenedromfiles');
@@ -530,69 +534,6 @@ UtilitiesService.collectDataForClient = function(req, openonload, callback) {
         onFinish();
     }
 };
-
-UtilitiesService.compressShaders = function(name, path, callback) {
-
-    var result = {};
-
-    fs.readdir(path, function(err, items) {
-        if (err) {
-            return callback(err);
-        }
-
-        async.each(items, function(item, nextitem) {
-
-            //analyize file
-            fs.stat(path + '/' + item, function (err, stats) {
-                if (err) {
-                    return nextitem(err);
-                }
-
-                //files only
-                if (stats.isFile()) {
-
-                    fs.readFile(path + '/' + item, function(err, content) {
-                        if (err) {
-                            return nextitem(err);
-                        }
-
-                        //dumb DS_Store
-                        if (item !== '.DS_Store') {
-                            result[item] = UtilitiesService.compress.bytearray(content);
-                        }
-
-                        return nextitem();
-                    });
-                }
-            });
-
-        }, function(err) {
-            if (err) {
-                return callback(err);
-            }
-
-            //write result to file using name parameter
-            fs.writeFile(__dirname + '/../data/shaders/' + name + '.json', JSON.stringify(result), 'utf8', function(err) {
-                if (err) {
-                    return callback(err);
-                }
-                callback(null, 'file saved.');
-            });
-        });
-    });
-};
-
-//load a shader file with a given file name or key. if key not a string or zero length, no prob, just send back empty data
-//error case unique: if no any reason we cant load the file or no key is given, return a zero length string
-UtilitiesService.getShader = function(key, callback) {
-
-    DataService.getFile('/data/shaders/' + key + '.json', function(err, content) {
-        if (err) {
-            return callback(err);
-        }
-        return callback(null, content);
-    });
-};  
 
 //order: stringify, encode, deflate, unescape, base64
 UtilitiesService.compress = {

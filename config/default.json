@@ -3,6 +3,7 @@
 	"boxpath":"https://googledrive.com/host/0B8ilcrXlr-i1NGQ5TWJEWjUxdzA/boxes",
 	"flattenedboxfiles": true,
 	"rompath":"https://googledrive.com/host/0B8ilcrXlr-i1NGQ5TWJEWjUxdzA/roms",
+	"shaderpath": "/shaders",
 	"flattenedromfiles": true,
 	"systems": {
 		"gb": {

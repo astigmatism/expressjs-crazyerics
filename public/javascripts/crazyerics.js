@@ -219,7 +219,8 @@ Crazyerics.prototype._tips = [
     'Take a screenshot with the T key. Missed that moment? Rewind with R and capture again!',
     'Screenshots are deleted when you leave or refresh the page. Download your favorites to keep them!'
 ];
-Crazyerics.prototype._jsonpHandler = null;
+Crazyerics.prototype._jsonpLoadGameHandler = null;
+Crazyerics.prototype._jsonpLoadShaderHandler = null;
 Crazyerics.prototype._fileWriteTimers = {};
 Crazyerics.prototype._playhistory = {};
 Crazyerics.prototype._macroToShaderMenu = [[112, 100], 40, 40, 40, 88, 88, 40, 40, 40, 37, 37, 37, 38, 88, 88, 90, 90, 38, 38, 38, 112]; //macro opens shader menu and clears all passes
@@ -468,9 +469,9 @@ Crazyerics.prototype.replaceSuggestions = function(url) {
  */
 Crazyerics.prototype._bootstrap = function(system, title, file, slot, shader, onStart) {
 
-    system = 'segacd';
-    title = 'Sonic CD (U) (MK-4407)';
-    file = 'Sonic the Hedgehog CD (US) - Track 01.iso';
+    // system = 'segacd';
+    // title = 'Sonic CD (U) (MK-4407)';
+    // file = 'Sonic the Hedgehog CD (US) - Track 01.iso';
 
     var self = this;
     var key = self._compress.gamekey(system, title, file); //for anything that might need it
@@ -519,6 +520,7 @@ Crazyerics.prototype._bootstrap = function(system, title, file, slot, shader, on
         var emulatorReady = $.Deferred();
         var gameReady = $.Deferred();
         var gameDetailsReady = $.Deferred();
+        var shaderReady = $.Deferred();
 
         //create new canvas (canvas must exist before call to get emulator (expects to find it right away))
         $('#emulatorcanvas').append('<canvas tabindex="0" id="emulator"></canvas>');
@@ -535,12 +537,11 @@ Crazyerics.prototype._bootstrap = function(system, title, file, slot, shader, on
 
             self._ModuleLoading = true; //lock loading after shader select
 
-            //the final deffered call goes to our own server to save options and get states, shaders, etc
-            self._loadGameDetails(key, system, title, file, { 
-                'shader': shaderselection.shader,
-                'shadersave': shaderselection.shadersave
+            //load shader files (if any) from CDN
+            self._loadShader(shaderselection.shader, shaderReady);
 
-                }, gameDetailsReady);
+            //the final deffered call goes to our own server to save options and get states, shaders, etc
+            self._loadGameDetails(key, system, title, file, { 'shadersave': shaderselection.shadersave }, gameDetailsReady);
 
             //build loading box
             var box = self._getBoxFront(system, title, 170);
@@ -564,7 +565,7 @@ Crazyerics.prototype._bootstrap = function(system, title, file, slot, shader, on
             }, 5000); //show tip for this long
 
             //when all deffered calls are ready
-            $.when(emulatorReady, gameReady, gameDetailsReady).done(function(emulator, loadedgame, gamecontent) {
+            $.when(emulatorReady, gameReady, gameDetailsReady, shaderReady).done(function(emulator, loadedgame, gamecontent, shaderResult) {
 
                 var Module = emulator[0];
                 var fs = emulator[1];
@@ -575,11 +576,8 @@ Crazyerics.prototype._bootstrap = function(system, title, file, slot, shader, on
 
                 var states = gamecontent.states;
                 var files = gamecontent.files;
-                var shader = null;
-
-                if (gamecontent.hasOwnProperty('shader')) {
-                    shader = gamecontent.shader;
-                }
+                
+                var shaderFiles = (shaderResult && shaderResult[1]) ? shaderResult[1] : {}; //if not defined, not shader used
 
                 self._Module = Module; //handle to Module
                 self._FS = fs;
@@ -594,7 +592,7 @@ Crazyerics.prototype._bootstrap = function(system, title, file, slot, shader, on
 
                 self._setupKeypressInterceptor(system, title, file);
 
-                self._buildFileSystem(Module, system, file, gamedata, states, shader); //write to emulator file system. this is synconous since the fs is emulated in js
+                self._buildFileSystem(Module, system, file, gamedata, states, shaderFiles); //write to emulator file system. this is synconous since the fs is emulated in js
 
                 /**
                  * register a callback function when the emulator saves a file
@@ -1115,10 +1113,11 @@ Crazyerics.prototype._loadGame = function(key, system, title, file, deffered) {
 
     /**
      * loading game jsonp handler is called upon response from CDN
+     * The function "a" is explicitly defined on the json file on the CDN (for light-weight purposes). It will be called on response.
      * @param  {string} response compressed game data
      * @return {undefined}
      */
-    self._jsonpHandler = function(response) {
+    self._jsonpLoadGameHandler = function(response) {
 
         var inflated;
         try {
@@ -1130,6 +1129,46 @@ Crazyerics.prototype._loadGame = function(key, system, title, file, deffered) {
         }
 
         deffered.resolve(null, inflated);
+    };
+
+    //very important that this is a jsonp call - works around xdomain call to google drive
+    $.ajax({
+        url: location,
+        type: 'GET',
+        dataType: 'jsonp'
+    });
+};
+
+Crazyerics.prototype._loadShader = function(name, deffered) {
+
+    var self = this;
+    var location = self._config.shaderpath;
+
+    if (name) {
+        location += '/' + name + '.json';
+    } else {
+        //no shader to load, resolve deffered
+        deffered.resolve();
+        return;
+    }
+
+    /**
+     * loading shader jsonp handler is called upon response from CDN. 
+     * The function "b" is explicitly defined on the json file on the CDN (for light-weight purposes). It will be called on response.
+     * @param  {string} response compressed game data
+     * @return {undefined}
+     */
+    self._jsonpLoadShaderHandler = function(response) {
+
+        var inflated;
+        try {
+            var decompressed = self._decompress.json(response);
+        } catch (e) {
+            deffered.resolve(e);
+            return;
+        }
+
+        deffered.resolve(null, decompressed);
     };
 
     //very important that this is a jsonp call - works around xdomain call to google drive
@@ -1440,13 +1479,6 @@ Crazyerics.prototype._addToPlayHistory = function(key, system, title, file, play
     //handling dupes will be a common function, replace the date and handle the states slots
     if (key in self._playhistory) {
         self._playhistory[key].played = Date.now();
-
-        //update any states saved:
-        // if (slots) {
-        //     for (slot in slots) {
-        //         self._addStateToPlayHistory(self._playhistory[key], self._playhistory[key].stateswrapper, slot, slots[slot]);
-        //     }
-        // }
         self._toolTips();
         return;
     }
@@ -1899,5 +1931,9 @@ var crazyerics = new Crazyerics();
  * @return {undef}
  */
 var jsonpDelegate = function(response) {
-    crazyerics._jsonpHandler(response);
+    crazyerics._jsonpLoadGameHandler(response);
+};
+
+var b = function(response) {
+    crazyerics._jsonpLoadShaderHandler(response);
 };
