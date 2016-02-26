@@ -14,7 +14,7 @@
 			"recommendedshaders": [ 
 				{
 					"title": "Game Boy Advance",
-					"shader": "lcd-grid-gba-color"
+					"shader": "gb-light-shader"
 				},
 				{
 					"title": "Smooth",
@@ -226,20 +226,13 @@
 	},
 	"shaders": {
 		"Custom": {
-			"lcd-grid-gba-color": "GBA Color Grid",
 			"pixellate": "Pixellate",
-			"gb-shader" : "Original GameBoy",
-			"gb-pocket-shader": "GameBoy Pocket",
-			"gb-light-shader": "GameBoy Light",
-			"lcd-shader": "90's LCD",
 			"super-eagle": "Super Eagle",
 			"3dfx_4x1": "3dfx 4x1",
 			"aa-shader-4.o": "ePSXe AA Shader 4.o",
 			"advanced-aa": "advanced-aa",
 			"fx-aa": "Nvidia FXAA",
 			"fxaa-edge-detect": "Nvidia FXAA Edge Detect",
-			"nds-color": "nds-color",
-			"nds": "Nintendo DS LCD",
 			"reverse-aa": "Reverse-AA",
 			"ntsc-256px": "NTSC 256",
 			"ntsc-256px-gauss-scanline": "NTSC 256 Gauss and Scanlines",
@@ -249,6 +242,15 @@
 			"composite": "composite",
 			"svideo": "svideo",
 			"480p": "480p"
+		},
+		"Handheld": {
+			"gb-shader" : "Original GameBoy",
+			"gb-pocket-shader": "GameBoy Pocket",
+			"gb-light-shader": "GameBoy Light",
+			"lcd-shader": "90's LCD",
+			"lcd-grid-gba-color": "GBA Color Grid",
+			"nds-color": "nds-color",
+			"nds": "Nintendo DS LCD"
 		},
 		"Bicubic": {
 			"bicubic-fast": "Bicubic (Fast)",
