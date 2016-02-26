@@ -729,12 +729,10 @@ Crazyerics.prototype._showShaderSelect = function(system, preselectedShader, cal
     var i = 0;
 
     //suggest all (for debugging), remove when the ability to test all shaders is present
-    for (shaderfamily in shaderfamilies) {
-        for (shader in shaderfamilies[shaderfamily]) {
-            $('#shaderselectlist').append($('<div style="display:inline-block;padding:0px 5px;" data-shader="' + shader + '">' + shader + '</div>').on('click', function(e) {
-                onFinish($(this).attr('data-shader'));
-            }));
-        }
+    for (i; i < shaderfamilies.length; ++i) {
+        $('#shaderselectlist').append($('<div style="display:block;padding:0px 5px;" data-shader="' + shaderfamilies[i] + '">' + shaderfamilies[i] + '</div>').on('click', function(e) {
+            onFinish($(this).attr('data-shader'));
+        }));
     }
 
     // $('#shaderselectlist').append($('<li class="zoom" data-shader=""><h3>Pixels</h3><img src="' + self._config.assetpath + '/images/shaders/' + system + '/pixels.png" /><p>No Picture Processing</p></li>').on('click', function(e) {
