@@ -487,9 +487,6 @@ UtilitiesService.collectDataForClient = function(req, openonload, callback) {
     //asset location
     configdata.assetpath = config.get('assetpath');
 
-    //shader manifest
-    configdata.shaders = config.get('shaders');
-
     //box art location
     configdata.boxpath = config.get('boxpath');
     configdata.flattenedboxfiles = config.get('flattenedboxfiles');
