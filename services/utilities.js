@@ -358,6 +358,9 @@ UtilitiesService.findSuggestions = function(system, items, forgienMixPerc, callb
 
     //get suggestions cache
     DataService.getCache('suggestions.' + system, function(err, suggestionsCache) {
+        if (err) {
+            return callback(err);
+        }
 
         var suggestions = suggestionsCache.best; //shuffle all suggestions to randomize
 
@@ -368,7 +371,7 @@ UtilitiesService.findSuggestions = function(system, items, forgienMixPerc, callb
 
             var foreigns = suggestions.length * forgienMixPerc; //number of formeign titles to mix into total
 
-            console.log('foreigns mixed in: ' + foreigns);
+            //console.log('foreigns mixed in: ' + foreigns);
 
             for (i = 0; i < foreigns; ++i) {
                 suggestions.push(foreignsuggestions[i]); //push them into the other suggestions array
@@ -379,13 +382,16 @@ UtilitiesService.findSuggestions = function(system, items, forgienMixPerc, callb
 
         //run over all games
         for (i = 0; i < items; ++i) {
-                
-            //in the result, use the game as the key and its values the file and rank
-            results.push({
-                system: system,
-                title: suggestions[i % suggestions.length],
-                file: suggestionsCache.data[suggestions[i % suggestions.length]].best
-            });
+            
+            if (suggestions[i % suggestions.length]) {
+
+                //in the result, use the game as the key and its values the file and rank
+                results.push({
+                    system: system,
+                    title: suggestions[i % suggestions.length],
+                    file: suggestionsCache.data[suggestions[i % suggestions.length]].best
+                });
+            }
         }
         callback(null, results);
     });

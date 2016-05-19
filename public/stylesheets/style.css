@@ -508,6 +508,11 @@ p {
 	cursor: pointer;
 }
 
+#shaderselectlist li img {
+	height: 200px;
+	width: 200px;
+}
+
 #shaderselectlist li h3 {
 	margin: 0;
 	padding: 10px 0;
@@ -528,8 +533,18 @@ p {
 /* saved state selector */
 
 #savedstateseletorwrapper {
-	height: 500px;
+	height: 550px;
 	margin: -250px 0 0 -400px;
+	overflow: hidden;
+}
+
+#savedstateseletorwrapper h3 {
+	cursor: pointer;
+	margin-bottom: 20px;
+}
+
+#savedstateselectorlistwrapper {
+	height: 400px;
 	overflow-y: scroll;
 }
 
