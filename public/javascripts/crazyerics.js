@@ -1392,8 +1392,8 @@ Crazyerics.prototype._buildFileSystem = function(Module, system, file, compresse
 
     Module.FS_createFolder('/', 'games', true, true);
 
-    //games are stored compressed in json. due to javascript string length limits, these can be broken up into several segments for larger files
-    //like sega cd. The json object has filenames as keys and file data (in arrays for segments) as file data, both compressed as strings
+    //games are stored compressed in json. due to javascript string length limits, these can be broken up into several segments for larger files.
+    //the compressedGameFiles object contains data for all files and their segments
     for (gameFile in compressedGameFiles) {
 
         var filename = self._decompress.string(gameFile);
@@ -1420,11 +1420,11 @@ Crazyerics.prototype._buildFileSystem = function(Module, system, file, compresse
 
         //write uncompressed game data to emu file system
         Module.FS_createDataFile('/games', filename, gamedata, true, true);
-        //Module.arguments = ['-v', '--menu'];
     }
 
-    //set the start file to the one defined in the data.json
+    //set the start file
     Module.arguments = ['-v', '/games/' + file];
+    //Module.arguments = ['-v', '--menu'];
 
     //emulator support, will be null if none
     if (supportFiles) {
