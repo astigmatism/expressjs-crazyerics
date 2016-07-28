@@ -1,5 +1,6 @@
 node_modules/
 public/roms/
+public/boxes/
 public/images/boxes/
 public/images/flat
 public/flattened

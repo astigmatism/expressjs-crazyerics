@@ -1,7 +1,8 @@
 {
 	"assetpath": "",
 	"shaderpath": "/shaders",
-	"boxpath":"https://googledrive.com/host/0B8ilcrXlr-i1NGQ5TWJEWjUxdzA/boxes",
+	"boxpath_old":"https://googledrive.com/host/0B8ilcrXlr-i1NGQ5TWJEWjUxdzA/boxes",
+	"boxpath":"/boxes",
 	"rompath":"/roms",
 	"flattenedboxfiles": true,
 	"flattenedromfiles": true,

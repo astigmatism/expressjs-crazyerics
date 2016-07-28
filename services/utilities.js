@@ -38,75 +38,85 @@ UtilitiesService.onApplicationStart = function(callback) {
 
     async.each(Object.keys(systems), function(system, nextsystem) {
 
+        //ok, lets open the data file
         DataService.getFile('/data/' + system + '.json', function(err, data) {
             if (err) {
                 console.log('Could not find data file for ' + system + ' even though they are defined in config');
                 return nextsystem();
             }
 
-            //we'll cache a separate structure for each system (to avoid using the heavier all suggestions cache)
-            var suggestions = {
-                'best': [],
-                'foreign': [],
-                'data': {}
-            };
+            //let's try opening the boxart data file now too
+            DataService.getFile('/data/' + system + '_boxart.json', function(err, boxartdata) {
+                if (err) {
+                    console.log('Could not find boxart file for ' + system + '. No suggests can be made without boxart');
+                    //if error, console log only, we can still build cache
+                }
 
-            //add new key for this system to all suggestions
-            suggestionsall[system] = {
-                'best': [],
-                'data': {}
-            };
+                //we'll cache a separate structure for each system (to avoid using the heavier all suggestions cache)
+                var suggestions = {
+                    'best': [],
+                    'foreign': [],
+                    'data': {}
+                };
 
-            //ok, let's build the all.json file with the data from each file
-            for (var title in data) {
+                //add new key for this system to all suggestions
+                suggestionsall[system] = {
+                    'best': [],
+                    'data': {}
+                };
 
-                var bestfile = data[title].best;
-                var bestrank = data[title].files[bestfile];
-                var hasart = data[title].hasOwnProperty('art') ? data[title].art : false;
+                //ok, let's build the all.json file with the data from each file
+                for (var title in data) {
 
-                //in order to be suggested must have art and must need minimum rank to be preferable playing game (likely US game)
-                if (hasart) {
+                    var bestfile = data[title].best;
+                    var bestrank = data[title].files[bestfile];
 
-                    if (bestrank >= config.get('search').suggestionThreshold) {
-                        
-                        //add to system suggestions
-                        suggestions.best.push(title);
-                        suggestions.data[title] = data[title];
+                    var hasart = boxartdata[title] ? true : false; //check for property in boxart data file
 
-                        //add to all suggestions
-                        suggestionsall[system].best.push(title);
-                        suggestionsall[system].data[title] = data[title];   
+                    //in order to be suggested must have art and must need minimum rank to be preferable playing game (likely US game)
+                    if (hasart) {
 
-                        //increase counter
-                        ++suggestionsall.data.allsuggestioncount;                     
+                        if (bestrank >= config.get('search').suggestionThreshold) {
+                            
+                            //add to system suggestions
+                            suggestions.best.push(title);
+                            suggestions.data[title] = data[title];
 
-                    } else {
-                        
-                        //foreign suggestion (has art but doesn't meet the suggestion threshold)
-                        
-                        //add to system suggestions
-                        suggestions.foreign.push(title);
-                        suggestions.data[title] = data[title];
+                            //add to all suggestions
+                            suggestionsall[system].best.push(title);
+                            suggestionsall[system].data[title] = data[title];   
+
+                            //increase counter
+                            ++suggestionsall.data.allsuggestioncount;                     
+
+                        } else {
+                            
+                            //foreign suggestion (has art but doesn't meet the suggestion threshold)
+                            
+                            //add to system suggestions
+                            suggestions.foreign.push(title);
+                            suggestions.data[title] = data[title];
+                        }
                     }
+
+                    //if the rank of the best playable file for the title is above the threshold for part of all-console search
+                    if (bestrank >= config.get('search').searchAllThreshold) {
+                        search[title + '.' + system] = {
+                            system: system,
+                            file: bestfile,
+                            rank: bestrank
+                        };
+                    }
+                    
+                    //increase counter
+                    ++suggestionsall.data.alltitlecount;
                 }
 
-                //if the rank of the best playable file for the title is above the threshold for part of all-console search
-                if (bestrank >= config.get('search').searchAllThreshold) {
-                    search[title + '.' + system] = {
-                        system: system,
-                        file: bestfile,
-                        rank: bestrank
-                    };
-                }
-                
-                //increase counter
-                ++suggestionsall.data.alltitlecount;
-            }
+                //cache suggestions for this system
+                DataService.setCache('suggestions.' + system, suggestions); //ok to be sync
 
-            //cache suggestions for this system
-            DataService.setCache('suggestions.' + system, suggestions); //ok to be sync
-
-            nextsystem();
+                nextsystem();
+            });
         });
 
     }, function(err) {
@@ -315,6 +325,11 @@ UtilitiesService.findSuggestionsAll = function(items, callback) {
 
             //randomize the titles for this system
             var systemsuggestions = UtilitiesService.shuffle(suggestionsCache[system].best);
+
+            //never suggest more than this system has suggestions
+            if (tosuggest > systemsuggestions.length) {
+                tosuggest = systemsuggestions.length;
+            }
 
             for (var i = 0; i < tosuggest; ++i) {
                 aggrigation.push({
