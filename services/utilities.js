@@ -78,7 +78,12 @@ UtilitiesService.onApplicationStart = function(callback) {
                     var bestfile = data[title].best;
                     var bestrank = data[title].files[bestfile];
 
-                    var hasart = boxartdata[title] ? true : false; //check for property in boxart data file
+                    var hasart = false; 
+
+                    //check for property in boxart data file
+                    if(boxartdata && boxartdata[title]) {
+                        hasart = true;
+                    }
 
                     //in order to be suggested must have art and must need minimum rank to be preferable playing game (likely US game)
                     if (hasart) {
