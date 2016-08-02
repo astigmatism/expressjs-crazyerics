@@ -667,7 +667,7 @@ Crazyerics.prototype._bootstrap = function(system, title, file, slot, shader, on
 
             //begin loading all content. I know it seems like some of these (game, emulator, etc) could load while the user
             //is viewing the shader select, but I found that when treated as background tasks, it interfere with the performance
-            //of the selection. I think its best to wait until the loading animation is up to perform all of these:
+            //of the shader selection ui. I think its best to wait until the loading animation is up to perform all of these:
             self._loademulator(system, emulatorReady);
             self._loadEmulatorSupport(system, emulatorSupportReady);
             self._loadGame(key, system, title, file, gameReady);

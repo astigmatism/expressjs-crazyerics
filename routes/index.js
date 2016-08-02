@@ -102,6 +102,30 @@ router.post('/load/game', function(req, res, next) {
     }
 });
 
+//a simple rest endpoint used for testing returning of game data. please comment out
+router.get('/game/:system', function(req, res, next) {
+
+    var system = req.params.system;
+    var term = req.query.game || '';
+
+    UtilitiesService.search(system, term, null, function(err, result) {
+        if (err) {
+            return res.json(err);
+        }
+
+        if (result.length > 0) {
+
+            UtilitiesService.findGame(result[0][2], result[0][0], result[0][1], function(err, details) {
+                if (err) {
+                    return res.json(err);
+                }
+
+                res.json(details);
+            });
+        }
+    });
+});
+
 router.get('/layout/controls/:system', function(req, res, next) {
 
     var system = req.params.system;

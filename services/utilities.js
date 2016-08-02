@@ -45,6 +45,13 @@ UtilitiesService.onApplicationStart = function(callback) {
                 return nextsystem();
             }
 
+            //let's cache files in this section
+            DataService.getFile('/data/' + system + '_thegamesdb.json', function(err, thegamesdb) {
+                if (err) {
+                    console.log('Could not find thegamesdb file for ' + system + '.');
+                }
+            });
+
             //let's try opening the boxart data file now too
             DataService.getFile('/data/' + system + '_boxart.json', function(err, boxartdata) {
                 if (err) {
@@ -443,24 +450,78 @@ UtilitiesService.browse = function(system, term, callback) {
     });
 };
 
+//this function returns all details given a system and a title. must be exact matches to datafile!
+//also returns hasboxart flag and any info (ripped from thegamesdb)
 UtilitiesService.findGame = function(system, title, file, callback) {
 
-    DataService.getFile('/data/' + system + '.json', function(err, games) {
+    //I found it faster to save all the results in a cache rather than load all the caches to create the result.
+    //went from 120ms response to about 30ms
+    DataService.getCache(system + title + file, function(err, data) {
         if (err) {
             return callback(err);
         }
 
-        if (games[title] && games[title].files[file]) {
-
-            return callback(null, {
-                system: system,
-                title: title,
-                file: file,
-                files: games[title].files
-            });
-
+        //if already returned, use cache
+        if (data) {
+            return callback(null, data);
         }
-        return callback(title + ' not found for ' + system + ' or ' + file + ' not found in ' + title);
+
+        var data = {
+            system: null,
+            title: null,
+            file: null,
+            files: null,
+            boxart: null,
+            info: null
+        };
+
+        //open data file for details
+        DataService.getFile('/data/' + system + '.json', function(err, games) {
+            if (err) {
+                return callback(err);
+            }
+
+            //if title found in datafile.. we can find data anywhere since all data is constructed from the original datafile!
+            if (games[title] && games[title].files[file]) {
+
+                data.system = system;
+                data.title = title;
+                data.file = file;
+                data.files = games[title].files;
+
+                //is there box art too?
+                DataService.getFile('/data/' + system + '_boxart.json', function(err, boxartgames) {
+                    if (err) {
+                        //no need to trap here
+                    } else {
+
+                        if (boxartgames[title]) {
+                            data.boxart = boxartgames[title];
+                        }
+                    }
+
+                    //is there info?
+                    DataService.getFile('/data/' + system + '_thegamesdb.json', function(err, thegamesdb) {
+                        if (err) {
+                            //no need to trap here
+                        } else {
+
+                            if (thegamesdb[title]) {
+                                data.info = thegamesdb[title];
+                            }
+                        }
+
+                        DataService.setCache(system + title + file, data);
+
+                        return callback(null, data);
+                    });
+                });
+
+            } else {
+                return callback(title + ' not found for ' + system + ' or ' + file + ' not found in ' + title);
+            }
+        });
+
     });
 };
 
