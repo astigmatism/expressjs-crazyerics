@@ -1236,7 +1236,7 @@ Crazyerics.prototype._loademulator = function(system, deffered) {
 Crazyerics.prototype._loadGame = function(key, system, title, file, deffered) {
 
     var self = this;
-    var location = self._config.rompath;
+    var location = self._config.rompath + '/' + system + '/' + self._config.systemdetails[system].romcdnversion + '/';
     var flattened = self._config.flattenedromfiles;
 
     //if rom struture is flattened, this means that all rom files have been converted to single json files
@@ -1244,9 +1244,9 @@ Crazyerics.prototype._loadGame = function(key, system, title, file, deffered) {
 
         var filename = self._compress.string(title + file);
         //location += '/' + system + '/a.json'; //encode twice: once for the trip, the second because the files are saved that way on the CDN
-        location += '/' + system + '/' + encodeURIComponent(encodeURIComponent(filename)) + '.json'; //encode twice: once for the trip, the second because the files are saved that way on the CDN
+        location += encodeURIComponent(encodeURIComponent(filename)) + '.json'; //encode twice: once for the trip, the second because the files are saved that way on the CDN
     } else {
-        location += '/' + system + '/' + title + '/' + file;
+        location += title + '/' + file;
     }
 
     /**
@@ -1821,7 +1821,7 @@ Crazyerics.prototype._getBoxFront = function(system, title, size) {
     }
 
     //incldes swap to blank cart onerror
-    return $('<img onerror="this.src=\'' + self._config.assetpath + '/images/blanks/' + system + '_' + size + '.png\'" src="' + self._config.boxpath + '/' + system + '/' + title + '/' + size + '.jpg" />');
+    return $('<img onerror="this.src=\'' + self._config.assetpath + '/images/blanks/' + system + '_' + size + '.png\'" src="' + self._config.boxpath + '/' + system + '/' + self._config.systemdetails[system].boxcdnversion + '/' + title + '/' + size + '.jpg" />');
 };
 
 /**

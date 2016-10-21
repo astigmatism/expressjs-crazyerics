@@ -1,9 +1,8 @@
 {
 	"assetpath": "",
 	"shaderpath": "/shaders",
-	"boxpath_old":"https://googledrive.com/host/0B8ilcrXlr-i1NGQ5TWJEWjUxdzA/boxes",
-	"boxpath":"/boxes",
-	"rompath":"/roms",
+	"boxpath":"https://dl.dropboxusercontent.com/u/1433808/crazyerics/boxes",
+	"rompath":"https://dl.dropboxusercontent.com/u/1433808/crazyerics/roms",
 	"flattenedboxfiles": true,
 	"flattenedromfiles": true,
 	"systems": {
@@ -11,6 +10,8 @@
 			"name": "Nintendo Game Boy",
 			"shortname": "Game Boy",
 			"live": true,
+			"boxcdnversion": "2.0.0",
+			"romcdnversion": "2.0.0",
 			"retroarch": "video_aspect_ratio = 1.11111111",
 			"recommendedshaders": [ 
 				{
@@ -34,6 +35,8 @@
 			"name": "Nintendo Game Boy Advance",
 			"shortname": "Game Boy Advance",
 			"live": true,
+			"boxcdnversion": "2.0.0",
+			"romcdnversion": "2.0.0",
 			"retroarch": "video_aspect_ratio = 1.5",
 			"recommendedshaders": [
 				{
@@ -64,6 +67,8 @@
 			"name": "Super Nintendo Entermainment System",
 			"shortname": "Super Nintendo",
 			"live": true,
+			"boxcdnversion": "2.0.0",
+			"romcdnversion": "2.0.0",
 			"retroarch": "video_aspect_ratio = 1.14285714",
 			"recommendedshaders": [
 				{
@@ -87,6 +92,8 @@
 			"name": "Sega Genesis",
 			"shortname": "Genesis",
 			"live": true,
+			"boxcdnversion": "2.0.0",
+			"romcdnversion": "2.0.0",
 			"retroarch": "video_aspect_ratio = 1.42857143",
 			"recommendedshaders": [
 				{
@@ -110,6 +117,8 @@
 			"name": "Sega Master System",
 			"shortname": "Master System",
 			"live": true,
+			"boxcdnversion": "2.0.0",
+			"romcdnversion": "2.0.0",
 			"retroarch": "video_aspect_ratio = 1.33333333",
 			"recommendedshaders": [
 				{
@@ -133,6 +142,8 @@
 			"name": "Sega Game Gear",
 			"shortname": "Game Gear",
 			"live": true,
+			"boxcdnversion": "2.0.0",
+			"romcdnversion": "2.0.0",
 			"retroarch": "video_aspect_ratio = 1.11111111",
 			"recommendedshaders": [
 				{
@@ -156,6 +167,8 @@
 			"name": "Nintendo 64",
 			"shortname": "Nintedo 64",
 			"live": true,
+			"boxcdnversion": "2.0.0",
+			"romcdnversion": "2.0.0",
 			"retroarch": "video_aspect_ratio = 1.142857143\ninput_player1_l2 = a\ninput_player1_l_x_plus = right\ninput_player1_l_x_minus = left\ninput_player1_l_y_plus = down\ninput_player1_l_y_minus = up\ninput_player1_left = S\ninput_player1_right = D\ninput_player1_up = E\ninput_player1_down = C\ninput_player1_r_x_plus = l\ninput_player1_r_x_minus = j\ninput_player1_r_y_plus = k\ninput_player1_r_y_minus = i\n",
 			"recommendedshaders": [
 				{
