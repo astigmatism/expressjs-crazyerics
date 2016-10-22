@@ -1,7 +1,5 @@
 var express = require('express');
 var UtilitiesService = require('../services/utilities.js');
-var pako = require('pako');
-var atob = require('atob');
 var router = express.Router();
 var config = require('config');
 
@@ -35,6 +33,10 @@ router.get('/search/:system/:query', function(req, res, next) {
     });
 });
 
+//this is the call to load the emulator's view into an iframe
+//because of the way the libretro emulators are built, they want to load
+//a mem file and expect it to exist in the same location, this means it
+//will try and load it from this url as well.
 router.get('/load/emulator/:system', function(req, res, next) {
 
     var system = req.params.system;

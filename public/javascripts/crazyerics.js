@@ -105,6 +105,10 @@ var Crazyerics = function() {
             }
         });
 
+        $(document).on('keydown keyup keypress',function(e) { 
+            e.preventDefault();
+        });
+
         //clicking on paused game overlay
         $('#emulatorwrapperoverlay')
             .on('click', function() {
@@ -634,7 +638,7 @@ Crazyerics.prototype._bootstrap = function(system, title, file, slot, shader, on
         var shaderReady = $.Deferred();
 
         //create new canvas (canvas must exist before call to get emulator (expects to find it right away))
-        $('#emulatorcanvas').append('<canvas tabindex="0" id="emulator"></canvas>');
+        $('#emulatorcanvas').append('<canvas tabindex="0" id="emulator" oncontextmenu="event.preventDefault()"></canvas>');
 
         //fix text on shader screen
         $('#systemshaderseletorwrapper span').text(self._config.systemdetails[system].shortname);
@@ -1471,6 +1475,10 @@ Crazyerics.prototype._buildFileSystem = function(Module, system, file, compresse
 
     //config, must be after shader
     Module.FS_createFolder('/', 'etc', true, true);
+
+    Module.FS_createFolder('/home/web_user/', 'retroarch', true, true);
+    Module.FS_createFolder('/home/web_user/retroarch', 'userdata', true, true);
+
     if (self._config.retroarch && self._config.retroarch[system]) {
 
         var configToLoad = self._config.retroarch[system];
@@ -1478,7 +1486,10 @@ Crazyerics.prototype._buildFileSystem = function(Module, system, file, compresse
         if (shaderPresetToLoad) {
             configToLoad = 'video_shader =\"/shaders/' + shaderPresetToLoad + '\"\n' + configToLoad;
         }
-        Module.FS_createDataFile('/etc', 'retroarch.cfg', configToLoad, true, true);
+
+        //configToLoad = 'video_vsync = false\n';
+
+        Module.FS_createDataFile('/home/web_user/retroarch/userdata', 'retroarch.cfg', configToLoad, true, true);
     }
 
     //screenshots
