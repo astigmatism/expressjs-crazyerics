@@ -47,8 +47,29 @@ emmake ./dist-cores.sh emscripten
 
 Alright, that's about it. I might try this whole procedure on a Windows or Ubuntu box as maybe the OSX c++ compilers (g++?) don't offer as much compatibility? Hard to say but rarely do I see a core built without several warnings thrown. I still get a build product of course but its suspect. Maybe you'll have some luck there in the future :)
 
+new chnages to emulator scripts
+---------------------------
 
-chnages to emulator scripts
+*.mem --> https://dl.dropboxusercontent.com/u/1433808/crazyerics/emulators/*.mem
+
+if (target == "#window")
+    return window;
+else if (target == "#document")
+    return document;
+-->
+if (target == "#window")
+    return Module["canvas"];
+else if (target == "#document")
+    return Module["canvas"];
+
+eventHandler.handlerFunc(event);
+-->
+eventHandler.handlerFunc(event);
+event.preventDefault();
+
+
+
+old chnages to emulator scripts
 ---------------------------
 
 - event handling: 

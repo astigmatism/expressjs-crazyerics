@@ -42,7 +42,7 @@ router.get('/load/emulator/:system', function(req, res, next) {
     var system = req.params.system;
 
     res.render('emulators/' + system, {
-        assetpath: config.get('assetpath')
+        emupath: config.get('emupath')
     });
 });
 

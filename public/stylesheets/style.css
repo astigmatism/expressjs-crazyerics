@@ -413,10 +413,6 @@ p {
 	vertical-align: middle;
 }
 
-#emulatorcanvas {
-	height: 600px; /* when the emulator resizes from 800x600 into the maincolumn, this is the height */
-}
-
 #emulator {
 	outline: none;
 	width: 100%;

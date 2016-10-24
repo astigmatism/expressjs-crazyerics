@@ -567,6 +567,9 @@ UtilitiesService.collectDataForClient = function(req, openonload, callback) {
     //roms location
     configdata.rompath = config.get('rompath');
 
+    //emulators location
+    configdata.emupath = config.get('emupath');
+
     //shaders location
     configdata.shaderpath = config.get('shaderpath');
 

@@ -105,10 +105,6 @@ var Crazyerics = function() {
             }
         });
 
-        $(document).on('keydown keyup keypress',function(e) { 
-            e.preventDefault();
-        });
-
         //clicking on paused game overlay
         $('#emulatorwrapperoverlay')
             .on('click', function() {
@@ -779,6 +775,7 @@ Crazyerics.prototype._bootstrap = function(system, title, file, slot, shader, on
                                 }, 1000);
                             });
 
+                            //assign focus to emulator canvas
                             $('#emulator')
                                 .blur(function(event) {
                                     if (!self._pauseOverride) {
