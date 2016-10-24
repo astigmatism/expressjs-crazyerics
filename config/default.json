@@ -132,7 +132,7 @@
 			"live": true,
 			"boxcdnversion": "2.0.0",
 			"romcdnversion": "2.0.0",
-			"emufile": "emulators/2.0.0/genesis_plus_gx.min.js",
+			"emufile": "emulators/2.0.0/genesis_plus_gx_libretro.js",
 			"recommendedshaders": [
 				{
 					"title": "Vintage Television",
@@ -157,7 +157,7 @@
 			"live": true,
 			"boxcdnversion": "2.0.0",
 			"romcdnversion": "2.0.0",
-			"emufile": "emulators/2.0.0/genesis_plus_gx.min.js",
+			"emufile": "emulators/2.0.0/genesis_plus_gx_libretro.js",
 			"recommendedshaders": [
 				{
 					"title": "Vintage LCD",
@@ -205,7 +205,7 @@
 		"lynx": {
 			"name": "Atari Lynx",
 			"shortname": "lynx",
-			"live": false,
+			"live": true,
 			"boxcdnversion": "2.0.0",
 			"romcdnversion": "2.0.0",
 			"emufile": "emulators/2.0.0/handy_libretro.js"

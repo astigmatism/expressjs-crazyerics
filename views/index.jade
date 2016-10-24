@@ -58,18 +58,19 @@ block content
                     div#gamedetailscontent
                         div#gametitlewrapper
                             span#gametitle
+                        div#gametitlecaption
                         //- sliding panels
-                        div#controlsslider(class="slidingpanel closed")
-                        div#screenshotsslider(class="slidingpanel closed")
-                            div(class="slidercontainer")
-                                p Click a screenshot to download. Screenshots are deleted when you close or refresh this page.
-                                p(class="screenshothelper") Take a screenshot by pressing T during play.
-                        //- corresponding list of togglers for sliders
-                        ul#gamecontrolslist(class="closed")
-                            li(class="controlsslider", data-click-state="0")
-                                img(class="tooltip",src="#{assetpath}/images/gamepad.png", title="View Controls")
-                            li(class="screenshotsslider", data-click-state="0")
-                                img(class="tooltip",src="#{assetpath}/images/screenshot.png", title="View Screenshots")
+                        //- div#controlsslider(class="slidingpanel closed")
+                        //- div#screenshotsslider(class="slidingpanel closed")
+                        //-     div(class="slidercontainer")
+                        //-         p Click a screenshot to download. Screenshots are deleted when you close or refresh this page.
+                        //-         p(class="screenshothelper") Take a screenshot by pressing T during play.
+                        //- //- corresponding list of togglers for sliders
+                        //- ul#gamecontrolslist(class="closed")
+                        //-     li(class="controlsslider", data-click-state="0")
+                        //-         img(class="tooltip",src="#{assetpath}/images/gamepad.png", title="View Controls")
+                        //-     li(class="screenshotsslider", data-click-state="0")
+                        //-         img(class="tooltip",src="#{assetpath}/images/screenshot.png", title="View Screenshots")
                     div#gamedetailsboxfront
 
         div#gameloadingoverlay(class="darkgrad")

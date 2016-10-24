@@ -111,7 +111,8 @@ router.post('/load/game', function(req, res, next) {
 
             var result = {
                 states: states, //state files
-                files: details.files //rom files
+                files: details.files, //rom files
+                info: details.info //thegamesdb data
             };
 
             res.json(UtilitiesService.compress.json(result));

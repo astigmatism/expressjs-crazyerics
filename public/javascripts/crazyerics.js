@@ -694,6 +694,7 @@ Crazyerics.prototype._bootstrap = function(system, title, file, slot, shader, on
                 gamecontent = self._decompress.json(gamecontent);
                 var states = gamecontent.states;
                 var files = gamecontent.files;
+                var info = gamecontent.info;
 
                 //initialize the game state manager
                 self.StateManager.init(gamecontent.states);
@@ -709,6 +710,12 @@ Crazyerics.prototype._bootstrap = function(system, title, file, slot, shader, on
                 self._activeStateSlot = 0;
 
                 $('#emulatorcontrolswrapper').show(); //show controls tool bar (still has closed class applied)
+
+                //date copmany
+                if (info) {
+                    var year = info.ReleaseDate ? info.ReleaseDate.match(/(\d{4})/) : [];
+                    $('#gametitlecaption').text((info.Publisher ? info.Publisher : '') + (year.length > 0 ? ', ' + year[0]: ''));
+                }
 
                 //console.log(self._generateLink(system, title, file));
 

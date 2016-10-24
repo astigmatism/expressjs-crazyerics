@@ -605,6 +605,10 @@ p {
 	height: 32px;
 }
 
+#gametitlecaption {
+	font-size: 16px;
+}
+
 /* game controls list and sliders */
 
 #gamecontrolslist {
