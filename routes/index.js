@@ -2,6 +2,7 @@ var express = require('express');
 var UtilitiesService = require('../services/utilities.js');
 var router = express.Router();
 var config = require('config');
+var fs = require('fs');
 
 router.get('/', function(req, res, next) {
 
@@ -38,9 +39,25 @@ router.get('/load/emulator/:system', function(req, res, next) {
 
     var system = req.params.system;
 
-    res.render('emulator', {
-        emupath: config.get('emupath'),
-        emufile: config.get('systems.' + system + '.emufile')
+    //check for the existance of a customized layout for this system
+    fs.exists(__dirname + '/../views/emulators/' + system + '.jade', function(exists) {
+
+        if (exists) {
+
+            res.render('emulators/' + system, {
+                assetpath: config.get('assetpath'),
+                emupath: config.get('emupath'),
+                emufile: config.get('systems.' + system + '.emufile')
+            });
+            return;
+        }   
+
+        //otherwise, render the common emulator layout
+        res.render('emulator', {
+            assetpath: config.get('assetpath'),
+            emupath: config.get('emupath'),
+            emufile: config.get('systems.' + system + '.emufile')
+        });
     });
 });
 

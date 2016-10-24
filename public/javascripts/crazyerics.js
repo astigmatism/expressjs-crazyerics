@@ -1471,10 +1471,12 @@ Crazyerics.prototype._buildFileSystem = function(Module, system, file, compresse
     }
 
     //config, must be after shader
-    Module.FS_createFolder('/', 'etc', true, true);
-
-    Module.FS_createFolder('/home/web_user/', 'retroarch', true, true);
-    Module.FS_createFolder('/home/web_user/retroarch', 'userdata', true, true);
+    //wrap folder creation in catch since error is thrown if exists
+    try { Module.FS_createFolder('/', 'etc', true, true); } catch(e) {}
+    try { Module.FS_createFolder('/', 'home', true, true); } catch(e) {}
+    try { Module.FS_createFolder('/home', 'web_user', true, true); } catch(e) {}
+    try { Module.FS_createFolder('/home/web_user/', 'retroarch', true, true); } catch(e) {}
+    try { Module.FS_createFolder('/home/web_user/retroarch', 'userdata', true, true); } catch(e) {}
 
     if (self._config.retroarch && self._config.retroarch[system]) {
 
