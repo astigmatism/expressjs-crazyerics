@@ -560,7 +560,8 @@ UtilitiesService.collectDataForClient = function(req, openonload, callback) {
                 'name': systems[system].name,
                 'shortname': systems[system].shortname,
                 'boxcdnversion': systems[system].boxcdnversion,
-                'romcdnversion': systems[system].romcdnversion
+                'romcdnversion': systems[system].romcdnversion,
+                'emufile': systems[system].emufile
             };
         }
     }

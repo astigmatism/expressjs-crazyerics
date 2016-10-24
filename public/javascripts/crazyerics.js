@@ -1486,7 +1486,9 @@ Crazyerics.prototype._buildFileSystem = function(Module, system, file, compresse
 
         //configToLoad = 'video_vsync = false\n';
 
+        //write to both locations since we could be using older or newer emulators
         Module.FS_createDataFile('/home/web_user/retroarch/userdata', 'retroarch.cfg', configToLoad, true, true);
+        Module.FS_createDataFile('/etc', 'retroarch.cfg', configToLoad, true, true);
     }
 
     //screenshots

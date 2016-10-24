@@ -34,15 +34,13 @@ router.get('/search/:system/:query', function(req, res, next) {
 });
 
 //this is the call to load the emulator's view into an iframe
-//because of the way the libretro emulators are built, they want to load
-//a mem file and expect it to exist in the same location, this means it
-//will try and load it from this url as well.
 router.get('/load/emulator/:system', function(req, res, next) {
 
     var system = req.params.system;
 
-    res.render('emulators/' + system, {
-        emupath: config.get('emupath')
+    res.render('emulator', {
+        emupath: config.get('emupath'),
+        emufile: config.get('systems.' + system + '.emufile')
     });
 });
 

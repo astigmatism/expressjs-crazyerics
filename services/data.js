@@ -111,4 +111,122 @@ DataService.setCache = function(key, data, cacheLifetime, callback) {
     });
 };
 
+DataService.createFolder = function(path, overwrite, callback) {
+
+    fs.exists(path, function (exists) {
+
+        var create = function() {
+
+            fs.mkdir(path, function(err) {
+                if (err) {
+                    return callback(err);
+                }
+
+                return callback(null)
+            });
+        };
+
+        if (exists) {
+
+            if (overwrite) {
+                DataService.rmdir(path, function (err) {
+                    if (err) {
+                        return callback(err);
+                    }
+                    create();
+                });
+            } else {
+                //exists and do not overwrite
+                callback(null);
+                return;
+            }
+        } else {
+            //does not exist
+            create();
+        }
+    });
+};
+
+DataService.rmdir = function(path, callback) {
+    fs.readdir(path, function(err, files) {
+        if(err) {
+            // Pass the error on to callback
+            callback(err, []);
+            return;
+        }
+        var wait = files.length,
+            count = 0,
+            folderDone = function(err) {
+            count++;
+            // If we cleaned out all the files, continue
+            if( count >= wait || err) {
+                fs.rmdir(path,callback);
+            }
+        };
+        // Empty directory to bail early
+        if(!wait) {
+            folderDone();
+            return;
+        }
+        
+        // Remove one or more trailing slash to keep from doubling up
+        path = path.replace(/\/+$/,"");
+        files.forEach(function(file) {
+            var curPath = path + "/" + file;
+            fs.lstat(curPath, function(err, stats) {
+                if( err ) {
+                    callback(err, []);
+                    return;
+                }
+                if( stats.isDirectory() ) {
+                    DataService.rmdir(curPath, folderDone);
+                } else {
+                    fs.unlink(curPath, folderDone);
+                }
+            });
+        });
+    });
+};
+
+DataService.emptydir = function(path, callback) {
+    fs.readdir(path, function(err, files) {
+        if(err) {
+            // Pass the error on to callback
+            callback(err, []);
+            return;
+        }
+        var wait = files.length,
+            count = 0,
+            folderDone = function(err) {
+            count++;
+            // If we cleaned out all the files, continue
+            if( count >= wait || err) {
+                callback();
+            }
+        };
+        // Empty directory to bail early
+        if(!wait) {
+            folderDone();
+            return;
+        }
+        
+        // Remove one or more trailing slash to keep from doubling up
+        path = path.replace(/\/+$/,"");
+        files.forEach(function(file) {
+            var curPath = path + "/" + file;
+            fs.lstat(curPath, function(err, stats) {
+                if( err ) {
+                    callback(err, []);
+                    return;
+                }
+                if( stats.isDirectory() ) {
+                    DataService.rmdir(curPath, folderDone);
+                } else {
+                    fs.unlink(curPath, folderDone);
+                }
+            });
+        });
+    });
+};
+
 module.exports = DataService;

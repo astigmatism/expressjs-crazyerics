@@ -16,6 +16,7 @@ mongoose.connect('mongodb://localhost/crazyerics');
 var routes = require('./routes/index');
 var states = require('./routes/states');
 var suggest = require('./routes/suggest');
+var work = require('./routes/work');
 
 var app = express();
 
@@ -46,6 +47,10 @@ app.use(session({
 app.use('/', routes);
 app.use('/states', states);
 app.use('/suggest', suggest);
+
+if (app.get('env') === 'development') {
+    app.use('/work', work);
+}
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
