@@ -44,7 +44,7 @@ var Crazyerics = function() {
              */
             onChange: function() {
                 var system = $(this).val();
-                self.replaceSuggestions('/suggest/' + system + '/200');
+                self.replaceSuggestions('/suggest/' + system + '/200', true, true);
 
                 //show or hide the alpha bar in the suggestions panel
                 if (system === 'all') {
@@ -180,18 +180,25 @@ var Crazyerics = function() {
             self._simulateEmulatorKeypress(82, 5000); // R
         });
 
+        //when user has scrolled to bottom of page, load more suggestions
+        $(window).scroll(function() {
+            if($(window).scrollTop() + $(window).height() == $(document).height() && self._loadMoreSuggestionsOnBottom) {
+                self.replaceSuggestions(self._loadMoreSuggestionsOnBottom, false, true);
+            }
+        });
+
         //for browsing, set up links
         $('#suggestionswrapper a').each(function(index, item) {
             $(item).on('click', function(e) {
                 var system = $('#searchform select').val();
                 var term = $(item).text();
-                self.replaceSuggestions('/suggest/browse/' + system + '?term=' + term);
+                self.replaceSuggestions('/suggest/browse/' + system + '?term=' + term, true, false);
             });
         });
 
         self.Sliders.init();
 
-        self.replaceSuggestions('/suggest/all/150'); //begin by showing 150 all console suggestions
+        self.replaceSuggestions('/suggest/all/150', true, true); //begin by showing 150 all console suggestions
 
         self._toolTips();
     });
@@ -203,6 +210,7 @@ Crazyerics.prototype._FS = null; //handle to Module file system
 Crazyerics.prototype._ModuleLoading = false; //oldskool way to prevent double loading
 Crazyerics.prototype._pauseOverride = false; //condition for blur event of emulator, sometimes we don't want it to pause when we're giving it back focus
 Crazyerics.prototype._activeFile = null;
+Crazyerics.prototype._loadMoreSuggestionsOnBottom = null; //loads the url of suggestions to call should the list be extended when the user reachs the page bottom
 Crazyerics.prototype._activeStateSlot = 0;
 Crazyerics.prototype._saveStateDeffers = {}; //since saving state to server requires both state and screenshot data, setup these deffers since tracking which comes back first is unknown
 Crazyerics.prototype._keypresslocked = false; //when we're sending a keyboard event to the emulator, we want to wait until that event is complete before any additinal keypresses are made (prevents spamming)
@@ -526,23 +534,31 @@ Crazyerics.prototype.Sliders = {
  * @param  {number} items  the number of items to load and show
  * @return {undef}
  */
-Crazyerics.prototype.replaceSuggestions = function(url) {
+Crazyerics.prototype.replaceSuggestions = function(url, remove, loadMore) {
 
     var self = this;
+
+    self._loadMoreSuggestionsOnBottom = loadMore ? url : null;
 
     //reset dial
     $('.dial').val(0).trigger('change');
 
     //show loading icon
-    $('#suggestionswrapper').hide();
-    $('#loading').removeClass('close');
+    
+    //only hide current suggestions when resetting columns
+    if (remove) {
+        $('#suggestionswrapper').hide();
+        $('#loading').removeClass('close');
+    }
 
     $.getJSON(url, function(response) {
 
         response = self._decompress.json(response);
 
         //remove all current gamelinks
-        $('#suggestionswrapper li').remove();
+        if (remove) {
+            $('#suggestionswrapper li').remove();
+        }
 
         var columns = $('#suggestionswrapper ul');
 
