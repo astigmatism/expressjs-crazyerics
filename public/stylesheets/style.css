@@ -285,6 +285,22 @@ p {
 	border-radius: 1px;
 }
 
+.boxlabel-nes {
+	width: 71px;
+	height: 93px;
+	top: 3px;
+	left: 42px;
+	border-radius: 1px;
+}
+
+.boxlabel-pce {
+	width: 96px;
+	height: 83px;
+	top: 75px;
+	left: 12px;
+	border-radius: 1px;
+}
+
 .gamelink .statebutton {
 	cursor: pointer;	
 }

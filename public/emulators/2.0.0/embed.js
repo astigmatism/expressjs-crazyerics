@@ -48,12 +48,12 @@ var showError = function(error) {
 function cleanupStorage()
 {
    localStorage.clear();
-   document.getElementById('btnClean').disabled = true;
+   parent.document.getElementById('btnClean').disabled = true;
 }
 
 function dropboxInit()
 {
-  //document.getElementById("btnDrop").disabled = true;
+  //parent.document.getElementById("btnDrop").disabled = true;
   //$('#icnDrop').removeClass('fa-dropbox');
   //$('#icnDrop').addClass('fa-spinner fa-spin');
   
@@ -96,7 +96,7 @@ function dropboxSyncComplete()
 
 function idbfsInit()
 {
-   document.getElementById("btnLocal").disabled = true;
+   parent.document.getElementById("btnLocal").disabled = true;
    $('#icnLocal').removeClass('fa-globe');
    $('#icnLocal').addClass('fa-spinner fa-spin');
    var imfs = new BrowserFS.FileSystem.InMemory();
@@ -153,7 +153,7 @@ function preLoadingComplete()
       startRetroArch();
       return false;
   });
-  document.getElementById("btnRun").disabled = false;
+  parent.document.getElementById("btnRun").disabled = false;
   $('#btnRun').removeClass('disabled');
 }
 
@@ -204,21 +204,21 @@ function startRetroArch()
 {
    $('.webplayer').show();
    $('.webplayer-preview').hide();
-   //document.getElementById("btnDrop").disabled = true;
-   document.getElementById("btnRun").disabled = true;
+   //parent.document.getElementById("btnDrop").disabled = true;
+   parent.document.getElementById("btnRun").disabled = true;
   
    $('#btnFullscreen').removeClass('disabled');
    $('#btnMenu').removeClass('disabled');
    $('#btnAdd').removeClass('disabled');
    $('#btnRom').removeClass('disabled');
 
-   document.getElementById("btnAdd").disabled = false;
-   document.getElementById("btnRom").disabled = false;
-   document.getElementById("btnMenu").disabled = false;
-   document.getElementById("btnFullscreen").disabled = false;
+   parent.document.getElementById("btnAdd").disabled = false;
+   parent.document.getElementById("btnRom").disabled = false;
+   parent.document.getElementById("btnMenu").disabled = false;
+   parent.document.getElementById("btnFullscreen").disabled = false;
 
    Module['callMain'](Module['arguments']);
-   document.getElementById('canvas').focus();
+   parent.document.getElementById('canvas').focus();
 }
 
 function selectFiles(files)
@@ -265,7 +265,7 @@ var Module =
   postRun: [],
   print: (function() 
   {
-     var element = document.getElementById('output');
+     var element = parent.document.getElementById('output');
      element.value = ''; // clear browser cache
      return function(text) 
      {
@@ -278,11 +278,11 @@ var Module =
   printErr: function(text)
   {
      var text = Array.prototype.slice.call(arguments).join(' ');
-     var element = document.getElementById('output');
+     var element = parent.document.getElementById('output');
      element.value += text + "\n";
      element.scrollTop = 99999; // focus on bottom
   },
-  canvas: document.getElementById('canvas'),
+  canvas: parent.document.getElementById('canvas'),
   totalDependencies: 0,
   monitorRunDependencies: function(left) 
   {
@@ -383,7 +383,7 @@ function keyPress(k)
 }
 
 kp = function(k, event) {
-   var oEvent = document.createEvent('KeyboardEvent');
+   var oEvent = parent.document.createEvent('KeyboardEvent');
  
    // Chromium Hack
    Object.defineProperty(oEvent, 'keyCode', {
@@ -398,9 +398,9 @@ kp = function(k, event) {
    });
  
    if (oEvent.initKeyboardEvent) {
-      oEvent.initKeyboardEvent(event, true, true, document.defaultView, false, false, false, false, k, k);
+      oEvent.initKeyboardEvent(event, true, true, parent.document.defaultView, false, false, false, false, k, k);
    } else {
-      oEvent.initKeyEvent(event, true, true, document.defaultView, false, false, false, false, k, 0);
+      oEvent.initKeyEvent(event, true, true, parent.document.defaultView, false, false, false, false, k, 0);
    }
  
    oEvent.keyCodeVal = k;
@@ -409,6 +409,6 @@ kp = function(k, event) {
       alert("keyCode mismatch " + oEvent.keyCode + "(" + oEvent.which + ")");
    }
  
-   document.dispatchEvent(oEvent);
-   document.getElementById('canvas').focus();
+   parent.document.dispatchEvent(oEvent);
+   parent.document.getElementById('canvas').focus();
 }

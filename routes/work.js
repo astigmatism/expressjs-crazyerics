@@ -8,7 +8,7 @@ var async = require('async');
 router.get('/emulatorprep', function(req, res, next) {
 
     var sourcePath = __dirname + '/../workspace/2016-10-20_RetroArch/';
-    var destinationPath = __dirname + '/../public/newemulators/';
+    var destinationPath = __dirname + '/../public/emulators/2.0.0/';
 
     //open source folder
     fs.readdir(sourcePath, function(err, emulatorfiles) {
@@ -61,6 +61,18 @@ router.get('/emulatorprep', function(req, res, next) {
                             re = /(eventHandler\.handlerFunc\(event\);)/;
                             console.log('event handler found ---> ' + re.test(content));
                             content = content.replace(re, '$1event.preventDefault();');
+
+                            re = /document\./g;
+                            console.log('document. found ---> ' + re.test(content));
+                            content = content.replace(re, 'parent.document.');
+
+                            re = /document\[/g;
+                            console.log('document[ found ---> ' + re.test(content));
+                            content = content.replace(re, 'parent.document[');
+
+                            re = /windows\./g;
+                            console.log('window. found ---> ' + re.test(content));
+                            content = content.replace(re, 'parent.window.');
 
                             fs.writeFile(destinationPath + '/' + emulatorfile, content, function(err) {
                                 if (err) {
