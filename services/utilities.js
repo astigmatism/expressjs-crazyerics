@@ -50,84 +50,97 @@ UtilitiesService.onApplicationStart = function(callback) {
                 if (err) {
                     console.log('Could not find thegamesdb file for ' + system + '.');
                 }
-            });
+            
 
-            //let's try opening the boxart data file now too
-            DataService.getFile('/data/' + system + '_boxart.json', function(err, boxartdata) {
-                if (err) {
-                    console.log('Could not find boxart file for ' + system + '. No suggests can be made without boxart');
-                    //if error, console log only, we can still build cache
-                }
-
-                //we'll cache a separate structure for each system (to avoid using the heavier all suggestions cache)
-                var suggestions = {
-                    'best': [],
-                    'foreign': [],
-                    'data': {}
-                };
-
-                //add new key for this system to all suggestions
-                suggestionsall[system] = {
-                    'best': [],
-                    'data': {}
-                };
-
-                //ok, let's build the all.json file with the data from each file
-                for (var title in data) {
-
-                    var bestfile = data[title].best;
-                    var bestrank = data[title].files[bestfile];
-
-                    var hasart = false; 
-
-                    //check for property in boxart data file
-                    if(boxartdata && boxartdata[title]) {
-                        hasart = true;
+                //let's try opening the boxart data file now too
+                DataService.getFile('/data/' + system + '_boxart.json', function(err, boxartdata) {
+                    if (err) {
+                        console.log('Could not find boxart file for ' + system + '. No suggests can be made without boxart');
+                        //if error, console log only, we can still build cache
                     }
 
-                    //in order to be suggested must have art and must need minimum rank to be preferable playing game (likely US game)
-                    if (hasart) {
+                    //we'll cache a separate structure for each system (to avoid using the heavier all suggestions cache)
+                    var suggestions = {
+                        'best': [],
+                        'foreign': [],
+                        'data': {}
+                    };
 
-                        if (bestrank >= config.get('search').suggestionThreshold) {
-                            
-                            //add to system suggestions
-                            suggestions.best.push(title);
-                            suggestions.data[title] = data[title];
+                    //add new key for this system to all suggestions
+                    suggestionsall[system] = {
+                        'best': [],
+                        'data': {}
+                    };
 
-                            //add to all suggestions
-                            suggestionsall[system].best.push(title);
-                            suggestionsall[system].data[title] = data[title];   
+                    var systemSuggestionThreshold = config.has('systems.' + system + '.suggestionThreshold') ? config.get('systems.' + system + '.suggestionThreshold') : config.get('search').suggestionThreshold;
+                    var titlesWithRating = 0;
 
-                            //increase counter
-                            ++suggestionsall.data.allsuggestioncount;                     
+                    //ok, let's build the all.json file with the data from each file
+                    for (var title in data) {
 
-                        } else {
-                            
-                            //foreign suggestion (has art but doesn't meet the suggestion threshold)
-                            
-                            //add to system suggestions
-                            suggestions.foreign.push(title);
-                            suggestions.data[title] = data[title];
+                        var bestfile = data[title].best;
+                        var bestrank = data[title].files[bestfile];
+
+                        var hasart = false; 
+
+                        //check for property in boxart data file
+                        if(boxartdata && boxartdata[title]) {
+                            hasart = true;
                         }
+
+                        //in order to be suggested must have art and must need minimum rank to be preferable playing game (likely US game)
+                        if (hasart) {
+
+                            //include thegamesdb rating info into suggestions cache
+                            if (thegamesdb && thegamesdb[title] && thegamesdb[title].Rating) {
+                                data[title].thegamesdbrating = thegamesdb[title].Rating;
+                                ++titlesWithRating;
+                            }
+
+                            //sugestions for all result (main load)
+                            if (bestrank >= systemSuggestionThreshold) {
+                                
+                                //add to all suggestions
+                                suggestionsall[system].best.push(title);
+                                suggestionsall[system].data[title] = data[title];   
+
+                                //increase counter
+                                ++suggestionsall.data.allsuggestioncount;
+
+                                //add to system suggestions
+                                suggestions.best.push(title);
+                                suggestions.data[title] = data[title];
+
+                            } else {
+                                
+                                //foreign suggestion (has art but doesn't meet the suggestion threshold for system)
+                                
+                                //add to system suggestions
+                                suggestions.foreign.push(title);
+                                suggestions.data[title] = data[title];
+                            }
+                        }
+
+                        //if the rank of the best playable file for the title is above the threshold for part of all-console search
+                        if (bestrank >= config.get('search').searchAllThreshold) {
+                            search[title + '.' + system] = {
+                                system: system,
+                                file: bestfile,
+                                rank: bestrank
+                            };
+                        }
+                        
+                        //increase counter
+                        ++suggestionsall.data.alltitlecount;
                     }
 
-                    //if the rank of the best playable file for the title is above the threshold for part of all-console search
-                    if (bestrank >= config.get('search').searchAllThreshold) {
-                        search[title + '.' + system] = {
-                            system: system,
-                            file: bestfile,
-                            rank: bestrank
-                        };
-                    }
-                    
-                    //increase counter
-                    ++suggestionsall.data.alltitlecount;
-                }
+                    //cache suggestions for this system
+                    DataService.setCache('suggestions.' + system, suggestions); //ok to be sync
 
-                //cache suggestions for this system
-                DataService.setCache('suggestions.' + system, suggestions); //ok to be sync
+                    console.log('suggestions.' + system + ' (threshold: ' + systemSuggestionThreshold + ') total suggestions --> ' + suggestions.best.length + '. total with thegamesdb rating --> ' + titlesWithRating);
 
-                nextsystem();
+                    nextsystem();
+                });
             });
         });
 
@@ -343,11 +356,13 @@ UtilitiesService.findSuggestionsAll = function(items, callback) {
                 tosuggest = systemsuggestions.length;
             }
 
+            //take the first however many are needed
             for (var i = 0; i < tosuggest; ++i) {
                 aggrigation.push({
                     system: system,
                     title: systemsuggestions[i],
-                    file: suggestionsCache[system].data[systemsuggestions[i]].best //the best file is the playable one
+                    file: suggestionsCache[system].data[systemsuggestions[i]].best, //the best file is the playable one
+                    rating: parseFloat(suggestionsCache[system].data[systemsuggestions[i]].thegamesdbrating) || 0
                 });
             }
             nextsystem();
@@ -362,6 +377,15 @@ UtilitiesService.findSuggestionsAll = function(items, callback) {
 
             //randomize (otherwise all system games are grouped together)
             aggrigation = UtilitiesService.shuffle(aggrigation);
+
+            //finally sort by thegamesdbrating value (commented out because theres just not enough data yet)
+            // aggrigation.sort(function(a, b) {
+            //     if (a.rating > b.rating)
+            //         return -1;
+            //     if (b.rating > a.rating)
+            //         return 1;
+            //     return 0;
+            // });
 
             callback(null, aggrigation);
         });

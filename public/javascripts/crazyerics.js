@@ -615,10 +615,13 @@ Crazyerics.prototype._bootstrap = function(system, title, file, slot, shader, on
 
     //move welcome and emulator out of view (first time only)
     $('#startmessage').slideUp(1000);
-    $('#emulatorwrapper').slideDown(1000);
+
+    //show pregame background and hide emulator (if showing, would if loading second game)
+    $('#pregamebackground').show().animate({height: 600}); //600px is a magic number here!
+    $('#emulatorwrapper').hide();
 
     //close content area (under emulator)
-    $('#gamedetailsbackground').animate({height: 0}, 500);
+    $('#gamedetailsbackground').animate({height: 0});
 
     //cleanup any pregame details
     $('#systemshaderseletorwrapper').addClass('close');
@@ -765,8 +768,6 @@ Crazyerics.prototype._bootstrap = function(system, title, file, slot, shader, on
                         
                         self._ModuleLoading = true;
 
-                        //$('#gameloadingoverlaycontent').removeClass('close');
-
                         //begin game
                         Module.callMain(Module.arguments);
 
@@ -784,33 +785,44 @@ Crazyerics.prototype._bootstrap = function(system, title, file, slot, shader, on
 
                             });
 
-                            $('#gameloadingoverlay').fadeOut(1000, function() {
+                            //this estimate is made knowing 1) the canvas will scale the width of the main content area and have about 2px of padding
+                            var canvasHeightEstimate = (($('#maincolumn').width() / Module.canvas.width) * Module.canvas.height) + 20;
 
-                                $('#gameloadingoverlaycontent').addClass('close');
+                            //enlarge pregame background to hold emulator
+                            $('#pregamebackground').animate({height: canvasHeightEstimate}, function() {
 
-                                //show controls initially to reveal their presence
-                                setTimeout(function() {
-                                    self._ModuleLoading = false;
-                                    $('#emulatorcontrolswrapper').addClass('closed');
+                                //reveal emulator
+                                $('#emulatorwrapper').show();
 
-                                    //to help new players, reveal controls after load
-                                    self.Sliders.open('controlsslider');
-                                }, 1000);
+                                $('#gameloadingoverlay').fadeOut(1000, function() {
+
+                                    $('#gameloadingoverlaycontent').addClass('close');
+
+                                    //show controls initially to reveal their presence
+                                    setTimeout(function() {
+                                        self._ModuleLoading = false;
+                                        $('#emulatorcontrolswrapper').addClass('closed');
+
+                                        //to help new players, reveal controls after load
+                                        self.Sliders.open('controlsslider');
+                                    }, 1000);
+                                });
+
+                                //assign focus to emulator canvas
+                                $('#emulator')
+                                    .blur(function(event) {
+                                        if (!self._pauseOverride) {
+                                            Module.pauseMainLoop();
+                                            $('#emulatorwrapperoverlay').fadeIn();
+                                        }
+                                    })
+                                    .focus(function() {
+                                        Module.resumeMainLoop();
+                                        $('#emulatorwrapperoverlay').hide();
+                                    })
+                                    .focus();
+
                             });
-
-                            //assign focus to emulator canvas
-                            $('#emulator')
-                                .blur(function(event) {
-                                    if (!self._pauseOverride) {
-                                        Module.pauseMainLoop();
-                                        $('#emulatorwrapperoverlay').fadeIn();
-                                    }
-                                })
-                                .focus(function() {
-                                    Module.resumeMainLoop();
-                                    $('#emulatorwrapperoverlay').hide();
-                                })
-                                .focus();
                         };
 
                         // load state?

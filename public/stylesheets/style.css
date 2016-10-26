@@ -301,6 +301,14 @@ p {
 	border-radius: 1px;
 }
 
+.boxlabel-lynx {
+	width: 106px;
+	height: 68px;
+	top: 31px;
+	left: 7px;
+	border-radius: 1px;
+}
+
 .gamelink .statebutton {
 	cursor: pointer;	
 }
@@ -365,9 +373,10 @@ p {
 #emulatorwrapper {
 	background-color: #000;
 	padding-top: 10px;
-	position: relative;
+	position: absolute;
 	display: none;
 	height: auto;
+	width: 100%;
 }
 
 #emulatormessagewrapper, #emulatorcontrolswrapper {
@@ -437,6 +446,16 @@ p {
 #gameloadingwrapper {
 	position: relative;
 	min-height: 120px;
+}
+
+#pregamebackground {
+	background-color: rgba(0,0,0,0.8);
+	height: auto;
+
+	transition:All 1000ms ease-out;
+	-webkit-transition:All 1000ms ease-out;
+	-moz-transition:All 1000ms ease-out;
+	-o-transition:All 1000ms ease-out;
 }
 
 #gameloadingoverlay {

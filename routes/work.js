@@ -62,17 +62,17 @@ router.get('/emulatorprep', function(req, res, next) {
                             console.log('event handler found ---> ' + re.test(content));
                             content = content.replace(re, '$1event.preventDefault();');
 
-                            re = /document\./g;
-                            console.log('document. found ---> ' + re.test(content));
-                            content = content.replace(re, 'parent.document.');
+                            // re = /document\./g;
+                            // console.log('document. found ---> ' + re.test(content));
+                            // content = content.replace(re, 'parent.document.');
 
-                            re = /document\[/g;
-                            console.log('document[ found ---> ' + re.test(content));
-                            content = content.replace(re, 'parent.document[');
+                            // re = /document\[/g;
+                            // console.log('document[ found ---> ' + re.test(content));
+                            // content = content.replace(re, 'parent.document[');
 
-                            re = /windows\./g;
-                            console.log('window. found ---> ' + re.test(content));
-                            content = content.replace(re, 'parent.window.');
+                            // re = /windows\./g;
+                            // console.log('window. found ---> ' + re.test(content));
+                            // content = content.replace(re, 'parent.window.');
 
                             fs.writeFile(destinationPath + '/' + emulatorfile, content, function(err) {
                                 if (err) {

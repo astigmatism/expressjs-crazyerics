@@ -52,6 +52,25 @@ block content
                     h2 Game Paused
                     p Click here to continue
 
+        div#pregamebackground
+            div#gameloadingoverlay(class="darkgrad")
+                div#systemshaderseletorwrapper(class="close")
+                    h2 How do you want your game to appear?
+                    ul#shaderselectlist
+                    input(type="checkbox") 
+                    label Save this choice for all future #[span] games. You can reset this later.
+                div#savedstateseletorwrapper(class="close")
+                    h2 Did you want to load a previously saved state?
+                    div#savedstateselectorlistwrapper
+                        ul#stateselectlist
+                    h3 No State, Load Game From Beginning
+                div#gameloadingoverlaycontent(class="close")
+                    h2 Now Loading
+                    div#gameloadingoverlaycontentimage
+                        img(class="tada")
+                    p#gameloadingname
+                    p#tip Did you know that you rewind that mistake by holding the R key?
+
         div#gamedetailsbackground
             div#gamedetailswrapper(class="darkgrad")
                 div#gamedetailstable
@@ -73,23 +92,7 @@ block content
                         //-         img(class="tooltip",src="#{assetpath}/images/screenshot.png", title="View Screenshots")
                     div#gamedetailsboxfront
 
-        div#gameloadingoverlay(class="darkgrad")
-            div#systemshaderseletorwrapper(class="close")
-                h2 How do you want your game to appear?
-                ul#shaderselectlist
-                input(type="checkbox") 
-                label Save this choice for all future #[span] games. You can reset this later.
-            div#savedstateseletorwrapper(class="close")
-                h2 Did you want to load a previously saved state?
-                div#savedstateselectorlistwrapper
-                    ul#stateselectlist
-                h3 No State, Load Game From Beginning
-            div#gameloadingoverlaycontent(class="close")
-                h2 Now Loading
-                div#gameloadingoverlaycontentimage
-                    img(class="tada")
-                p#gameloadingname
-                p#tip Did you know that you rewind that mistake by holding the R key?
+
     div#recentplayedwrapper
         ul
         ul

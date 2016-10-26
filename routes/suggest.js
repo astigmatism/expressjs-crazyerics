@@ -11,8 +11,8 @@ router.get('/all/:items', function(req, res, next) {
         if (err) {
             return res.json(err);
         }
-        var compressed = UtilitiesService.compress.json(suggestions);
-        res.json(compressed);
+        suggestions = UtilitiesService.compress.json(suggestions);
+        res.json(suggestions);
     });
 });
 
@@ -25,8 +25,8 @@ router.get('/browse/:system', function(req, res, next) {
         if (err) {
             return res.json(err);
         }
-        var compressed = UtilitiesService.compress.json(suggestions);
-        res.json(compressed);
+        suggestions = UtilitiesService.compress.json(suggestions);
+        res.json(suggestions);
     });
 });
 
@@ -40,8 +40,8 @@ router.get('/:system/:items', function(req, res, next) {
         if (err) {
             return res.json(err);
         }
-        var compressed = UtilitiesService.compress.json(suggestions);
-        res.json(compressed);
+        suggestions = UtilitiesService.compress.json(suggestions);
+        res.json(suggestions);
     });
 });
 
