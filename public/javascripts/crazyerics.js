@@ -26,9 +26,22 @@ var Crazyerics = function() {
 
         self._buildRecentlyPlayed(self.PlayerData.get('playhistory'));
 
-        //build console select for search
+        //build console select for search (had to create a structure to sort by the short name :P)
+        var shortnames = [];
         for (system in self._config.systemdetails) {
-            $('#searchform select').append('<option value="' + system + '">' + self._config.systemdetails[system].shortname + '</option>');
+            self._config.systemdetails[system].id = system;
+            shortnames.push(self._config.systemdetails[system]);
+        }
+        shortnames.sort(function(a,b) {
+            if (a.shortname > b.shortname)
+                return 1;
+            if (a.shortname < b.shortname)
+                return -1;
+            return 0;
+        });
+        var shortnamesl = shortnames.length;
+        for (var i = 0; i < shortnamesl; i++) {
+            $('#searchform select').append('<option value="' + shortnames[i].id + '">' + shortnames[i].shortname + '</option>');
         }
 
         //loading dial

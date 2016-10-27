@@ -50,23 +50,7 @@ Alright, that's about it. I might try this whole procedure on a Windows or Ubunt
 new chnages to emulator scripts
 ---------------------------
 
-*.mem --> https://dl.dropboxusercontent.com/u/1433808/crazyerics/emulators/*.mem
-
-if (target == "#window")
-    return window;
-else if (target == "#document")
-    return document;
--->
-if (target == "#window")
-    return Module["canvas"];
-else if (target == "#document")
-    return Module["canvas"];
-
-eventHandler.handlerFunc(event);
--->
-eventHandler.handlerFunc(event);
-event.preventDefault();
-
+simply run /work/emulatorprep
 
 
 old chnages to emulator scripts

@@ -59,12 +59,12 @@ router.get('/emulatorprep', function(req, res, next) {
                             content = content.replace(re, 'return Module["canvas"];');
 
                             re = /(eventHandler\.handlerFunc\(event\);)/;
-                            console.log('event handler found ---> ' + re.test(content));
+                            console.log('event handler found to prevent events from bubbling ---> ' + re.test(content));
                             content = content.replace(re, '$1event.preventDefault();');
 
-                            // re = /document\./g;
-                            // console.log('document. found ---> ' + re.test(content));
-                            // content = content.replace(re, 'parent.document.');
+                            re = /document\.addEventListener/g;
+                            console.log('found document.addEventListener fixes ---> ' + re.test(content));
+                            content = content.replace(re, 'parent.document.addEventListener');
 
                             // re = /document\[/g;
                             // console.log('document[ found ---> ' + re.test(content));
@@ -73,6 +73,14 @@ router.get('/emulatorprep', function(req, res, next) {
                             // re = /windows\./g;
                             // console.log('window. found ---> ' + re.test(content));
                             // content = content.replace(re, 'parent.window.');
+                            
+                            re = /function _RWebInputDestroy/
+                            console.log('found place to insert handle to RI ---> ' + re.test(content));
+                            content = content.replace(re, 'Module.RI = RI;function _RWebInputDestroy');
+
+                            re = /var curr=FS\.write\(stream.HEAP8,ptr,len,offset\);/;
+                            console.log('found place to intercept emulator writing files  ---> ' + re.test(content));
+                            content = content.replace(re, 'var curr=FS.write(stream,HEAP8,ptr,len,offset);if (Module.emulatorFileWritten && stream && stream.node && stream.node.name && stream.node.contents) { Module.emulatorFileWritten(stream.node.name, stream.node.contents);}');
 
                             fs.writeFile(destinationPath + '/' + emulatorfile, content, function(err) {
                                 if (err) {
