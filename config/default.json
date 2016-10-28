@@ -227,7 +227,7 @@
 			"recommendedshaders": []
 		}
 	},
-	"retroarch": "system_directory = \"/\"\nsavestate_directory = \"/states\"\nvideo_message_pos_y = 100\nvideo_shader_enable = true\ninput_shader_next = rightbracket\ninput_shader_prev = leftbracket\nvideo_shader_dir = \"/shaders\"\nscreenshot_directory =\"/screenshots\"\ninput_screenshot = t\nvideo_gpu_screenshot = false\ninput_exit_emulator = end\ninput_save_state = num1\ninput_load_state = num4\ninput_state_slot_increase = num3\ninput_state_slot_decrease = num2\ninput_audio_mute = m\ninput_reset = h\ninput_toggle_fullscreen = f\ninput_hold_fast_forward = space\ninput_player1_select = shift\nvideo_vsync = false\naudio_latency = 96\nvideo_font_size = 32\nvideo_smooth = false\nrewind_enable = true\ninput_frame_advance = nul\nvideo_force_aspect = true\nvideo_hard_sync = false\nvideo_scale_integer = true",
+	"retroarch": "system_directory = \"/\"\nsavestate_directory = \"/states\"\nvideo_message_pos_y = 100\nvideo_shader_enable = true\ninput_shader_next = rightbracket\ninput_shader_prev = leftbracket\nvideo_shader_dir = \"/shaders\"\nscreenshot_directory =\"/screenshots\"\ninput_screenshot = t\nvideo_gpu_screenshot = false\ninput_exit_emulator = end\ninput_save_state = num1\ninput_load_state = num4\ninput_state_slot_increase = num3\ninput_state_slot_decrease = num2\ninput_audio_mute = m\ninput_reset = h\ninput_toggle_fullscreen = f\ninput_hold_fast_forward = space\ninput_player1_select = shift\nvideo_vsync = false\naudio_latency = 96\nvideo_font_size = 32\nvideo_smooth = false\nrewind_enable = true\ninput_frame_advance = nul\nvideo_force_aspect = true\nvideo_hard_sync = false",
 	"search": {
 		"searchAllThreshold": 66,
 		"suggestionThreshold": 89,

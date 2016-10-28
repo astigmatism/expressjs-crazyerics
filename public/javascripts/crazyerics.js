@@ -751,7 +751,7 @@ Crazyerics.prototype._bootstrap = function(system, title, file, slot, shader, on
 
                 //console.log(self._generateLink(system, title, file));
 
-                self._setupKeypressInterceptor(system, title, file);
+                self._setupEmulatorEventListener(system, title, file);
 
                 //all the file decompression takes place in this call, better here once all the defferes are complete. 
                 //I was seeing a freezing issue when decompression was taking place while the shader selection screen was up
@@ -1106,23 +1106,28 @@ Crazyerics.prototype._simulateEmulatorKeypress = function(key, keyUpDelay, callb
     var self = this;
     keyUpDelay = keyUpDelay || 10;
 
-    if (this._Module && this._Module.RI && this._Module.RI.eventHandler) {
+    //bail if in operation
+    if (self._keypresslocked) {
+        return;
+    }
 
-        if (self._keypresslocked) {
-            return;
-        }
+    var eventHandler = function(event) {}; //noop for default, overridden 
+
+    //events for emulator 1.0.0
+    if (this._Module && this._Module.RI && this._Module.RI.eventHandler) {
+        eventHandler = this._Module.RI.eventHandler;
 
         self._keypresslocked = true;
         var e;
         e = $.Event('keydown');
         e.keyCode = key;
         e.which = key;
-        this._Module.RI.eventHandler(e); //dispatch keydown
+        eventHandler(e); //dispatch keydown
         setTimeout(function() {
             e = $.Event('keyup');
             e.keyCode = key;
             e.which = key;
-            self._Module.RI.eventHandler(e); //after wait, dispatch keyup
+            eventHandler(e); //after wait, dispatch keyup
             setTimeout(function() {
                 self._keypresslocked = false;
                 if (callback) {
@@ -1130,8 +1135,20 @@ Crazyerics.prototype._simulateEmulatorKeypress = function(key, keyUpDelay, callb
                 }
             }, 100);
         }, keyUpDelay);
-        $('#emulator').focus();
     }
+    
+    //events for emulator 2.0.0
+    else if (this._Module && this._Module.JSEvents && this._Module.JSEvents.crazyericsKeyEventHandler) {
+        
+        eventHandler = this._Module.JSEvents.crazyericsKeyEventHandler;
+
+        event = new KeyboardEvent(typeArg, KeyboardEventInit);
+        self._Module.canvas.dispatchEvent(e);
+
+    }
+
+    $('#emulator').focus();
+    
 };
 
 /**
@@ -1169,68 +1186,85 @@ Crazyerics.prototype._runKeyboardMacro = function(instructions, callback) {
 };
 
 /**
- * intercepts all key presses heading to emulator. allows for additional application actions
+ * listens to all events coming from emulator
  * @param  {string} system
  * @param  {string} title
  * @param  {string} file
  * @return {undef}
  */
-Crazyerics.prototype._setupKeypressInterceptor = function(system, title, file) {
+Crazyerics.prototype._setupEmulatorEventListener = function(system, title, file) {
 
     var self = this;
 
+    //emulator event handler for 1.0.0 emulators
     if (this._Module && this._Module.RI && this._Module.RI.eventHandler) {
 
-        var callback = this._Module.RI.eventHandler;
-
-        /**
-         * event handling function from Module
-         * @param  {Object} event
-         * @return {undef}
-         */
+        var originalHandler = this._Module.RI.eventHandler;
         this._Module.RI.eventHandler = function(event) {
+            self._emulatorEventListnener(event, 'keyup', originalHandler);
+        };
+    } 
 
-            switch (event.type) {
-                case 'keyup':
-                    var key = event.keyCode;
-                    switch (key) {
-                        case 70: // F - fullscreen
-                            self._Module.requestFullScreen(true, true);
-                        break;
-                        case 49: //1 - save state
-                            //setup deffered call to save state to server, need callbacks from state file and screenshot capture
-                            self._saveStateDeffers.state = $.Deferred();
-                            self._saveStateDeffers.screen = $.Deferred();
-
-                            //use a timeout to clear deffers incase one of them never comes back, 1 sec is plenty. i see this return in about 50ms generally
-                            var clearStateDeffers = setTimeout(function() {
-                                self._saveStateDeffers = {};
-                            }, 1000);
-
-                            $.when(self._saveStateDeffers.state, self._saveStateDeffers.screen).done(function(statedetails, screendetails) {
-
-                                clearTimeout(clearStateDeffers); //clear timeout from erasing deffers
-                                self._saveStateDeffers = {}; //do the clear ourselves
-
-                                self.StateManager.saveStateToServer(statedetails, screendetails);
-                            });
-                            self._simulateEmulatorKeypress(84); //initiaze screenshot after its defer is in place.
-                        break;
-                        case 50: //2 - state slot decrease
-                            self._activeStateSlot--;
-                            if (self._activeStateSlot < 0) {
-                                self._activeStateSlot = 0;
-                            }
-                        break;
-                        case 51: //3 - state slot increase
-                            self._activeStateSlot++;
-                        break;
-                    }
-                break;
-            }
-            callback(event);
+    //emulator event handler for 2.0.0 emulators
+    if (this._Module && this._Module.JSEvents) {
+        
+        this._Module.JSEvents.crazyericsEventListener = function(event) {
+            self._emulatorEventListnener(event, 'keydown');
         };
     }
+};
+
+/**
+ * Function which handles events coming from emulator file.
+ * @param  {event}   event      
+ * @param  {string}   listenType 2.0.0 respond to keydown, 1.0.0 to keyup
+ * @param  {Function} callback   optional
+ * @return {undefined}              
+ */
+Crazyerics.prototype._emulatorEventListnener = function(event, listenType, callback) {
+
+    var self = this;
+
+    switch (event.type) {
+        case listenType:
+            var key = event.keyCode;
+            switch (key) {
+                case 70: // F - fullscreen
+                    self._Module.requestFullScreen(true, true);
+                break;
+                case 49: //1 - save state
+                    //setup deffered call to save state to server, need callbacks from state file and screenshot capture
+                    self._saveStateDeffers.state = $.Deferred();
+                    self._saveStateDeffers.screen = $.Deferred();
+
+                    //use a timeout to clear deffers incase one of them never comes back, 1 sec is plenty. i see this return in about 50ms generally
+                    var clearStateDeffers = setTimeout(function() {
+                        self._saveStateDeffers = {};
+                    }, 1000);
+
+                    $.when(self._saveStateDeffers.state, self._saveStateDeffers.screen).done(function(statedetails, screendetails) {
+
+                        clearTimeout(clearStateDeffers); //clear timeout from erasing deffers
+                        self._saveStateDeffers = {}; //do the clear ourselves
+
+                        self.StateManager.saveStateToServer(statedetails, screendetails);
+                    });
+                    self._simulateEmulatorKeypress(84); //initiaze screenshot after its defer is in place.
+                break;
+                case 50: //2 - state slot decrease
+                    self._activeStateSlot--;
+                    if (self._activeStateSlot < 0) {
+                        self._activeStateSlot = 0;
+                    }
+                break;
+                case 51: //3 - state slot increase
+                    self._activeStateSlot++;
+                break;
+            }
+        break;
+    }
+    if (callback)
+        callback(event);
 };
 
 /**
@@ -1572,7 +1606,7 @@ Crazyerics.prototype._emulatorFileWritten = function(key, system, title, file, f
 
     var self = this;
     var statematch = filename.match(/\.state(\d*)$/); //match .state or .statex where x is a digit
-    var screenshotmatch = filename.match(/\.bmp$/);
+    var screenshotmatch = filename.match(/\.bmp$|\.png$/);
 
     // match will return an array when match was successful, our capture group with the slot value, its 1 index
     if (statematch) {
