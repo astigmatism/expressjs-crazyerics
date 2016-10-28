@@ -1142,8 +1142,16 @@ Crazyerics.prototype._simulateEmulatorKeypress = function(key, keyUpDelay, callb
         
         eventHandler = this._Module.JSEvents.crazyericsKeyEventHandler;
 
-        event = new KeyboardEvent(typeArg, KeyboardEventInit);
-        self._Module.canvas.dispatchEvent(e);
+        var e       = new Event("keydown");
+        e.keyCode   =key;
+        e.which     =e.keyCode;
+        e.altKey    =false;
+        e.ctrlKey   =true;
+        e.shiftKey  =false;
+        e.metaKey   =false;
+        e.bubbles   =true;
+        e.isTrusted =true;
+        eventHandler(e);
 
     }
 
