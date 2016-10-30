@@ -317,6 +317,38 @@ p {
 	border-radius: 1px;
 }
 
+.boxlabel-wsx {
+	width: 106px;
+	height: 39px;
+	top: 14px;
+	left: 7px;
+	border-radius: 1px;
+}
+
+.boxlabel-a7800 {
+	width: 102px;
+	height: 138px;
+	top: 9px;
+	left: 9px;
+	border-radius: 1px;
+}
+
+.boxlabel-a2600 {
+	width: 102px;
+	height: 138px;
+	top: 9px;
+	left: 9px;
+	border-radius: 1px;
+}
+
+.boxlabel-ngpx {
+	width: 86px;
+	height: 48px;
+	top: 24px;
+	left: 17px;
+	border-radius: 1px;
+}
+
 .gamelink .statebutton {
 	cursor: pointer;	
 }

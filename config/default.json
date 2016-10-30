@@ -213,7 +213,7 @@
 			"boxcdnversion": "2.0.0",
 			"romcdnversion": "2.0.0",
 			"emufile": "emulators/2.0.0/handy_libretro.js",
-			"suggestionThreshold": 82,
+			"suggestionThreshold": 66,
 			"recommendedshaders": []
 		},
 		"vb": {
@@ -223,7 +223,56 @@
 			"boxcdnversion": "2.0.0",
 			"romcdnversion": "2.0.0",
 			"emufile": "emulators/2.0.0/mednafen_vb_libretro.js",
-			"suggestionThreshold": 82,
+			"suggestionThreshold": 66,
+			"recommendedshaders": []
+		},
+		"wsx": {
+			"name": "Bandai WonderSwan",
+			"shortname": "WonderSwan",
+			"live": true,
+			"boxcdnversion": "2.0.0",
+			"romcdnversion": "2.0.0",
+			"emufile": "emulators/2.0.0/mednafen_wswan_libretro.js",
+			"suggestionThreshold": 66,
+			"recommendedshaders": []
+		},
+		"a7800": {
+			"name": "Atari 7800",
+			"shortname": "Atari 7800",
+			"live": true,
+			"boxcdnversion": "2.0.0",
+			"romcdnversion": "2.0.0",
+			"emufile": "emulators/2.0.0/prosystem_libretro.js",
+			"suggestionThreshold": 66,
+			"recommendedshaders": []
+		},
+		"a5200": {
+			"name": "Atari 5200",
+			"shortname": "Atari 5200",
+			"live": false,
+			"boxcdnversion": "2.0.0",
+			"romcdnversion": "2.0.0",
+			"emufile": "emulators/2.0.0/prosystem_libretro.js",
+			"suggestionThreshold": 66,
+			"recommendedshaders": []
+		},
+		"a2600": {
+			"name": "Atari 2600",
+			"shortname": "Atari 2600",
+			"live": true,
+			"boxcdnversion": "2.0.0",
+			"romcdnversion": "2.0.0",
+			"emufile": "emulators/2.0.0/stella_libretro.js",
+			"recommendedshaders": []
+		},
+		"ngpx": {
+			"name": "Neo Geo Pocket",
+			"shortname": "Neo Geo Pocket",
+			"live": true,
+			"boxcdnversion": "2.0.0",
+			"romcdnversion": "2.0.0",
+			"emufile": "emulators/2.0.0/mednafen_ngp_libretro.js",
+			"suggestionThreshold": 66,
 			"recommendedshaders": []
 		}
 	},

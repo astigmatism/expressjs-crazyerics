@@ -83,9 +83,13 @@ router.get('/emulatorprep', function(req, res, next) {
                             console.log('keypress event handler found ---> ' + re.test(content));
                             content = content.replace(re, ';JSEvents.crazyericsKeyEventHandler=handlerFunc;$1');
 
-                            // re = /document\.addEventListener/g;
-                            // console.log('found document.addEventListener fixes ---> ' + re.test(content));
-                            // content = content.replace(re, 'parent.document.addEventListener');
+                            re = /document(.addEventListener\("keyup",RI.eventHandler,false\);)document(.addEventListener\("keydown",RI.eventHandler,false\);)/;
+                            console.log('found document.addEventListener fixes ---> ' + re.test(content));
+                            content = content.replace(re, 'parent.document$1parent.document$2');
+
+                            re = /document(.removeEventListener\("keyup",RI.eventHandler,false\);)document(.removeEventListener\("keydown",RI.eventHandler,false\);)/;
+                            console.log('found document.removeEventListener fixes ---> ' + re.test(content));
+                            content = content.replace(re, 'parent.document$1parent.document$2');
 
                             // re = /document\./g;
                             // console.log('document. found ---> ' + re.test(content));
