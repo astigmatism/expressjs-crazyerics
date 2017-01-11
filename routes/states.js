@@ -1,5 +1,5 @@
 var express = require('express');
-var jade = require('jade');
+var pug = require('pug');
 var UtilitiesService = require('../services/utilities.js');
 var router = express.Router();
 

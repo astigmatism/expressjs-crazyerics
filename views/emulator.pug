@@ -1,0 +1,64 @@
+doctype html
+html
+    head
+        script.
+            var Module = {
+                noInitialRun: true,
+                preRun: [],
+                postRun: [],
+                canvas: window.parent.document.getElementById('emulator'),
+                print: (function() {
+                    
+                    var element = window.parent.document.getElementById('output');
+                    element.value = ''; // clear browser cache
+
+                    return function(text) {
+                        text = Array.prototype.slice.call(arguments).join(' ');
+                        // These replacements are necessary if you render to raw HTML
+                        //text = text.replace(/&/g, "&amp;");
+                        //text = text.replace(/</g, "&lt;");
+                        //text = text.replace(/>/g, "&gt;");
+                        //text = text.replace('\n', '<br>', 'g');
+                        element.value += text + "\n";
+                        //element.scrollTop = 99999; // focus on bottom
+                    };
+                })(),
+                printErr: function(text) {
+                    var text = Array.prototype.slice.call(arguments).join(' ');
+                    var element = window.parent.document.getElementById('output');
+                    element.value += text + "\n";
+                    //element.scrollTop = 99999; // focus on bottom
+                },
+                setStatus: function(text) {
+                    
+                    //for now
+                    console.log(text);
+                    return;
+
+                    if (Module.setStatus.interval) {
+                        clearInterval(Module.setStatus.interval);
+                    }
+                    var m = text.match(/([^(]+)\((\d+(\.\d+)?)\/(\d+)\)/);
+                    var statusElement = window.parent.document.getElementById('status');
+                    var progressElement = window.parent.document.getElementById('progress');
+                    if (m) {
+                        text = m[1];
+                        progressElement.value = parseInt(m[2])*100;
+                        progressElement.max = parseInt(m[4])*100;
+                        progressElement.hidden = false;
+                    } else {
+                        progressElement.value = null;
+                        progressElement.max = null;
+                        progressElement.hidden = true;
+                    }
+                    statusElement.innerHTML = text;
+                },
+                totalDependencies: 0,
+                monitorRunDependencies: function(left) {
+                    this.totalDependencies = Math.max(this.totalDependencies, left);
+                    Module.setStatus(left ? 'Preparing... (' + (this.totalDependencies-left) + '/' + this.totalDependencies + ')' : 'All downloads complete.');
+                }
+            };
+            Module.setStatus('Downloading...');
+        script(src=emupath + '/' + emufile)
+    body

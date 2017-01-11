@@ -154,3 +154,11 @@ various notes
 - gulp produces 3 files in ./public/build: build.js (all compressed js file contents), a source map file and style.min.css (all compressed css file contents). The layout.jade on your production box references these files instead of the source content.
 - in creating icons, unpack the "350-MAI2013.zip" file and then "PSD_and_EPS.zip". Open the eps file in photoshop with a width of 1000. Select the icon, open a new image with it, resize to 32x32px. Invert colors, then max out contract and brightness.
 
+- to update nodejs:
+
+npm cache clean -f
+npm install -g n
+n stable
+node --version
+node app.js
+

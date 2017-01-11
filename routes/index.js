@@ -40,7 +40,7 @@ router.get('/load/emulator/:system', function(req, res, next) {
     var system = req.params.system;
 
     //check for the existance of a customized layout for this system
-    fs.exists(__dirname + '/../views/emulators/' + system + '.jade', function(exists) {
+    fs.exists(__dirname + '/../views/emulators/' + system + '.pug', function(exists) {
 
         if (exists) {
 

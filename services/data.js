@@ -88,12 +88,20 @@ DataService.wholescaleSetCache = function(object, cacheLifetime, callback) {
 
 DataService.getCache = function(key, callback) {
 
+    //console.log('cache request: ' + key);
+
     nodecache.get(key, function(err, data) {
         if (err) {
-            console.log('cache miss: ' + key);
+            console.log('cache error: ' + key);
             return callback(err);
         }
-        console.log('cache hit: ' + key);
+
+        if (data) {
+            console.log('cache hit: ' + key);
+        } else {
+            console.log('cache miss: ' + key);
+        }
+
         callback(null, data);
     });
 };

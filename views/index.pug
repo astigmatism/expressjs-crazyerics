@@ -1,0 +1,141 @@
+extends layout
+
+block content
+    div#searchform
+        select(title="Filter your search to a specific system")
+            option(value='all') All Consoles
+        div
+            input(class="tooltip" title="Begin typing a name to see a list of results. Select a system for foreign or unofficial titles." type='text', name='search', data-hotkey='q', placeholder='Search')
+
+    div(class="rel")
+        
+        div#startmessage(class="darkgrad")
+            div#startfirst(class="centered hide")
+                h2 Welcome!
+                p Get started by searching for a game or selecting a suggestion below
+            div#startplayed(class="centered hide")
+                h2 Welcome Back
+                ul
+                p Continue playing, search for, or select a game suggestion below
+
+        div#emulatorwrapper
+            div#emulatorcanvas
+            div#emulatormessagewrapper This is a test message
+            div#emulatorcontrolswrapper
+                ul(class="fl")
+                    li(class="fullscreen")
+                        img(class="tooltip",src=assetpath + "/images/fullscreen.png",title="Enter Fullscreen (F)")
+                    li(class="mute")
+                        img(class="tooltip",src=assetpath + "/images/mute.png",title="Toggle Mute (M)")
+                    li(class="rewind")
+                        img(class="tooltip",src=assetpath + "/images/rewind.png",title="Rewind (Hold R)")
+                    li(class="pause")
+                        img(class="tooltip",src=assetpath + "/images/pause.png",title="Pause Game (P)")
+                    li(class="fastforward")
+                        img(class="tooltip",src=assetpath + "/images/fastforward.png",title="Toggle Fast Forward (Space)")
+                    li(class="reset")
+                        img(class="tooltip",src=assetpath + "/images/reset.png",title="Reset System (H)")
+                ul(class="fr")
+                    li(class="savestate")
+                        img(class="tooltip",src=assetpath + "/images/savestate.png",title="Save State (1)")
+                    li(class="decrementslot")
+                        img(class="tooltip",src=assetpath + "/images/decrementslot.png",title="Decrement Save Slot (2)")
+                    li(class="incrementslot")
+                        img(class="tooltip",src=assetpath + "/images/incrementslot.png",title="Increment Save Slot (3)")
+                    li(class="loadstate")
+                        img(class="tooltip",src=assetpath + "/images/loadstate.png",title="Load State (4)")
+                    
+            textarea#output(rows="8")
+        
+            div#emulatorwrapperoverlay
+                div
+                    h2 Game Paused
+                    p Click here to continue
+
+        div#pregamebackground
+            div#gameloadingoverlay(class="darkgrad")
+                div#systemshaderseletorwrapper(class="close")
+                    h2 How do you want your game to appear?
+                    ul#shaderselectlist
+                    input(type="checkbox") 
+                    label Save this choice for all future #[span] games. You can reset this later.
+                div#savedstateseletorwrapper(class="close")
+                    h2 Did you want to load a previously saved state?
+                    div#savedstateselectorlistwrapper
+                        ul#stateselectlist
+                    h3 No State, Load Game From Beginning
+                div#gameloadingoverlaycontent(class="close")
+                    h2 Now Loading
+                    div#gameloadingoverlaycontentimage
+                        img(class="tada")
+                    p#gameloadingname
+                    p#tip Did you know that you rewind that mistake by holding the R key?
+
+        div#gamedetailsbackground
+            div#gamedetailswrapper(class="darkgrad")
+                div#gamedetailstable
+                    div#gamedetailscontent
+                        div#gametitlewrapper
+                            span#gametitle
+                        div#gametitlecaption
+                        //- sliding panels
+                        //- div#controlsslider(class="slidingpanel closed")
+                        //- div#screenshotsslider(class="slidingpanel closed")
+                        //-     div(class="slidercontainer")
+                        //-         p Click a screenshot to download. Screenshots are deleted when you close or refresh this page.
+                        //-         p(class="screenshothelper") Take a screenshot by pressing T during play.
+                        //- //- corresponding list of togglers for sliders
+                        //- ul#gamecontrolslist(class="closed")
+                        //-     li(class="controlsslider", data-click-state="0")
+                        //-         img(class="tooltip",src="#{assetpath}/images/gamepad.png", title="View Controls")
+                        //-     li(class="screenshotsslider", data-click-state="0")
+                        //-         img(class="tooltip",src="#{assetpath}/images/screenshot.png", title="View Screenshots")
+                    div#gamedetailsboxfront
+
+
+    div#recentplayedwrapper
+        ul
+        ul
+        ul
+        ul
+        ul
+        ul
+
+    div#suggestionswrapper
+        div#alphabar Browse: 
+            a A
+            a B
+            a C
+            a D
+            a E
+            a F
+            a G
+            a H
+            a I
+            a J
+            a K
+            a L
+            a M
+            a N
+            a O
+            a P
+            a Q
+            a R
+            a S
+            a T
+            a U
+            a V
+            a W
+            a X
+            a Y
+            a Z
+            a #
+        ul
+        ul
+        ul
+        ul
+        ul
+        ul
+
+    div#loading
+        input(type="text", value="0", class="dial", data-width="100", data-fgColor="#516170", data-bgColor="#242C32", data-thickness=".2", font="Poppins")
