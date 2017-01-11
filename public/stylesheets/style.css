@@ -341,11 +341,27 @@ p {
 	border-radius: 1px;
 }
 
+.boxlabel-vect {
+	width: 102px;
+	height: 138px;
+	top: 9px;
+	left: 9px;
+	border-radius: 1px;
+}
+
 .boxlabel-ngpx {
 	width: 86px;
 	height: 48px;
 	top: 24px;
 	left: 17px;
+	border-radius: 1px;
+}
+
+.boxlabel-jag {
+	width: 96px;
+	height: 43px;
+	top: 25px;
+	left: 12px;
 	border-radius: 1px;
 }
 

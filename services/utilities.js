@@ -38,6 +38,11 @@ UtilitiesService.onApplicationStart = function(callback) {
 
     async.each(Object.keys(systems), function(system, nextsystem) {
 
+        if (config.has('systems.' + system + '.live') && !config.get('systems.' + system + '.live')) {
+            console.log(system + ' is not live, skipping caching');
+            return nextsystem();
+        }
+
         //ok, lets open the data file
         DataService.getFile('/data/' + system + '.json', function(err, data) {
             if (err) {

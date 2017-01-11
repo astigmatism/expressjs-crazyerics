@@ -1262,6 +1262,7 @@ Crazyerics.prototype._emulatorEventListnener = function(event, listenType, callb
             switch (key) {
                 case 70: // F - fullscreen
                     self._Module.requestFullScreen(true, true);
+                    $('#emulator').focus();
                 break;
                 case 49: //1 - save state
                     //setup deffered call to save state to server, need callbacks from state file and screenshot capture
@@ -1537,7 +1538,7 @@ Crazyerics.prototype._buildFileSystem = function(Module, system, file, compresse
     }
 
     //set the start file
-    Module.arguments = ['-v', '/games/' + file];
+    Module.arguments = ['-v', '-f', '/games/' + file];
     //Module.arguments = ['-v', '--menu'];
 
     //emulator support, will be null if none

@@ -68,6 +68,11 @@ router.get('/emulatorprep', function(req, res, next) {
                             console.log('return window found ---> ' + re.test(content));
                             content = content.replace(re, 'return Module["canvas"];');
 
+                            //add function to JS events
+                            re = /(JSEvents=\{)/;
+                            console.log('found reference to JSEvents ---> ' + re.test(content));
+                            content = content.replace(re, '$1crazyericsEventListener:function(){},');
+
                             //add JSEvents to Module for access in crazyerics
                             re = /(function _emscripten_set_visibilitychange_callback)/;
                             console.log('found reference to JSEvents handler ---> ' + re.test(content));
@@ -83,13 +88,13 @@ router.get('/emulatorprep', function(req, res, next) {
                             console.log('keypress event handler found ---> ' + re.test(content));
                             content = content.replace(re, ';JSEvents.crazyericsKeyEventHandler=handlerFunc;$1');
 
-                            re = /document(.addEventListener\("keyup",RI.eventHandler,false\);)document(.addEventListener\("keydown",RI.eventHandler,false\);)/;
-                            console.log('found document.addEventListener fixes ---> ' + re.test(content));
-                            content = content.replace(re, 'parent.document$1parent.document$2');
+                            // re = /document(.addEventListener\("keyup",RI.eventHandler,false\);)document(.addEventListener\("keydown",RI.eventHandler,false\);)/;
+                            // console.log('found document.addEventListener fixes ---> ' + re.test(content));
+                            // content = content.replace(re, 'parent.document$1parent.document$2');
 
-                            re = /document(.removeEventListener\("keyup",RI.eventHandler,false\);)document(.removeEventListener\("keydown",RI.eventHandler,false\);)/;
-                            console.log('found document.removeEventListener fixes ---> ' + re.test(content));
-                            content = content.replace(re, 'parent.document$1parent.document$2');
+                            // re = /document(.removeEventListener\("keyup",RI.eventHandler,false\);)document(.removeEventListener\("keydown",RI.eventHandler,false\);)/;
+                            // console.log('found document.removeEventListener fixes ---> ' + re.test(content));
+                            // content = content.replace(re, 'parent.document$1parent.document$2');
 
                             // re = /document\./g;
                             // console.log('document. found ---> ' + re.test(content));
