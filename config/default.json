@@ -104,9 +104,10 @@
 		"snes": {
 			"name": "Super Nintendo Entermainment System",
 			"shortname": "Super Nintendo",
-			"live": false,
-			"boxcdnversion": "2.0.0",
+			"live": true,
+			"boxcdnversion": "2.0.1",
 			"romcdnversion": "2.0.0",
+			"collection": "GoodSNES 3.23",
 			"emufile_": "emulators/2.0.0/snes9x2010_libretro.js",
 			"emufile": "emulators/1.0.0/snes9x-next.min.js",
 			"recommendedshaders": [
