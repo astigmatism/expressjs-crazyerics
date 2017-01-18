@@ -33,7 +33,7 @@
 			"shortname": "Game Boy",
 			"live": true,
 			"boxcdnversion": "2.0.1",
-			"romcdnversion": "2.0.0",
+			"romcdnversion": "2.0.1",
 			"collection": "GoodGBx 3.14",
 			"emufile_": "emulators/2.0.0/gambatte_libretro.js",
 			"emufile": "emulators/1.0.0/gambatte.min.js",
