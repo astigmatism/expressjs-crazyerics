@@ -21,7 +21,7 @@
 		"a7800": {
 			"name": "Atari 7800",
 			"shortname": "Atari 7800",
-			"live": true,
+			"live": false,
 			"boxcdnversion": "2.0.2",
 			"romcdnversion": "2.0.1",
 			"collection": "Good7800 3.28",
@@ -85,7 +85,7 @@
 		"nes": {
 			"name": "Nintendo Entermainment System",
 			"shortname": "Nintendo",
-			"live": true,
+			"live": false,
 			"boxcdnversion": "2.0.3",
 			"romcdnversion": "2.0.1",
 			"collection": "GoodNES 3.23b",
@@ -97,8 +97,8 @@
 			"name": "NEC TurboGrafx-16",
 			"shortname": "TurboGrafx-16",
 			"live": true,
-			"boxcdnversion": "2.0.1",
-			"romcdnversion": "2.0.1",
+			"boxcdnversion": "2.0.2",
+			"romcdnversion": "2.0.2",
 			"collection": "GoodPCE 1.09a GoodMerged",
 			"emufile": "emulators/2.0.0/mednafen_pce_fast_libretro.js",
 			"recommendedshaders": []
@@ -158,8 +158,8 @@
 		"sms": {
 			"name": "Sega Master System / SG-1000 / SC-3000 / Mark III",
 			"shortname": "Sega Master System",
-			"live": false,
-			"boxcdnversion": "2.0.1",
+			"live": true,
+			"boxcdnversion": "2.0.3",
 			"romcdnversion": "2.0.0",
 			"emufile": "emulators/2.0.0/genesis_plus_gx_libretro.js",
 			"recommendedshaders": [
@@ -246,9 +246,9 @@
 		"vb": {
 			"name": "Nintendo Virtual Boy",
 			"shortname": "Virtual Boy",
-			"live": false,
+			"live": true,
 			"collection": "GoodVBoy 3.1415",
-			"boxcdnversion": "2.0.2",
+			"boxcdnversion": "2.0.3",
 			"romcdnversion": "2.0.1",
 			"emufile": "emulators/2.0.0/mednafen_vb_libretro.js",
 			"recommendedshaders": []
