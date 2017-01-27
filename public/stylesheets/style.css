@@ -792,8 +792,8 @@ div.slidingpanel {
 	width: 22px;
 	height: 22px;
 	display: none;
-	top: -5px;
-	right: -5px;
+	top: -11px;
+	left: -11px;
 	z-index: 100;
 }
 

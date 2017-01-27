@@ -1797,7 +1797,7 @@ Crazyerics.prototype._addToPlayHistory = function(key, system, title, file, play
     //the remove link will delete the game from play history and any saved states
     gamelink.remove
     .addClass('tooltip')
-    .attr('title', 'Remove this game and all saved states')
+    .attr('title', 'Remove this game and all saved progress')
     .on('click', function() {
         gamelink.li.addClass('slideup');
         $.ajax({

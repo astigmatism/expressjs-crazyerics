@@ -11,7 +11,7 @@
 		"vect": {
 			"name": "Vectrex",
 			"shortname": "Vectrex",
-			"live": true,
+			"live": false,
 			"collection": "GoodVect 1.06",
 			"boxcdnversion": "2.0.3",
 			"romcdnversion": "2.0.2",
@@ -22,7 +22,7 @@
 			"name": "Atari 7800",
 			"shortname": "Atari 7800",
 			"live": true,
-			"boxcdnversion": "2.0.1",
+			"boxcdnversion": "2.0.2",
 			"romcdnversion": "2.0.1",
 			"collection": "Good7800 3.28",
 			"emufile": "emulators/2.0.0/prosystem_libretro.js",
@@ -31,7 +31,7 @@
 		"gb": {
 			"name": "Nintendo Game Boy",
 			"shortname": "Game Boy",
-			"live": true,
+			"live": false,
 			"boxcdnversion": "2.0.1",
 			"romcdnversion": "2.0.1",
 			"collection": "GoodGBx 3.14",
@@ -58,7 +58,7 @@
 		"gba": {
 			"name": "Nintendo Game Boy Advance",
 			"shortname": "Game Boy Advance",
-			"live": true,
+			"live": false,
 			"boxcdnversion": "2.0.1",
 			"romcdnversion": "2.0.1",
 			"collection": "GoodGBA v3.23",
@@ -86,25 +86,27 @@
 			"name": "Nintendo Entermainment System",
 			"shortname": "Nintendo",
 			"live": true,
-			"boxcdnversion": "2.0.1",
+			"boxcdnversion": "2.0.3",
 			"romcdnversion": "2.0.1",
 			"collection": "GoodNES 3.23b",
+			"retroarch": "video_aspect_ratio = 0.75",
 			"emufile": "emulators/2.0.0/nestopia_libretro.js",
 			"recommendedshaders": []
 		},
 		"pce": {
 			"name": "NEC TurboGrafx-16",
 			"shortname": "TurboGrafx-16",
-			"live": false,
-			"boxcdnversion": "2.0.0",
-			"romcdnversion": "2.0.0",
+			"live": true,
+			"boxcdnversion": "2.0.1",
+			"romcdnversion": "2.0.1",
+			"collection": "GoodPCE 1.09a GoodMerged",
 			"emufile": "emulators/2.0.0/mednafen_pce_fast_libretro.js",
 			"recommendedshaders": []
 		},
 		"snes": {
 			"name": "Super Nintendo Entermainment System",
 			"shortname": "Super Nintendo",
-			"live": true,
+			"live": false,
 			"boxcdnversion": "2.0.1",
 			"romcdnversion": "2.0.1",
 			"collection": "GoodSNES 3.23",
@@ -131,7 +133,7 @@
 		"gen": {
 			"name": "Sega Genesis / Mega Drive",
 			"shortname": "Sega Genesis",
-			"live": true,
+			"live": false,
 			"boxcdnversion": "2.0.1",
 			"romcdnversion": "2.0.1",
 			"emufile": "emulators/1.0.0/genesis_plus_gx.min.js",
@@ -156,7 +158,7 @@
 		"sms": {
 			"name": "Sega Master System / SG-1000 / SC-3000 / Mark III",
 			"shortname": "Sega Master System",
-			"live": true,
+			"live": false,
 			"boxcdnversion": "2.0.1",
 			"romcdnversion": "2.0.0",
 			"emufile": "emulators/2.0.0/genesis_plus_gx_libretro.js",
@@ -181,7 +183,7 @@
 		"gg": {
 			"name": "Sega Game Gear",
 			"shortname": "Sega Game Gear",
-			"live": true,
+			"live": false,
 			"collection": "GoodGG 3.20",
 			"boxcdnversion": "2.0.3",
 			"romcdnversion": "2.0.1",
@@ -207,7 +209,7 @@
 		"n64": {
 			"name": "Nintendo 64",
 			"shortname": "Nintendo 64",
-			"live": true,
+			"live": false,
 			"collection": "GoodN64 3.27",
 			"boxcdnversion": "2.0.1",
 			"romcdnversion": "2.0.1",
@@ -234,7 +236,7 @@
 		"lynx": {
 			"name": "Atari Lynx",
 			"shortname": "Atari Lynx",
-			"live": true,
+			"live": false,
 			"collection":"GoodLynx 2.01",
 			"boxcdnversion": "2.0.1",
 			"romcdnversion": "2.0.1",
@@ -244,7 +246,7 @@
 		"vb": {
 			"name": "Nintendo Virtual Boy",
 			"shortname": "Virtual Boy",
-			"live": true,
+			"live": false,
 			"collection": "GoodVBoy 3.1415",
 			"boxcdnversion": "2.0.2",
 			"romcdnversion": "2.0.1",
@@ -254,7 +256,7 @@
 		"wsx": {
 			"name": "Bandai WonderSwan",
 			"shortname": "WonderSwan",
-			"live": true,
+			"live": false,
 			"collection": "GoodWSx 3.27",
 			"boxcdnversion": "2.0.1",
 			"romcdnversion": "2.0.1",
@@ -274,7 +276,7 @@
 		"a2600": {
 			"name": "Atari 2600",
 			"shortname": "Atari 2600",
-			"live": true,
+			"live": false,
 			"collection": "Good2600 1.0.0",
 			"boxcdnversion": "2.0.1",
 			"romcdnversion": "2.0.1",
@@ -294,7 +296,7 @@
 			"name": "Atari Jaguar",
 			"shortname": "Atari Jaguar",
 			"collection":"GoodJag 2.01",
-			"live": true,
+			"live": false,
 			"boxcdnversion": "2.0.1",
 			"romcdnversion": "2.0.2",
 			"emufile": "emulators/2.0.0/virtualjaguar_libretro.js",
@@ -314,7 +316,7 @@
 	"search": {
 		"searchAllThreshold": 400,
 		"suggestionThreshold": 400,
-		"foreignMixPerc": 0.2
+		"foreignMixPerc": 0
 	},
 	"shaders": ["2x2xscalehq","2xScaleHQ","2xbr-crt-hyllian","2xbr-hybrid-crt-hyllian","2xbr-jinc2-sharper-hybrid","2xbr-reverse-aa","2xsal","3dfx-shaders-old-3dfx_4x1","3dfx_4x1","4xScaleHQ","4xbr-hybrid-crt-b","4xbr-hybrid-crt","4xsoft","5xbr-retro","aa-shader-4.o","aann","adaptive-sharpen","advanced-aa","anti-aliasing-aa-shader-4.o","anti-aliasing-advanced-aa","anti-aliasing-fx-aa","anti-aliasing-fxaa-edge-detect","anti-aliasing-reverse-aa","bead","benchmark-blur11fast-gamma-encode-every-fbo-six-times","benchmark-blur11fast-mipmap-gamma-encode-every-fbo-six-times","benchmark-blur11fast-mipmap-srgb-six-times","benchmark-blur11fast-srgb-six-times","benchmark-blur11resize-gamma-encode-every-fbo-six-times","benchmark-blur11resize-mipmap-gamma-encode-every-fbo-six-times","benchmark-blur11resize-mipmap-srgb-six-times","benchmark-blur11resize-srgb-six-times","benchmark-blur3fast-gamma-encode-every-fbo-six-times","benchmark-blur3fast-mipmap-gamma-encode-every-fbo-six-times","benchmark-blur3fast-mipmap-srgb-six-times","benchmark-blur3fast-srgb-six-times","benchmark-blur3resize-gamma-encode-every-fbo-six-times","benchmark-blur3resize-mipmap-gamma-encode-every-fbo-six-times","benchmark-blur3resize-mipmap-srgb-six-times","benchmark-blur3resize-srgb-six-times","benchmark-blur3x3-gamma-encode-every-fbo-six-times","benchmark-blur3x3-mipmap-gamma-encode-every-fbo-six-times","benchmark-blur3x3-mipmap-srgb-six-times","benchmark-blur3x3-srgb-six-times","benchmark-blur3x3resize-gamma-encode-every-fbo-six-times","benchmark-blur3x3resize-mipmap-gamma-encode-every-fbo-six-times","benchmark-blur3x3resize-mipmap-srgb-six-times","benchmark-blur3x3resize-srgb-six-times","benchmark-blur5fast-gamma-encode-every-fbo-six-times","benchmark-blur5fast-mipmap-gamma-encode-every-fbo-six-times","benchmark-blur5fast-mipmap-srgb-six-times","benchmark-blur5fast-srgb-six-times","benchmark-blur5resize-gamma-encode-every-fbo-six-times","benchmark-blur5resize-mipmap-gamma-encode-every-fbo-six-times","benchmark-blur5resize-mipmap-srgb-six-times","benchmark-blur5resize-srgb-six-times","benchmark-blur5x5-gamma-encode-every-fbo-six-times","benchmark-blur5x5-mipmap-gamma-encode-every-fbo-six-times","benchmark-blur5x5-mipmap-srgb-six-times","benchmark-blur5x5-srgb-six-times","benchmark-blur7fast-gamma-encode-every-fbo-six-times","benchmark-blur7fast-mipmap-gamma-encode-every-fbo-six-times","benchmark-blur7fast-mipmap-srgb-six-times","benchmark-blur7fast-srgb-six-times","benchmark-blur7resize-gamma-encode-every-fbo-six-times","benchmark-blur7resize-mipmap-gamma-encode-every-fbo-six-times","benchmark-blur7resize-mipmap-srgb-six-times","benchmark-blur7resize-srgb-six-times","benchmark-blur7x7-gamma-encode-every-fbo-six-times","benchmark-blur7x7-mipmap-gamma-encode-every-fbo-six-times","benchmark-blur7x7-mipmap-srgb-six-times","benchmark-blur7x7-srgb-six-times","benchmark-blur9fast-gamma-encode-every-fbo-six-times","benchmark-blur9fast-mipmap-gamma-encode-every-fbo-six-times","benchmark-blur9fast-mipmap-srgb-six-times","benchmark-blur9fast-srgb-six-times","benchmark-blur9resize-gamma-encode-every-fbo-six-times","benchmark-blur9resize-mipmap-gamma-encode-every-fbo-six-times","benchmark-blur9resize-mipmap-srgb-six-times","benchmark-blur9resize-srgb-six-times","benchmark-blur9x9-gamma-encode-every-fbo-six-times","benchmark-blur9x9-mipmap-gamma-encode-every-fbo-six-times","benchmark-blur9x9-mipmap-srgb-six-times","benchmark-blur9x9-srgb-six-times","bevel","bicubic-bicubic-fast","bicubic-bicubic-normal","bicubic-bicubic-sharp","bicubic-bicubic-sharper","bicubic-fast","bicubic-normal","bicubic-sharp","bicubic-sharper","bigblur","biquad","bloom","blur","blurs-benchmark-presets-benchmark-blur11fast-gamma-encode-every-fbo-six-times","blurs-benchmark-presets-benchmark-blur11fast-mipmap-gamma-encode-every-fbo-six-times","blurs-benchmark-presets-benchmark-blur11fast-mipmap-srgb-six-times","blurs-benchmark-presets-benchmark-blur11fast-srgb-six-times","blurs-benchmark-presets-benchmark-blur11resize-gamma-encode-every-fbo-six-times","blurs-benchmark-presets-benchmark-blur11resize-mipmap-gamma-encode-every-fbo-six-times","blurs-benchmark-presets-benchmark-blur11resize-mipmap-srgb-six-times","blurs-benchmark-presets-benchmark-blur11resize-srgb-six-times","blurs-benchmark-presets-benchmark-blur3fast-gamma-encode-every-fbo-six-times","blurs-benchmark-presets-benchmark-blur3fast-mipmap-gamma-encode-every-fbo-six-times","blurs-benchmark-presets-benchmark-blur3fast-mipmap-srgb-six-times","blurs-benchmark-presets-benchmark-blur3fast-srgb-six-times","blurs-benchmark-presets-benchmark-blur3resize-gamma-encode-every-fbo-six-times","blurs-benchmark-presets-benchmark-blur3resize-mipmap-gamma-encode-every-fbo-six-times","blurs-benchmark-presets-benchmark-blur3resize-mipmap-srgb-six-times","blurs-benchmark-presets-benchmark-blur3resize-srgb-six-times","blurs-benchmark-presets-benchmark-blur3x3-gamma-encode-every-fbo-six-times","blurs-benchmark-presets-benchmark-blur3x3-mipmap-gamma-encode-every-fbo-six-times","blurs-benchmark-presets-benchmark-blur3x3-mipmap-srgb-six-times","blurs-benchmark-presets-benchmark-blur3x3-srgb-six-times","blurs-benchmark-presets-benchmark-blur3x3resize-gamma-encode-every-fbo-six-times","blurs-benchmark-presets-benchmark-blur3x3resize-mipmap-gamma-encode-every-fbo-six-times","blurs-benchmark-presets-benchmark-blur3x3resize-mipmap-srgb-six-times","blurs-benchmark-presets-benchmark-blur3x3resize-srgb-six-times","blurs-benchmark-presets-benchmark-blur5fast-gamma-encode-every-fbo-six-times","blurs-benchmark-presets-benchmark-blur5fast-mipmap-gamma-encode-every-fbo-six-times","blurs-benchmark-presets-benchmark-blur5fast-mipmap-srgb-six-times","blurs-benchmark-presets-benchmark-blur5fast-srgb-six-times","blurs-benchmark-presets-benchmark-blur5resize-gamma-encode-every-fbo-six-times","blurs-benchmark-presets-benchmark-blur5resize-mipmap-gamma-encode-every-fbo-six-times","blurs-benchmark-presets-benchmark-blur5resize-mipmap-srgb-six-times","blurs-benchmark-presets-benchmark-blur5resize-srgb-six-times","blurs-benchmark-presets-benchmark-blur5x5-gamma-encode-every-fbo-six-times","blurs-benchmark-presets-benchmark-blur5x5-mipmap-gamma-encode-every-fbo-six-times","blurs-benchmark-presets-benchmark-blur5x5-mipmap-srgb-six-times","blurs-benchmark-presets-benchmark-blur5x5-srgb-six-times","blurs-benchmark-presets-benchmark-blur7fast-gamma-encode-every-fbo-six-times","blurs-benchmark-presets-benchmark-blur7fast-mipmap-gamma-encode-every-fbo-six-times","blurs-benchmark-presets-benchmark-blur7fast-mipmap-srgb-six-times","blurs-benchmark-presets-benchmark-blur7fast-srgb-six-times","blurs-benchmark-presets-benchmark-blur7resize-gamma-encode-every-fbo-six-times","blurs-benchmark-presets-benchmark-blur7resize-mipmap-gamma-encode-every-fbo-six-times","blurs-benchmark-presets-benchmark-blur7resize-mipmap-srgb-six-times","blurs-benchmark-presets-benchmark-blur7resize-srgb-six-times","blurs-benchmark-presets-benchmark-blur7x7-gamma-encode-every-fbo-six-times","blurs-benchmark-presets-benchmark-blur7x7-mipmap-gamma-encode-every-fbo-six-times","blurs-benchmark-presets-benchmark-blur7x7-mipmap-srgb-six-times","blurs-benchmark-presets-benchmark-blur7x7-srgb-six-times","blurs-benchmark-presets-benchmark-blur9fast-gamma-encode-every-fbo-six-times","blurs-benchmark-presets-benchmark-blur9fast-mipmap-gamma-encode-every-fbo-six-times","blurs-benchmark-presets-benchmark-blur9fast-mipmap-srgb-six-times","blurs-benchmark-presets-benchmark-blur9fast-srgb-six-times","blurs-benchmark-presets-benchmark-blur9resize-gamma-encode-every-fbo-six-times","blurs-benchmark-presets-benchmark-blur9resize-mipmap-gamma-encode-every-fbo-six-times","blurs-benchmark-presets-benchmark-blur9resize-mipmap-srgb-six-times","blurs-benchmark-presets-benchmark-blur9resize-srgb-six-times","blurs-benchmark-presets-benchmark-blur9x9-gamma-encode-every-fbo-six-times","blurs-benchmark-presets-benchmark-blur9x9-mipmap-gamma-encode-every-fbo-six-times","blurs-benchmark-presets-benchmark-blur9x9-mipmap-srgb-six-times","blurs-benchmark-presets-benchmark-blur9x9-srgb-six-times","blurs-quality-test-presets-test-blur11fast-gamma-encode-every-fbo","blurs-quality-test-presets-test-blur11fast-srgb","blurs-quality-test-presets-test-blur11resize-gamma-encode-every-fbo","blurs-quality-test-presets-test-blur11resize-srgb","blurs-quality-test-presets-test-blur3fast-gamma-encode-every-fbo","blurs-quality-test-presets-test-blur3fast-srgb","blurs-quality-test-presets-test-blur3resize-gamma-encode-every-fbo","blurs-quality-test-presets-test-blur3resize-srgb","blurs-quality-test-presets-test-blur3x3-gamma-encode-every-fbo","blurs-quality-test-presets-test-blur3x3-srgb","blurs-quality-test-presets-test-blur3x3resize-gamma-encode-every-fbo","blurs-quality-test-presets-test-blur3x3resize-srgb","blurs-quality-test-presets-test-blur5fast-gamma-encode-every-fbo","blurs-quality-test-presets-test-blur5fast-srgb","blurs-quality-test-presets-test-blur5resize-gamma-encode-every-fbo","blurs-quality-test-presets-test-blur5resize-srgb","blurs-quality-test-presets-test-blur5x5-gamma-encode-every-fbo","blurs-quality-test-presets-test-blur5x5-srgb","blurs-quality-test-presets-test-blur7fast-gamma-encode-every-fbo","blurs-quality-test-presets-test-blur7fast-srgb","blurs-quality-test-presets-test-blur7resize-gamma-encode-every-fbo","blurs-quality-test-presets-test-blur7resize-srgb","blurs-quality-test-presets-test-blur7x7-gamma-encode-every-fbo","blurs-quality-test-presets-test-blur7x7-srgb","blurs-quality-test-presets-test-blur9fast-gamma-encode-every-fbo","blurs-quality-test-presets-test-blur9fast-srgb","blurs-quality-test-presets-test-blur9resize-gamma-encode-every-fbo","blurs-quality-test-presets-test-blur9resize-srgb","blurs-quality-test-presets-test-blur9x9-gamma-encode-every-fbo","blurs-quality-test-presets-test-blur9x9-srgb","borders-1080p-color-grid","borders-1080p-imgborder","borders-1080p-mudlord","borders-1080p-shiny-iterations","borders-1080p-snow","borders-1080p-voronoi","borders-1080p-water","borders-1440p-color-grid","borders-1440p-imgborder","borders-1440p-mudlord","borders-1440p-shiny-iterations","borders-1440p-snow","borders-1440p-voronoi","borders-1440p-water","borders-2160p-color-grid","borders-2160p-imgborder","borders-2160p-mudlord","borders-2160p-shiny-iterations","borders-2160p-snow","borders-2160p-voronoi","borders-2160p-water","borders-2560x1600-color-grid","borders-2560x1600-imgborder","borders-2560x1600-mudlord","borders-2560x1600-shiny-iterations","borders-2560x1600-snow","borders-2560x1600-voronoi","borders-2560x1600-water","borders-gameboy-player-gameboy-player+crt-easymode","borders-gameboy-player-gameboy-player-gba-color+crt-easymode","borders-gameboy-player-gameboy-player-gba-color","borders-gameboy-player-gameboy-player-tvout+interlacing","borders-gameboy-player-gameboy-player-tvout-gba-color+interlacing","borders-gameboy-player-gameboy-player-tvout-gba-color","borders-gameboy-player-gameboy-player-tvout","borders-gameboy-player-gameboy-player","borders-sgb-sgb+crt-easymode","borders-sgb-sgb-tvout+interlacing","borders-sgb-sgb","braid-rewind","cbod_v1","cgp-2x2xscalehq","cgp-2xbr-crt-hyllian","cgp-2xbr-hybrid-crt-hyllian","cgp-2xbr-jinc2-sharper-hybrid","cgp-2xbr-reverse-aa","cgp-crt-reverse-aa-ddt","cgp-gameboy-colors","cgp-gameboy-screen-grid+motionblur","cgp-gameboy-screen-grid","cgp-lowquality-lcd+motionblur","cgp-lowquality-lcd","cgp-n64-vifilter-vifilter-480i","cgp-n64-vifilter-vifilter-angrylion-force240p","cgp-n64-vifilter-vifilter-scanline","cgp-n64-vifilter-vifilter","cgp-tvout+interlacing-tvout+cbod+interlacing","cgp-tvout+interlacing-tvout+gdapt+interlacing","cgp-tvout+interlacing-tvout+interlacing","cgp-tvout+interlacing-tvout+mdapt+interlacing","cgp-tvout+interlacing-tvout+ntsc-256px-composite+interlacing","cgp-tvout+interlacing-tvout+ntsc-256px-svideo+interlacing","cgp-tvout+interlacing-tvout+ntsc-2phase-composite+interlacing","cgp-tvout+interlacing-tvout+ntsc-2phase-svideo+interlacing","cgp-tvout+interlacing-tvout+ntsc-320px-composite+interlacing","cgp-tvout+interlacing-tvout+ntsc-320px-svideo+interlacing","cgp-tvout+interlacing-tvout+ntsc-3phase-composite+interlacing","cgp-tvout+interlacing-tvout+ntsc-3phase-svideo+interlacing","cgp-tvout+interlacing-tvout-jinc-sharpen+interlacing","cgp-tvout-tvout+cbod","cgp-tvout-tvout+gdapt","cgp-tvout-tvout+mdapt","cgp-tvout-tvout+ntsc-256px-composite","cgp-tvout-tvout+ntsc-256px-svideo","cgp-tvout-tvout+ntsc-2phase-composite","cgp-tvout-tvout+ntsc-2phase-svideo","cgp-tvout-tvout+ntsc-320px-composite","cgp-tvout-tvout+ntsc-320px-svideo","cgp-tvout-tvout+ntsc-3phase-composite","cgp-tvout-tvout+ntsc-3phase-svideo","cgp-tvout-tvout-jinc-sharpen","cgp-tvout-tvout-pixelsharp","cgp-tvout-tvout","cgp-xbr-dilation-smart-blur-4xsoft","cgp-xbr-hybrid-bicubic","cgp-xbr-hybrid-ddt","cgp-xbr-hybrid-lanczos","cgp-xbr-hybrid-sharp-lanczos","cgp-xbr-smart-blur","color-grid","crt-4xbr-hybrid-crt-b","crt-4xbr-hybrid-crt","crt-caligari","crt-cgwg-fast","crt-crt-caligari","crt-crt-cgwg-fast","crt-crt-easymode-halation","crt-crt-easymode","crt-crt-geom","crt-crt-hyllian-fast","crt-crt-hyllian-glow","crt-crt-hyllian","crt-crt-lottes-halation","crt-crt-lottes","crt-crt-reverse-aa","crt-crtglow_gauss","crt-crtglow_gauss_ntsc_3phase","crt-crtglow_lanczos","crt-dotmask","crt-easymode-halation","crt-easymode","crt-geom","crt-gtuv50-radeon","crt-gtuv50","crt-hyllian-fast","crt-hyllian-glow","crt-hyllian","crt-lottes-halation","crt-lottes","crt-ntsc-shadowmask-interlacing","crt-ntsc-shadowmask-noblend","crt-ntsc-shadowmask","crt-phosphor-trails","crt-phosphorlut-4k","crt-phosphorlut-shadowmask","crt-reverse-aa-ddt","crt-reverse-aa","crt-shaders-phosphor","crt-shaders-phosphorlut-v3-phosphorlut-4k-noblend","crt-shaders-phosphorlut-v3-phosphorlut-aperturemask-interlacing-noblend","crt-shaders-phosphorlut-v3-phosphorlut-aperturemask-interlacing","crt-shaders-phosphorlut-v3-phosphorlut-aperturemask-noblend","crt-shaders-phosphorlut-v3-phosphorlut-aperturemask","crt-shaders-phosphorlut-v3-phosphorlut-shadowmask-interlacing-noblend","crt-shaders-phosphorlut-v3-phosphorlut-shadowmask-interlacing","crt-shaders-phosphorlut-v3-phosphorlut-shadowmask-noblend","crt-tv-highcontrast-hd-1152x672","crt-tv-highcontrast-hd","crt-tvout-tweaks","crtglow_gauss","crtglow_gauss_ntsc_3phase","crtglow_lanczos","ddt-ddt-extended","ddt-ddt-waterpaint","ddt-ddt","ddt-extended","ddt-waterpaint","ddt","dithering-cbod_v1","dithering-gdapt+xbr-hybrid+aa","dithering-gdapt+xbr-hybrid+ddt","dithering-gdapt","dithering-gendither","dithering-mdapt+xbr-hybrid+aa","dithering-mdapt+xbr-hybrid+ddt","dithering-mdapt","dmg-2x","dmg-3x","dmg-4x","dmg-5x","dmg-6x","dotmask","eagle-super-eagle","emboss","fx-aa","fxaa-edge-detect","gameboy-colors","gameboy-player+crt-easymode","gameboy-player-gba-color+crt-easymode","gameboy-player-gba-color","gameboy-player-tvout+interlacing","gameboy-player-tvout-gba-color+interlacing","gameboy-player-tvout-gba-color","gameboy-player-tvout","gameboy-player","gameboy-screen-grid+motionblur","gameboy-screen-grid","gb-light-shader","gb-pocket-2x","gb-pocket-3x","gb-pocket-4x","gb-pocket-5x","gb-pocket-6x","gb-pocket-shader","gb-shader","gba-2x","gba-3x","gba-4x","gba-5x","gba-6x","gba-color","gbc-2x","gbc-3x","gbc-4x","gbc-5x","gbc-6x","gdapt+xbr-hybrid+aa","gdapt+xbr-hybrid+ddt","gdapt","gendither","gg-2x","gg-3x","gg-4x","gg-5x","gg-6x","gtuv50-radeon","gtuv50","handheld-console-border-dmg-2x","handheld-console-border-dmg-3x","handheld-console-border-dmg-4x","handheld-console-border-dmg-5x","handheld-console-border-dmg-6x","handheld-console-border-gb-pocket-2x","handheld-console-border-gb-pocket-3x","handheld-console-border-gb-pocket-4x","handheld-console-border-gb-pocket-5x","handheld-console-border-gb-pocket-6x","handheld-console-border-gba-2x","handheld-console-border-gba-3x","handheld-console-border-gba-4x","handheld-console-border-gba-5x","handheld-console-border-gba-6x","handheld-console-border-gbc-2x","handheld-console-border-gbc-3x","handheld-console-border-gbc-4x","handheld-console-border-gbc-5x","handheld-console-border-gbc-6x","handheld-console-border-gg-2x","handheld-console-border-gg-3x","handheld-console-border-gg-4x","handheld-console-border-gg-5x","handheld-console-border-gg-6x","handheld-console-border-ngpc-2x","handheld-console-border-ngpc-3x","handheld-console-border-ngpc-4x","handheld-console-border-ngpc-5x","handheld-console-border-ngpc-6x","handheld-console-border-psp-2x","handheld-console-border-psp-3x","handheld-console-border-psp-4x","handheld-console-border-psp-5x","handheld-console-border-psp-6x","handheld-gameboy-gb-light-shader","handheld-gameboy-gb-pocket-shader","handheld-gameboy-gb-shader","handheld-lcd-shader-backup-2-lcd-shader","handheld-lcd-shader-backup-3-lcd-shader","handheld-lcd-shader-lcd-shader","handheld-lcd3x","handheld-lcd_cgwg-lcd-cgwg","handheld-lcd_cgwg-lcd-grid-v2-gba-color-motionblur","handheld-lcd_cgwg-lcd-grid-v2-gba-color","handheld-lcd_cgwg-lcd-grid-v2-motionblur","handheld-lcd_cgwg-lcd-grid-v2-nds-color-motionblur","handheld-lcd_cgwg-lcd-grid-v2-nds-color","handheld-lcd_cgwg-lcd-grid-v2","handheld-nds-color","handheld-nds","hq2x","hq3x","hq4x","hqx-single-pass-hq2x","hqx-single-pass-hq3x","hqx-single-pass-hq4x","hunterk-borders-1080p-bigblur","hunterk-borders-1080p-color-grid","hunterk-borders-1080p-imgborder","hunterk-borders-1080p-mudlord","hunterk-borders-1080p-shiny-iterations","hunterk-borders-1080p-snow","hunterk-borders-1080p-voronoi","hunterk-borders-1080p-water","hunterk-borders-1440p-bigblur","hunterk-borders-1440p-color-grid","hunterk-borders-1440p-imgborder","hunterk-borders-1440p-mudlord","hunterk-borders-1440p-shiny-iterations","hunterk-borders-1440p-snow","hunterk-borders-1440p-voronoi","hunterk-borders-1440p-water","hunterk-borders-2160p-bigblur","hunterk-borders-2160p-color-grid","hunterk-borders-2160p-imgborder","hunterk-borders-2160p-mudlord","hunterk-borders-2160p-shiny-iterations","hunterk-borders-2160p-snow","hunterk-borders-2160p-voronoi","hunterk-borders-2160p-water","hunterk-borders-2560x1600-bigblur","hunterk-borders-2560x1600-color-grid","hunterk-borders-2560x1600-imgborder","hunterk-borders-2560x1600-mudlord","hunterk-borders-2560x1600-shiny-iterations","hunterk-borders-2560x1600-snow","hunterk-borders-2560x1600-voronoi","hunterk-borders-2560x1600-water","hunterk-borders-gameboy-player-gameboy-player","hunterk-borders-sgb-sgb","hunterk-crt-crt-geom","hunterk-crt-crt-lottes","hunterk-handheld-console-border-dmg-2x","hunterk-handheld-console-border-dmg-3x","hunterk-handheld-console-border-dmg-4x","hunterk-handheld-console-border-dmg-5x","hunterk-handheld-console-border-dmg-6x","hunterk-handheld-console-border-gb-pocket-2x","hunterk-handheld-console-border-gb-pocket-3x","hunterk-handheld-console-border-gb-pocket-4x","hunterk-handheld-console-border-gb-pocket-5x","hunterk-handheld-console-border-gb-pocket-6x","hunterk-handheld-console-border-gba-2x","hunterk-handheld-console-border-gba-3x","hunterk-handheld-console-border-gba-4x","hunterk-handheld-console-border-gba-5x","hunterk-handheld-console-border-gba-6x","hunterk-handheld-console-border-gbc-2x","hunterk-handheld-console-border-gbc-3x","hunterk-handheld-console-border-gbc-4x","hunterk-handheld-console-border-gbc-5x","hunterk-handheld-console-border-gbc-6x","hunterk-handheld-console-border-gg-2x","hunterk-handheld-console-border-gg-3x","hunterk-handheld-console-border-gg-4x","hunterk-handheld-console-border-gg-5x","hunterk-handheld-console-border-gg-6x","hunterk-handheld-console-border-ngpc-2x","hunterk-handheld-console-border-ngpc-3x","hunterk-handheld-console-border-ngpc-4x","hunterk-handheld-console-border-ngpc-5x","hunterk-handheld-console-border-ngpc-6x","hunterk-handheld-console-border-psp-2x","hunterk-handheld-console-border-psp-3x","hunterk-handheld-console-border-psp-4x","hunterk-handheld-console-border-psp-5x","hunterk-handheld-console-border-psp-6x","hunterk-handheld-gameboy-gb-pocket-shader","hunterk-handheld-gameboy-gb-shader","hunterk-handheld-lcd-shader-backup-2-lcd-shader","hunterk-handheld-lcd-shader-backup-3-lcd-shader","hunterk-handheld-lcd-shader-lcd-shader","hunterk-handheld-lcd_cgwg-lcd-cgwg","hunterk-handheld-nds","hunterk-hqx-hq2x","hunterk-hqx-hq3x","hunterk-hqx-hq4x","hunterk-hqx-single-pass-hq2x","hunterk-hqx-single-pass-hq3x","hunterk-hqx-single-pass-hq4x","hunterk-motionblur-braid-rewind","hunterk-motionblur-motionblur-simple","imgborder","jinc2-sharp","jinc2-sharper","jinc2","lanczos12","lanczos16","lanczos2-sharp","lanczos4","lanczos6","lcd-cgwg","lcd-shader","lcd3x","lowquality-lcd+motionblur","lowquality-lcd","mdapt+xbr-hybrid+aa","mdapt+xbr-hybrid+ddt","mdapt","motionblur-blue","motionblur-braid-rewind","motionblur-color","motionblur-motionblur-blue","motionblur-motionblur-color","motionblur-motionblur-simple","motionblur-simple","mud-mudlord","mudlord-bloom","mudlord-blur","mudlord-emboss","mudlord-mud-mudlord","mudlord-noise-mudlord","mudlord-oldtv","mudlord-sharpen","mudlord-toon","mudlord-waterpaint-mudlord","mudlord","nds-color","nds","nedi-nedi","nedi","neon-neon-variation-1","neon-variation-1","ngpc-2x","ngpc-3x","ngpc-4x","ngpc-5x","ngpc-6x","noise-mudlord","ntsc-256px-gauss-scanline","ntsc-256px-svideo-gauss-scanline","ntsc-256px-svideo","ntsc-256px","ntsc-320px-gauss-scanline","ntsc-320px-svideo-gauss-scanline","ntsc-320px-svideo","ntsc-320px","ntsc-ntsc-256px-gauss-scanline","ntsc-ntsc-256px-svideo-gauss-scanline","ntsc-ntsc-256px-svideo","ntsc-ntsc-256px","ntsc-ntsc-320px-gauss-scanline","ntsc-ntsc-320px-svideo-gauss-scanline","ntsc-ntsc-320px-svideo","ntsc-ntsc-320px","ntsc-ntsc-svideo","ntsc-ntsc","ntsc-shadowmask-interlacing","ntsc-shadowmask-noblend","ntsc-shadowmask","ntsc-svideo","ntsc","oldtv","phosphor-trails","phosphor","phosphorlut-4k-noblend","phosphorlut-4k","phosphorlut-aperturemask-interlacing-noblend","phosphorlut-aperturemask-interlacing","phosphorlut-aperturemask-noblend","phosphorlut-aperturemask","phosphorlut-shadowmask-interlacing-noblend","phosphorlut-shadowmask-interlacing","phosphorlut-shadowmask-noblend","phosphorlut-shadowmask","pixellate","psp-2x","psp-3x","psp-4x","psp-5x","psp-6x","python-python","python","quad-biquad","quad-quad_interp","quad_interp","retro-5xbr-retro","retro-aann","retro-bead","retro-bevel","retro-pixellate","retro-retro-v2","retro-sharp-bilinear","retro-v2","reverse-aa","sabr-sabr-v1.1","sabr-sabr-v3.0","sabr-v1.1","sabr-v3.0","scale2x","scale2xSFX","scale2xplus","scale3x","scale3xSFX","scalehq-2xScaleHQ","scalehq-4xScaleHQ","scalenx-scale2x","scalenx-scale2xSFX","scalenx-scale2xplus","scalenx-scale3x","scalenx-scale3xSFX","sgb+crt-easymode","sgb-tvout+interlacing","sgb","sharp-bilinear","sharpen-adaptive-sharpen","sharpen","shiny-iterations","snow","super-2xsai","super-eagle","super-xbr-2p","super-xbr-3p-smoother","super-xbr-6p","super-xbr-fast-3p","super-xbr-fast-6p","test-blur11fast-gamma-encode-every-fbo","test-blur11fast-srgb","test-blur11resize-gamma-encode-every-fbo","test-blur11resize-srgb","test-blur3fast-gamma-encode-every-fbo","test-blur3fast-srgb","test-blur3resize-gamma-encode-every-fbo","test-blur3resize-srgb","test-blur3x3-gamma-encode-every-fbo","test-blur3x3-srgb","test-blur3x3resize-gamma-encode-every-fbo","test-blur3x3resize-srgb","test-blur5fast-gamma-encode-every-fbo","test-blur5fast-srgb","test-blur5resize-gamma-encode-every-fbo","test-blur5resize-srgb","test-blur5x5-gamma-encode-every-fbo","test-blur5x5-srgb","test-blur7fast-gamma-encode-every-fbo","test-blur7fast-srgb","test-blur7resize-gamma-encode-every-fbo","test-blur7resize-srgb","test-blur7x7-gamma-encode-every-fbo","test-blur7x7-srgb","test-blur9fast-gamma-encode-every-fbo","test-blur9fast-srgb","test-blur9resize-gamma-encode-every-fbo","test-blur9resize-srgb","test-blur9x9-gamma-encode-every-fbo","test-blur9x9-srgb","toon","tv-highcontrast-hd-1152x672","tv-highcontrast-hd","tvout+cbod+interlacing","tvout+cbod","tvout+gdapt+interlacing","tvout+gdapt","tvout+interlacing","tvout+mdapt+interlacing","tvout+mdapt","tvout+ntsc-256px-composite+interlacing","tvout+ntsc-256px-composite","tvout+ntsc-256px-svideo+interlacing","tvout+ntsc-256px-svideo","tvout+ntsc-2phase-composite+interlacing","tvout+ntsc-2phase-composite","tvout+ntsc-2phase-svideo+interlacing","tvout+ntsc-2phase-svideo","tvout+ntsc-320px-composite+interlacing","tvout+ntsc-320px-composite","tvout+ntsc-320px-svideo+interlacing","tvout+ntsc-320px-svideo","tvout+ntsc-3phase-composite+interlacing","tvout+ntsc-3phase-composite","tvout+ntsc-3phase-svideo+interlacing","tvout+ntsc-3phase-svideo","tvout-jinc-sharpen+interlacing","tvout-jinc-sharpen","tvout-pixelsharp","tvout-tweaks","tvout","vifilter-480i","vifilter-angrylion-force240p","vifilter-scanline","vifilter","voronoi","water","waterpaint-hc","waterpaint-mudlord","waterpaint-water","waterpaint-waterpaint-hc","waterpaint-waterpaint","waterpaint","windowed-jinc2-sharp","windowed-jinc2-sharper","windowed-jinc2","windowed-lanczos12","windowed-lanczos16","windowed-lanczos2-sharp","windowed-lanczos4","windowed-lanczos6","xbr-dilation-smart-blur-4xsoft","xbr-hybrid-bicubic","xbr-hybrid-ddt","xbr-hybrid-lanczos","xbr-hybrid-sharp-lanczos","xbr-hybrid","xbr-lv1-noblend","xbr-lv2-a","xbr-lv2-b","xbr-lv2-c","xbr-lv2-d","xbr-lv2-fast","xbr-lv2-multipass","xbr-lv2-noblend","xbr-lv2","xbr-lv3-multipass","xbr-lv3-noblend","xbr-lv3","xbr-shaders-xbr-lv2-multipass-xbr-lv2-a","xbr-shaders-xbr-lv2-multipass-xbr-lv2-b","xbr-shaders-xbr-lv2-multipass-xbr-lv2-c","xbr-shaders-xbr-lv2-multipass-xbr-lv2-d","xbr-smart-blur","xbr-super-xbr-2p","xbr-super-xbr-3p-smoother","xbr-super-xbr-6p","xbr-super-xbr-fast-3p","xbr-super-xbr-fast-6p","xbr-xbr-hybrid","xbr-xbr-lv1-noblend","xbr-xbr-lv2-fast","xbr-xbr-lv2-multipass","xbr-xbr-lv2-noblend","xbr-xbr-lv2","xbr-xbr-lv3-multipass","xbr-xbr-lv3-noblend","xbr-xbr-lv3","xsai-super-2xsai","xsal-2xsal","xsoft-4xsoft"]
 }
