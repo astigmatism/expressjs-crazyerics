@@ -296,8 +296,8 @@
 			"name": "Atari Jaguar",
 			"shortname": "Atari Jaguar",
 			"collection":"GoodJag 2.01",
-			"live": false,
-			"boxcdnversion": "2.0.1",
+			"live": true,
+			"boxcdnversion": "2.0.2",
 			"romcdnversion": "2.0.2",
 			"emufile": "emulators/2.0.0/virtualjaguar_libretro.js",
 			"recommendedshaders": []
