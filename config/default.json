@@ -11,9 +11,9 @@
 		"vect": {
 			"name": "Vectrex",
 			"shortname": "Vectrex",
-			"live": false,
+			"live": true,
 			"collection": "GoodVect 1.06",
-			"boxcdnversion": "2.0.3",
+			"boxcdnversion": "2.0.4",
 			"romcdnversion": "2.0.2",
 			"emufile": "emulators/2.0.0/vecx_libretro.js",
 			"recommendedshaders": []
@@ -236,9 +236,9 @@
 		"lynx": {
 			"name": "Atari Lynx",
 			"shortname": "Atari Lynx",
-			"live": false,
+			"live": true,
 			"collection":"GoodLynx 2.01",
-			"boxcdnversion": "2.0.1",
+			"boxcdnversion": "2.0.2",
 			"romcdnversion": "2.0.1",
 			"emufile": "emulators/2.0.0/handy_libretro.js",
 			"recommendedshaders": []
@@ -297,7 +297,7 @@
 			"shortname": "Atari Jaguar",
 			"collection":"GoodJag 2.01",
 			"live": true,
-			"boxcdnversion": "2.0.2",
+			"boxcdnversion": "2.0.3",
 			"romcdnversion": "2.0.2",
 			"emufile": "emulators/2.0.0/virtualjaguar_libretro.js",
 			"recommendedshaders": []
