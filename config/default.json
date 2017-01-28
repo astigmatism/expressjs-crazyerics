@@ -256,9 +256,9 @@
 		"wsx": {
 			"name": "Bandai WonderSwan",
 			"shortname": "WonderSwan",
-			"live": false,
+			"live": true,
 			"collection": "GoodWSx 3.27",
-			"boxcdnversion": "2.0.1",
+			"boxcdnversion": "2.0.2",
 			"romcdnversion": "2.0.1",
 			"suggestionThreshold": 250,
 			"emufile": "emulators/2.0.0/mednafen_wswan_libretro.js",
