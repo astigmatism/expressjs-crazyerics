@@ -582,7 +582,6 @@ UtilitiesService.collectDataForClient = function(req, openonload, callback) {
         systemdetails: {}
     };
     var systems = config.get('systems');
-    var retroarch = config.get('retroarch');
 
     //system specific configs
     for (system in systems) {
@@ -590,7 +589,6 @@ UtilitiesService.collectDataForClient = function(req, openonload, callback) {
         //if system is "live" (ready to show for production)
         if (systems[system].live) {
 
-            configdata.retroarch[system] = retroarch + systems[system].retroarch;
             configdata.recommendedshaders[system] = systems[system].recommendedshaders;
             configdata.autocapture[system] = systems[system].autocapture;
 
@@ -599,10 +597,14 @@ UtilitiesService.collectDataForClient = function(req, openonload, callback) {
                 'shortname': systems[system].shortname,
                 'boxcdnversion': systems[system].boxcdnversion,
                 'romcdnversion': systems[system].romcdnversion,
-                'emufile': systems[system].emufile
+                'emufile': systems[system].emufile,
+                'retroarch': systems[system].retroarch
             };
         }
     }
+    //default retroarch configuration
+    configdata.retroarch = config.get('retroarch');
+
     //roms location
     configdata.rompath = config.get('rompath');
 

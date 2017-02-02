@@ -28,7 +28,11 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.text({limit: '50mb'}));
 app.use(cookieParser());
+
+//these folders will serve content statically
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'workspace')));
+
 app.use(favicon(__dirname + '/public/favicon.ico'));
 
 app.use(session({

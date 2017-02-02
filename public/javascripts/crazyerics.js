@@ -1592,19 +1592,30 @@ Crazyerics.prototype._buildFileSystem = function(Module, system, file, compresse
     try { Module.FS_createFolder('/home/web_user/', 'retroarch', true, true); } catch(e) {}
     try { Module.FS_createFolder('/home/web_user/retroarch', 'userdata', true, true); } catch(e) {}
 
-    if (self._config.retroarch && self._config.retroarch[system]) {
+    if (self._config.retroarch) {
 
-        var configToLoad = self._config.retroarch[system];
+        var configToLoad = self._config.retroarch; //in json
 
-        if (shaderPresetToLoad) {
-            configToLoad = 'video_shader =\"/shaders/' + shaderPresetToLoad + '\"\n' + configToLoad;
+        //system specific overrides
+        if (self._config.systemdetails[system] && self._config.systemdetails[system].retroarch) {
+            for (config in self._config.systemdetails[system].retroarch) {
+                configToLoad[config] = self._config.systemdetails[system].retroarch[config];
+            }
         }
 
-        //configToLoad = 'video_vsync = false\n';
+        if (shaderPresetToLoad) {
+            configToLoad['video_shader'] = '/shaders/' + shaderPresetToLoad;
+        }
+
+        //convert json to string delimited list
+        var configString = '';
+        for (config in configToLoad) {
+            configString +=  config + ' = ' + configToLoad[config] + '\n';
+        }
 
         //write to both locations since we could be using older or newer emulators
-        Module.FS_createDataFile('/home/web_user/retroarch/userdata', 'retroarch.cfg', configToLoad, true, true);
-        Module.FS_createDataFile('/etc', 'retroarch.cfg', configToLoad, true, true);
+        Module.FS_createDataFile('/home/web_user/retroarch/userdata', 'retroarch.cfg', configString, true, true);
+        Module.FS_createDataFile('/etc', 'retroarch.cfg', configString, true, true);
     }
 
     //screenshots
