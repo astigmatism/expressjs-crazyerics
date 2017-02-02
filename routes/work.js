@@ -17,8 +17,12 @@ router.get('/', function(req, res, next) {
 
 router.get('/emulatorprep', function(req, res, next) {
 
-    var sourcePath = __dirname + '/../workspace/2016-10-20_RetroArch/';
-    var destinationPath = __dirname + '/../public/emulators/2.0.0/';
+    //var assetPath = 'https://dl.dropboxusercontent.com/u/1433808/crazyerics/emulators/';
+    var assetPath = '/emulators/2.0.1/';
+    var writeMemFileToDestination = true;
+    
+    var sourcePath = __dirname + '/../workspace/2017-02-01_RetroArch/';
+    var destinationPath = __dirname + '/../public/emulators/2.0.1/';
 
     //open source folder
     fs.readdir(sourcePath, function(err, emulatorfiles) {
@@ -35,17 +39,23 @@ router.get('/emulatorprep', function(req, res, next) {
             //loop over all file contents
             async.eachSeries(emulatorfiles, function(emulatorfile, nextemulatorfile) {
 
+                console.log('\n\nFile: ' + emulatorfile);
+
                 fs.stat(sourcePath + '/' + emulatorfile, function(err, stats) {
                     
                     //bail if anything but a file
                     if (stats.isFile()) {
 
-                        if (emulatorfile === '.DS_Store' || /\.mem$/.test(emulatorfile)) {
+                        if (/\.mem$/.test(emulatorfile) && writeMemFileToDestination) {
+                            fs.createReadStream(sourcePath + '/' + emulatorfile).pipe(fs.createWriteStream(destinationPath + '/' + emulatorfile));
                             nextemulatorfile();
                             return;
                         }
-                        
-                        console.log(emulatorfile);
+
+                        if (!/\.js$/.test(emulatorfile)) {
+                            nextemulatorfile();
+                            return;
+                        }
 
                         //read file
                         fs.readFile(sourcePath + '/' + emulatorfile, 'utf8', function(err, content) {
@@ -59,7 +69,7 @@ router.get('/emulatorprep', function(req, res, next) {
                             
                             re = /memoryInitializer="(.*\.mem)"/;
                             console.log('memory file location found ---> ' + re.test(content));
-                            content = content.replace(re, 'memoryInitializer="https://dl.dropboxusercontent.com/u/1433808/crazyerics/emulators/$1"');
+                            content = content.replace(re, 'memoryInitializer="' + assetPath + '$1"');
 
                             re = /return document;/
                             console.log('return document found ---> ' + re.test(content));
@@ -130,6 +140,7 @@ router.get('/emulatorprep', function(req, res, next) {
 
                             fs.writeFile(destinationPath + '/' + emulatorfile, content, function(err) {
                                 if (err) {
+                                    console.log(err);
                                     return nextemulatorfile(err);
                                 }
 

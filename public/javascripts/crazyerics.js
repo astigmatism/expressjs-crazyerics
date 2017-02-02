@@ -1556,6 +1556,8 @@ Crazyerics.prototype._loadGameDetails = function(key, system, title, file, optio
 Crazyerics.prototype._buildFileSystem = function(Module, system, file, compressedGameFiles, shaderFiles, supportFiles) {
 
     var self = this;
+    var i;
+    var content;
 
     Module.FS_createFolder('/', 'games', true, true);
 
@@ -1569,7 +1571,7 @@ Crazyerics.prototype._buildFileSystem = function(Module, system, file, compresse
         var bufferLength = 0;
 
         //begin by decopressing all compressed file segments
-        for (var i = 0; i < compressedGame.length; ++i) {
+        for (i = 0; i < compressedGame.length; ++i) {
             var decompressed = self._decompress.string(compressedGame[i]);
             var view = pako.inflate(decompressed); //inflate compressed file contents (Uint8Array)
             bufferLength += view.length;
@@ -1580,7 +1582,7 @@ Crazyerics.prototype._buildFileSystem = function(Module, system, file, compresse
         var gamedata = new Uint8Array(bufferLength);
         var bufferPosition = 0;
 
-        for (var i = 0; i < views.length; ++i) {
+        for (i = 0; i < views.length; ++i) {
             gamedata.set(new Uint8Array(views[i]), bufferPosition);
             bufferPosition += views[i].length;
         }
@@ -1598,7 +1600,7 @@ Crazyerics.prototype._buildFileSystem = function(Module, system, file, compresse
         supportFiles = self._decompress.json(supportFiles);
         if (supportFiles && self._FS) {
             for (var supportFile in supportFiles) {
-                var content = self._decompress.bytearray(supportFiles[supportFile]);
+                content = self._decompress.bytearray(supportFiles[supportFile]);
                 try {
                     self._FS.createDataFile('/', supportFile, content, true, true);
                 } catch (e) {
@@ -1614,14 +1616,14 @@ Crazyerics.prototype._buildFileSystem = function(Module, system, file, compresse
 
     //shader files, will be null if none used
     if (shaderFiles) {
-        var shaderFiles = self._decompress.json(shaderFiles); //decompress shader files to json object of file names and data
+        shaderFiles = self._decompress.json(shaderFiles); //decompress shader files to json object of file names and data
 
         //if in coming shader parameter is an object, then it has shader files defined. self._FS is a handle to the
         //module's file system. Yes, the other operations here reference the file system through the Module, you just don't have to anymore!
         if (shaderFiles && self._FS) {
 
             for (var shaderfile in shaderFiles) {
-                var content = self._decompress.bytearray(shaderFiles[shaderfile]);
+                content = self._decompress.bytearray(shaderFiles[shaderfile]);
                 try {
                     self._FS.createDataFile('/shaders', shaderfile, content, true, true);
                 } catch (e) {
@@ -1647,10 +1649,11 @@ Crazyerics.prototype._buildFileSystem = function(Module, system, file, compresse
     if (self._config.retroarch) {
 
         var configToLoad = self._config.retroarch; //in json
+        var config;
 
         //system specific overrides
         if (self._config.systemdetails[system] && self._config.systemdetails[system].retroarch) {
-            for (var config in self._config.systemdetails[system].retroarch) {
+            for (config in self._config.systemdetails[system].retroarch) {
                 configToLoad[config] = self._config.systemdetails[system].retroarch[config];
             }
         }
@@ -1661,7 +1664,7 @@ Crazyerics.prototype._buildFileSystem = function(Module, system, file, compresse
 
         //convert json to string delimited list
         var configString = '';
-        for (var config in configToLoad) {
+        for (config in configToLoad) {
             configString +=  config + ' = ' + configToLoad[config] + '\n';
         }
 
@@ -1677,7 +1680,7 @@ Crazyerics.prototype._buildFileSystem = function(Module, system, file, compresse
     Module.FS_createFolder('/', 'states', true, true);
     
     var slots = this.StateManager.getSavedSlots();
-    var i = slots.length;
+    i = slots.length;
 
     while (i--) {
         var filenoextension = file.replace(new RegExp('\.[a-z0-9]{1,3}$', 'gi'), '');

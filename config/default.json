@@ -161,7 +161,7 @@
 			"live": true,
 			"boxcdnversion": "2.0.3",
 			"romcdnversion": "2.0.0",
-			"emufile": "emulators/2.0.0/genesis_plus_gx_libretro.js",
+			"emufile": "emulators/2.0.1/genesis_plus_gx_libretro.js",
 			"recommendedshaders": [
 				{
 					"title": "Vintage Television",
