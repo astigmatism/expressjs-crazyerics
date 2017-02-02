@@ -28,15 +28,17 @@ var Crazyerics = function() {
 
         //build console select for search (had to create a structure to sort by the short name :P)
         var shortnames = [];
-        for (system in self._config.systemdetails) {
+        for (var system in self._config.systemdetails) {
             self._config.systemdetails[system].id = system;
             shortnames.push(self._config.systemdetails[system]);
         }
-        shortnames.sort(function(a,b) {
-            if (a.shortname > b.shortname)
+        shortnames.sort(function(a, b) {
+            if (a.shortname > b.shortname) {
                 return 1;
-            if (a.shortname < b.shortname)
+            }
+            if (a.shortname < b.shortname) {
                 return -1;
+            }
             return 0;
         });
         var shortnamesl = shortnames.length;
@@ -195,7 +197,7 @@ var Crazyerics = function() {
 
         //when user has scrolled to bottom of page, load more suggestions
         $(window).scroll(function() {
-            if($(window).scrollTop() + $(window).height() == $(document).height() && self._loadMoreSuggestionsOnBottom) {
+            if ($(window).scrollTop() + $(window).height() == $(document).height() && self._loadMoreSuggestionsOnBottom) {
                 self.replaceSuggestions(self._loadMoreSuggestionsOnBottom, false, true);
             }
         });
@@ -302,7 +304,8 @@ Crazyerics.prototype.StateManager = {
 
     /**
      * A pure reflection of state data returned from the server. Object with slot numbers are properties
-     * @type {
+     * @type {Object}
+     * {
      *       screenshot: {string},
      *       state: {string},
      *       time: {number}
@@ -326,8 +329,8 @@ Crazyerics.prototype.StateManager = {
     },
     /**
      * Given a slot, returns image data
-     * @param  {Number} slot
-     * @return {}   
+     * @param  {number} slot
+     * @return {Object}   
      */
     getScreenshot: function(slot) {
         if (this._data[slot] && this._data[slot].hasOwnProperty('screenshot')) {
@@ -706,7 +709,10 @@ Crazyerics.prototype._bootstrap = function(system, title, file, slot, shader, on
             self._loadShader(shaderselection.shader, shaderReady);
 
             //this call is a POST. Unlike the others, it is destined for the mongo instance. we send user preference data to the server in addition to getting game details.
-            self._loadGameDetails(key, system, title, file, { 'savePreference': shaderselection.savePreference, 'shader': shaderselection.shader }, gameDetailsReady);
+            self._loadGameDetails(key, system, title, file, { 
+                'savePreference': shaderselection.savePreference, 
+                'shader': shaderselection.shader 
+            }, gameDetailsReady);
 
             //when all deffered calls are ready
             $.when(emulatorReady, emulatorSupportReady, gameReady, gameDetailsReady, shaderReady).done(function(emulator, emulatorSupport, loadedgame, gamecontent, shaderResult) {
@@ -746,7 +752,7 @@ Crazyerics.prototype._bootstrap = function(system, title, file, slot, shader, on
                 //date copmany
                 if (info) {
                     var year = info.ReleaseDate ? info.ReleaseDate.match(/(\d{4})/) : [];
-                    $('#gametitlecaption').text((info.Publisher ? info.Publisher : '') + (year.length > 0 ? ', ' + year[0]: ''));
+                    $('#gametitlecaption').text((info.Publisher ? info.Publisher : '') + (year.length > 0 ? ', ' + year[0] : ''));
                 }
 
                 //console.log(self._generateLink(system, title, file));
@@ -1111,6 +1117,11 @@ Crazyerics.prototype._simulateEmulatorKeypress = function(key, keyUpDelay, callb
         return;
     }
 
+    /**
+     * [eventHandler description]
+     * @param  {Object} event
+     * @return {undefined}
+     */
     var eventHandler = function(event) {}; //noop for default, overridden 
 
     //events for emulator 1.0.0
@@ -1142,39 +1153,57 @@ Crazyerics.prototype._simulateEmulatorKeypress = function(key, keyUpDelay, callb
         
         eventHandler = this._Module.JSEvents.crazyericsKeyEventHandler;
 
+        /**
+         * [kp description]
+         * @param  {number} k
+         * @param  {Object} event
+         * @return {undefined}
+         */
         kp = function(k, event) {
-           var oEvent = document.createEvent('KeyboardEvent');
+            var oEvent = document.createEvent('KeyboardEvent');
          
-           // Chromium Hack
-           Object.defineProperty(oEvent, 'keyCode', {
-              get : function() {
-                 return this.keyCodeVal;
-              }
-           });
-           Object.defineProperty(oEvent, 'which', {
-              get : function() {
-                 return this.keyCodeVal;
-              }
-           });
-         
-           if (oEvent.initKeyboardEvent) {
-              oEvent.initKeyboardEvent(event, true, true, document.defaultView, false, false, false, false, k, k);
-           } else {
-              oEvent.initKeyEvent(event, true, true, document.defaultView, false, false, false, false, k, 0);
-           }
-         
-           oEvent.keyCodeVal = k;
-         
-           if (oEvent.keyCode !== k) {
-              alert("keyCode mismatch " + oEvent.keyCode + "(" + oEvent.which + ")");
-           }
-         
-           eventHandler(oEvent);
-           $('#emulator').focus();
-        }
+            // Chromium Hack
+            Object.defineProperty(oEvent, 'keyCode', {
+                
+                /**
+                 * [get description]
+                 * @return {number}
+                 */
+                get: function() {
+                    return this.keyCodeVal;
+                }
+            });
+            Object.defineProperty(oEvent, 'which', {
+                
+                /**
+                 * [get description]
+                 * @return {number}
+                 */
+                get: function() {
+                    return this.keyCodeVal;
+                }
+            });
 
-        kp(key, "keydown");
-        setTimeout(function(){kp(key, "keyup")}, keyUpDelay);
+            if (oEvent.initKeyboardEvent) {
+                oEvent.initKeyboardEvent(event, true, true, document.defaultView, false, false, false, false, k, k);
+            } else {
+                oEvent.initKeyEvent(event, true, true, document.defaultView, false, false, false, false, k, 0);
+            }
+
+            oEvent.keyCodeVal = k;
+
+            if (oEvent.keyCode !== k) {
+                alert('keyCode mismatch ' + oEvent.keyCode + '(' + oEvent.which + ')');
+            }
+         
+            eventHandler(oEvent);
+            $('#emulator').focus();
+        };
+
+        kp(key, 'keydown');
+        setTimeout(function() {
+            kp(key, 'keyup');
+        }, keyUpDelay);
 
     }
 
@@ -1231,6 +1260,12 @@ Crazyerics.prototype._setupEmulatorEventListener = function(system, title, file)
     if (this._Module && this._Module.RI && this._Module.RI.eventHandler) {
 
         var originalHandler = this._Module.RI.eventHandler;
+        
+        /**
+         * [eventHandler description]
+         * @param  {Object} event
+         * @return {undefined}
+         */
         this._Module.RI.eventHandler = function(event) {
             self._emulatorEventListnener(event, 'keyup', originalHandler);
         };
@@ -1239,6 +1274,11 @@ Crazyerics.prototype._setupEmulatorEventListener = function(system, title, file)
     //emulator event handler for 2.0.0 emulators
     if (this._Module && this._Module.JSEvents) {
         
+        /**
+         * [crazyericsEventListener description]
+         * @param  {Object} event
+         * @return {undefined}
+         */
         this._Module.JSEvents.crazyericsEventListener = function(event) {
             self._emulatorEventListnener(event, 'keydown');
         };
@@ -1295,8 +1335,9 @@ Crazyerics.prototype._emulatorEventListnener = function(event, listenType, callb
             }
         break;
     }
-    if (callback)
+    if (callback) {
         callback(event);
+    }
 };
 
 /**
@@ -1373,6 +1414,11 @@ Crazyerics.prototype._loadGame = function(key, system, title, file, deffered) {
         deffered.resolve(null, response);
     };
 
+    /**
+     * set the global jsonpDelegate
+     * @param  {string} response
+     * @return {undefined}
+     */
     jsonpDelegate = function(response) {
 
         var inflated;
@@ -1394,6 +1440,12 @@ Crazyerics.prototype._loadGame = function(key, system, title, file, deffered) {
     });
 };
 
+/**
+ * load a shader from whatever the assetpath is
+ * @param  {string} name
+ * @param  {Object} deffered
+ * @return {undefined}
+ */
 Crazyerics.prototype._loadShader = function(name, deffered) {
 
     var self = this;
@@ -1438,9 +1490,9 @@ Crazyerics.prototype._loadEmulatorSupport = function(system, deffered) {
     var location = self._config.assetpath + '/emulatorsupport/' + system + '.json';
 
     //i know this is a weird construct, but it defaults on systems without support
-    switch(system) {
+    switch (system) {
         case 'segacd':
-            break;
+        break;
         default:
             //system not handled, bail
             deffered.resolve();
@@ -1509,7 +1561,7 @@ Crazyerics.prototype._buildFileSystem = function(Module, system, file, compresse
 
     //games are stored compressed in json. due to javascript string length limits, these can be broken up into several segments for larger files.
     //the compressedGameFiles object contains data for all files and their segments
-    for (gameFile in compressedGameFiles) {
+    for (var gameFile in compressedGameFiles) {
 
         var filename = self._decompress.string(gameFile);
         var compressedGame = compressedGameFiles[gameFile];
@@ -1529,7 +1581,7 @@ Crazyerics.prototype._buildFileSystem = function(Module, system, file, compresse
         var bufferPosition = 0;
 
         for (var i = 0; i < views.length; ++i) {
-            gamedata.set( new Uint8Array(views[i]), bufferPosition);
+            gamedata.set(new Uint8Array(views[i]), bufferPosition);
             bufferPosition += views[i].length;
         }
 
@@ -1543,7 +1595,7 @@ Crazyerics.prototype._buildFileSystem = function(Module, system, file, compresse
 
     //emulator support, will be null if none
     if (supportFiles) {
-        var supportFiles = self._decompress.json(supportFiles);
+        supportFiles = self._decompress.json(supportFiles);
         if (supportFiles && self._FS) {
             for (var supportFile in supportFiles) {
                 var content = self._decompress.bytearray(supportFiles[supportFile]);
@@ -1558,6 +1610,7 @@ Crazyerics.prototype._buildFileSystem = function(Module, system, file, compresse
 
     //shaders
     Module.FS_createFolder('/', 'shaders', true, true);
+    var shaderPresetToLoad = null;
 
     //shader files, will be null if none used
     if (shaderFiles) {
@@ -1565,7 +1618,6 @@ Crazyerics.prototype._buildFileSystem = function(Module, system, file, compresse
 
         //if in coming shader parameter is an object, then it has shader files defined. self._FS is a handle to the
         //module's file system. Yes, the other operations here reference the file system through the Module, you just don't have to anymore!
-        var shaderPresetToLoad = null;
         if (shaderFiles && self._FS) {
 
             for (var shaderfile in shaderFiles) {
@@ -1586,11 +1638,11 @@ Crazyerics.prototype._buildFileSystem = function(Module, system, file, compresse
 
     //config, must be after shader
     //wrap folder creation in catch since error is thrown if exists
-    try { Module.FS_createFolder('/', 'etc', true, true); } catch(e) {}
-    try { Module.FS_createFolder('/', 'home', true, true); } catch(e) {}
-    try { Module.FS_createFolder('/home', 'web_user', true, true); } catch(e) {}
-    try { Module.FS_createFolder('/home/web_user/', 'retroarch', true, true); } catch(e) {}
-    try { Module.FS_createFolder('/home/web_user/retroarch', 'userdata', true, true); } catch(e) {}
+    try { Module.FS_createFolder('/', 'etc', true, true); } catch (e) {}
+    try { Module.FS_createFolder('/', 'home', true, true); } catch (e) {}
+    try { Module.FS_createFolder('/home', 'web_user', true, true); } catch (e) {}
+    try { Module.FS_createFolder('/home/web_user/', 'retroarch', true, true); } catch (e) {}
+    try { Module.FS_createFolder('/home/web_user/retroarch', 'userdata', true, true); } catch (e) {}
 
     if (self._config.retroarch) {
 
@@ -1598,18 +1650,18 @@ Crazyerics.prototype._buildFileSystem = function(Module, system, file, compresse
 
         //system specific overrides
         if (self._config.systemdetails[system] && self._config.systemdetails[system].retroarch) {
-            for (config in self._config.systemdetails[system].retroarch) {
+            for (var config in self._config.systemdetails[system].retroarch) {
                 configToLoad[config] = self._config.systemdetails[system].retroarch[config];
             }
         }
 
         if (shaderPresetToLoad) {
-            configToLoad['video_shader'] = '/shaders/' + shaderPresetToLoad;
+            configToLoad.video_shader = '/shaders/' + shaderPresetToLoad;
         }
 
         //convert json to string delimited list
         var configString = '';
-        for (config in configToLoad) {
+        for (var config in configToLoad) {
             configString +=  config + ' = ' + configToLoad[config] + '\n';
         }
 
@@ -1905,7 +1957,7 @@ Crazyerics.prototype._buildGameLink = function(system, title, file, size, close)
         .on('mouseup', function() {
 
             self._bootstrap(system, title, file);
-            window.scrollTo(0,0);
+            window.scrollTo(0, 0);
         });
     });
 
@@ -2242,4 +2294,6 @@ var crazyerics = new Crazyerics();
  * @param  {Object} response
  * @return {undef}
  */
-var jsonpDelegate, b, c;
+var jsonpDelegate;
+var b;
+var c;
