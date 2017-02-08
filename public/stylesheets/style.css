@@ -542,7 +542,7 @@ p {
 }
 
 #gameloadingoverlaycontentimage img {
-	height: 130px;
+	width: 130px;
 	display: none;
 
 	-webkit-animation-duration: 5s; 

@@ -15,7 +15,7 @@
 			"collection": "GoodVect 1.06",
 			"boxcdnversion": "2.0.4",
 			"romcdnversion": "2.0.2",
-			"emufile": "emulators/2.0.0/vecx_libretro.js",
+			"emufile": "emulators/2.0.1/vecx_libretro.js",
 			"recommendedshaders": []
 		},
 		"a7800": {
@@ -25,7 +25,7 @@
 			"boxcdnversion": "2.0.2",
 			"romcdnversion": "2.0.1",
 			"collection": "Good7800 3.28",
-			"emufile": "emulators/2.0.0/prosystem_libretro.js",
+			"emufile": "emulators/2.0.1/prosystem_libretro.js",
 			"recommendedshaders": []
 		},
 		"gb": {
@@ -100,7 +100,7 @@
 			"boxcdnversion": "2.0.2",
 			"romcdnversion": "2.0.2",
 			"collection": "GoodPCE 1.09a GoodMerged",
-			"emufile": "emulators/2.0.0/mednafen_pce_fast_libretro.js",
+			"emufile": "emulators/2.0.1/mednafen_pce_fast_libretro.js",
 			"recommendedshaders": []
 		},
 		"snes": {
@@ -133,10 +133,10 @@
 		"gen": {
 			"name": "Sega Genesis / Mega Drive",
 			"shortname": "Sega Genesis",
-			"live": false,
-			"boxcdnversion": "2.0.1",
+			"live": true,
+			"boxcdnversion": "2.0.2",
 			"romcdnversion": "2.0.1",
-			"emufile": "emulators/1.0.0/genesis_plus_gx.min.js",
+			"emufile": "emulators/2.0.1/genesis_plus_gx_libretro.js",
 			"recommendedshaders": [
 				{
 					"title": "Vintage Television",
@@ -183,11 +183,11 @@
 		"gg": {
 			"name": "Sega Game Gear",
 			"shortname": "Sega Game Gear",
-			"live": false,
+			"live": true,
 			"collection": "GoodGG 3.20",
-			"boxcdnversion": "2.0.3",
+			"boxcdnversion": "2.0.4",
 			"romcdnversion": "2.0.1",
-			"emufile": "emulators/1.0.0/genesis_plus_gx.min.js",
+			"emufile": "emulators/2.0.1/genesis_plus_gx_libretro.js",
 			"recommendedshaders": [
 				{
 					"title": "Vintage LCD",
@@ -240,7 +240,7 @@
 			"collection":"GoodLynx 2.01",
 			"boxcdnversion": "2.0.2",
 			"romcdnversion": "2.0.1",
-			"emufile": "emulators/2.0.0/handy_libretro.js",
+			"emufile": "emulators/2.0.1/handy_libretro.js",
 			"recommendedshaders": []
 		},
 		"vb": {
@@ -250,7 +250,7 @@
 			"collection": "GoodVBoy 3.1415",
 			"boxcdnversion": "2.0.3",
 			"romcdnversion": "2.0.1",
-			"emufile": "emulators/2.0.0/mednafen_vb_libretro.js",
+			"emufile": "emulators/2.0.1/mednafen_vb_libretro.js",
 			"recommendedshaders": []
 		},
 		"wsx": {
@@ -345,7 +345,13 @@
 		"rewind_enable": true,
 		"input_frame_advance": "nul",
 		"video_force_aspect": true,
-		"video_hard_sync": false
+		"video_hard_sync": false,
+		"video_aspect_ratio": -1,
+		"video_scale": 3,
+		"video_refresh_rate": 59.940060,
+		"video_fullscreen": false,
+		"video_force_aspect": true,
+		"video_windowed_fullscreen": false
 	},
 	"shaders": [
 		"2x2xscalehq",
