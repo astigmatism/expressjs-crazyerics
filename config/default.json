@@ -31,8 +31,8 @@
 		"gb": {
 			"name": "Nintendo Game Boy",
 			"shortname": "Game Boy",
-			"live": false,
-			"boxcdnversion": "2.0.1",
+			"live": true,
+			"boxcdnversion": "2.0.4",
 			"romcdnversion": "2.0.1",
 			"collection": "GoodGBx 3.14",
 			"emufile_": "emulators/2.0.0/gambatte_libretro.js",

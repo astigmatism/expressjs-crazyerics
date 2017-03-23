@@ -332,7 +332,7 @@ Crazyerics.prototype.StateManager = {
      * @param  {number} slot
      * @return {Object}   
      */
-    getScreenshot: function(slot) {
+    getScreenshot: function(system, slot) {
         if (this._data[slot] && this._data[slot].hasOwnProperty('screenshot')) {
             var screenshot = crazyerics._decompress.bytearray(this._data[slot].screenshot);
             var image = crazyerics._buildScreenshot(system, screenshot, 180);
@@ -990,7 +990,7 @@ Crazyerics.prototype._showStateSelect = function(system, title, file, callback) 
         //this is in a closure to preserve the callback parameter over iteration
         (function(slot) {
             var formatteddate = self.StateManager.getDate(slot);
-            var image = self.StateManager.getScreenshot(slot);
+            var image = self.StateManager.getScreenshot(system, slot);
 
             var li = $('<li class="zoom tooltip"></li>')
             .on('mouseup', function() {
