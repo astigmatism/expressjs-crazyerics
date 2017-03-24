@@ -16,6 +16,8 @@ var Main = (function() {
         'Screenshots are deleted when you leave or refresh the page. Download your favorites to keep them!'
     ];
     var preventLoadingGame = false;
+    var preventGamePause = false; //condition for blur event of emulator, sometimes we don't want it to pause when we're giving it back focus
+    var loadMoreSuggestionsOnBottom = null; //loads the url of suggestions to call should the list be extended when the user reachs the page bottom
 
     // instances/libraries
     var _Compression = null;
@@ -25,18 +27,7 @@ var Main = (function() {
     var _Emulator = null;
 
     // public members
-
-    this._Module = null; //handle the emulator Module
-    this._FS = null; //handle to Module file system
-    this._pauseOverride = false; //condition for blur event of emulator, sometimes we don't want it to pause when we're giving it back focus
-    this._activeFile = null;
-    this._loadMoreSuggestionsOnBottom = null; //loads the url of suggestions to call should the list be extended when the user reachs the page bottom
-    this._activeStateSlot = 0;
-    this._saveStateDeffers = {}; //since saving state to server requires both state and screenshot data, setup these deffers since tracking which comes back first is unknown
-    this._keypresslocked = false; //when we're sending a keyboard event to the emulator, we want to wait until that event is complete before any additinal keypresses are made (prevents spamming)
-    this._fileWriteDelay = 500; //in ms. The delay in which the client should respond to a file written by the emulator (sometimes is goes out over the network and we don't want to spam the call)
-    this._fileWriteTimers = {};
-    this._playhistory = {};
+    
     this._macroToShaderMenu = [[112, 100], 40, 40, 40, 88, 88, 40, 40, 40, 37, 37, 37, 38, 88, 88, 90, 90, 38, 38, 38, 112]; //macro opens shader menu and clears all passes
 
     
@@ -54,7 +45,7 @@ var Main = (function() {
         //self._autoCaptureHarness('n64', config.autocapture['n64'].shaders, 7000, 1, 10000);
 
         //unpack playerdata
-        _PlayerData = new PlayerData(clientdata.playerdata); //player data is user specific, can be dynmic
+        _PlayerData = new PlayerData(_Compression, clientdata.playerdata); //player data is user specific, can be dynmic
 
         //incoming params to open game now?
         var openonload = _PlayerData.Get('openonload') || {};
@@ -62,7 +53,7 @@ var Main = (function() {
             RetroArchBootstrap(openonload.system, openonload.title, openonload.file);
         }
 
-        BuildRecentlyPlayed(_PlayerData.Get('playhistory'));
+        BuildRecentlyPlayed(_PlayerData.playHistory);
 
         //build console select for search (had to create a structure to sort by the short name :P)
         var shortnames = [];
@@ -194,49 +185,71 @@ var Main = (function() {
             });
 
         $('#emulatorcontrolswrapper li.fullscreen').click(function() {
-            SimulateEmulatorKeypress(70); // F
+            if (_Emulator) {
+                _Emulator.SimulateEmulatorKeypress(70); // F
+            }
         });
 
         $('#emulatorcontrolswrapper li.savestate').click(function() {
-            SimulateEmulatorKeypress(49); // 1
+            if (_Emulator) {
+                _Emulator.SimulateEmulatorKeypress(49); // 1
+            }
         });
 
         $('#emulatorcontrolswrapper li.loadstate').click(function() {
-            SimulateEmulatorKeypress(52); // 4
+            if (_Emulator) {
+                _Emulator.SimulateEmulatorKeypress(52); // 4
+            }
         });
 
         $('#emulatorcontrolswrapper li.mute').click(function() {
-            SimulateEmulatorKeypress(77); // M
+            if (_Emulator) {
+                _Emulator.SimulateEmulatorKeypress(77); // M
+            }
         });
 
         $('#emulatorcontrolswrapper li.decrementslot').click(function() {
-            SimulateEmulatorKeypress(50); // 2
+            if (_Emulator) {
+                _Emulator.SimulateEmulatorKeypress(50); // 2
+            }
         });
 
         $('#emulatorcontrolswrapper li.incrementslot').click(function() {
-            SimulateEmulatorKeypress(51); // 3
+            if (_Emulator) {
+                _Emulator.SimulateEmulatorKeypress(51); // 3
+            }
         });
 
         $('#emulatorcontrolswrapper li.fastforward').click(function() {
-            SimulateEmulatorKeypress(32); // Space
+            if (_Emulator) {
+                _Emulator.SimulateEmulatorKeypress(32); // Space
+            }
         });
 
         $('#emulatorcontrolswrapper li.pause').click(function() {
-            SimulateEmulatorKeypress(80); // P
+            if (_Emulator) {
+                _Emulator.SimulateEmulatorKeypress(80); // P
+            }
         });
 
         $('#emulatorcontrolswrapper li.reset').click(function() {
-            SimulateEmulatorKeypress(72); // H
+            if (_Emulator) {
+                _Emulator.SimulateEmulatorKeypress(72); // H
+            }
         });
 
         $('#emulatorcontrolswrapper li.rewind').click(function() {
-            SimulateEmulatorKeypress(82, 5000); // R
+            if (_Emulator) {
+                _Emulator.SimulateEmulatorKeypress(82, 5000); // R
+            }
         });
 
         //when user has scrolled to bottom of page, load more suggestions
         $(window).scroll(function() {
-            if ($(window).scrollTop() + $(window).height() == $(document).height() && self._loadMoreSuggestionsOnBottom) {
-                ReplaceSuggestions(self._loadMoreSuggestionsOnBottom, false, true);
+            if ($(window).scrollTo) {
+                if ($(window).scrollTo() + $(window).height() == $(document).height() && loadMoreSuggestionsOnBottom) {
+                    ReplaceSuggestions(loadMoreSuggestionsOnBottom, false, true);
+                }
             }
         });
 
@@ -268,8 +281,7 @@ var Main = (function() {
      */
     var ReplaceSuggestions = function(url, remove, loadMore) {
 
-
-        self._loadMoreSuggestionsOnBottom = loadMore ? url : null;
+        loadMoreSuggestionsOnBottom = loadMore ? url : null;
 
         //reset dial
         $('.dial').val(0).trigger('change');
@@ -330,14 +342,14 @@ var Main = (function() {
      */
     var RetroArchBootstrap = function(system, title, file, slot, shader, onStart) {
 
-        var key = _Compression.In.gamekey(system, title, file); //create key for anything that might need it
-
         //bail if attempted to load before current has finished
         if (preventLoadingGame) {
             return;
         }
         preventLoadingGame = true;
-        self._pauseOverride = false;
+        preventGamePause = false;
+
+        var key = _Compression.In.gamekey(system, title, file); //create key for anything that might need it
 
         //fade out content
         $('#gamedetailsboxfront img').addClass('close');
@@ -367,33 +379,27 @@ var Main = (function() {
         //this used to be a callback for the previous call but since its possible for the loading overlay to aready be faded in, we still want to preserve this delay
         setTimeout(function() {
 
-            if (_Emulator !== null) {
+            //close any sliders
+            _Sliders.Closeall();
+
+            if (_Emulator) {
                 _Emulator.CleanUp();
             }
 
             //create new emulator instance
-            _Emulator = new Emulator(key);
-
-            //cleanup previous play
-            CleanupEmulator();
-
-            //close any sliders
-            _Sliders.Closeall();
-
-            preventLoadingGame = false; //during shader select, allow other games to load
+            _Emulator = new Emulator(_Compression, config, system, title, file, key);
 
             // all deferres defined for separate network dependancies
-            var emulatorReady = $.Deferred();
-            var emulatorSupportReady = $.Deferred();
-            var gameReady = $.Deferred();
-            var gameDetailsReady = $.Deferred();
-            var shaderReady = $.Deferred();
+            var emulatorLoadComplete = $.Deferred();
+            var savePreferencesAndGetPlayerGameDetailsComplete = $.Deferred();
 
             //create new canvas (canvas must exist before call to get emulator (expects to find it right away))
             $('#emulatorcanvas').append('<canvas tabindex="0" id="emulator" oncontextmenu="event.preventDefault()"></canvas>');
 
             //fix text on shader screen
             $('#systemshaderseletorwrapper span').text(config.systemdetails[system].shortname);
+
+            preventLoadingGame = false; //during shader select, allow other games to load
 
             //show shader selector. returns an object with shader details
             ShowShaderSelection(system, shader, function(shaderselection) {
@@ -413,7 +419,7 @@ var Main = (function() {
                 //show tips on loading
                 var tipInterval = setInterval(function() {
                     $('#tip').fadeOut(500, function() {
-                        var tip = Crazyerics.prototype._tips[Math.floor(Math.random() * Crazyerics.prototype._tips.length)];
+                        var tip = tips[Math.floor(Math.random() * tips.length)];
 
                         if (!$('#gameloadingoverlay').is(':animated')) {
                             $('#tip').empty().append('Tip: ' + tip).fadeIn(500);
@@ -424,49 +430,29 @@ var Main = (function() {
                 //begin loading all content. I know it seems like some of these (game, emulator, etc) could load while the user
                 //is viewing the shader select, but I found that when treated as background tasks, it interfere with the performance
                 //of the shader selection ui. I think its best to wait until the loading animation is up to perform all of these:
-                Loademulator(system, emulatorReady);
-                LoadEmulatorSupport(system, emulatorSupportReady);
-                LoadGame(key, system, title, file, gameReady);
-                LoadShader(shaderselection.shader, shaderReady);
+                // Loademulator(system, emulatorReady);
+                // LoadEmulatorSupport(system, emulatorSupportReady);
+                // LoadGame(key, system, title, file, gameReady);
+                // LoadShader(shaderselection.shader, shaderReady);
+                _Emulator.Load(shaderselection.shader, emulatorLoadComplete);
 
-                //this call is a POST. Unlike the others, it is destined for the mongo instance. we send user preference data to the server in addition to getting game details.
-                LoadGameDetails(key, system, title, file, { 
+                //this call is a POST. Unlike the others, it is destined for the mongo instance (MY DOMAIN not a cdn). we send user preference data to the server in addition to getting game details.
+                SavePreferencesAndGetPlayerGameDetails(key, system, title, file, { 
                     'savePreference': shaderselection.savePreference, 
                     'shader': shaderselection.shader 
-                }, gameDetailsReady);
+                }, savePreferencesAndGetPlayerGameDetailsComplete);
 
                 //when all deffered calls are ready
-                $.when(emulatorReady, emulatorSupportReady, gameReady, gameDetailsReady, shaderReady).done(function(emulator, emulatorSupport, loadedgame, gamecontent, shaderResult) {
-
-                    var Module = emulator[0];
-                    var fs = emulator[1];
-                    var frame = emulator[2];
-
-                    //emulator support response
-                    var supportData = (emulatorSupport && emulatorSupport[1]) ? emulatorSupport[1] : null; //if not defined, no emulator support
-
-                    //LoadGame response
-                    var err = loadedgame[0];
-                    var gamedata = loadedgame[1]; //compressed game data
+                $.when(emulatorLoadComplete, savePreferencesAndGetPlayerGameDetailsComplete).done(function(emulatorLoaded, compressedGameDetails) {
 
                     //decompress game details here since we need state data for selection
-                    gamecontent = _Compression.Out.json(gamecontent);
-                    var states = gamecontent.states;
-                    var files = gamecontent.files;
-                    var info = gamecontent.info;
+                    var gameDetails = _Compression.Out.json(compressedGameDetails);
+                    var states = gameDetails.states;
+                    var files = gameDetails.files;
+                    var info = gameDetails.info;
 
                     //initialize the game state manager
-                    _StateManager = new State(gamecontent.states);
-                    
-                    //shader data is compressed from server, unpack later
-                    var shaderData = (shaderResult && shaderResult[1]) ? shaderResult[1] : null; //if not defined, not shader used
-
-                    self._Module = Module; //handle to Module
-                    self._FS = fs;
-                    self.emulatorframe = frame; //handle to iframe
-
-                    //emulator always starts with state slot 0
-                    self._activeStateSlot = 0;
+                    _StateManager = new State(states);
 
                     $('#emulatorcontrolswrapper').show(); //show controls tool bar (still has closed class applied)
 
@@ -478,18 +464,9 @@ var Main = (function() {
 
                     //all the file decompression takes place in this call, better here once all the defferes are complete. 
                     //I was seeing a freezing issue when decompression was taking place while the shader selection screen was up
-                    BuildLocalFileSystem(Module, system, file, gamedata, shaderData, supportData); //write to emulator file system. this is synconous since the fs is emulated in js
+                    _Emulator.WriteStateData(_StateManager.GetSavedSlots());
 
-                    /**
-                     * register a callback function when the emulator saves a file
-                     * @param  {string} filename
-                     * @param  {UInt8Array} contents
-                     * @return {undef}
-                     */
-                    Module.emulatorFileWritten = function(filename, contents) {
-                        EmulatorFileWriteListener(key, system, title, file, filename, contents);
-                    };
-
+                    //after emu file setup and before state selector
                     setTimeout(function() {
 
                         //close loading screen and tips
@@ -505,7 +482,7 @@ var Main = (function() {
                             preventLoadingGame = true;
 
                             //begin game
-                            Module.callMain(Module.arguments);
+                            _Emulator.BeginGame();
 
                             if (onStart) {
                                 onStart();
@@ -522,7 +499,8 @@ var Main = (function() {
                                 });
 
                                 //this estimate is made knowing 1) the canvas will scale the width of the main content area and have about 2px of padding
-                                var canvasHeightEstimate = (($('#maincolumn').width() / Module.canvas.width) * Module.canvas.height) + 20;
+                                var canvasDimensions = _Emulator.GetCanvasDimensions();
+                                var canvasHeightEstimate = (($('#maincolumn').width() / canvasDimensions.width) * canvasDimensions.height) + 20;
 
                                 //enlarge pregame background to hold emulator
                                 $('#pregamebackground').animate({height: canvasHeightEstimate}, function() {
@@ -547,13 +525,13 @@ var Main = (function() {
                                     //assign focus to emulator canvas
                                     $('#emulator')
                                         .blur(function(event) {
-                                            if (!self._pauseOverride) {
-                                                Module.pauseMainLoop();
+                                            if (!preventGamePause) {
+                                                _Emulator.PauseGame();
                                                 $('#emulatorwrapperoverlay').fadeIn();
                                             }
                                         })
                                         .focus(function() {
-                                            Module.resumeMainLoop();
+                                            _Emulator.ResumeGame();
                                             $('#emulatorwrapperoverlay').hide();
                                         })
                                         .focus();
@@ -565,23 +543,16 @@ var Main = (function() {
                             // we need to handle mulitple keypresses asyncrounsly to ensure the emulator recieved input
                             if (slot) {
 
-                                AsyncLoop(parseInt(slot, 10), function(loop) {
-
-                                    //simulate increasing state slot (will also set self._activeStateSlot)
-                                    SimulateEmulatorKeypress(51, 10, function() {
-                                        loop.next();
-                                    });
-
-                                }, function() {
-                                    SimulateEmulatorKeypress(52); //4 load state
+                                _Emulator.LoadState(slot, function() {
                                     removeVail();
                                 });
+
                             } else {
                                 removeVail();
                             }
 
                         });
-                    }, 3000); //after emu file setup and before state selector
+                    }, 3000);
                 });
             });
         }, 1000);
@@ -782,149 +753,6 @@ var Main = (function() {
     };
 
     /**
-     * handle removing the emulator frame from view and all bound events
-     * @return {undef}
-     */
-    var CleanupEmulator = function() {
-
-
-        //since each Module attached an event to the parent document, we need to clean those up too:
-        $(document).unbind('fullscreenchange');
-        $(document).unbind('mozfullscreenchange');
-        $(document).unbind('webkitfullscreenchange');
-        $(document).unbind('pointerlockchange');
-        $(document).unbind('mozpointerlockchange');
-        $(document).unbind('webkitpointerlockchange');
-
-        if (self._FS) {
-            self._FS = null;
-        }
-
-        if (self._Module) {
-            try {
-                self._Module.exit(); //calls exit on emulator ending loop (just to be safe)
-            } catch (e) {
-
-            }
-            self._Module = null;
-        }
-        if (self.emulatorframe) {
-            self.emulatorframe.remove();
-            self.emulatorframe = null;
-        }
-        $('#emulator').remove(); //kill all events attached (keyboard, focus, etc)
-    };
-
-    /**
-     * simulator keypress on emulator. used to allow interaction of dom elements
-     * @param  {number} key ascii key code
-     * @param {number} keyUpDelay the time delay (in ms) the key will be in the down position before lift
-     * @return {undef}
-     */
-    var SimulateEmulatorKeypress = function(key, keyUpDelay, callback) {
-
-        keyUpDelay = keyUpDelay || 10;
-
-        //bail if in operation
-        if (self._keypresslocked) {
-            return;
-        }
-
-        /**
-         * [eventHandler description]
-         * @param  {Object} event
-         * @return {undefined}
-         */
-        var eventHandler = function(event) {}; //noop for default, overridden 
-
-        //events for emulator 1.0.0
-        if (this._Module && this._Module.RI && this._Module.RI.eventHandler) {
-            eventHandler = this._Module.RI.eventHandler;
-
-            self._keypresslocked = true;
-            var e;
-            e = $.Event('keydown');
-            e.keyCode = key;
-            e.which = key;
-            eventHandler(e); //dispatch keydown
-            setTimeout(function() {
-                e = $.Event('keyup');
-                e.keyCode = key;
-                e.which = key;
-                eventHandler(e); //after wait, dispatch keyup
-                setTimeout(function() {
-                    self._keypresslocked = false;
-                    if (callback) {
-                        callback();
-                    }
-                }, 100);
-            }, keyUpDelay);
-        }
-        
-        //events for emulator 2.0.0
-        else if (this._Module && this._Module.JSEvents && this._Module.JSEvents.crazyericsKeyEventHandler) {
-            
-            eventHandler = this._Module.JSEvents.crazyericsKeyEventHandler;
-
-            /**
-             * [kp description]
-             * @param  {number} k
-             * @param  {Object} event
-             * @return {undefined}
-             */
-            kp = function(k, event) {
-                var oEvent = document.createEvent('KeyboardEvent');
-             
-                // Chromium Hack
-                Object.defineProperty(oEvent, 'keyCode', {
-                    
-                    /**
-                     * [get description]
-                     * @return {number}
-                     */
-                    get: function() {
-                        return this.keyCodeVal;
-                    }
-                });
-                Object.defineProperty(oEvent, 'which', {
-                    
-                    /**
-                     * [get description]
-                     * @return {number}
-                     */
-                    get: function() {
-                        return this.keyCodeVal;
-                    }
-                });
-
-                if (oEvent.initKeyboardEvent) {
-                    oEvent.initKeyboardEvent(event, true, true, document.defaultView, false, false, false, false, k, k);
-                } else {
-                    oEvent.initKeyEvent(event, true, true, document.defaultView, false, false, false, false, k, 0);
-                }
-
-                oEvent.keyCodeVal = k;
-
-                if (oEvent.keyCode !== k) {
-                    alert('keyCode mismatch ' + oEvent.keyCode + '(' + oEvent.which + ')');
-                }
-             
-                eventHandler(oEvent);
-                $('#emulator').focus();
-            };
-
-            kp(key, 'keydown');
-            setTimeout(function() {
-                kp(key, 'keyup');
-            }, keyUpDelay);
-
-        }
-
-        $('#emulator').focus();
-        
-    };
-
-    /**
      * Runs a series of keyboard instructions by keycode with optional delays between keystrokes
      * @param  {Object|Array}   instructions
      * @param  {Function} callback
@@ -952,274 +780,8 @@ var Main = (function() {
             }
         }
 
-        SimulateEmulatorKeypress(keycode, 1, function() {
+        _Emulator.SimulateEmulatorKeypress(keycode, 1, function() {
             runKeyboardMacro(instructions.slice(1), callback);
-        });
-    };
-
-    /**
-     * listens to all events coming from emulator
-     * @param  {string} system
-     * @param  {string} title
-     * @param  {string} file
-     * @return {undef}
-     */
-    var SetupEmulatorEventListener = function(system, title, file) {
-
-
-        //emulator event handler for 1.0.0 emulators
-        if (this._Module && this._Module.RI && this._Module.RI.eventHandler) {
-
-            var originalHandler = this._Module.RI.eventHandler;
-            
-            /**
-             * [eventHandler description]
-             * @param  {Object} event
-             * @return {undefined}
-             */
-            this._Module.RI.eventHandler = function(event) {
-                EmulatorEventListnener(event, 'keyup', originalHandler);
-            };
-        } 
-
-        //emulator event handler for 2.0.0 emulators
-        if (this._Module && this._Module.JSEvents) {
-            
-            /**
-             * [crazyericsEventListener description]
-             * @param  {Object} event
-             * @return {undefined}
-             */
-            this._Module.JSEvents.crazyericsEventListener = function(event) {
-                EmulatorEventListnener(event, 'keydown');
-            };
-        }
-    };
-
-    /**
-     * Function which handles events coming from emulator file.
-     * @param  {event}   event      
-     * @param  {string}   listenType 2.0.0 respond to keydown, 1.0.0 to keyup
-     * @param  {Function} callback   optional
-     * @return {undefined}              
-     */
-    var EmulatorEventListnener = function(event, listenType, callback) {
-
-
-        switch (event.type) {
-            case listenType:
-                var key = event.keyCode;
-                switch (key) {
-                    case 70: // F - fullscreen
-                        self._Module.requestFullScreen(true, true);
-                        $('#emulator').focus();
-                    break;
-                    case 49: //1 - save state
-                        //setup deffered call to save state to server, need callbacks from state file and screenshot capture
-                        self._saveStateDeffers.state = $.Deferred();
-                        self._saveStateDeffers.screen = $.Deferred();
-
-                        //use a timeout to clear deffers incase one of them never comes back, 1 sec is plenty. i see this return in about 50ms generally
-                        var clearStateDeffers = setTimeout(function() {
-                            self._saveStateDeffers = {};
-                        }, 1000);
-
-                        $.when(self._saveStateDeffers.state, self._saveStateDeffers.screen).done(function(statedetails, screendetails) {
-
-                            clearTimeout(clearStateDeffers); //clear timeout from erasing deffers
-                            self._saveStateDeffers = {}; //do the clear ourselves
-
-                            _StateManager.SaveStateToServer(statedetails, screendetails);
-                        });
-                        SimulateEmulatorKeypress(84); //initiaze screenshot after its defer is in place.
-                    break;
-                    case 50: //2 - state slot decrease
-                        self._activeStateSlot--;
-                        if (self._activeStateSlot < 0) {
-                            self._activeStateSlot = 0;
-                        }
-                    break;
-                    case 51: //3 - state slot increase
-                        self._activeStateSlot++;
-                    break;
-                }
-            break;
-        }
-        if (callback) {
-            callback(event);
-        }
-    };
-
-    /**
-     * ajax call to load layout and script of emulator and load it within frame, resolves deffered when loaded
-     * @param  {string} system
-     * @param  {Object} deffered
-     * @return {undef}
-     */
-    var Loademulator = function(system, deffered) {
-
-        var frame  = $('<iframe/>', {
-            src: '/load/emulator/' + system, //loads view code
-            style: 'display:none',
-
-            /**
-             * on frame load
-             * @return {undef}
-             */
-            load: function() {
-
-                //find module to run games
-                var FS = this.contentWindow.FS;
-                var Module = this.contentWindow.Module;
-
-                /**
-                 * override the monitorRunDependencies function for use with emulator loading
-                 * @param  {number} left
-                 * @return {undef}
-                 */
-                Module.monitorRunDependencies = function(left) {
-                    if (left === 0) {
-                        deffered.resolve(Module, FS, frame);
-                    }
-                };
-
-                if (Module.totalDependencies === 0) {
-                    deffered.resolve(Module, FS, frame);
-                }
-            }
-        });
-        $('body').append(frame);
-    };
-
-    /**
-     * load rom file from whatever is defined in the config "rompath" (CDN/crossdomain or local). will come in as compressed string. after unpacked will resolve deffered. loads concurrently with emulator
-     * @param  {string} system
-     * @param  {string} title
-     * @param  {string} file
-     * @param  {Object} deffered
-     * @return {undef}
-     */
-    var LoadGame = function(key, system, title, file, deffered) {
-
-        var location = config.rompath + '/' + system + '/' + config.systemdetails[system].romcdnversion + '/';
-        var flattened = config.flattenedromfiles;
-
-        //if rom struture is flattened, this means that all rom files have been converted to single json files
-        if (flattened) {
-
-            var filename = _Compression.In.string(title + file);
-            //location += '/' + system + '/a.json'; //encode twice: once for the trip, the second because the files are saved that way on the CDN
-            location += encodeURIComponent(encodeURIComponent(filename)) + '.json'; //encode twice: once for the trip, the second because the files are saved that way on the CDN
-        } else {
-            location += title + '/' + file;
-        }
-
-        /**
-         * This jsonp response handling is specific for return gamedata, we'll decompress it later
-         * @param  {Array} response  compressed file segments
-         * @return {undef}
-         */
-        a = function(response) {
-            deffered.resolve(null, response);
-        };
-
-        /**
-         * set the global jsonpDelegate
-         * @param  {string} response
-         * @return {undefined}
-         */
-        jsonpDelegate = function(response) {
-
-            var inflated;
-            try {
-                var decompressed = _Compression.Out.string(response);
-                inflated = pako.inflate(decompressed); //inflate compressed file contents (pako deflated to string in file on CDN)
-            } catch (e) {
-                deffered.resolve(e);
-                return;
-            }
-            deffered.resolve(null, inflated);
-        };
-
-        //very important that this is a jsonp call - works around xdomain call to google drive
-        $.ajax({
-            url: location,
-            type: 'GET',
-            dataType: 'jsonp'
-        });
-    };
-
-    /**
-     * load a shader from whatever the assetpath is
-     * @param  {string} name
-     * @param  {Object} deffered
-     * @return {undefined}
-     */
-    var LoadShader = function(name, deffered) {
-
-        var location = config.assetpath + '/shaders';
-
-        if (name) {
-            location += '/' + name + '.json';
-        } else {
-            //no shader to load, resolve deffered
-            deffered.resolve();
-            return;
-        }
-
-        /**
-         * This jsonp handler is specific for shader details
-         * @param  {string} response
-         * @return {undef}
-         */
-        b = function(response) {
-            deffered.resolve(null, response);
-        };
-
-        //very important that this is a jsonp call - works around xdomain call to google drive
-        $.ajax({
-            url: location,
-            type: 'GET',
-            dataType: 'jsonp'
-        });
-    };
-
-    /**
-     * Emulator support is any additional resources required by the emulator needed for play
-     * This isnt included in the LoadEmulator call because sometimes support files are needed for an emulator
-     * which can play several systems (Sega CD, support needed, Genesis, no support)
-     * @param  {string} system
-     * @param  {Object} deffered
-     * @return {undef}
-     */
-    var LoadEmulatorSupport = function(system, deffered) {
-
-        var location = config.assetpath + '/emulatorsupport/' + system + '.json';
-
-        //i know this is a weird construct, but it defaults on systems without support
-        switch (system) {
-            case 'segacd':
-            break;
-            default:
-                //system not handled, bail
-                deffered.resolve();
-                return;
-        }
-
-        /**
-         * This jsonp response handler is specific for returning compressed emulator support files
-         * @param  {strin} response compressed string
-         * @return {undef}
-         */
-        c = function(response) {
-            deffered.resolve(null, response);
-        };
-
-        //very important that this is a jsonp call - works around xdomain call to google drive
-        $.ajax({
-            url: location,
-            type: 'GET',
-            dataType: 'jsonp'
         });
     };
 
@@ -1232,7 +794,7 @@ var Main = (function() {
      * @param  {Object} deffered
      * @return {undef}
      */
-    var LoadGameDetails = function(key, system, title, file, options, deffered) {
+    var SavePreferencesAndGetPlayerGameDetails = function(key, system, title, file, options, deffered) {
 
 
         //call returns not only states but misc game details. I tried to make this
@@ -1248,207 +810,6 @@ var Main = (function() {
 
             deffered.resolve(data);
         });
-    };
-
-    /**
-     * Once Module has loaded with its own file system, populate ir with config and rom file
-     * @param  {Object} Module
-     * @param  {string} system
-     * @param  {string} file
-     * @param  {string} data
-     * @param  {Object} shader
-     * @return {undef}
-     */
-    var BuildLocalFileSystem = function(Module, system, file, compressedGameFiles, shaderFiles, supportFiles) {
-
-        var i;
-        var content;
-
-        Module.FS_createFolder('/', 'games', true, true);
-
-        //games are stored compressed in json. due to javascript string length limits, these can be broken up into several segments for larger files.
-        //the compressedGameFiles object contains data for all files and their segments
-        for (var gameFile in compressedGameFiles) {
-
-            var filename = _Compression.Out.string(gameFile);
-            var compressedGame = compressedGameFiles[gameFile];
-            var views = [];
-            var bufferLength = 0;
-
-            //begin by decopressing all compressed file segments
-            for (i = 0; i < compressedGame.length; ++i) {
-                var decompressed = _Compression.Out.string(compressedGame[i]);
-                var view = pako.inflate(decompressed); //inflate compressed file contents (Uint8Array)
-                bufferLength += view.length;
-                views[i] = view;
-            }
-
-            //let's combine all file segments now by writing a new uint8array
-            var gamedata = new Uint8Array(bufferLength);
-            var bufferPosition = 0;
-
-            for (i = 0; i < views.length; ++i) {
-                gamedata.set(new Uint8Array(views[i]), bufferPosition);
-                bufferPosition += views[i].length;
-            }
-
-            //write uncompressed game data to emu file system
-            Module.FS_createDataFile('/games', filename, gamedata, true, true);
-        }
-
-        //set the start file
-        Module.arguments = ['-v', '-f', '/games/' + file];
-        //Module.arguments = ['-v', '--menu'];
-
-        //emulator support, will be null if none
-        if (supportFiles) {
-            supportFiles = _Compression.Out.json(supportFiles);
-            if (supportFiles && self._FS) {
-                for (var supportFile in supportFiles) {
-                    content = _Compression.Out.bytearray(supportFiles[supportFile]);
-                    try {
-                        self._FS.createDataFile('/', supportFile, content, true, true);
-                    } catch (e) {
-                        //an error on file write.
-                    }
-                }
-            }
-        }
-
-        //shaders
-        Module.FS_createFolder('/', 'shaders', true, true);
-        var shaderPresetToLoad = null;
-
-        //shader files, will be null if none used
-        if (shaderFiles) {
-            shaderFiles = _Compression.Out.json(shaderFiles); //decompress shader files to json object of file names and data
-
-            //if in coming shader parameter is an object, then it has shader files defined. self._FS is a handle to the
-            //module's file system. Yes, the other operations here reference the file system through the Module, you just don't have to anymore!
-            if (shaderFiles && self._FS) {
-
-                for (var shaderfile in shaderFiles) {
-                    content = _Compression.Out.bytearray(shaderFiles[shaderfile]);
-                    try {
-                        self._FS.createDataFile('/shaders', shaderfile, content, true, true);
-                    } catch (e) {
-                        //an error on file write.
-                    }
-
-                    //is file preset? if so, save to define in config for auto load
-                    if (shaderfile.match(/\.glslp$/g)) {
-                        shaderPresetToLoad = shaderfile;
-                    }
-                }
-            }
-        }
-
-        //config, must be after shader
-        //wrap folder creation in catch since error is thrown if exists
-        try { Module.FS_createFolder('/', 'etc', true, true); } catch (e) {}
-        try { Module.FS_createFolder('/', 'home', true, true); } catch (e) {}
-        try { Module.FS_createFolder('/home', 'web_user', true, true); } catch (e) {}
-        try { Module.FS_createFolder('/home/web_user/', 'retroarch', true, true); } catch (e) {}
-        try { Module.FS_createFolder('/home/web_user/retroarch', 'userdata', true, true); } catch (e) {}
-
-        if (config.retroarch) {
-
-            var retroArchConfig = config.retroarch; //in json
-            var configItem;
-
-            //system specific overrides
-            if (config.systemdetails[system] && config.systemdetails[system].retroarch) {
-                for (configItem in config.systemdetails[system].retroarch) {
-                    retroArchConfig[configItem] = config.systemdetails[system].retroarch[configItem];
-                }
-            }
-
-            if (shaderPresetToLoad) {
-                retroArchConfig.video_shader = '/shaders/' + shaderPresetToLoad;
-            }
-
-            //convert json to string delimited list
-            var configString = '';
-            for (configItem in retroArchConfig) {
-                configString +=  configItem + ' = ' + retroArchConfig[configItem] + '\n';
-            }
-
-            //write to both locations since we could be using older or newer emulators
-            Module.FS_createDataFile('/home/web_user/retroarch/userdata', 'retroarch.cfg', configString, true, true);
-            Module.FS_createDataFile('/etc', 'retroarch.cfg', configString, true, true);
-        }
-
-        //screenshots
-        Module.FS_createFolder('/', 'screenshots', true, true);
-
-        //states
-        Module.FS_createFolder('/', 'states', true, true);
-        
-        var slots = _StateManager.GetSavedSlots();
-        i = slots.length;
-
-        while (i--) {
-            var filenoextension = file.replace(new RegExp('\.[a-z0-9]{1,3}$', 'gi'), '');
-            var statefilename = '/' + filenoextension + '.state' + (slots[i] == 0 ? '' : slots[i]);
-            var statedata = _StateManager.GetState(slots[i]);
-            Module.FS_createDataFile('/states', statefilename, statedata, true, true);
-        }
-    };
-
-    /**
-     * this function is registered with the emulator when a file is written.
-     * @param  {string} key      unique game key, used to save state
-     * @param  {string} system
-     * @param  {string} title
-     * @param  {string} file
-     * @param  {string} filename the file name being saved by the emulator
-     * @param  {UInt8Array} contents the contents of the file saved by the emulator
-     * @return {undef}
-     */
-    var EmulatorFileWritten = function(key, system, title, file, filename, contents) {
-
-        var statematch = filename.match(/\.state(\d*)$/); //match .state or .statex where x is a digit
-        var screenshotmatch = filename.match(/\.bmp$|\.png$/);
-
-        // match will return an array when match was successful, our capture group with the slot value, its 1 index
-        if (statematch) {
-
-            var slot = statematch[1] === '' ? 0 : statematch[1]; //the 0 state does not use a digit
-            var data = _Compression.In.bytearray(contents);
-
-            //if a deffered is setup for recieveing save state data, call it. otherwise, throw this state away (should never happen though!)
-            if (self._saveStateDeffers.hasOwnProperty('state')) {
-                self._saveStateDeffers.state.resolve(key, system, title, file, slot, data);
-            }
-
-            return;
-        }
-
-        if (screenshotmatch) {
-
-            //construct image into blob for use
-            var arrayBufferView = new Uint8Array(contents);
-
-            //if a deffered from save state exists, use this screenshot for it and return
-            if (self._saveStateDeffers.hasOwnProperty('screen')) {
-                self._saveStateDeffers.screen.resolve(arrayBufferView);
-                return;
-            }
-
-            $('p.screenshothelper').remove(); //remove helper text
-
-            var width = $('#screenshotsslider div.slidercontainer').width() / 3; //550px is the size of the panel, the second number is how many screens to want to show per line
-            var img = BuildScreenshot(system, arrayBufferView, width);
-
-            $(img).addClass('close').load(function() {
-                $(this).removeClass('close');
-            });
-            var a = $('<a class="screenshotthumb" href="' + img.src + '" download="' + title + '-' + filename + '"></a>'); //html 5 spec downloads image
-            a.append(img).insertAfter('#screenshotsslider p');
-
-            //kick open the screenshot slider
-            _Sliders.Open('screenshotsslider', true);
-        }
     };
 
     /**
@@ -1484,47 +845,18 @@ var Main = (function() {
     };
 
     /**
-     * for screenshots, the emulator simply dumps the video buffer into a file 8 bytes at a time calling the write function
-     * with each segment in the buffer. it doesn't seem to trigger a "file closed" or "finished writing file" notification.
-     * To get around this, I'll use timers to understand when a file was essentially finished being written to.
-     * @param  {string} key      unique game key, used to save state
-     * @param  {string} system
-     * @param  {string} title
-     * @param  {string} file
-     * @param  {string} filename the file name being saved by the emulator
-     * @param  {UInt8Array} contents the contents of the file saved by the emulator
-     * @return {undef}
-     */
-    var EmulatorFileWriteListener = function(key, system, title, file, filename, contents) {
-
-
-        //clear timer if exists
-        if (self._fileWriteTimers.hasOwnProperty(filename)) {
-            clearTimeout(self._fileWriteTimers[filename]);
-        }
-
-        //write new timer
-        self._fileWriteTimers[filename] = setTimeout(function() {
-
-            //if timer runs out before being cleared again, delete it and call file written function
-            delete self._fileWriteTimers[filename];
-            EmulatorFileWritten(key, system, title, file, filename, contents);
-        }, self._fileWriteDelay);
-    };
-
-    /**
      * on page load, build the recently played content area from clientdata passed from server
      * @param  {Object} clientdata
      * @param  {number} maximum        //no used at the moment since we want to show the entire play history and let the user delete what they don't want to see
      * @return {undef}
      */
-    var BuildRecentlyPlayed = function(clientdata, maximum) {
+    var BuildRecentlyPlayed = function(playHistory, maximum) {
 
-        for (var game in clientdata) {
-            AddToPlayHistory(game, clientdata[game].system, clientdata[game].title, clientdata[game].file, clientdata[game].played, clientdata[game].slots);
+        for (var game in playHistory) {
+            AddToPlayHistory(game, playHistory[game].system, playHistory[game].title, playHistory[game].file, playHistory[game].played, playHistory[game].slots);
         }
 
-        if ($.isEmptyObject(clientdata)) {
+        if ($.isEmptyObject(playHistory)) {
             $('#startfirst').animate({height: 'toggle', opacity: 'toggle'}, 500);
         } else {
             $('#startplayed').animate({height: 'toggle', opacity: 'toggle'}, 500);
@@ -1543,94 +875,80 @@ var Main = (function() {
     var AddToPlayHistory = function(key, system, title, file, played, slots) {
 
         var slot;
+        
+        var existsInHistory = _PlayerData.AddToPlayHistory(key, system, title, file, played, slots); //will add or update an existing game
 
-        //handling dupes will be a common function, replace the date and handle the states slots
-        if (key in self._playhistory) {
-            self._playhistory[key].played = Date.now();
-            toolTips();
-            return;
-        }
+        if (!existsInHistory) {
 
-        //not a dupe, let's create a new play histry game
+            var gamelink = BuildGameLink(system, title, file, 120, true); //get a game link
 
-        var gamelink = BuildGameLink(system, title, file, 120, true); //get a game link
+            gamelink.li.addClass('close');
 
-        gamelink.li.addClass('close');
+            gamelink.img.load(function() {
+                gamelink.li.removeClass('close');
+            });
 
-        gamelink.img.load(function() {
-            gamelink.li.removeClass('close');
-        });
+            //the remove link will delete the game from play history and any saved states
+            gamelink.remove
+            .addClass('tooltip')
+            .attr('title', 'Remove this game and all saved progress')
+            .on('click', function() {
+                gamelink.li.addClass('slideup');
+                $.ajax({
+                    url: '/states/delete?key=' + encodeURIComponent(key),
+                    type: 'DELETE',
+                    /**
+                     * on successful state deletion
+                     * @return {undef}
+                     */
+                    complete: function() {
+                        setTimeout(function() {
+                            gamelink.li.remove();
+                        }, 500);
+                    }
+                });
+            });
 
-        //the remove link will delete the game from play history and any saved states
-        gamelink.remove
-        .addClass('tooltip')
-        .attr('title', 'Remove this game and all saved progress')
-        .on('click', function() {
-            gamelink.li.addClass('slideup');
-            $.ajax({
-                url: '/states/delete?key=' + encodeURIComponent(key),
-                type: 'DELETE',
-                /**
-                 * on successful state deletion
-                 * @return {undef}
-                 */
-                complete: function() {
-                    setTimeout(function() {
-                        gamelink.li.remove();
-                    }, 500);
+            //append states, if any (what was this for??)
+            if (false && slots && Object.keys(slots).length > 0) {
+
+                for (slot in slots) {
+                    //self._addStateToPlayHistory(playHistory[key], stateswrapper, slot, slots[slot]);
                 }
-            });
-        });
 
-        //create a local store to take this with handle to dom elements
-        self._playhistory[key] = {
-            system: system,
-            title: title,
-            file: file,
-            played: played || Date.now(),
-            slots: slots || {}
-            //stateswrapper: stateswrapper
-        };
+                gamelink.li.on('mouseover', function(e) {
+                    $(stateswrapper).slideDown(500);
+                    gamelink.li.addClass('selected');
+                });
 
-        //append states, if any
-        if (false && slots && Object.keys(slots).length > 0) {
-
-            for (slot in slots) {
-                self._addStateToPlayHistory(self._playhistory[key], stateswrapper, slot, slots[slot]);
+                $(stateswrapper).on('mouseout', function(e) {
+                    $(stateswrapper).slideUp(500);
+                    gamelink.li.removeClass('selected');
+                });
             }
 
-            gamelink.li.on('mouseover', function(e) {
-                $(stateswrapper).slideDown(500);
-                gamelink.li.addClass('selected');
-            });
-
-            $(stateswrapper).on('mouseout', function(e) {
-                $(stateswrapper).slideUp(500);
-                gamelink.li.removeClass('selected');
-            });
-        }
-
-        //figure out where to insert this gamelink in the recently played area
-        var columns = $('#recentplayedwrapper ul');
-        var column = columns[0];
-        var columndepth = 0;
-        for (var i = 0; i < columns.length; ++i) {
-            if ($(columns[i]).children().length < $(column).children().length) {
-                column = columns[i];
-                columndepth = i;
+            //figure out where to insert this gamelink in the recently played area
+            var columns = $('#recentplayedwrapper ul');
+            var column = columns[0];
+            var columndepth = 0;
+            for (var i = 0; i < columns.length; ++i) {
+                if ($(columns[i]).children().length < $(column).children().length) {
+                    column = columns[i];
+                    columndepth = i;
+                }
             }
+            $(column).append(gamelink.li); //append to recently played area
+
+            //position statewrapper in correct region of screen
+
+            //set state arrow to correct column
+            //$(stateswrapper).css('left', columndepth + '5%');
+            //$(stateswrapper).find('.triangle').css('left', ((columndepth * 15) + 5) + '%');
+
+            $('#recentplayedwrapper').show(); //ensure it is showing (will be hidden first time)
         }
-        $(column).append(gamelink.li); //append to recently played area
 
-        //position statewrapper in correct region of screen
-
-        //set state arrow to correct column
-        //$(stateswrapper).css('left', columndepth + '5%');
-        //$(stateswrapper).find('.triangle').css('left', ((columndepth * 15) + 5) + '%');
-
-        $('#recentplayedwrapper').show(); //ensure it is showing (will be hidden first time)
-
-        toolTips();
+        toolTips(); //all the time ;)
     };
 
     /**
@@ -1655,7 +973,7 @@ var Main = (function() {
             $(this)
             .removeClass('close')
             .on('mousedown', function() {
-                self._pauseOverride = true; //prevent current game from pausng before fadeout
+                preventGamePause = true; //prevent current game from pausng before fadeout
             })
             .on('mouseup', function() {
 
@@ -1740,55 +1058,6 @@ var Main = (function() {
     };
 
     /**
-     * asychonous iteration helper
-     * @param  {number}   iterations
-     * @param  {Function}   func
-     * @param  {Function} callback
-     * @return {Object}
-     */
-    var AsyncLoop = function(iterations, func, callback) {
-        var index = 0;
-        var done = false;
-        var loop = {
-            /**
-             * [next description]
-             * @return {Function} [description]
-             */
-            next: function() {
-                if (done) {
-                    return;
-                }
-
-                if (index < iterations) {
-                    index++;
-                    func(loop);
-
-                } else {
-                    done = true;
-                    callback();
-                }
-            },
-            /**
-             * [iteration description]
-             * @return {number}
-             */
-            iteration: function() {
-                return index - 1;
-            },
-            /**
-             * [break description]
-             * @return {undef}
-             */
-            break: function() {
-                done = true;
-                callback();
-            }
-        };
-        loop.next();
-        return loop;
-    };
-
-    /**
      * a quick function that downlaods all captured screens
      * @return {undef}
      */
@@ -1838,12 +1107,3 @@ $.fn.animateRotate = function(startingangle, angle, duration, easing, complete) 
         $({deg: startingangle}).animate({deg: angle}, args);
     });
 };
-
-/**
- * globally defined jsonp deletegate. runs when jsonp is fetched. common scheme is to define a handler for calling jsonp
- * @param  {Object} response
- * @return {undef}
- */
-var jsonpDelegate;
-var b;
-var c;
