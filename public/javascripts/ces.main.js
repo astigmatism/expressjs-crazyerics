@@ -2,14 +2,6 @@ var Main = (function() {
 
     // private members
     var self = this;
-
-
-    // instances
-    var _Compression = null;
-    var _PlayerData = null;
-    var _Sliders = null;
-    var _StateManager = null;
-    
     var config = {}; //the necessary server configuration data provided to the client
     var tips = [
         'Back out of that mistake you made by holding the R key to rewind the game',
@@ -23,12 +15,19 @@ var Main = (function() {
         'Take a screenshot with the T key. Missed that moment? Rewind with R and capture again!',
         'Screenshots are deleted when you leave or refresh the page. Download your favorites to keep them!'
     ];
+    var preventLoadingGame = false;
+
+    // instances/libraries
+    var _Compression = null;
+    var _PlayerData = null;
+    var _Sliders = null;
+    var _StateManager = null;
+    var _Emulator = null;
 
     // public members
 
     this._Module = null; //handle the emulator Module
     this._FS = null; //handle to Module file system
-    this._ModuleLoading = false; //oldskool way to prevent double loading
     this._pauseOverride = false; //condition for blur event of emulator, sometimes we don't want it to pause when we're giving it back focus
     this._activeFile = null;
     this._loadMoreSuggestionsOnBottom = null; //loads the url of suggestions to call should the list be extended when the user reachs the page bottom
@@ -60,10 +59,10 @@ var Main = (function() {
         //incoming params to open game now?
         var openonload = _PlayerData.Get('openonload') || {};
         if ('system' in openonload && 'title' in openonload && 'file' in openonload) {
-            retroArchBootstrap(openonload.system, openonload.title, openonload.file);
+            RetroArchBootstrap(openonload.system, openonload.title, openonload.file);
         }
 
-        buildRecentlyPlayed(_PlayerData.Get('playhistory'));
+        BuildRecentlyPlayed(_PlayerData.Get('playhistory'));
 
         //build console select for search (had to create a structure to sort by the short name :P)
         var shortnames = [];
@@ -143,7 +142,7 @@ var Main = (function() {
                 ]
                  */
                 var suggestion = $('<div class="autocomplete-suggestion" data-title="' + item[0] + '" data-file="' + item[1] + '" data-system="' + item[2] + '" data-searchscore="' + item[3] + '"></div>');
-                suggestion.append(getBoxFront(item[2], item[0], 50));
+                suggestion.append(GetBoxFront(item[2], item[0], 50));
                 suggestion.append('<div>' + item[0] + '</div>');
                 return $('<div/>').append(suggestion).html(); //because .html only returns inner content
             },
@@ -155,7 +154,7 @@ var Main = (function() {
              * @return {undef}
              */
             onSelect: function(e, term, item) {
-                retroArchBootstrap(item.data('system'), item.data('title'), item.data('file'));
+                RetroArchBootstrap(item.data('system'), item.data('title'), item.data('file'));
             }
         });
 
@@ -195,43 +194,43 @@ var Main = (function() {
             });
 
         $('#emulatorcontrolswrapper li.fullscreen').click(function() {
-            simulateEmulatorKeypress(70); // F
+            SimulateEmulatorKeypress(70); // F
         });
 
         $('#emulatorcontrolswrapper li.savestate').click(function() {
-            simulateEmulatorKeypress(49); // 1
+            SimulateEmulatorKeypress(49); // 1
         });
 
         $('#emulatorcontrolswrapper li.loadstate').click(function() {
-            simulateEmulatorKeypress(52); // 4
+            SimulateEmulatorKeypress(52); // 4
         });
 
         $('#emulatorcontrolswrapper li.mute').click(function() {
-            simulateEmulatorKeypress(77); // M
+            SimulateEmulatorKeypress(77); // M
         });
 
         $('#emulatorcontrolswrapper li.decrementslot').click(function() {
-            simulateEmulatorKeypress(50); // 2
+            SimulateEmulatorKeypress(50); // 2
         });
 
         $('#emulatorcontrolswrapper li.incrementslot').click(function() {
-            simulateEmulatorKeypress(51); // 3
+            SimulateEmulatorKeypress(51); // 3
         });
 
         $('#emulatorcontrolswrapper li.fastforward').click(function() {
-            simulateEmulatorKeypress(32); // Space
+            SimulateEmulatorKeypress(32); // Space
         });
 
         $('#emulatorcontrolswrapper li.pause').click(function() {
-            simulateEmulatorKeypress(80); // P
+            SimulateEmulatorKeypress(80); // P
         });
 
         $('#emulatorcontrolswrapper li.reset').click(function() {
-            simulateEmulatorKeypress(72); // H
+            SimulateEmulatorKeypress(72); // H
         });
 
         $('#emulatorcontrolswrapper li.rewind').click(function() {
-            simulateEmulatorKeypress(82, 5000); // R
+            SimulateEmulatorKeypress(82, 5000); // R
         });
 
         //when user has scrolled to bottom of page, load more suggestions
@@ -296,7 +295,7 @@ var Main = (function() {
 
             //use modulus to evenly disperse across all columns
             for (var i = 0; i < response.length; ++i) {
-                var gamelink = buildGameLink(response[i].system, response[i].title, response[i].file, 120); //build dom elements
+                var gamelink = BuildGameLink(response[i].system, response[i].title, response[i].file, 120); //build dom elements
                 $(columns[i % columns.length]).append(gamelink.li);
             }
 
@@ -329,15 +328,15 @@ var Main = (function() {
      * @param  {Function} onStart  optional. a function to call when emulation begins
      * @return {undef}
      */
-    var retroArchBootstrap = function(system, title, file, slot, shader, onStart) {
+    var RetroArchBootstrap = function(system, title, file, slot, shader, onStart) {
 
-        var key = _Compression.In.gamekey(system, title, file); //for anything that might need it
+        var key = _Compression.In.gamekey(system, title, file); //create key for anything that might need it
 
         //bail if attempted to load before current has finished
-        if (self._ModuleLoading) {
+        if (preventLoadingGame) {
             return;
         }
-        self._ModuleLoading = true;
+        preventLoadingGame = true;
         self._pauseOverride = false;
 
         //fade out content
@@ -368,13 +367,20 @@ var Main = (function() {
         //this used to be a callback for the previous call but since its possible for the loading overlay to aready be faded in, we still want to preserve this delay
         setTimeout(function() {
 
+            if (_Emulator !== null) {
+                _Emulator.CleanUp();
+            }
+
+            //create new emulator instance
+            _Emulator = new Emulator(key);
+
             //cleanup previous play
-            cleanupEmulator();
+            CleanupEmulator();
 
             //close any sliders
             _Sliders.Closeall();
 
-            self._ModuleLoading = false; //during shader select, allow other games to load
+            preventLoadingGame = false; //during shader select, allow other games to load
 
             // all deferres defined for separate network dependancies
             var emulatorReady = $.Deferred();
@@ -390,12 +396,12 @@ var Main = (function() {
             $('#systemshaderseletorwrapper span').text(config.systemdetails[system].shortname);
 
             //show shader selector. returns an object with shader details
-            showShaderSelection(system, shader, function(shaderselection) {
+            ShowShaderSelection(system, shader, function(shaderselection) {
 
-                self._ModuleLoading = true; //lock loading after shader select
+                preventLoadingGame = true; //lock loading after shader select
 
                 //build loading box
-                var box = getBoxFront(system, title, 170);
+                var box = GetBoxFront(system, title, 170);
                 box.addClass('tada');
                 box.load(function() {
                     $(this).fadeIn(200);
@@ -418,13 +424,13 @@ var Main = (function() {
                 //begin loading all content. I know it seems like some of these (game, emulator, etc) could load while the user
                 //is viewing the shader select, but I found that when treated as background tasks, it interfere with the performance
                 //of the shader selection ui. I think its best to wait until the loading animation is up to perform all of these:
-                loademulator(system, emulatorReady);
-                loadEmulatorSupport(system, emulatorSupportReady);
-                loadGame(key, system, title, file, gameReady);
-                loadShader(shaderselection.shader, shaderReady);
+                Loademulator(system, emulatorReady);
+                LoadEmulatorSupport(system, emulatorSupportReady);
+                LoadGame(key, system, title, file, gameReady);
+                LoadShader(shaderselection.shader, shaderReady);
 
                 //this call is a POST. Unlike the others, it is destined for the mongo instance. we send user preference data to the server in addition to getting game details.
-                loadGameDetails(key, system, title, file, { 
+                LoadGameDetails(key, system, title, file, { 
                     'savePreference': shaderselection.savePreference, 
                     'shader': shaderselection.shader 
                 }, gameDetailsReady);
@@ -439,7 +445,7 @@ var Main = (function() {
                     //emulator support response
                     var supportData = (emulatorSupport && emulatorSupport[1]) ? emulatorSupport[1] : null; //if not defined, no emulator support
 
-                    //loadGame response
+                    //LoadGame response
                     var err = loadedgame[0];
                     var gamedata = loadedgame[1]; //compressed game data
 
@@ -481,7 +487,7 @@ var Main = (function() {
                      * @return {undef}
                      */
                     Module.emulatorFileWritten = function(filename, contents) {
-                        emulatorFileWriteListener(key, system, title, file, filename, contents);
+                        EmulatorFileWriteListener(key, system, title, file, filename, contents);
                     };
 
                     setTimeout(function() {
@@ -491,12 +497,12 @@ var Main = (function() {
                         $('#tips').stop().hide();
                         clearInterval(tipInterval);
 
-                        self._ModuleLoading = false; //during shader select, allow other games to load
+                        preventLoadingGame = false; //during shader select, allow other games to load
 
                         //are there states to load? Let's show a dialog to chose from, if not - will go straight to start
-                        showStateSelection(system, title, file, function(slot) {
+                        ShowStateSelection(system, title, file, function(slot) {
                             
-                            self._ModuleLoading = true;
+                            preventLoadingGame = true;
 
                             //begin game
                             Module.callMain(Module.arguments);
@@ -511,7 +517,7 @@ var Main = (function() {
                              */
                             var removeVail = function() {
                                 //handle title and content fadein steps
-                                displayGameContext(system, title, function() {
+                                DisplayGameContext(system, title, function() {
 
                                 });
 
@@ -530,7 +536,7 @@ var Main = (function() {
 
                                         //show controls initially to reveal their presence
                                         setTimeout(function() {
-                                            self._ModuleLoading = false;
+                                            preventLoadingGame = false;
                                             $('#emulatorcontrolswrapper').addClass('closed');
 
                                             //to help new players, reveal controls after load
@@ -562,12 +568,12 @@ var Main = (function() {
                                 AsyncLoop(parseInt(slot, 10), function(loop) {
 
                                     //simulate increasing state slot (will also set self._activeStateSlot)
-                                    simulateEmulatorKeypress(51, 10, function() {
+                                    SimulateEmulatorKeypress(51, 10, function() {
                                         loop.next();
                                     });
 
                                 }, function() {
-                                    simulateEmulatorKeypress(52); //4 load state
+                                    SimulateEmulatorKeypress(52); //4 load state
                                     removeVail();
                                 });
                             } else {
@@ -588,7 +594,7 @@ var Main = (function() {
      * @param  {Function} callback
      * @return {undef}
      */
-    var showShaderSelection = function(system, preselectedShader, callback) {
+    var ShowShaderSelection = function(system, preselectedShader, callback) {
 
 
         $('#shaderselectlist').empty(); //clear all previous content
@@ -672,7 +678,7 @@ var Main = (function() {
      * @param  {Function} callback
      * @return {undef}
      */
-    var showStateSelection = function(system, title, file, callback) {
+    var ShowStateSelection = function(system, title, file, callback) {
 
         var slots = _StateManager.GetSavedSlots();
 
@@ -732,9 +738,9 @@ var Main = (function() {
      * @param  {Function} callback
      * @return {undef}
      */
-    var displayGameContext = function(system, title, callback) {
+    var DisplayGameContext = function(system, title, callback) {
 
-        var box = getBoxFront(system, title, 170);
+        var box = GetBoxFront(system, title, 170);
 
         //using old skool img because it was the only way to get proper image height
         var img = document.createElement('img');
@@ -779,7 +785,7 @@ var Main = (function() {
      * handle removing the emulator frame from view and all bound events
      * @return {undef}
      */
-    var cleanupEmulator = function() {
+    var CleanupEmulator = function() {
 
 
         //since each Module attached an event to the parent document, we need to clean those up too:
@@ -815,7 +821,7 @@ var Main = (function() {
      * @param {number} keyUpDelay the time delay (in ms) the key will be in the down position before lift
      * @return {undef}
      */
-    var simulateEmulatorKeypress = function(key, keyUpDelay, callback) {
+    var SimulateEmulatorKeypress = function(key, keyUpDelay, callback) {
 
         keyUpDelay = keyUpDelay || 10;
 
@@ -946,7 +952,7 @@ var Main = (function() {
             }
         }
 
-        simulateEmulatorKeypress(keycode, 1, function() {
+        SimulateEmulatorKeypress(keycode, 1, function() {
             runKeyboardMacro(instructions.slice(1), callback);
         });
     };
@@ -958,7 +964,7 @@ var Main = (function() {
      * @param  {string} file
      * @return {undef}
      */
-    var setupEmulatorEventListener = function(system, title, file) {
+    var SetupEmulatorEventListener = function(system, title, file) {
 
 
         //emulator event handler for 1.0.0 emulators
@@ -972,7 +978,7 @@ var Main = (function() {
              * @return {undefined}
              */
             this._Module.RI.eventHandler = function(event) {
-                emulatorEventListnener(event, 'keyup', originalHandler);
+                EmulatorEventListnener(event, 'keyup', originalHandler);
             };
         } 
 
@@ -985,7 +991,7 @@ var Main = (function() {
              * @return {undefined}
              */
             this._Module.JSEvents.crazyericsEventListener = function(event) {
-                emulatorEventListnener(event, 'keydown');
+                EmulatorEventListnener(event, 'keydown');
             };
         }
     };
@@ -997,7 +1003,7 @@ var Main = (function() {
      * @param  {Function} callback   optional
      * @return {undefined}              
      */
-    var emulatorEventListnener = function(event, listenType, callback) {
+    var EmulatorEventListnener = function(event, listenType, callback) {
 
 
         switch (event.type) {
@@ -1025,7 +1031,7 @@ var Main = (function() {
 
                             _StateManager.SaveStateToServer(statedetails, screendetails);
                         });
-                        simulateEmulatorKeypress(84); //initiaze screenshot after its defer is in place.
+                        SimulateEmulatorKeypress(84); //initiaze screenshot after its defer is in place.
                     break;
                     case 50: //2 - state slot decrease
                         self._activeStateSlot--;
@@ -1050,7 +1056,7 @@ var Main = (function() {
      * @param  {Object} deffered
      * @return {undef}
      */
-    var loademulator = function(system, deffered) {
+    var Loademulator = function(system, deffered) {
 
         var frame  = $('<iframe/>', {
             src: '/load/emulator/' + system, //loads view code
@@ -1093,7 +1099,7 @@ var Main = (function() {
      * @param  {Object} deffered
      * @return {undef}
      */
-    var loadGame = function(key, system, title, file, deffered) {
+    var LoadGame = function(key, system, title, file, deffered) {
 
         var location = config.rompath + '/' + system + '/' + config.systemdetails[system].romcdnversion + '/';
         var flattened = config.flattenedromfiles;
@@ -1149,7 +1155,7 @@ var Main = (function() {
      * @param  {Object} deffered
      * @return {undefined}
      */
-    var loadShader = function(name, deffered) {
+    var LoadShader = function(name, deffered) {
 
         var location = config.assetpath + '/shaders';
 
@@ -1180,13 +1186,13 @@ var Main = (function() {
 
     /**
      * Emulator support is any additional resources required by the emulator needed for play
-     * This isnt included in the loadEmulator call because sometimes support files are needed for an emulator
+     * This isnt included in the LoadEmulator call because sometimes support files are needed for an emulator
      * which can play several systems (Sega CD, support needed, Genesis, no support)
      * @param  {string} system
      * @param  {Object} deffered
      * @return {undef}
      */
-    var loadEmulatorSupport = function(system, deffered) {
+    var LoadEmulatorSupport = function(system, deffered) {
 
         var location = config.assetpath + '/emulatorsupport/' + system + '.json';
 
@@ -1226,11 +1232,11 @@ var Main = (function() {
      * @param  {Object} deffered
      * @return {undef}
      */
-    var loadGameDetails = function(key, system, title, file, options, deffered) {
+    var LoadGameDetails = function(key, system, title, file, options, deffered) {
 
 
         //call returns not only states but misc game details. I tried to make this
-        //part of the loadGame call but the formatting for the compressed game got weird
+        //part of the LoadGame call but the formatting for the compressed game got weird
         $.post('/load/game', {
             'key': encodeURIComponent(key),
             'shader': options.shader,
@@ -1238,7 +1244,7 @@ var Main = (function() {
         }, function(data) {
 
             //add to play history
-            addToPlayHistory(key, system, title, file);
+            AddToPlayHistory(key, system, title, file);
 
             deffered.resolve(data);
         });
@@ -1399,7 +1405,7 @@ var Main = (function() {
      * @param  {UInt8Array} contents the contents of the file saved by the emulator
      * @return {undef}
      */
-    emulatorFileWritten = function(key, system, title, file, filename, contents) {
+    var EmulatorFileWritten = function(key, system, title, file, filename, contents) {
 
         var statematch = filename.match(/\.state(\d*)$/); //match .state or .statex where x is a digit
         var screenshotmatch = filename.match(/\.bmp$|\.png$/);
@@ -1432,7 +1438,7 @@ var Main = (function() {
             $('p.screenshothelper').remove(); //remove helper text
 
             var width = $('#screenshotsslider div.slidercontainer').width() / 3; //550px is the size of the panel, the second number is how many screens to want to show per line
-            var img = buildScreenshot(system, arrayBufferView, width);
+            var img = BuildScreenshot(system, arrayBufferView, width);
 
             $(img).addClass('close').load(function() {
                 $(this).removeClass('close');
@@ -1452,7 +1458,7 @@ var Main = (function() {
      * @param  {number} width
      * @return {Object}
      */
-    var buildScreenshot = function(system, arraybufferview, width) {
+    var BuildScreenshot = function(system, arraybufferview, width) {
 
 
         var screenratio = 1;
@@ -1489,7 +1495,7 @@ var Main = (function() {
      * @param  {UInt8Array} contents the contents of the file saved by the emulator
      * @return {undef}
      */
-    var emulatorFileWriteListener = function(key, system, title, file, filename, contents) {
+    var EmulatorFileWriteListener = function(key, system, title, file, filename, contents) {
 
 
         //clear timer if exists
@@ -1502,7 +1508,7 @@ var Main = (function() {
 
             //if timer runs out before being cleared again, delete it and call file written function
             delete self._fileWriteTimers[filename];
-            emulatorFileWritten(key, system, title, file, filename, contents);
+            EmulatorFileWritten(key, system, title, file, filename, contents);
         }, self._fileWriteDelay);
     };
 
@@ -1512,10 +1518,10 @@ var Main = (function() {
      * @param  {number} maximum        //no used at the moment since we want to show the entire play history and let the user delete what they don't want to see
      * @return {undef}
      */
-    var buildRecentlyPlayed = function(clientdata, maximum) {
+    var BuildRecentlyPlayed = function(clientdata, maximum) {
 
         for (var game in clientdata) {
-            addToPlayHistory(game, clientdata[game].system, clientdata[game].title, clientdata[game].file, clientdata[game].played, clientdata[game].slots);
+            AddToPlayHistory(game, clientdata[game].system, clientdata[game].title, clientdata[game].file, clientdata[game].played, clientdata[game].slots);
         }
 
         if ($.isEmptyObject(clientdata)) {
@@ -1534,7 +1540,7 @@ var Main = (function() {
      * @param {Date} played     date game last played
      * @param {Object} slots    {slot: 3, date: date} //date state saved as property
      */
-    var addToPlayHistory = function(key, system, title, file, played, slots) {
+    var AddToPlayHistory = function(key, system, title, file, played, slots) {
 
         var slot;
 
@@ -1547,7 +1553,7 @@ var Main = (function() {
 
         //not a dupe, let's create a new play histry game
 
-        var gamelink = buildGameLink(system, title, file, 120, true); //get a game link
+        var gamelink = BuildGameLink(system, title, file, 120, true); //get a game link
 
         gamelink.li.addClass('close');
 
@@ -1635,11 +1641,11 @@ var Main = (function() {
      * @param  {boolean} close      if true, shows the close button at the corner, no event attached
      * @return {Object}             Contains reference to the li, img and close button
      */
-    var buildGameLink = function(system, title, file, size, close) {
+    var BuildGameLink = function(system, title, file, size, close) {
         close = close || false;
 
         var li = $('<li class="gamelink"></li>');
-        var box = getBoxFront(system, title, size);
+        var box = GetBoxFront(system, title, size);
 
         box.addClass('tooltip close');
         box.attr('title', title);
@@ -1653,7 +1659,7 @@ var Main = (function() {
             })
             .on('mouseup', function() {
 
-                retroArchBootstrap(system, title, file);
+                RetroArchBootstrap(system, title, file);
                 window.scrollTo(0, 0);
             });
         });
@@ -1696,7 +1702,7 @@ var Main = (function() {
      * @param  {number} size   size of the box art (114, 150...)
      * @return {Object}        jquery img
      */
-    var getBoxFront = function(system, title, size) {
+    var GetBoxFront = function(system, title, size) {
 
 
         //have box title's been compressed (to obfiscate on cdn)
@@ -1729,7 +1735,7 @@ var Main = (function() {
      * @param  {string} file
      * @return {string}
      */
-    var generateLink = function(system, title, file) {
+    var GenerateLink = function(system, title, file) {
         return _Compression.In.string(encodeURI(system + '/' + title + '/' + file)); //prehaps slot for load state as query string?
     };
 
