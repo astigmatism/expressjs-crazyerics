@@ -2,9 +2,10 @@
  * Object which wraps all functionality specific to handling game save states
  * @type {Object}
  */
-var State = (function () {
+var State = (function (initialStateData) {
 
     //private members
+    var self = this;
 
     /**
      * A pure reflection of state data returned from the server. Object with slot numbers are properties
@@ -15,25 +16,16 @@ var State = (function () {
      *       time: {number}
      * }
      */
-    var data = {};
+    var data = initialStateData;
 
     //public methods
-
-    /**
-     * Initializes this helper object with data from the server
-     * @param  {Object} data
-     * @return {undef}      
-     */
-    this.init = function(data) {
-        this._data = data;
-    };
 
     /**
      * Reutns as an array, the slots which hold saved state data
      * @return {Array}
      */
-    this.getSavedSlots = function() {
-        return Object.keys(this._data);
+    this.GetSavedSlots = function() {
+        return Object.keys(data);
     };
 
     /**
@@ -41,9 +33,9 @@ var State = (function () {
      * @param  {number} slot
      * @return {Object}   
      */
-    this.getScreenshot = function(system, slot) {
-        if (this._data[slot] && this._data[slot].hasOwnProperty('screenshot')) {
-            var screenshot = Compression.Decompress.bytearray(this._data[slot].screenshot);
+    this.GetScreenshot = function(system, slot) {
+        if (data[slot] && data[slot].hasOwnProperty('screenshot')) {
+            var screenshot = Compression.Decompress.bytearray(data[slot].screenshot);
             var image = buildScreenshot(system, screenshot, 180);
             return image;
         }
@@ -55,9 +47,9 @@ var State = (function () {
      * @param  {number} slot
      * @return {string}    
      */
-    this.getDate = function(slot) {
-        if (this._data[slot] && this._data[slot].hasOwnProperty('time')) {
-            var date = new Date(this._data[slot].time);
+    this.GetDate = function(slot) {
+        if (data[slot] && data[slot].hasOwnProperty('time')) {
+            var date = new Date(data[slot].time);
             var formatteddate = $.format.date(date, 'ddd MM-dd-yyyy h =mma'); //using the jquery dateFormat plugin
             return formatteddate;
         }
@@ -69,9 +61,9 @@ var State = (function () {
      * @param  {number} slot 
      * @return {ByteArray}     
      */
-    this.getState = function(slot) {
-        if (this._data[slot] && this._data[slot].hasOwnProperty('state')) {
-            return Compression.Decompress.bytearray(this._data[slot].state);
+    this.GetState = function(slot) {
+        if (data[slot] && data[slot].hasOwnProperty('state')) {
+            return Compression.Decompress.bytearray(data[slot].state);
         }
         return null;
     };
@@ -82,7 +74,7 @@ var State = (function () {
      * @param  {Object} screendetails
      * @return {undef}               
      */
-    this.saveStateToServer = function(statedetails, screendetails) {
+    this.SaveStateToServer = function(statedetails, screendetails) {
 
         //state details is a resolve on a deferred. all return data in array
         var key = statedetails[0];
@@ -124,4 +116,4 @@ var State = (function () {
         });
     };
 
-})();
+});

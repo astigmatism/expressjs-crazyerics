@@ -2,6 +2,7 @@ var Sliders = (function() {
 
     // private members
 
+    var self = this;
     var animating       = false; //old skool way to prevent action while animating
     var animationRate   = 250; //in ms
 
@@ -26,7 +27,7 @@ var Sliders = (function() {
             return;
         }
 
-        var self = this;
+
         stayopen = stayopen || false; //if true and open, stay open. if false, will close if open
         this._animating = true;
 
@@ -81,8 +82,8 @@ var Sliders = (function() {
      * @return {undef}
      */
     this.Closeall = function() {
-        var self = this;
-        this.open('');
+
+        this.Open('');
 
         //since nothing is opening, we need to turn off the animation flag when all are closed
         setTimeout(function() {
@@ -100,7 +101,7 @@ var Sliders = (function() {
      */
     var Toggle = function(li, slider, callback) {
 
-        var self = this;
+
         callback = callback || null;
 
         //toggle dom with id of this class name (which is the sliding element)
@@ -126,7 +127,7 @@ var Sliders = (function() {
      */
     var Bind = function() {
 
-        var self = this;
+
 
         $('#gamecontrolslist li')
         .on('mousedown mouseup click', function(event) {
@@ -139,4 +140,4 @@ var Sliders = (function() {
         });
     };
 
-})();
+});

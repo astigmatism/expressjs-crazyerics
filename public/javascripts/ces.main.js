@@ -1,11 +1,14 @@
 var Main = (function() {
 
     // private members
-
     var self = this;
 
+
+    // instances
     var _Compression = null;
-    var libPlayerData = null;
+    var _PlayerData = null;
+    var _Sliders = null;
+    var _StateManager = null;
     
     var config = {}; //the necessary server configuration data provided to the client
     var tips = [
@@ -20,14 +23,6 @@ var Main = (function() {
         'Take a screenshot with the T key. Missed that moment? Rewind with R and capture again!',
         'Screenshots are deleted when you leave or refresh the page. Download your favorites to keep them!'
     ];
-    /**
-     * globally defined jsonp deletegate. runs when jsonp is fetched. common scheme is to define a handler for calling jsonp
-     * @param  {Object} response
-     * @return {undef}
-     */
-    var jsonpDelegate;
-    var b;
-    var c;
 
     // public members
 
@@ -52,7 +47,7 @@ var Main = (function() {
         _Compression = new Compression();
 
         //unpack client data
-        var clientdata = _Compression.Decompress.json(c20); //this name is only used for obfiscation
+        var clientdata = _Compression.Out.json(c20); //this name is only used for obfiscation
 
         config = clientdata.configdata;
 
@@ -60,15 +55,15 @@ var Main = (function() {
         //self._autoCaptureHarness('n64', config.autocapture['n64'].shaders, 7000, 1, 10000);
 
         //unpack playerdata
-        libPlayerData = new PlayerData(clientdata.playerdata); //player data is user specific, can be dynmic
+        _PlayerData = new PlayerData(clientdata.playerdata); //player data is user specific, can be dynmic
 
         //incoming params to open game now?
-        var openonload = self.PlayerData.get('openonload') || {};
+        var openonload = _PlayerData.Get('openonload') || {};
         if ('system' in openonload && 'title' in openonload && 'file' in openonload) {
             retroArchBootstrap(openonload.system, openonload.title, openonload.file);
         }
 
-        buildRecentlyPlayed(self.PlayerData.get('playhistory'));
+        buildRecentlyPlayed(_PlayerData.Get('playhistory'));
 
         //build console select for search (had to create a structure to sort by the short name :P)
         var shortnames = [];
@@ -103,7 +98,7 @@ var Main = (function() {
              */
             onChange: function() {
                 var system = $(this).val();
-                self.replaceSuggestions('/suggest/' + system + '/200', true, true);
+                ReplaceSuggestions('/suggest/' + system + '/200', true, true);
 
                 //show or hide the alpha bar in the suggestions panel
                 if (system === 'all') {
@@ -128,7 +123,7 @@ var Main = (function() {
             source: function(term, response) {
                 var system = $('#searchform select').val();
                 $.getJSON('/search/' + system + '/' + term, function(data) {
-                    response(_Compression.Decompress.json(data));
+                    response(_Compression.Out.json(data));
                 });
             },
             /**
@@ -242,7 +237,7 @@ var Main = (function() {
         //when user has scrolled to bottom of page, load more suggestions
         $(window).scroll(function() {
             if ($(window).scrollTop() + $(window).height() == $(document).height() && self._loadMoreSuggestionsOnBottom) {
-                self.replaceSuggestions(self._loadMoreSuggestionsOnBottom, false, true);
+                ReplaceSuggestions(self._loadMoreSuggestionsOnBottom, false, true);
             }
         });
 
@@ -251,13 +246,13 @@ var Main = (function() {
             $(item).on('click', function(e) {
                 var system = $('#searchform select').val();
                 var term = $(item).text();
-                self.replaceSuggestions('/suggest/browse/' + system + '?term=' + term, true, false);
+                ReplaceSuggestions('/suggest/browse/' + system + '?term=' + term, true, false);
             });
         });
 
-        self.Sliders.init();
+        _Sliders = new Sliders();
 
-        self.replaceSuggestions('/suggest/all/150', true, true); //begin by showing 150 all console suggestions
+        ReplaceSuggestions('/suggest/all/150', true, true); //begin by showing 150 all console suggestions
 
         toolTips();
     });
@@ -272,9 +267,8 @@ var Main = (function() {
      * @param  {number} items  the number of items to load and show
      * @return {undef}
      */
-    var replaceSuggestions = function(url, remove, loadMore) {
+    var ReplaceSuggestions = function(url, remove, loadMore) {
 
-        var self = this;
 
         self._loadMoreSuggestionsOnBottom = loadMore ? url : null;
 
@@ -291,7 +285,7 @@ var Main = (function() {
 
         $.getJSON(url, function(response) {
 
-            response = _Compression.Decompress.json(response);
+            response = _Compression.Out.json(response);
 
             //remove all current gamelinks
             if (remove) {
@@ -337,8 +331,7 @@ var Main = (function() {
      */
     var retroArchBootstrap = function(system, title, file, slot, shader, onStart) {
 
-        var self = this;
-        var key = _Compression.Compress.gamekey(system, title, file); //for anything that might need it
+        var key = _Compression.In.gamekey(system, title, file); //for anything that might need it
 
         //bail if attempted to load before current has finished
         if (self._ModuleLoading) {
@@ -379,7 +372,7 @@ var Main = (function() {
             cleanupEmulator();
 
             //close any sliders
-            self.Sliders.closeall();
+            _Sliders.Closeall();
 
             self._ModuleLoading = false; //during shader select, allow other games to load
 
@@ -451,13 +444,13 @@ var Main = (function() {
                     var gamedata = loadedgame[1]; //compressed game data
 
                     //decompress game details here since we need state data for selection
-                    gamecontent = _Compression.Decompress.json(gamecontent);
+                    gamecontent = _Compression.Out.json(gamecontent);
                     var states = gamecontent.states;
                     var files = gamecontent.files;
                     var info = gamecontent.info;
 
                     //initialize the game state manager
-                    self.StateManager.init(gamecontent.states);
+                    _StateManager = new State(gamecontent.states);
                     
                     //shader data is compressed from server, unpack later
                     var shaderData = (shaderResult && shaderResult[1]) ? shaderResult[1] : null; //if not defined, not shader used
@@ -541,7 +534,7 @@ var Main = (function() {
                                             $('#emulatorcontrolswrapper').addClass('closed');
 
                                             //to help new players, reveal controls after load
-                                            self.Sliders.open('controlsslider');
+                                            _Sliders.Open('controlsslider');
                                         }, 1000);
                                     });
 
@@ -597,7 +590,6 @@ var Main = (function() {
      */
     var showShaderSelection = function(system, preselectedShader, callback) {
 
-        var self = this;
 
         $('#shaderselectlist').empty(); //clear all previous content
 
@@ -612,7 +604,7 @@ var Main = (function() {
         }
 
         //bail early: check if user checked to use a shader for this system everytime
-        var userpreference = self.PlayerData.getShader(system);
+        var userpreference = _PlayerData.GetShader(system);
         if (userpreference) {
             callback({
                 'shader': userpreference,
@@ -659,7 +651,7 @@ var Main = (function() {
             //get result of checkbox
             if ($('#systemshaderseletorwrapper input').prop('checked')) {
                 saveselection = true;
-                self.PlayerData.setShader(system, shader); //set this is player data now (refresh pulls session data)
+                _PlayerData.SetShader(system, shader); //set this is player data now (refresh pulls session data)
             }
 
             setTimeout(function() {
@@ -682,8 +674,7 @@ var Main = (function() {
      */
     var showStateSelection = function(system, title, file, callback) {
 
-        var self = this;
-        var slots = this.StateManager.getSavedSlots();
+        var slots = _StateManager.GetSavedSlots();
 
         //no states saved to chose from
         if (slots.length === 0) {
@@ -707,8 +698,8 @@ var Main = (function() {
 
             //this is in a closure to preserve the callback parameter over iteration
             (function(slot) {
-                var formatteddate = self.StateManager.getDate(slot);
-                var image = self.StateManager.getScreenshot(system, slot);
+                var formatteddate = _StateManager.GetDate(slot);
+                var image = _StateManager.GetScreenshot(system, slot);
 
                 var li = $('<li class="zoom tooltip"></li>')
                 .on('mouseup', function() {
@@ -790,7 +781,6 @@ var Main = (function() {
      */
     var cleanupEmulator = function() {
 
-        var self = this;
 
         //since each Module attached an event to the parent document, we need to clean those up too:
         $(document).unbind('fullscreenchange');
@@ -827,7 +817,6 @@ var Main = (function() {
      */
     var simulateEmulatorKeypress = function(key, keyUpDelay, callback) {
 
-        var self = this;
         keyUpDelay = keyUpDelay || 10;
 
         //bail if in operation
@@ -937,7 +926,6 @@ var Main = (function() {
      */
     var runKeyboardMacro = function(instructions, callback) {
 
-        var self = this;
 
         //base case, either not an array or no more instructions are on queue
         if (!$.isArray(instructions) || instructions.length === 0) {
@@ -972,7 +960,6 @@ var Main = (function() {
      */
     var setupEmulatorEventListener = function(system, title, file) {
 
-        var self = this;
 
         //emulator event handler for 1.0.0 emulators
         if (this._Module && this._Module.RI && this._Module.RI.eventHandler) {
@@ -1012,7 +999,6 @@ var Main = (function() {
      */
     var emulatorEventListnener = function(event, listenType, callback) {
 
-        var self = this;
 
         switch (event.type) {
             case listenType:
@@ -1037,7 +1023,7 @@ var Main = (function() {
                             clearTimeout(clearStateDeffers); //clear timeout from erasing deffers
                             self._saveStateDeffers = {}; //do the clear ourselves
 
-                            self.StateManager.saveStateToServer(statedetails, screendetails);
+                            _StateManager.SaveStateToServer(statedetails, screendetails);
                         });
                         simulateEmulatorKeypress(84); //initiaze screenshot after its defer is in place.
                     break;
@@ -1109,14 +1095,13 @@ var Main = (function() {
      */
     var loadGame = function(key, system, title, file, deffered) {
 
-        var self = this;
         var location = config.rompath + '/' + system + '/' + config.systemdetails[system].romcdnversion + '/';
         var flattened = config.flattenedromfiles;
 
         //if rom struture is flattened, this means that all rom files have been converted to single json files
         if (flattened) {
 
-            var filename = _Compression.Compress.string(title + file);
+            var filename = _Compression.In.string(title + file);
             //location += '/' + system + '/a.json'; //encode twice: once for the trip, the second because the files are saved that way on the CDN
             location += encodeURIComponent(encodeURIComponent(filename)) + '.json'; //encode twice: once for the trip, the second because the files are saved that way on the CDN
         } else {
@@ -1141,7 +1126,7 @@ var Main = (function() {
 
             var inflated;
             try {
-                var decompressed = _Compression.Decompress.string(response);
+                var decompressed = _Compression.Out.string(response);
                 inflated = pako.inflate(decompressed); //inflate compressed file contents (pako deflated to string in file on CDN)
             } catch (e) {
                 deffered.resolve(e);
@@ -1166,7 +1151,6 @@ var Main = (function() {
      */
     var loadShader = function(name, deffered) {
 
-        var self = this;
         var location = config.assetpath + '/shaders';
 
         if (name) {
@@ -1204,7 +1188,6 @@ var Main = (function() {
      */
     var loadEmulatorSupport = function(system, deffered) {
 
-        var self = this;
         var location = config.assetpath + '/emulatorsupport/' + system + '.json';
 
         //i know this is a weird construct, but it defaults on systems without support
@@ -1245,7 +1228,6 @@ var Main = (function() {
      */
     var loadGameDetails = function(key, system, title, file, options, deffered) {
 
-        var self = this;
 
         //call returns not only states but misc game details. I tried to make this
         //part of the loadGame call but the formatting for the compressed game got weird
@@ -1273,7 +1255,6 @@ var Main = (function() {
      */
     var BuildLocalFileSystem = function(Module, system, file, compressedGameFiles, shaderFiles, supportFiles) {
 
-        var self = this;
         var i;
         var content;
 
@@ -1283,14 +1264,14 @@ var Main = (function() {
         //the compressedGameFiles object contains data for all files and their segments
         for (var gameFile in compressedGameFiles) {
 
-            var filename = _Compression.Decompress.string(gameFile);
+            var filename = _Compression.Out.string(gameFile);
             var compressedGame = compressedGameFiles[gameFile];
             var views = [];
             var bufferLength = 0;
 
             //begin by decopressing all compressed file segments
             for (i = 0; i < compressedGame.length; ++i) {
-                var decompressed = _Compression.Decompress.string(compressedGame[i]);
+                var decompressed = _Compression.Out.string(compressedGame[i]);
                 var view = pako.inflate(decompressed); //inflate compressed file contents (Uint8Array)
                 bufferLength += view.length;
                 views[i] = view;
@@ -1315,10 +1296,10 @@ var Main = (function() {
 
         //emulator support, will be null if none
         if (supportFiles) {
-            supportFiles = _Compression.Decompress.json(supportFiles);
+            supportFiles = _Compression.Out.json(supportFiles);
             if (supportFiles && self._FS) {
                 for (var supportFile in supportFiles) {
-                    content = _Compression.Decompress.bytearray(supportFiles[supportFile]);
+                    content = _Compression.Out.bytearray(supportFiles[supportFile]);
                     try {
                         self._FS.createDataFile('/', supportFile, content, true, true);
                     } catch (e) {
@@ -1334,14 +1315,14 @@ var Main = (function() {
 
         //shader files, will be null if none used
         if (shaderFiles) {
-            shaderFiles = _Compression.Decompress.json(shaderFiles); //decompress shader files to json object of file names and data
+            shaderFiles = _Compression.Out.json(shaderFiles); //decompress shader files to json object of file names and data
 
             //if in coming shader parameter is an object, then it has shader files defined. self._FS is a handle to the
             //module's file system. Yes, the other operations here reference the file system through the Module, you just don't have to anymore!
             if (shaderFiles && self._FS) {
 
                 for (var shaderfile in shaderFiles) {
-                    content = _Compression.Decompress.bytearray(shaderFiles[shaderfile]);
+                    content = _Compression.Out.bytearray(shaderFiles[shaderfile]);
                     try {
                         self._FS.createDataFile('/shaders', shaderfile, content, true, true);
                     } catch (e) {
@@ -1366,24 +1347,24 @@ var Main = (function() {
 
         if (config.retroarch) {
 
-            var configToLoad = config.retroarch; //in json
-            var config;
+            var retroArchConfig = config.retroarch; //in json
+            var configItem;
 
             //system specific overrides
             if (config.systemdetails[system] && config.systemdetails[system].retroarch) {
-                for (config in config.systemdetails[system].retroarch) {
-                    configToLoad[config] = config.systemdetails[system].retroarch[config];
+                for (configItem in config.systemdetails[system].retroarch) {
+                    retroArchConfig[configItem] = config.systemdetails[system].retroarch[configItem];
                 }
             }
 
             if (shaderPresetToLoad) {
-                configToLoad.video_shader = '/shaders/' + shaderPresetToLoad;
+                retroArchConfig.video_shader = '/shaders/' + shaderPresetToLoad;
             }
 
             //convert json to string delimited list
             var configString = '';
-            for (config in configToLoad) {
-                configString +=  config + ' = ' + configToLoad[config] + '\n';
+            for (configItem in retroArchConfig) {
+                configString +=  configItem + ' = ' + retroArchConfig[configItem] + '\n';
             }
 
             //write to both locations since we could be using older or newer emulators
@@ -1397,13 +1378,13 @@ var Main = (function() {
         //states
         Module.FS_createFolder('/', 'states', true, true);
         
-        var slots = this.StateManager.getSavedSlots();
+        var slots = _StateManager.GetSavedSlots();
         i = slots.length;
 
         while (i--) {
             var filenoextension = file.replace(new RegExp('\.[a-z0-9]{1,3}$', 'gi'), '');
             var statefilename = '/' + filenoextension + '.state' + (slots[i] == 0 ? '' : slots[i]);
-            var statedata = this.StateManager.getState(slots[i]);
+            var statedata = _StateManager.GetState(slots[i]);
             Module.FS_createDataFile('/states', statefilename, statedata, true, true);
         }
     };
@@ -1420,7 +1401,6 @@ var Main = (function() {
      */
     emulatorFileWritten = function(key, system, title, file, filename, contents) {
 
-        var self = this;
         var statematch = filename.match(/\.state(\d*)$/); //match .state or .statex where x is a digit
         var screenshotmatch = filename.match(/\.bmp$|\.png$/);
 
@@ -1428,7 +1408,7 @@ var Main = (function() {
         if (statematch) {
 
             var slot = statematch[1] === '' ? 0 : statematch[1]; //the 0 state does not use a digit
-            var data = _Compression.Compress.bytearray(contents);
+            var data = _Compression.In.bytearray(contents);
 
             //if a deffered is setup for recieveing save state data, call it. otherwise, throw this state away (should never happen though!)
             if (self._saveStateDeffers.hasOwnProperty('state')) {
@@ -1461,7 +1441,7 @@ var Main = (function() {
             a.append(img).insertAfter('#screenshotsslider p');
 
             //kick open the screenshot slider
-            self.Sliders.open('screenshotsslider', true);
+            _Sliders.Open('screenshotsslider', true);
         }
     };
 
@@ -1474,7 +1454,6 @@ var Main = (function() {
      */
     var buildScreenshot = function(system, arraybufferview, width) {
 
-        var self = this;
 
         var screenratio = 1;
 
@@ -1512,7 +1491,6 @@ var Main = (function() {
      */
     var emulatorFileWriteListener = function(key, system, title, file, filename, contents) {
 
-        var self = this;
 
         //clear timer if exists
         if (self._fileWriteTimers.hasOwnProperty(filename)) {
@@ -1558,7 +1536,6 @@ var Main = (function() {
      */
     var addToPlayHistory = function(key, system, title, file, played, slots) {
 
-        var self = this;
         var slot;
 
         //handling dupes will be a common function, replace the date and handle the states slots
@@ -1659,7 +1636,6 @@ var Main = (function() {
      * @return {Object}             Contains reference to the li, img and close button
      */
     var buildGameLink = function(system, title, file, size, close) {
-        var self = this;
         close = close || false;
 
         var li = $('<li class="gamelink"></li>');
@@ -1722,12 +1698,11 @@ var Main = (function() {
      */
     var getBoxFront = function(system, title, size) {
 
-        var self = this;
 
         //have box title's been compressed (to obfiscate on cdn)
         if (config.flattenedboxfiles) {
             //double encode, once for the url, again for the actual file name (files saved with encoding becase they contain illegal characters without)
-            title = encodeURIComponent(encodeURIComponent(Compress.string(title)));
+            title = encodeURIComponent(encodeURIComponent(_Compression.In.string(title)));
         }
 
         //incldes swap to blank cart onerror
@@ -1755,7 +1730,7 @@ var Main = (function() {
      * @return {string}
      */
     var generateLink = function(system, title, file) {
-        return _Compression.Compress.string(encodeURI(system + '/' + title + '/' + file)); //prehaps slot for load state as query string?
+        return _Compression.In.string(encodeURI(system + '/' + title + '/' + file)); //prehaps slot for load state as query string?
     };
 
     /**
@@ -1818,7 +1793,7 @@ var Main = (function() {
 
         $('.screenshotthumb').each(function(index) {
 
-            var self = this;
+
             setTimeout(function() {
                 $(self)[0].click();
             }, delay);
@@ -1857,3 +1832,12 @@ $.fn.animateRotate = function(startingangle, angle, duration, easing, complete) 
         $({deg: startingangle}).animate({deg: angle}, args);
     });
 };
+
+/**
+ * globally defined jsonp deletegate. runs when jsonp is fetched. common scheme is to define a handler for calling jsonp
+ * @param  {Object} response
+ * @return {undef}
+ */
+var jsonpDelegate;
+var b;
+var c;

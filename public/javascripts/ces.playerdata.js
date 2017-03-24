@@ -15,9 +15,9 @@ var PlayerData = (function(initialPlayerData) {
      * @param  {string} key
      * @return {string}
      */
-    this.get = function(key) {
-        if (this._data.hasOwnProperty(key)) {
-            return this._data[key];
+    this.Get = function(key) {
+        if (data.hasOwnProperty(key)) {
+            return data[key];
         }
         return null;
     };
@@ -27,9 +27,9 @@ var PlayerData = (function(initialPlayerData) {
      * @param  {string} system
      * @return {string}
      */
-    this.getShader = function(system) {
-        if (this._data.shaders && this._data.shaders.hasOwnProperty(system)) {
-            return this._data.shaders[system];
+    this.GetShader = function(system) {
+        if (data.shaders && data.shaders.hasOwnProperty(system)) {
+            return data.shaders[system];
         }
         return null;
     };
@@ -39,9 +39,9 @@ var PlayerData = (function(initialPlayerData) {
      * @param {string} system
      * @param {string} value
      */
-    this.setShader = function(system, value) {
-        if (this._data.shaders) {
-            this._data.shaders[system] = value;
+    this.SetShader = function(system, value) {
+        if (data.shaders) {
+            data.shaders[system] = value;
         }
         return;
     };
