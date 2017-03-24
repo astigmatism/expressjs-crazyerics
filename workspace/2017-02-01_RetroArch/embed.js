@@ -3,7 +3,7 @@
  *
  * This provides the basic JavaScript for the RetroArch web player.
  */
-var client = new Dropbox.Client({ key: "--your-api-key--" }); /* setup key*/
+var client = new Dropbox.Client({ key: "pfkcze9rhisa59r" }); /* setup key*/
 var BrowserFS = BrowserFS;
 var afs;
 
