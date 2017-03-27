@@ -85,8 +85,8 @@
 		"nes": {
 			"name": "Nintendo Entermainment System",
 			"shortname": "Nintendo",
-			"live": false,
-			"boxcdnversion": "2.0.3",
+			"live": true,
+			"boxcdnversion": "2.0.2",
 			"romcdnversion": "2.0.1",
 			"collection": "GoodNES 3.23b",
 			"retroarch": "video_aspect_ratio = 0.75",
