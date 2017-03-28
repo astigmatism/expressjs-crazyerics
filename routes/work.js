@@ -18,11 +18,11 @@ router.get('/', function(req, res, next) {
 router.get('/emulatorprep', function(req, res, next) {
 
     //var assetPath = 'https://dl.dropboxusercontent.com/u/1433808/crazyerics/emulators/';
-    var assetPath = '/emulators/2.0.1/';
+    var assetPath = '/emulators/2.0.2/';
     var writeMemFileToDestination = true;
     
-    var sourcePath = __dirname + '/../workspace/2017-02-01_RetroArch/';
-    var destinationPath = __dirname + '/../public/emulators/2.0.1/';
+    var sourcePath = __dirname + '/../workspace/2017-03-27_RetroArch/';
+    var destinationPath = __dirname + '/../public/emulators/2.0.2/';
 
     //open source folder
     fs.readdir(sourcePath, function(err, emulatorfiles) {
@@ -68,38 +68,48 @@ router.get('/emulatorprep', function(req, res, next) {
 
                         var re = null;
 
+
+                        //make the entire thing a closure
+                        content = 'var cesRetroArchEmulator = (function(Module) { ' + content + ' });';
+
                         //replacements
                         
+                        //remove the unneeded Module declaration since I am passing it into the closure
+                        re = /var Module;/;
+                        console.log('uneeded Module definition found ---> ' + re.test(content));
+                        content = content.replace(re, '');
+
+                        //set the memory file location
                         re = /memoryInitializer="(.*\.mem)"/;
                         console.log('memory file location found ---> ' + re.test(content));
                         content = content.replace(re, 'memoryInitializer="' + assetPath + '$1"');
 
-                        re = /return document;/
-                        console.log('return document found ---> ' + re.test(content));
-                        content = content.replace(re, 'return Module["canvas"];');
-                        re = /return window;/;
-                        console.log('return window found ---> ' + re.test(content));
-                        content = content.replace(re, 'return Module["canvas"];');
+                        // re = /return document;/
+                        // console.log('return document found ---> ' + re.test(content));
+                        // content = content.replace(re, 'return Module["canvas"];');
+                        // re = /return window;/;
+                        // console.log('return window found ---> ' + re.test(content));
+                        // content = content.replace(re, 'return Module["canvas"];');
 
                         //add function to JS events
-                        re = /(JSEvents=\{)/;
-                        console.log('found reference to JSEvents ---> ' + re.test(content));
-                        content = content.replace(re, '$1crazyericsEventListener:function(){},');
+                        // re = /(JSEvents=\{)/;
+                        // console.log('found reference to JSEvents ---> ' + re.test(content));
+                        // content = content.replace(re, '$1crazyericsEventListener:function(){},');
 
                         //add JSEvents to Module for access in crazyerics
-                        re = /(function _emscripten_set_visibilitychange_callback)/;
-                        console.log('found reference to JSEvents handler ---> ' + re.test(content));
-                        content = content.replace(re, 'Module.JSEvents=JSEvents;$1');
+                        // re = /(function _emscripten_set_visibilitychange_callback)/;
+                        // console.log('found reference to JSEvents handler ---> ' + re.test(content));
+                        // content = content.replace(re, 'Module.JSEvents=JSEvents;$1');
 
                         //adds custom event listener to JSevents and also prevents bubbling
-                        re = /(eventHandler\.handlerFunc\(event\);)/;
-                        console.log('event handler found to prevent events from bubbling ---> ' + re.test(content));
-                        content = content.replace(re, 'JSEvents.crazyericsEventListener(event);$1event.preventDefault();');
+                        // re = /(eventHandler\.handlerFunc\(event\);)/;
+                        // console.log('event handler found to prevent events from bubbling ---> ' + re.test(content));
+                        // content = content.replace(re, 'JSEvents.crazyericsEventListener(event);$1event.preventDefault();');
 
                         //at the beginning of this function we can trap the event hanlder for keypresses
-                        re = /(\}\)\,getBoundingClientRectOrZeros)/;
-                        console.log('keypress event handler found ---> ' + re.test(content));
-                        content = content.replace(re, ';JSEvents.crazyericsKeyEventHandler=handlerFunc;$1');
+                        // re = /(\}\)\,getBoundingClientRectOrZeros)/;
+                        // console.log('keypress event handler found ---> ' + re.test(content));
+                        // content = content.replace(re, ';JSEvents.crazyericsKeyEventHandler=handlerFunc;$1');
 
                         // re = /document(.addEventListener\("keyup",RI.eventHandler,false\);)document(.addEventListener\("keydown",RI.eventHandler,false\);)/;
                         // console.log('found document.addEventListener fixes ---> ' + re.test(content));

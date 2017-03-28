@@ -576,6 +576,8 @@ UtilitiesService.collectDataForClient = function(req, openonload, callback) {
         retroarch: {},
         rompath: {},
         shaderpath: {},
+        emupath: {},
+        emuclasspath: {},
         flatten: {},
         recommendedshaders: {},
         autocapture: {},
@@ -597,6 +599,7 @@ UtilitiesService.collectDataForClient = function(req, openonload, callback) {
                 'shortname': systems[system].shortname,
                 'boxcdnversion': systems[system].boxcdnversion,
                 'romcdnversion': systems[system].romcdnversion,
+                'emuclassversion': systems[system].emuclassversion,
                 'emufile': systems[system].emufile,
                 'retroarch': systems[system].retroarch
             };
@@ -610,6 +613,9 @@ UtilitiesService.collectDataForClient = function(req, openonload, callback) {
 
     //emulators location
     configdata.emupath = config.get('emupath');
+
+    //path to emulators js classes
+    configdata.emuclasspath = config.get('emuclasspath');
 
     //shaders location
     configdata.shaderpath = config.get('shaderpath');

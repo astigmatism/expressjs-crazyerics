@@ -1,4 +1,4 @@
-var Compression = (function() {
+var cesCompression = (function() {
 		
 	//public methods
 
@@ -89,5 +89,7 @@ var Compression = (function() {
 
 	this.In = this.Compress;
 	this.Out = this.Decompress;
+
+	return this;
 
 });

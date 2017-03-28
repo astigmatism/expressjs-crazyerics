@@ -1,4 +1,4 @@
-var Sliders = (function() {
+var cesSliders = (function() {
 
     // private members
 
@@ -139,5 +139,7 @@ var Sliders = (function() {
             self.open($(this).attr('class'));
         });
     };
+
+    return this;
 
 });

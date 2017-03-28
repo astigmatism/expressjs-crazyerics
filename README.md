@@ -8,45 +8,6 @@ Gulp.
 
 I prefer Gulp to Grunt for its "code centric" focus on syntax/error checking, streaming and building. Your gulp tasks are maintained in ./gulpfile.js. By default, you watch for any saves to js files in ./public/javascripts to automatically start a task which checkes for errors and builds. On any javascript save - check syntax with JSCS, look for linting issues, minify css and compress js. This final step also builds a soruce map file. All build products are saved tp ./public/build
 
-building emulators (not used any longer as of Oct 2016 since all emulators can be obtained from nightly builds of libretro)
-------------------
-
-9/11/15: Okay, now that I understand (somewhat) the build procedure for RetroArch and its emulation cores, I'll detail it here. That being said, while I can build the most current version of RetroArch just fine, not a single one of the "cores" (console emulators) seems to work when I start it up and attempt to load a game. I have no idea why and debugging why an emulator in javascript through the host of another app sounds like a nightmare undertaking.
-
-- First, get Emscripten installed and working (https://kripken.github.io/emscripten-site/docs/getting_started/downloads.html). There were so many steps that I won't repeat them here. The latest version (at this time tag-1.34.8) was working fine.
-
-- From GitHub, get the RetroArch project (https://github.com/libretro/RetroArch). At the time of this writting its at version 1.2.2, commit 9fa376a835fff55710826029353cde4d7e6e12c7. I only say this because Emscripten compiling is working at this time :) You never know about its support later. On a side note - I actually went back in time to version 0.9.9.3 which I learned to compile from and then attempted the latest release with all my new "learnings" and it worked just fine :P
-
-- We're going to modify the ./dist-scripts/dist-cores.sh file. 
-
-Replace this, with this:
-make -C ../ -f Makefile.emscripten LTO=$lto -j7 clean || exit 1
-make -C ../ -f Makefile.emscripten DEBUG=1 clean || exit 1
-
-I'm replacing the optimization options with a flag which does does none. This is important because I need to modify the source once built for the emulator to work on Crazyerics (see below)
-
-- Ok, so we can't build anything yet until we have byte-code from an Emscripten compiled libretro "core" (or emulator). Browse the repository at https://github.com/libretro. There are actually a ton of cores out there all somewhat with active development.
-
-- Compiling a core doesn't take much work but might mean modifying the ./Makefile or ./Makefile.libretro. We need to include instruction for output when the platform is Emscripten and often it won't have it. Open up the make file and ensure something like this exists:
-
-# emscripten
-else ifeq ($(platform), emscripten)
-	TARGET := $(TARGET_NAME)_libretro_emscripten.bc
-
-- You should now be able to attempt a build. Be sure to include the platform parameter:
-
-emmake make -f ./Makefile platform=emscripten
-
-- If successful, you'll end up with a .bc file which represents byte-level code of the core. We can now use this when building RetroArch.
-
-- Drop the .bc (one or several) into the ./dist-scripts/ folder in the RetroArch project. They'll now be directly alongside the dist-cores.sh file you'll run:
-
-emmake ./dist-cores.sh emscripten
-
-- Congrats, a resulting javascript file of the core with RetroArch will now be in the ./emscripten folder in the RetroArch project. I suggest trying it out in that location with the template.html file they include for testing. If you have any luck it'll open a game, I've yet to see this :(
-
-Alright, that's about it. I might try this whole procedure on a Windows or Ubuntu box as maybe the OSX c++ compilers (g++?) don't offer as much compatibility? Hard to say but rarely do I see a core built without several warnings thrown. I still get a build product of course but its suspect. Maybe you'll have some luck there in the future :)
-
 new chnages to emulator 2.x.x scripts
 ---------------------------
 

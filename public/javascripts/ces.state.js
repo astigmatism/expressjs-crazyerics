@@ -2,7 +2,7 @@
  * Object which wraps all functionality specific to handling game save states
  * @type {Object}
  */
-var State = (function (initialStateData) {
+var cesState = (function (initialStateData) {
 
     //private members
     var self = this;
@@ -115,5 +115,7 @@ var State = (function (initialStateData) {
             }
         });
     };
+
+    return this;
 
 });

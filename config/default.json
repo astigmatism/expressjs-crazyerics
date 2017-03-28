@@ -5,6 +5,7 @@
 	"rompath":"https://dl.dropboxusercontent.com/u/1433808/crazyerics/roms",
 	"emupath_online":"https://dl.dropboxusercontent.com/u/1433808/crazyerics/emulators",
 	"emupath":"",
+	"emuclasspath": "/javascripts/emulators",
 	"flattenedboxfiles": true,
 	"flattenedromfiles": true,
 	"systems": {
@@ -15,7 +16,8 @@
 			"collection": "GoodVect 1.06",
 			"boxcdnversion": "2.0.4",
 			"romcdnversion": "2.0.2",
-			"emufile": "emulators/2.0.1/vecx_libretro.js",
+			"emuclassversion": "2",
+			"emufile": "emulators/2.0.2/vecx_libretro.js",
 			"recommendedshaders": []
 		},
 		"a7800": {
@@ -25,7 +27,8 @@
 			"boxcdnversion": "2.0.2",
 			"romcdnversion": "2.0.1",
 			"collection": "Good7800 3.28",
-			"emufile": "emulators/2.0.1/prosystem_libretro.js",
+			"emuclassversion": "2",
+			"emufile": "emulators/2.0.2/prosystem_libretro.js",
 			"recommendedshaders": []
 		},
 		"gb": {
@@ -35,8 +38,9 @@
 			"boxcdnversion": "2.0.4",
 			"romcdnversion": "2.0.1",
 			"collection": "GoodGBx 3.14",
-			"emufile_": "emulators/2.0.0/gambatte_libretro.js",
-			"emufile": "emulators/1.0.0/gambatte.min.js",
+			"emuclassversion": "1",
+			"emufile": "emulators/2.0.2/gambatte_libretro.js",
+			"emufile_": "emulators/1.0.0/gambatte.min.js",
 			"recommendedshaders": [ 
 				{
 					"title": "Game Boy Advance",
@@ -62,8 +66,9 @@
 			"boxcdnversion": "2.0.1",
 			"romcdnversion": "2.0.1",
 			"collection": "GoodGBA v3.23",
-			"emufile_": "emulators/2.0.0/vba_next_libretro.js",
-			"emufile": "emulators/1.0.0/vba_next.min.js",
+			"emuclassversion": "1",
+			"emufile": "emulators/2.0.2/vba_next_libretro.js",
+			"emufile_": "emulators/1.0.0/vba_next.min.js",
 			"recommendedshaders": [
 				{
 					"title": "Game Boy Advance",
@@ -90,7 +95,8 @@
 			"romcdnversion": "2.0.1",
 			"collection": "GoodNES 3.23b",
 			"retroarch": "video_aspect_ratio = 0.75",
-			"emufile": "emulators/2.0.0/nestopia_libretro.js",
+			"emuclassversion": "2",
+			"emufile": "emulators/2.0.2/nestopia_libretro.js",
 			"recommendedshaders": []
 		},
 		"pce": {
@@ -100,7 +106,8 @@
 			"boxcdnversion": "2.0.2",
 			"romcdnversion": "2.0.2",
 			"collection": "GoodPCE 1.09a GoodMerged",
-			"emufile": "emulators/2.0.1/mednafen_pce_fast_libretro.js",
+			"emuclassversion": "2",
+			"emufile": "emulators/2.0.2/mednafen_pce_fast_libretro.js",
 			"recommendedshaders": []
 		},
 		"snes": {
@@ -110,8 +117,9 @@
 			"boxcdnversion": "2.0.1",
 			"romcdnversion": "2.0.1",
 			"collection": "GoodSNES 3.23",
-			"emufile_": "emulators/2.0.0/snes9x2010_libretro.js",
-			"emufile": "emulators/1.0.0/snes9x-next.min.js",
+			"emuclassversion": "1",
+			"emufile": "emulators/2.0.2/snes9x2010_libretro.js",
+			"emufile_": "emulators/1.0.0/snes9x-next.min.js",
 			"recommendedshaders": [
 				{
 					"title": "Vintage Television",
@@ -136,7 +144,8 @@
 			"live": true,
 			"boxcdnversion": "2.0.2",
 			"romcdnversion": "2.0.1",
-			"emufile": "emulators/2.0.1/genesis_plus_gx_libretro.js",
+			"emuclassversion": "2",
+			"emufile": "emulators/2.0.2/genesis_plus_gx_libretro.js",
 			"recommendedshaders": [
 				{
 					"title": "Vintage Television",
@@ -161,7 +170,8 @@
 			"live": true,
 			"boxcdnversion": "2.0.3",
 			"romcdnversion": "2.0.0",
-			"emufile": "emulators/2.0.1/genesis_plus_gx_libretro.js",
+			"emuclassversion": "2",
+			"emufile": "emulators/2.0.2/genesis_plus_gx_libretro.js",
 			"recommendedshaders": [
 				{
 					"title": "Vintage Television",
@@ -187,7 +197,8 @@
 			"collection": "GoodGG 3.20",
 			"boxcdnversion": "2.0.4",
 			"romcdnversion": "2.0.1",
-			"emufile": "emulators/2.0.1/genesis_plus_gx_libretro.js",
+			"emuclassversion": "2",
+			"emufile": "emulators/2.0.2/genesis_plus_gx_libretro.js",
 			"recommendedshaders": [
 				{
 					"title": "Vintage LCD",
@@ -213,7 +224,8 @@
 			"collection": "GoodN64 3.27",
 			"boxcdnversion": "2.0.1",
 			"romcdnversion": "2.0.1",
-			"emufile": "emulators/1.0.0/mupen64plus.min.js",
+			"emuclassversion": "1",
+			"emufile": "emulators/2.0.2/mupen64plus_libretro.js",
 			"retroarch": "video_aspect_ratio = 1.142857143\ninput_player1_l2 = a\ninput_player1_l_x_plus = right\ninput_player1_l_x_minus = left\ninput_player1_l_y_plus = down\ninput_player1_l_y_minus = up\ninput_player1_left = S\ninput_player1_right = D\ninput_player1_up = E\ninput_player1_down = C\ninput_player1_r_x_plus = l\ninput_player1_r_x_minus = j\ninput_player1_r_y_plus = k\ninput_player1_r_y_minus = i\n",
 			"recommendedshaders": [
 				{
@@ -240,7 +252,8 @@
 			"collection":"GoodLynx 2.01",
 			"boxcdnversion": "2.0.2",
 			"romcdnversion": "2.0.1",
-			"emufile": "emulators/2.0.1/handy_libretro.js",
+			"emuclassversion": "2",
+			"emufile": "emulators/2.0.2/handy_libretro.js",
 			"recommendedshaders": []
 		},
 		"vb": {
@@ -250,7 +263,8 @@
 			"collection": "GoodVBoy 3.1415",
 			"boxcdnversion": "2.0.3",
 			"romcdnversion": "2.0.1",
-			"emufile": "emulators/2.0.1/mednafen_vb_libretro.js",
+			"emuclassversion": "2",
+			"emufile": "emulators/2.0.2/mednafen_vb_libretro.js",
 			"recommendedshaders": []
 		},
 		"wsx": {
@@ -261,7 +275,8 @@
 			"boxcdnversion": "2.0.2",
 			"romcdnversion": "2.0.1",
 			"suggestionThreshold": 250,
-			"emufile": "emulators/2.0.0/mednafen_wswan_libretro.js",
+			"emuclassversion": "2",
+			"emufile": "emulators/2.0.2/mednafen_wswan_libretro.js",
 			"recommendedshaders": []
 		},
 		"a5200": {
@@ -270,7 +285,8 @@
 			"live": false,
 			"boxcdnversion": "2.0.0",
 			"romcdnversion": "2.0.0",
-			"emufile": "emulators/2.0.0/prosystem_libretro.js",
+			"emuclassversion": "2",
+			"emufile": "emulators/2.0.2/prosystem_libretro.js",
 			"recommendedshaders": []
 		},
 		"a2600": {
@@ -280,7 +296,8 @@
 			"collection": "Good2600 1.0.0",
 			"boxcdnversion": "2.0.1",
 			"romcdnversion": "2.0.1",
-			"emufile": "emulators/2.0.0/stella_libretro.js",
+			"emuclassversion": "2",
+			"emufile": "emulators/2.0.2/stella_libretro.js",
 			"recommendedshaders": []
 		},
 		"ngpx": {
@@ -289,7 +306,8 @@
 			"live": false,
 			"boxcdnversion": "2.0.0",
 			"romcdnversion": "2.0.0",
-			"emufile": "emulators/2.0.0/mednafen_ngp_libretro.js",
+			"emuclassversion": "2",
+			"emufile": "emulators/2.0.2/mednafen_ngp_libretro.js",
 			"recommendedshaders": []
 		},
 		"jag": {
@@ -299,7 +317,8 @@
 			"live": true,
 			"boxcdnversion": "2.0.3",
 			"romcdnversion": "2.0.2",
-			"emufile": "emulators/2.0.0/virtualjaguar_libretro.js",
+			"emuclassversion": "2",
+			"emufile": "emulators/2.0.2/virtualjaguar_libretro.js",
 			"recommendedshaders": []
 		},
 		"nds": {
@@ -308,7 +327,8 @@
 			"live": false,
 			"boxcdnversion": "2.0.0",
 			"romcdnversion": "2.0.0",
-			"emufile": "emulators/2.0.0/desmume_libretro.js",
+			"emuclassversion": "2",
+			"emufile": "emulators/2.0.2/desmume_libretro.js",
 			"recommendedshaders": []
 		}
 	},

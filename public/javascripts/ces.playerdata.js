@@ -2,7 +2,7 @@
  * Object which wraps common functions related to player preferences, data that comes form the server initially but can be changed
  * @type {Object}
  */
-var PlayerData = (function(_Compression, initialPlayerData) {
+var cesPlayerData = (function(_Compression, initialPlayerData) {
 
     //private members
     var self = this;
@@ -89,5 +89,7 @@ var PlayerData = (function(_Compression, initialPlayerData) {
         }
         return;
     };
+
+    return this;
 
 });
