@@ -41,7 +41,7 @@ var cesEmulator = (function(_Compression, config, system, title, file, key) {
     
     this.BeginGame = function() {
         _Module.callMain(_Module.arguments);
-        self.LockEmulatorKeyboardInput(true);
+        self.GiveEmulatorControlOfInput(true);
     };
 
     this.Load = function(shader, deffered) {
@@ -102,14 +102,14 @@ var cesEmulator = (function(_Compression, config, system, title, file, key) {
 
     this.PauseGame = function() {
         if (_Module) {
-            self.LockEmulatorKeyboardInput(false);
+            self.GiveEmulatorControlOfInput(false);
             _Module.pauseMainLoop();
         }
     };
 
     this.ResumeGame = function() {
         if (_Module) {
-            self.LockEmulatorKeyboardInput(true);
+            self.GiveEmulatorControlOfInput(true);
             _Module.resumeMainLoop();
         }
     };
@@ -134,11 +134,14 @@ var cesEmulator = (function(_Compression, config, system, title, file, key) {
         $(document).unbind('fullscreenchange');
         $(document).unbind('mozfullscreenchange');
         $(document).unbind('webkitfullscreenchange');
+        $(document).unbind('MSFullscreenChange');
+
         $(document).unbind('pointerlockchange');
         $(document).unbind('mozpointerlockchange');
         $(document).unbind('webkitpointerlockchange');
+        $(document).unbind('mspointerlockchange');
 
-        self.LockEmulatorKeyboardInput(false);
+        self.GiveEmulatorControlOfInput(false);
 
         if (FS) {
             FS = null;
@@ -236,50 +239,55 @@ var cesEmulator = (function(_Compression, config, system, title, file, key) {
         
     };
 
-    this.LockEmulatorKeyboardInput = function(lockInput) {
+    this.GiveEmulatorControlOfInput = function(giveInput) {
         
-        // if (lockInput) {
+        if (giveInput) {
 
-        //     keyboardListener = function (e) {
-        //         if (keys[e.which]) {
-        //             e.preventDefault();
-        //         }
-        //     }
+            var browserFunctionKeysWeWantToStop = {
+                9: "tab",
+                13: "enter",
+                16: "shift",
+                18: "alt",
+                27: "esc",
+                33: "rePag",
+                34: "avPag",
+                35: "end",
+                36: "home",
+                37: "left",
+                38: "up",
+                39: "right",
+                40: "down",
+                112: "F1",
+                113: "F2",
+                114: "F3",
+                115: "F4",
+                116: "F5",
+                117: "F6",
+                118: "F7",
+                119: "F8",
+                120: "F9",
+                121: "F10",
+                122: "F11",
+                123: "F12"
+            };
 
-        //     var keys = {
-        //         9: "tab",
-        //         13: "enter",
-        //         16: "shift",
-        //         18: "alt",
-        //         27: "esc",
-        //         33: "rePag",
-        //         34: "avPag",
-        //         35: "end",
-        //         36: "home",
-        //         37: "left",
-        //         38: "up",
-        //         39: "right",
-        //         40: "down",
-        //         112: "F1",
-        //         113: "F2",
-        //         114: "F3",
-        //         115: "F4",
-        //         116: "F5",
-        //         117: "F6",
-        //         118: "F7",
-        //         119: "F8",
-        //         120: "F9",
-        //         121: "F10",
-        //         122: "F11",
-        //         123: "F12"
-        //     };
-        //     window.addEventListener('keydown', keyboardListener);
-        // }
-        // else {
-        //     if (keyboardListener) {
-        //         window.removeEventListener('keydown', keyboardListener);
-        //     }
-        // }
+            //common listener definition
+            var keyboardListener = function (e) {
+                if (browserFunctionKeysWeWantToStop[e.which]) {
+                    e.preventDefault();
+                }
+            }
+
+            $(window).on('keydown', keyboardListener); //using jQuerys on and off here worked :P
+
+        } else {
+            $(window).off('keydown');
+        }
+
+        //also set emulator-specific event handlers on and off (see custom module def)
+        if (_Module) {
+            _Module.allowInput(giveInput);
+        }
     };
 
     //private methods
@@ -882,7 +890,7 @@ var originalModule = (function() {
 
     this.printErr = function(text) {
         var text = Array.prototype.slice.call(arguments).join(' ');
-        var element = window.parent.document.getElementById('output');
+        var element = document.getElementById('output');
         element.value += text + "\n";
         //element.scrollTop = 99999; // focus on bottom
     };
@@ -902,8 +910,8 @@ var originalModule = (function() {
             clearInterval(this.setStatus.interval);
         }
         var m = text.match(/([^(]+)\((\d+(\.\d+)?)\/(\d+)\)/);
-        var statusElement = window.parent.document.getElementById('status');
-        var progressElement = window.parent.document.getElementById('progress');
+        var statusElement = document.getElementById('status');
+        var progressElement = document.getElementById('progress');
         if (m) {
             text = m[1];
             progressElement.value = parseInt(m[2])*100;
@@ -932,6 +940,12 @@ var originalModule = (function() {
     this.cesExit = function() {
         this["noExitRuntime"] = false; //ok, at this time, this is how you tell the running script you want exit during runtime
         this.exit('Force closed by ces');
+    };
+
+    this.allowInput = function(allowInput) {
+
+        //????
+
     };
 
     return this;
