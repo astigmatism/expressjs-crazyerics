@@ -571,19 +571,13 @@ UtilitiesService.findGame = function(system, title, file, callback) {
 UtilitiesService.collectDataForClient = function(req, openonload, callback) {
 
     var playerdata = {};
+    var configdata = {};
+    
 
-    var configdata = {
-        retroarch: {},
-        rompath: {},
-        shaderpath: {},
-        emupath: {},
-        emuclasspath: {},
-        flatten: {},
-        recommendedshaders: {},
-        autocapture: {},
-        systemdetails: {}
-    };
+    //system details
     var systems = config.get('systems');
+
+    configdata['systemdetails'] = {};
 
     //system specific configs
     for (system in systems) {
@@ -591,44 +585,53 @@ UtilitiesService.collectDataForClient = function(req, openonload, callback) {
         //if system is "live" (ready to show for production)
         if (systems[system].live) {
 
-            configdata.recommendedshaders[system] = systems[system].recommendedshaders;
-            configdata.autocapture[system] = systems[system].autocapture;
 
+            //a white list of config settings available to client:
+
+            //required
             configdata.systemdetails[system] = {
                 'name': systems[system].name,
                 'shortname': systems[system].shortname,
                 'boxcdnversion': systems[system].boxcdnversion,
                 'romcdnversion': systems[system].romcdnversion,
-                'emuclassversion': systems[system].emuclassversion,
-                'emufile': systems[system].emufile,
+                'emuextention': systems[system].emuextention,
+                'emuscript': systems[system].emuscript,
                 'retroarch': systems[system].retroarch
             };
+
+            //optional
+            configdata.systemdetails[system]['recommendedshaders'] = systems[system].recommendedshaders || [];
+            configdata.systemdetails[system]['autocapture'] = systems[system].autocapture || {};
         }
     }
+
+    console.log(configdata);
+
     //default retroarch configuration
-    configdata.retroarch = config.get('retroarch');
+    configdata['retroarch'] = config.get('retroarch');
 
     //roms location
-    configdata.rompath = config.get('rompath');
+    configdata['rompath'] = config.get('rompath');
 
-    //emulators location
-    configdata.emupath = config.get('emupath');
+    //emulator scripts location
+    configdata['emupath'] = config.get('emupath');
 
-    //path to emulators js classes
-    configdata.emuclasspath = config.get('emuclasspath');
+    //emulator extensions scripts location
+    configdata['emuextentionspath'] = config.get('emuextentionspath');
 
     //shaders location
-    configdata.shaderpath = config.get('shaderpath');
+    configdata['shaderpath'] = config.get('shaderpath');
 
     //are rom dirtree structures flattened? (use gamekey as file name)
-    configdata.flattenedromfiles = config.get('flattenedromfiles');
+    configdata['flattenedromfiles'] = config.get('flattenedromfiles');
 
     //asset location
-    configdata.assetpath = config.get('assetpath');
+    configdata['assetpath'] = config.get('assetpath');
 
     //box art location
-    configdata.boxpath = config.get('boxpath');
-    configdata.flattenedboxfiles = config.get('flattenedboxfiles');
+    configdata['boxpath'] = config.get('boxpath');
+
+    configdata['flattenedboxfiles'] = config.get('flattenedboxfiles');
 
     var onFinish = function() {   
 

@@ -17,15 +17,16 @@ router.get('/', function(req, res, next) {
 
 router.get('/emulatorprep', function(req, res, next) {
 
-    //var assetPath = 'https://dl.dropboxusercontent.com/u/1433808/crazyerics/emulators/';
-    var assetPath = '/emulators/2.0.2/';
+    var EMULATOR_VERSION = '2017-03-27';
+    var SOURE_PATH = __dirname + '/../workspace/2017-03-27_RetroArch/';
+    
     var writeMemFileToDestination = true;
     
-    var sourcePath = __dirname + '/../workspace/2017-03-27_RetroArch/';
-    var destinationPath = __dirname + '/../public/emulators/2.0.2/';
+    var assetPath = '/emulators/' + EMULATOR_VERSION;
+    var destinationPath = __dirname + '/../public/emulators/' + EMULATOR_VERSION;
 
     //open source folder
-    fs.readdir(sourcePath, function(err, emulatorfiles) {
+    fs.readdir(SOURE_PATH, function(err, emulatorfiles) {
         if (err) {
             return res.json(err);
         }
@@ -41,7 +42,7 @@ router.get('/emulatorprep', function(req, res, next) {
 
                 console.log('\n\nFile: ' + emulatorfile);
 
-                fs.stat(sourcePath + '/' + emulatorfile, function(err, stats) {
+                fs.stat(SOURE_PATH + '/' + emulatorfile, function(err, stats) {
                     
                     //bail if anything but a file
                     if (!stats.isFile()) {
@@ -50,7 +51,7 @@ router.get('/emulatorprep', function(req, res, next) {
                     }   
 
                     if (/\.mem$/.test(emulatorfile) && writeMemFileToDestination) {
-                        fs.createReadStream(sourcePath + '/' + emulatorfile).pipe(fs.createWriteStream(destinationPath + '/' + emulatorfile));
+                        fs.createReadStream(SOURE_PATH + '/' + emulatorfile).pipe(fs.createWriteStream(destinationPath + '/' + emulatorfile));
                         nextemulatorfile();
                         return;
                     }
@@ -61,7 +62,7 @@ router.get('/emulatorprep', function(req, res, next) {
                     }
 
                     //read file
-                    fs.readFile(sourcePath + '/' + emulatorfile, 'utf8', function(err, content) {
+                    fs.readFile(SOURE_PATH + '/' + emulatorfile, 'utf8', function(err, content) {
                         if (err) {
                             return res.json(err);
                         }
@@ -84,6 +85,7 @@ router.get('/emulatorprep', function(req, res, next) {
                         console.log('memory file location found ---> ' + re.test(content));
                         content = content.replace(re, 'memoryInitializer="' + assetPath + '$1"');
 
+                        //getting window and document returns canvas
                         // re = /return document;/
                         // console.log('return document found ---> ' + re.test(content));
                         // content = content.replace(re, 'return Module["canvas"];');
@@ -96,10 +98,16 @@ router.get('/emulatorprep', function(req, res, next) {
                         // console.log('found reference to JSEvents ---> ' + re.test(content));
                         // content = content.replace(re, '$1crazyericsEventListener:function(){},');
 
-                        //add JSEvents to Module for access in crazyerics
-                        // re = /(function _emscripten_set_visibilitychange_callback)/;
-                        // console.log('found reference to JSEvents handler ---> ' + re.test(content));
-                        // content = content.replace(re, 'Module.JSEvents=JSEvents;$1');
+                        //add JSEvents to Module for external access
+                        re = /(function _emscripten_set_visibilitychange_callback)/;
+                        console.log('found reference to JSEvents handler ---> ' + re.test(content));
+                        content = content.replace(re, 'Module.JSEvents=JSEvents;$1');
+
+
+                        re = /(var jsEventHandler=)/;
+                        console.log('add handler for window callback location ---> ' + re.test(content));
+                        content = content.replace(re, 'Module.cesEventHandlerRegistered(eventHandler);$1');
+
 
                         //adds custom event listener to JSevents and also prevents bubbling
                         // re = /(eventHandler\.handlerFunc\(event\);)/;
@@ -111,13 +119,13 @@ router.get('/emulatorprep', function(req, res, next) {
                         // console.log('keypress event handler found ---> ' + re.test(content));
                         // content = content.replace(re, ';JSEvents.crazyericsKeyEventHandler=handlerFunc;$1');
 
-                        re = /document(.addEventListener\("keyup",RI.eventHandler,false\);)document(.addEventListener\("keydown",RI.eventHandler,false\);)/;
-                        console.log('found document.addEventListener fixes ---> ' + re.test(content));
-                        content = content.replace(re, 'document.getElementById("emulatorwrapper")$1document.getElementById("emulatorwrapper")$2');
+                        // re = /document(.addEventListener\("keyup",RI.eventHandler,false\);)document(.addEventListener\("keydown",RI.eventHandler,false\);)/;
+                        // console.log('found document.addEventListener fixes ---> ' + re.test(content));
+                        // content = content.replace(re, 'document.getElementById("emulatorwrapper")$1document.getElementById("emulatorwrapper")$2');
 
-                        re = /document(.removeEventListener\("keyup",RI.eventHandler,false\);)document(.removeEventListener\("keydown",RI.eventHandler,false\);)/;
-                        console.log('found document.removeEventListener fixes ---> ' + re.test(content));
-                        content = content.replace(re, 'document.getElementById("emulatorwrapper")$1document.getElementById("emulatorwrapper")$2');
+                        // re = /document(.removeEventListener\("keyup",RI.eventHandler,false\);)document(.removeEventListener\("keydown",RI.eventHandler,false\);)/;
+                        // console.log('found document.removeEventListener fixes ---> ' + re.test(content));
+                        // content = content.replace(re, 'document.getElementById("emulatorwrapper")$1document.getElementById("emulatorwrapper")$2');
 
                         // re = /document\./g;
                         // console.log('document. found ---> ' + re.test(content));

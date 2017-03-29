@@ -454,7 +454,7 @@ var cesMain = (function() {
                     //begin loading all content. I know it seems like some of these (game, emulator, etc) could load while the user
                     //is viewing the shader select, but I found that when treated as background tasks, it interfere with the performance
                     //of the shader selection ui. I think its best to wait until the loading animation is up to perform all of these
-                    _Emulator.Load(shaderselection.shader, emulatorLoadComplete);
+                    _Emulator.Load(_Emulator.createModule(), shaderselection.shader, emulatorLoadComplete);
 
                     //this call is a POST. Unlike the others, it is destined for the mongo instance (MY DOMAIN not a cdn). we send user preference data to the server in addition to getting game details.
                     SavePreferencesAndGetPlayerGameDetails(key, system, title, file, { 
@@ -579,19 +579,27 @@ var cesMain = (function() {
 
     var EmulatorFactory = function(system, title, file, key, callback) {
 
-        var emulator;
-        var emuclassversion = parseFloat(config.systemdetails[system].emuclassversion);
+        var emuExtention = config.systemdetails[system].emuextention;
+        var emuExtentionFileName = 'ces.' + emuExtention + '.js';
 
+        //get emulator extention file
+        $.getScript(config.emuextentionspath + '/' + emuExtentionFileName)
+            .done(function(script, textStatus) {
 
-        // eventually, you'll want to extend your emulator with a new class, use this pattern:
-        //cesEmulatorV2.prototype = new cesEmulator(_Compression, config, system, title, file, key);
-        //emulator = new cesEmulatorV2(_Compression, config, system, title, file, key);
+                //the class extention process: on the prototype of the ext, create using the base class.
+                cesEmulator.prototype = new cesEmulatorBase(_Compression, config, system, title, file, key);
 
+                var emulator = new cesEmulator(_Compression, config, system, title, file, key);
 
-        emulator = new cesEmulator(_Compression, config, system, title, file, key);
-        callback(null, emulator);
-        
-        return;
+                //KEEP IN MIND: this pattern is imperfect. only the resulting structure (var emulator and later _Emulator)
+                //will have access to data in both, cesEmulatorBase does not have knowledge of anything in cesEmulator
+                
+                callback(null, emulator);
+            })
+            .fail(function(jqxhr, settings, exception ) {
+                callback(exception);
+            }
+        );
     };
 
     /**
@@ -627,7 +635,7 @@ var cesMain = (function() {
         }
 
         //get the recommended shaders list
-        var recommended = config.recommendedshaders[system];
+        var recommended = config.systemdetails[system].recommendedshaders;
         var shaderfamilies = config.shaders;
         var i = 0;
 
