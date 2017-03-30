@@ -392,7 +392,7 @@ var cesMain = (function() {
         $('#savedstateseletorwrapper').addClass('close');
 
         //loading content image and title
-        $('#gameloadingname').text(title);
+        $('#gameloadingname').show().text(title);
         $('#gameloadingoverlaycontentimage').empty();
 
         //fade in loading overlay
@@ -438,10 +438,11 @@ var cesMain = (function() {
                     });
                     $('#gameloadingoverlaycontentimage').append(box);
 
-                    $('#gameloadingoverlaycontent').show().removeClass(); //show loading
+                    $('#gameloadingoverlaycontent').removeClass('close'); //show loading
 
                     //show tips on loading
                     var tipInterval = setInterval(function() {
+                        $('#gameloadingname').fadeOut(500);
                         $('#tip').fadeOut(500, function() {
                             var tip = tips[Math.floor(Math.random() * tips.length)];
 

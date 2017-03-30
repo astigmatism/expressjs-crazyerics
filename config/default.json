@@ -60,9 +60,9 @@
 		"gba": {
 			"name": "Nintendo Game Boy Advance",
 			"shortname": "Game Boy Advance",
-			"live": false,
-			"boxcdnversion": "2.0.1",
-			"romcdnversion": "2.0.1",
+			"live": true,
+			"boxcdnversion": "2.0.2",
+			"romcdnversion": "2.0.2",
 			"collection": "GoodGBA v3.23",
 			"emuextention": "2017-03-27",
 			"emuscript": "vba_next_libretro.js",
