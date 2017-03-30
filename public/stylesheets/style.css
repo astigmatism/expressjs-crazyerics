@@ -135,66 +135,8 @@ p {
 	margin: 0;
 }
 
-#searchform {
-	height: 40px;
-	font-size: 14px;
-	color: #333;
-	background: #f0f0f0;
-	position: relative;
-
-}
-
-#selectordie {
-	padding: 14px 10px;
-	border: none;
-	width: 195px;
-	text-transform: none;
-	font-size: 12px;
-	font-weight: normal;
-	position: absolute;
-	top: 0px;
-	height: 40px;
-	box-shadow: none;
-}
-
-#searchform div {
-	overflow: hidden;
-	height: 40px;
-	position: absolute;
-	top: 0px;
-	left: 200px;
-	width: 600px;
-}
-
-#searchform input {
-	position: absolute;
-	top: 0px;
-	left: 0px;
-	padding: 0px 10px;
-	height: 40px;
-	border-radius: 0px;
-	background: none;
-	border: 0;
-	box-shadow: none;
-	display: inline-block;
-	font-size: 12px;
-    text-align: left;
-	width: 580px;
-  	outline: none;
-  	background: #fff;
-  	color: #444444;
-    outline: 0;
-    outline-offset: -2px;
-}
-
 .rel {
 	position: relative;
-}
-
-#startfirst, #startplayed {
-	width: 100%;
-	text-align: center;
-	padding: 15px 0;
 }
 
 .gamelink {
@@ -426,6 +368,134 @@ p {
 	display: none;
 }
 
+#search {
+	height: 40px;
+	font-size: 14px;
+	color: #333;
+	background: #f0f0f0;
+	position: relative;
+
+}
+
+#selectordie {
+	padding: 14px 10px;
+	border: none;
+	width: 195px;
+	text-transform: none;
+	font-size: 12px;
+	font-weight: normal;
+	position: absolute;
+	top: 0px;
+	height: 40px;
+	box-shadow: none;
+}
+
+#search div {
+	overflow: hidden;
+	height: 40px;
+	position: absolute;
+	top: 0px;
+	left: 200px;
+	width: 600px;
+}
+
+#search input {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	padding: 0px 10px;
+	height: 40px;
+	border-radius: 0px;
+	background: none;
+	border: 0;
+	box-shadow: none;
+	display: inline-block;
+	font-size: 12px;
+    text-align: left;
+	width: 580px;
+  	outline: none;
+  	background: #fff;
+  	color: #444444;
+    outline: 0;
+    outline-offset: -2px;
+}
+
+#content {
+	padding: 0;
+	margin: 0;
+	position: relative;
+}
+
+#dialogs {
+
+	position: relative;
+	margin: 0;
+	width: 100%;
+    max-height: 600px;
+    height: 0px;
+}
+
+.dialog {
+
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin: 0;
+    transform: translate(-50%, -50%);
+    text-align: center;
+
+    width: 100%;
+
+    transition:All 200ms ease-in;
+	-webkit-transition:All 200ms ease-in;
+	-moz-transition:All 200ms ease-in;
+	-o-transition:All 200ms ease-in;
+}
+
+/* shader select dialog */
+
+#systemshaderseletor {
+	height: 450px;
+	overflow-y: scroll;
+}
+
+#shaderselectlist {
+	margin: 40px auto;
+	list-style: none;
+	padding: 0;
+	width: 800px;
+}
+
+#shaderselectlist li {
+	height: 200px;
+	width: 200px;
+	margin: 10px 20px;
+	display: inline-block;
+	cursor: pointer;
+}
+
+#shaderselectlist li img {
+	height: 200px;
+	width: 200px;
+}
+
+#shaderselectlist li h3 {
+	margin: 0;
+	padding: 10px 0;
+	font-size: 1.2em;
+}
+
+#shaderselectlist li p {
+	margin: 0;
+	padding: 0;
+	font-size: 12px;
+}
+
+#systemshaderseletor label {
+	font-size: 1.2em;
+	margin-left: 10px;	
+}
+
 #emulatorwrapper {
 	background-color: #000;
 	padding-top: 10px;
@@ -540,10 +610,10 @@ p {
 	-o-transition:All 200ms ease-in;
 }
 
-#gameloadingoverlaycontent {
+#gameloadingoverlaycontent, #emulatorexceptionwrapper {
 
+	position: absolute;
 	margin: 0;
-    position: absolute;
     height: 100%;
     width: 100%;
     text-align: center;
@@ -595,51 +665,6 @@ p {
 	width: 100%;
 	position: absolute;
 	bottom: 100px;
-}
-
-/* shader select */
-
-#systemshaderseletorwrapper {
-	height: 450px;
-	margin: -225px 0 0 -400px;
-	overflow-y: scroll;
-}
-
-#shaderselectlist {
-	margin: 40px auto;
-	list-style: none;
-	padding: 0;
-	width: 800px;
-}
-
-#shaderselectlist li {
-	height: 200px;
-	width: 200px;
-	margin: 10px 20px;
-	display: inline-block;
-	cursor: pointer;
-}
-
-#shaderselectlist li img {
-	height: 200px;
-	width: 200px;
-}
-
-#shaderselectlist li h3 {
-	margin: 0;
-	padding: 10px 0;
-	font-size: 1.2em;
-}
-
-#shaderselectlist li p {
-	margin: 0;
-	padding: 0;
-	font-size: 12px;
-}
-
-#systemshaderseletorwrapper label {
-	font-size: 1.2em;
-	margin-left: 10px;	
 }
 
 /* saved state selector */

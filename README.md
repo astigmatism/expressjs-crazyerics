@@ -31,7 +31,7 @@ Since all emulator scripts are generated from emscripten, we can batch process t
 
 - Create a new emulator extention in /javascripts/emulators. Use the template there to help create a new file. BE SURE to name the file correctly: "ces.[EMULATOR_VERSION].js" - the code will specifically attempt to load this name.
 
-- Most importantly in the file is the section which defines "module". This is the object which the emulator script will extend and the object which we have direct access to in ces. the module object also contains custom functionality ces uses against the module itself. Your best bet is to copy the definition from the previous version and hope everything still works.
+- Most importantly in the file is the section which defines "module". This is the object which the emulator script will extend and the object which we have direct access to in ces. the module object also contains custom functionality ces uses against the module itself. Your best bet is to copy the definition from the previous version and hope everything still works, if not you'll need to modify the module definition most likely. The last thing we want to do is modify the base class (and certainly not ces.main).
 
 
 various notes

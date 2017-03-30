@@ -1,14 +1,31 @@
 extends layout
 
 block content
-    div#searchform
+    div#search
         select(title="Filter your search to a specific system")
             option(value='all') All Consoles
         div
             input(class="tooltip" title="Begin typing a name to see a list of results. Select a system for foreign or unofficial titles." type='text', name='search', data-hotkey='q', placeholder='Search')
 
-    div(class="rel")
+    div#content
         
+        div#dialogs(class="darkgrad")
+            div#welcomemessage
+                h2 Welcome!
+                p Get started by searching for a game or selecting a suggestion below
+            div#welcomeback
+                h2 Welcome Back
+                ul
+                p Continue playing, search for, or select a game suggestion below
+            div#systemshaderseletor
+                h2 How do you want your game to appear?
+                ul#shaderselectlist
+                input(type="checkbox") 
+                label Save this choice for all future #[span] games. You can reset this later.
+
+
+
+
         div#startmessage(class="darkgrad")
             div#startfirst(class="centered hide")
                 h2 Welcome!
@@ -54,11 +71,12 @@ block content
 
         div#pregamebackground
             div#gameloadingoverlay(class="darkgrad")
-                div#systemshaderseletorwrapper(class="close")
-                    h2 How do you want your game to appear?
-                    ul#shaderselectlist
-                    input(type="checkbox") 
-                    label Save this choice for all future #[span] games. You can reset this later.
+                div#welcomemessagewrapper(class="close")
+                    This is a start message
+                div#emulatorexceptionwrapper(class="close")
+                    h2 An unrecoverable error has occured :(
+                    p
+                
                 div#savedstateseletorwrapper(class="close")
                     h2 Did you want to load a previously saved state?
                     div#savedstateselectorlistwrapper

@@ -22,6 +22,33 @@ var cesEmulatorBase = (function(_Compression, config, system, title, file, key) 
     var fileWriteTimers = {};
     var keyboardListener = null; //this is a handle to the listener we put on the keyboard for all emulator input keys. when active, all emulator input is ignored on document
     var keypresslocked = false; //if we are simulating a keypress (down and up) this boolean prevents another keypress until the current one is complete
+    var browserFunctionKeysWeWantToStop = {
+        9: "tab",
+        13: "enter",
+        16: "shift",
+        18: "alt",
+        27: "esc",
+        33: "rePag",
+        34: "avPag",
+        35: "end",
+        36: "home",
+        37: "left",
+        38: "up",
+        39: "right",
+        40: "down",
+        112: "F1",
+        113: "F2",
+        114: "F3",
+        115: "F4",
+        116: "F5",
+        117: "F6",
+        118: "F7",
+        119: "F8",
+        120: "F9",
+        121: "F10",
+        122: "F11",
+        123: "F12"
+    };
 
     //instances
     var _EmulatorInstance = null;
@@ -29,19 +56,19 @@ var cesEmulatorBase = (function(_Compression, config, system, title, file, key) 
 
     // public/protected members (on prototytpe)
 
-    //constructor
-    (function() {
-
-        //no work yet
-
-    })();
-
-
     // public methods
     
-    this.BeginGame = function() {
-        _Module.callMain(_Module.arguments);
-        self.GiveEmulatorControlOfInput(true);
+    this.BeginGame = function(callback) {
+
+        try {
+            _Module.callMain(_Module.arguments);
+            self.GiveEmulatorControlOfInput(true);
+        
+        } catch (e) {
+            if (callback) {
+                callback(e);
+            }
+        }
     };
 
     this.Load = function(module, shader, deffered) {
@@ -145,7 +172,7 @@ var cesEmulatorBase = (function(_Compression, config, system, title, file, key) 
         $(document).unbind('webkitpointerlockchange');
         $(document).unbind('mspointerlockchange');
 
-        self.GiveEmulatorControlOfInput(false);
+        self.GiveEmulatorControlOfInput(false); //also unbinds events from document and window
 
         if (FS) {
             FS = null;
@@ -246,34 +273,6 @@ var cesEmulatorBase = (function(_Compression, config, system, title, file, key) 
     this.GiveEmulatorControlOfInput = function(giveEmulatorInput) {
         
         if (giveEmulatorInput) {
-
-            var browserFunctionKeysWeWantToStop = {
-                9: "tab",
-                13: "enter",
-                16: "shift",
-                18: "alt",
-                27: "esc",
-                33: "rePag",
-                34: "avPag",
-                35: "end",
-                36: "home",
-                37: "left",
-                38: "up",
-                39: "right",
-                40: "down",
-                112: "F1",
-                113: "F2",
-                114: "F3",
-                115: "F4",
-                116: "F5",
-                117: "F6",
-                118: "F7",
-                119: "F8",
-                120: "F9",
-                121: "F10",
-                122: "F11",
-                123: "F12"
-            };
 
             //common listener definition
             var keyboardListener = function (e) {

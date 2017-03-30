@@ -25,7 +25,7 @@ var cesEmulator = (function(_Compression, config, system, title, file, key) {
         this.noInitialRun = true;
         this.preRun = [];
         this.postRun = [];
-        this.canvas = document.getElementById('emulator');
+        this.canvas = document.getElementById('emulator2');
         
         //run now
         this.print = (function() {

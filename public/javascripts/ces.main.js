@@ -5,15 +5,15 @@ var cesMain = (function() {
     var config = {}; //the necessary server configuration data provided to the client
     var tips = [
         'Back out of that mistake you made by holding the R key to rewind the game',
-        'Press the Space key to fast forward through those boring story scenes',
+        'Press the Space key to fast forward through those story scenes',
         'If your browser supports it, you can go fullscreen by pressing the F key',
-        'You can save your progress by pressing the 1 key, return to it anytime with the 4 key',
+        'You can save your progress (or state) by pressing the 1 key, return to it anytime with the 4 key',
         'We\'ll store all of your save states as long as you return within two weeks',
         'Pause your game with the P key',
-        'Select a system filter to generate a new list of suggested games',
-        'To search for more obsurace or forgeign titles, select a system filter first',
+        'Select a system from the dropdown to generate a new list of suggested games',
+        'To search for more obsurace or forgeign titles, select a system from the dropdown first',
         'Take a screenshot with the T key. Missed that moment? Rewind with R and capture again!',
-        'Screenshots are deleted when you leave or refresh the page. Download your favorites to keep them!'
+        'Screenshots are deleted when you leave or refresh the page. Download your favorites to keep them'
     ];
     var preventLoadingGame = false;
     var preventGamePause = false; //condition for blur event of emulator, sometimes we don't want it to pause when we're giving it back focus
@@ -25,16 +25,22 @@ var cesMain = (function() {
     var _Sliders = null;
     var _StateManager = null;
     var _Emulator = null;
+    var _Dialogs = null;
 
     // public members
     
     this._macroToShaderMenu = [[112, 100], 40, 40, 40, 88, 88, 40, 40, 40, 37, 37, 37, 38, 88, 88, 90, 90, 38, 38, 38, 112]; //macro opens shader menu and clears all passes
-
     
     $(document).ready(function() {
 
         //load libraries
         _Compression = new cesCompression();
+        
+        _Dialogs = new cesDialogs({
+            'welcomefirst': $('#welcomemessage'),
+            'welcomeback': $('#welcomeback'),
+            'shaderselector': $('#systemshaderseletor')
+        });
 
         //unpack client data
         var clientdata = _Compression.Out.json(c20); //this name is only used for obfiscation
@@ -55,6 +61,13 @@ var cesMain = (function() {
 
         BuildRecentlyPlayed(_PlayerData.playHistory);
 
+        //show welcome dialog
+        if ($.isEmptyObject(_PlayerData.playHistory)) {
+            _Dialogs.ShowDialog('welcomefirst', 200);
+        } else {
+            _Dialogs.ShowDialog('welcomeback', 200);
+        }
+
         //build console select for search (had to create a structure to sort by the short name :P)
         var shortnames = [];
         for (var system in config.systemdetails) {
@@ -72,14 +85,14 @@ var cesMain = (function() {
         });
         var shortnamesl = shortnames.length;
         for (var i = 0; i < shortnamesl; i++) {
-            $('#searchform select').append('<option value="' + shortnames[i].id + '">' + shortnames[i].shortname + '</option>');
+            $('#search select').append('<option value="' + shortnames[i].id + '">' + shortnames[i].shortname + '</option>');
         }
 
         //loading dial
         $('.dial').knob();
 
         //console select
-        $('#searchform select').selectOrDie({
+        $('#search select').selectOrDie({
             customID: 'selectordie',
             customClass: 'tooltip',
             /**
@@ -100,7 +113,7 @@ var cesMain = (function() {
         });
 
         //search field
-        $('#searchform input').autoComplete({
+        $('#search input').autoComplete({
             minChars: 3,
             cache: false,
             delay: 300,
@@ -111,7 +124,7 @@ var cesMain = (function() {
              * @return {undef}
              */
             source: function(term, response) {
-                var system = $('#searchform select').val();
+                var system = $('#search select').val();
                 $.getJSON('/search/' + system + '/' + term, function(data) {
                     response(_Compression.Out.json(data));
                 });
@@ -256,7 +269,7 @@ var cesMain = (function() {
         //for browsing, set up links
         $('#suggestionswrapper a').each(function(index, item) {
             $(item).on('click', function(e) {
-                var system = $('#searchform select').val();
+                var system = $('#search select').val();
                 var term = $(item).text();
                 ReplaceSuggestions('/suggest/browse/' + system + '?term=' + term, true, false);
             });
@@ -347,6 +360,41 @@ var cesMain = (function() {
     };
 
     /**
+     * An important note is that the callback will always occur after gameloadingoverlay has faded in (1 sec)
+     * @param {Function} callback [description]
+     */
+    var ResetLayout = function(callback) {
+
+        //fade out game details
+        // $('#gamedetailsboxfront img').addClass('close');
+        // $('#gamedetailswrapper').fadeOut();
+
+        // //move welcome and emulator out of view (first time only)
+        // $('#startmessage').slideUp(1000);
+
+        // //show pregame background and hide emulator (if showing, would if loading second game)
+        // $('#pregamebackground').show().animate({height: 600}); //600px is a magic number here!
+        // $('#emulatorwrapper').hide();
+
+        // //close content area (under emulator)
+        // $('#gamedetailsbackground').animate({ height: 0 });
+
+        // //cleanup any pregame details
+        // $('#systemshaderseletorwrapper, #savedstateseletorwrapper, #emulatorexceptionwrapper').addClass('close');
+
+        // //loading content image and title
+        // $('#gameloadingname').show();
+        // $('#gameloadingoverlaycontentimage').empty();
+
+        // //fade in loading overlay
+        // $('#gameloadingoverlay').fadeIn(1000, callback);
+        
+        _Dialogs.CloseDialog();
+
+        callback();
+    };
+
+    /**
      * bootstrap function for loading a game with retroarch. setups animations, loading screens, and iframe for emulator. also destoryes currently running
      * @param  {string} system      [snes, nes, gb, gba, gen ... ]
      * @param  {string} title       the rom game title (seen as the folder name in the file system)
@@ -373,33 +421,10 @@ var cesMain = (function() {
 
         var key = _Compression.In.gamekey(system, title, file); //create key for anything that might need it
 
-        //fade out content
-        $('#gamedetailsboxfront img').addClass('close');
-        $('#gamedetailswrapper').fadeOut();
+        //put all UI elements in a state ready to load a game
+        ResetLayout(function() {
 
-        //move welcome and emulator out of view (first time only)
-        $('#startmessage').slideUp(1000);
-
-        //show pregame background and hide emulator (if showing, would if loading second game)
-        $('#pregamebackground').show().animate({height: 600}); //600px is a magic number here!
-        $('#emulatorwrapper').hide();
-
-        //close content area (under emulator)
-        $('#gamedetailsbackground').animate({height: 0});
-
-        //cleanup any pregame details
-        $('#systemshaderseletorwrapper').addClass('close');
-        $('#savedstateseletorwrapper').addClass('close');
-
-        //loading content image and title
-        $('#gameloadingname').show().text(title);
-        $('#gameloadingoverlaycontentimage').empty();
-
-        //fade in loading overlay
-        $('#gameloadingoverlay').fadeIn(1000);
-
-        //this used to be a callback for the previous call but since its possible for the loading overlay to aready be faded in, we still want to preserve this delay
-        setTimeout(function() {
+            $('#gameloadingname').text(title);
 
             //close any sliders
             _Sliders.Closeall();
@@ -419,9 +444,6 @@ var cesMain = (function() {
 
                 //create new canvas (canvas must exist before call to get emulator (expects to find it right away))
                 $('#emulatorcanvas').append('<canvas tabindex="0" id="emulator" oncontextmenu="event.preventDefault()"></canvas>');
-
-                //fix text on shader screen
-                $('#systemshaderseletorwrapper span').text(config.systemdetails[system].shortname);
 
                 preventLoadingGame = false; //during shader select, allow other games to load
 
@@ -500,8 +522,8 @@ var cesMain = (function() {
                                 
                                 preventLoadingGame = true;
 
-                                //begin game
-                                _Emulator.BeginGame();
+                                //begin game, callback is function which handles expections for any emulator error
+                                _Emulator.BeginGame(OnEmulatorException);
 
                                 if (onStart) {
                                     onStart();
@@ -575,7 +597,23 @@ var cesMain = (function() {
                     });
                 });
             });
-        }, 1000);
+        });
+    };
+
+    var OnEmulatorException = function(e) {
+
+        if (_Emulator) {
+            _Emulator.CleanUp();
+            _Emulator = null;
+        }
+
+        ResetLayout(function() {
+
+
+            console.log(e);
+        });
+
+        preventLoadingGame = false; //in case it failed during start
     };
 
     var EmulatorFactory = function(system, title, file, key, callback) {
@@ -612,12 +650,11 @@ var cesMain = (function() {
      */
     var ShowShaderSelection = function(system, preselectedShader, callback) {
 
-
+        $('#systemshaderseletor span').text(config.systemdetails[system].shortname); //fix text on shader screen
         $('#shaderselectlist').empty(); //clear all previous content
 
         //bail early: check if shader already defined for this system (an override value passed in)
         if (typeof preselectedShader !== 'undefined') {
-            $('#systemshaderseletorwrapper').hide().addClass('close');
             callback({
                 'shader': preselectedShader,
                 'savePreference': false
@@ -685,7 +722,8 @@ var cesMain = (function() {
             }, 250);
         };
 
-        $('#systemshaderseletorwrapper').show().removeClass();
+        //show dialog
+        _Dialogs.ShowDialog('shaderselector');
     };
 
     /**
@@ -899,12 +937,6 @@ var cesMain = (function() {
 
         for (var game in playHistory) {
             AddToPlayHistory(game, playHistory[game].system, playHistory[game].title, playHistory[game].file, playHistory[game].played, playHistory[game].slots);
-        }
-
-        if ($.isEmptyObject(playHistory)) {
-            $('#startfirst').animate({height: 'toggle', opacity: 'toggle'}, 500);
-        } else {
-            $('#startplayed').animate({height: 'toggle', opacity: 'toggle'}, 500);
         }
     };
 
