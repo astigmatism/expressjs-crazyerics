@@ -496,6 +496,79 @@ p {
 	margin-left: 10px;	
 }
 
+/* saved state selector */
+
+#savedstateseletor {
+	height: 550px;
+	margin: -250px 0 0 -400px;
+	overflow: hidden;
+}
+
+#savedstateseletor h3 {
+	cursor: pointer;
+	margin-bottom: 20px;
+}
+
+#savedstateselectorlistwrapper {
+	height: 400px;
+	overflow-y: scroll;
+}
+
+#stateselectlist {
+	margin: 10px;
+	padding: 0;
+}
+
+#stateselectlist li {
+	list-style: none;
+	display: inline-block;
+	margin: 0px 5px;
+	cursor: pointer;
+}
+
+/* game loading dialog */
+
+#gameloading {
+	height: 600px;
+	overflow-y: scroll;
+}
+
+#gameloadingimage img {
+	width: 130px;
+	display: none;
+
+	-webkit-animation-duration: 5s; 
+    animation-duration: 5s; 
+    -webkit-animation-fill-mode: both; 
+    animation-fill-mode: both; 
+    animation-iteration-count:infinite; 
+    -webkit-animation-iteration-count:infinite;
+}
+
+#gameloading h2 {
+	position: absolute;
+	text-align: center;
+	width: 100%;
+	top: 100px;
+}
+
+#gameloadingname {
+	position: absolute;
+	bottom: 100px;
+	text-align: center;
+	width: 100%;
+}
+
+#tip {
+	display: none;
+	text-align: center;
+	width: 100%;
+	position: absolute;
+	bottom: 100px;
+}
+
+/* emulator */
+
 #emulatorwrapper {
 	background-color: #000;
 	padding-top: 10px;
@@ -567,134 +640,6 @@ p {
 #emulator {
 	outline: none;
 	width: 100%;
-}
-
-#gameloadingwrapper {
-	position: relative;
-	min-height: 120px;
-}
-
-#pregamebackground {
-	background-color: rgba(0,0,0,0.8);
-	height: auto;
-
-	transition:All 1000ms ease-out;
-	-webkit-transition:All 1000ms ease-out;
-	-moz-transition:All 1000ms ease-out;
-	-o-transition:All 1000ms ease-out;
-}
-
-#gameloadingoverlay {
-	position: absolute;
-	top: 0;
-	left: 0;
-	height: 100%;
-	width: 100%;
-	display: none;
-}
-
-#systemshaderseletorwrapper, #savedstateseletorwrapper {
-	
-	position: absolute;
-	top: 50%;
-	left: 50%;
-	margin: 0 auto;
-
-	width: 800px;
-	text-align: center;
-	margin: -125px 0 0 -400px;
-
-	transition:All 200ms ease-in;
-	-webkit-transition:All 200ms ease-in;
-	-moz-transition:All 200ms ease-in;
-	-o-transition:All 200ms ease-in;
-}
-
-#gameloadingoverlaycontent, #emulatorexceptionwrapper {
-
-	position: absolute;
-	margin: 0;
-    height: 100%;
-    width: 100%;
-    text-align: center;
-
-    transition:All 200ms ease-in;
-	-webkit-transition:All 200ms ease-in;
-	-moz-transition:All 200ms ease-in;
-	-o-transition:All 200ms ease-in;
-}
-
-#gameloadingoverlaycontentimage {
-	position: absolute;
-	top: 50%;
-	left: 50%;
-	margin: 0;
-	margin-right: -50%;
-    transform: translate(-50%, -50%)
-}
-
-#gameloadingoverlaycontentimage img {
-	width: 130px;
-	display: none;
-
-	-webkit-animation-duration: 5s; 
-    animation-duration: 5s; 
-    -webkit-animation-fill-mode: both; 
-    animation-fill-mode: both; 
-    animation-iteration-count:infinite; 
-    -webkit-animation-iteration-count:infinite;
-}
-
-#gameloadingoverlaycontent h2 {
-	position: absolute;
-	text-align: center;
-	width: 100%;
-	top: 100px;
-}
-
-#gameloadingname {
-	position: absolute;
-	bottom: 100px;
-	text-align: center;
-	width: 100%;
-}
-
-#tip {
-	display: none;
-	text-align: center;
-	width: 100%;
-	position: absolute;
-	bottom: 100px;
-}
-
-/* saved state selector */
-
-#savedstateseletorwrapper {
-	height: 550px;
-	margin: -250px 0 0 -400px;
-	overflow: hidden;
-}
-
-#savedstateseletorwrapper h3 {
-	cursor: pointer;
-	margin-bottom: 20px;
-}
-
-#savedstateselectorlistwrapper {
-	height: 400px;
-	overflow-y: scroll;
-}
-
-#stateselectlist {
-	margin: 10px;
-	padding: 0;
-}
-
-#stateselectlist li {
-	list-style: none;
-	display: inline-block;
-	margin: 0px 5px;
-	cursor: pointer;
 }
 
 

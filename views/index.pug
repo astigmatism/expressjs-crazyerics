@@ -22,18 +22,17 @@ block content
                 ul#shaderselectlist
                 input(type="checkbox") 
                 label Save this choice for all future #[span] games. You can reset this later.
-
-
-
-
-        div#startmessage(class="darkgrad")
-            div#startfirst(class="centered hide")
-                h2 Welcome!
-                p Get started by searching for a game or selecting a suggestion below
-            div#startplayed(class="centered hide")
-                h2 Welcome Back
-                ul
-                p Continue playing, search for, or select a game suggestion below
+            div#savedstateseletor
+                h2 Did you want to load a previously saved state?
+                div#savedstateselectorlistwrapper
+                    ul#stateselectlist
+                h3 No State, Load Game From Beginning
+            div#gameloading
+                h2 Now Loading
+                div#gameloadingimage
+                    img(class="tada")
+                p#gameloadingname
+                p#tip Did you know that you rewind that mistake by holding the R key?
 
         div#emulatorwrapper
             div#emulatorcanvas
@@ -69,25 +68,6 @@ block content
                     h2 Game Paused
                     p Click here to continue
 
-        div#pregamebackground
-            div#gameloadingoverlay(class="darkgrad")
-                div#welcomemessagewrapper(class="close")
-                    This is a start message
-                div#emulatorexceptionwrapper(class="close")
-                    h2 An unrecoverable error has occured :(
-                    p
-                
-                div#savedstateseletorwrapper(class="close")
-                    h2 Did you want to load a previously saved state?
-                    div#savedstateselectorlistwrapper
-                        ul#stateselectlist
-                    h3 No State, Load Game From Beginning
-                div#gameloadingoverlaycontent(class="close")
-                    h2 Now Loading
-                    div#gameloadingoverlaycontentimage
-                        img(class="tada")
-                    p#gameloadingname
-                    p#tip Did you know that you rewind that mistake by holding the R key?
 
         div#gamedetailsbackground
             div#gamedetailswrapper(class="darkgrad")

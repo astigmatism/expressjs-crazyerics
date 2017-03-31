@@ -39,7 +39,9 @@ var cesMain = (function() {
         _Dialogs = new cesDialogs({
             'welcomefirst': $('#welcomemessage'),
             'welcomeback': $('#welcomeback'),
-            'shaderselector': $('#systemshaderseletor')
+            'shaderselector': $('#systemshaderseletor'),
+            'savedstateseletor': $('#savedstateseletor'),
+            'gameloading': $('#gameloading')
         });
 
         //unpack client data
@@ -380,7 +382,7 @@ var cesMain = (function() {
         // $('#gamedetailsbackground').animate({ height: 0 });
 
         // //cleanup any pregame details
-        // $('#systemshaderseletorwrapper, #savedstateseletorwrapper, #emulatorexceptionwrapper').addClass('close');
+        // $('#systemshaderseletorwrapper, #savedstateseletor, #emulatorexceptionwrapper').addClass('close');
 
         // //loading content image and title
         // $('#gameloadingname').show();
@@ -389,9 +391,7 @@ var cesMain = (function() {
         // //fade in loading overlay
         // $('#gameloadingoverlay').fadeIn(1000, callback);
         
-        _Dialogs.CloseDialog();
-
-        callback();
+        
     };
 
     /**
@@ -422,9 +422,7 @@ var cesMain = (function() {
         var key = _Compression.In.gamekey(system, title, file); //create key for anything that might need it
 
         //put all UI elements in a state ready to load a game
-        ResetLayout(function() {
-
-            $('#gameloadingname').text(title);
+        _Dialogs.CloseDialog(null, function() {
 
             //close any sliders
             _Sliders.Closeall();
@@ -452,148 +450,130 @@ var cesMain = (function() {
 
                     preventLoadingGame = true; //lock loading after shader select
 
-                    //build loading box
-                    var box = GetBoxFront(system, title, 170);
-                    box.addClass('tada');
-                    box.load(function() {
-                        $(this).fadeIn(200);
-                    });
-                    $('#gameloadingoverlaycontentimage').append(box);
+                    //game load dialog show
+                    ShowGameLoading(system, title, function(tipInterval) {
 
-                    $('#gameloadingoverlaycontent').removeClass('close'); //show loading
+                        //begin loading all content. I know it seems like some of these (game, emulator, etc) could load while the user
+                        //is viewing the shader select, but I found that when treated as background tasks, it interfere with the performance
+                        //of the shader selection ui. I think its best to wait until the loading animation is up to perform all of these
+                        _Emulator.Load(_Emulator.createModule(), shaderselection.shader, emulatorLoadComplete);
 
-                    //show tips on loading
-                    var tipInterval = setInterval(function() {
-                        $('#gameloadingname').fadeOut(500);
-                        $('#tip').fadeOut(500, function() {
-                            var tip = tips[Math.floor(Math.random() * tips.length)];
+                        //this call is a POST. Unlike the others, it is destined for the mongo instance (MY DOMAIN not a cdn). we send user preference data to the server in addition to getting game details.
+                        SavePreferencesAndGetPlayerGameDetails(key, system, title, file, { 
+                            'savePreference': shaderselection.savePreference, 
+                            'shader': shaderselection.shader 
+                        }, savePreferencesAndGetPlayerGameDetailsComplete);
 
-                            if (!$('#gameloadingoverlay').is(':animated')) {
-                                $('#tip').empty().append('Tip: ' + tip).fadeIn(500);
+                        //when all deffered calls are ready
+                        $.when(emulatorLoadComplete, savePreferencesAndGetPlayerGameDetailsComplete).done(function(emulatorLoaded, compressedGameDetails) {
+
+                            //decompress game details here since we need state data for selection
+                            var gameDetails = _Compression.Out.json(compressedGameDetails);
+                            var states = gameDetails.states;
+                            var files = gameDetails.files;
+                            var info = gameDetails.info;
+
+                            //initialize the game state manager
+                            _StateManager = new cesState(states);
+
+                            $('#emulatorcontrolswrapper').show(); //show controls tool bar (still has closed class applied)
+
+                            //date copmany
+                            if (info) {
+                                var year = info.ReleaseDate ? info.ReleaseDate.match(/(\d{4})/) : [];
+                                $('#gametitlecaption').text((info.Publisher ? info.Publisher : '') + (year.length > 0 ? ', ' + year[0] : ''));
                             }
-                        });
-                    }, 5000); //show tip for this long
+                            
+                            _Emulator.WriteStateData(_StateManager.GetSavedSlots());
 
-                    //begin loading all content. I know it seems like some of these (game, emulator, etc) could load while the user
-                    //is viewing the shader select, but I found that when treated as background tasks, it interfere with the performance
-                    //of the shader selection ui. I think its best to wait until the loading animation is up to perform all of these
-                    _Emulator.Load(_Emulator.createModule(), shaderselection.shader, emulatorLoadComplete);
+                            //after emu file setup and before state selector
+                            setTimeout(function() {
 
-                    //this call is a POST. Unlike the others, it is destined for the mongo instance (MY DOMAIN not a cdn). we send user preference data to the server in addition to getting game details.
-                    SavePreferencesAndGetPlayerGameDetails(key, system, title, file, { 
-                        'savePreference': shaderselection.savePreference, 
-                        'shader': shaderselection.shader 
-                    }, savePreferencesAndGetPlayerGameDetailsComplete);
+                                //close loading screen and tips
+                                $('#gameloadingoverlaycontent').addClass('close');
+                                $('#tips').stop().hide();
+                                clearInterval(tipInterval);
 
-                    //when all deffered calls are ready
-                    $.when(emulatorLoadComplete, savePreferencesAndGetPlayerGameDetailsComplete).done(function(emulatorLoaded, compressedGameDetails) {
+                                preventLoadingGame = false; //during shader select, allow other games to load
 
-                        //decompress game details here since we need state data for selection
-                        var gameDetails = _Compression.Out.json(compressedGameDetails);
-                        var states = gameDetails.states;
-                        var files = gameDetails.files;
-                        var info = gameDetails.info;
+                                //are there states to load? Let's show a dialog to chose from, if not - will go straight to start
+                                ShowStateSelection(system, title, file, function(slot) {
+                                    
+                                    preventLoadingGame = true;
 
-                        //initialize the game state manager
-                        _StateManager = new cesState(states);
+                                    //begin game, callback is function which handles expections for any emulator error
+                                    _Emulator.BeginGame(OnEmulatorException);
 
-                        $('#emulatorcontrolswrapper').show(); //show controls tool bar (still has closed class applied)
+                                    if (onStart) {
+                                        onStart();
+                                    }
 
-                        //date copmany
-                        if (info) {
-                            var year = info.ReleaseDate ? info.ReleaseDate.match(/(\d{4})/) : [];
-                            $('#gametitlecaption').text((info.Publisher ? info.Publisher : '') + (year.length > 0 ? ', ' + year[0] : ''));
-                        }
-                        
-                        _Emulator.WriteStateData(_StateManager.GetSavedSlots());
+                                    /**
+                                     * the action to perform once all keypresses for loading state have completed (or not if not necessary)
+                                     * @return {undef}
+                                     */
+                                    var removeVail = function() {
+                                        //handle title and content fadein steps
+                                        DisplayGameContext(system, title, function() {
 
-                        //after emu file setup and before state selector
-                        setTimeout(function() {
-
-                            //close loading screen and tips
-                            $('#gameloadingoverlaycontent').addClass('close');
-                            $('#tips').stop().hide();
-                            clearInterval(tipInterval);
-
-                            preventLoadingGame = false; //during shader select, allow other games to load
-
-                            //are there states to load? Let's show a dialog to chose from, if not - will go straight to start
-                            ShowStateSelection(system, title, file, function(slot) {
-                                
-                                preventLoadingGame = true;
-
-                                //begin game, callback is function which handles expections for any emulator error
-                                _Emulator.BeginGame(OnEmulatorException);
-
-                                if (onStart) {
-                                    onStart();
-                                }
-
-                                /**
-                                 * the action to perform once all keypresses for loading state have completed (or not if not necessary)
-                                 * @return {undef}
-                                 */
-                                var removeVail = function() {
-                                    //handle title and content fadein steps
-                                    DisplayGameContext(system, title, function() {
-
-                                    });
-
-                                    //this estimate is made knowing 1) the canvas will scale the width of the main content area and have about 2px of padding
-                                    var canvasDimensions = _Emulator.GetCanvasDimensions();
-                                    var canvasHeightEstimate = (($('#maincolumn').width() / canvasDimensions.width) * canvasDimensions.height) + 20;
-
-                                    //enlarge pregame background to hold emulator
-                                    $('#pregamebackground').animate({height: canvasHeightEstimate}, function() {
-
-                                        //reveal emulator
-                                        $('#emulatorwrapper').show();
-
-                                        $('#gameloadingoverlay').fadeOut(1000, function() {
-
-                                            $('#gameloadingoverlaycontent').addClass('close');
-
-                                            //show controls initially to reveal their presence
-                                            setTimeout(function() {
-                                                preventLoadingGame = false;
-                                                $('#emulatorcontrolswrapper').addClass('closed');
-
-                                                //to help new players, reveal controls after load
-                                                _Sliders.Open('controlsslider');
-                                            }, 1000);
                                         });
 
-                                        //assign focus to emulator canvas
-                                        $('#emulator')
-                                            .blur(function(event) {
-                                                if (!preventGamePause) {
-                                                    _Emulator.PauseGame();
-                                                    $('#emulatorwrapperoverlay').fadeIn();
-                                                }
-                                            })
-                                            .focus(function() {
-                                                _Emulator.ResumeGame();
-                                                $('#emulatorwrapperoverlay').hide();
-                                            })
-                                            .focus();
+                                        //this estimate is made knowing 1) the canvas will scale the width of the main content area and have about 2px of padding
+                                        var canvasDimensions = _Emulator.GetCanvasDimensions();
+                                        var canvasHeightEstimate = (($('#maincolumn').width() / canvasDimensions.width) * canvasDimensions.height) + 20;
 
-                                    });
-                                };
+                                        //enlarge pregame background to hold emulator
+                                        $('#pregamebackground').animate({height: canvasHeightEstimate}, function() {
 
-                                // load state?
-                                // we need to handle mulitple keypresses asyncrounsly to ensure the emulator recieved input
-                                if (slot) {
+                                            //reveal emulator
+                                            $('#emulatorwrapper').show();
 
-                                    _Emulator.LoadSavedState(slot, function() {
+                                            $('#gameloadingoverlay').fadeOut(1000, function() {
+
+                                                $('#gameloadingoverlaycontent').addClass('close');
+
+                                                //show controls initially to reveal their presence
+                                                setTimeout(function() {
+                                                    preventLoadingGame = false;
+                                                    $('#emulatorcontrolswrapper').addClass('closed');
+
+                                                    //to help new players, reveal controls after load
+                                                    _Sliders.Open('controlsslider');
+                                                }, 1000);
+                                            });
+
+                                            //assign focus to emulator canvas
+                                            $('#emulator')
+                                                .blur(function(event) {
+                                                    if (!preventGamePause) {
+                                                        _Emulator.PauseGame();
+                                                        $('#emulatorwrapperoverlay').fadeIn();
+                                                    }
+                                                })
+                                                .focus(function() {
+                                                    _Emulator.ResumeGame();
+                                                    $('#emulatorwrapperoverlay').hide();
+                                                })
+                                                .focus();
+
+                                        });
+                                    };
+
+                                    // load state?
+                                    // we need to handle mulitple keypresses asyncrounsly to ensure the emulator recieved input
+                                    if (slot) {
+
+                                        _Emulator.LoadSavedState(slot, function() {
+                                            removeVail();
+                                        });
+
+                                    } else {
                                         removeVail();
-                                    });
+                                    }
 
-                                } else {
-                                    removeVail();
-                                }
-
-                            });
-                        }, 3000);
+                                });
+                            }, 3000);
+                        });
                     });
                 });
             });
@@ -746,9 +726,9 @@ var cesMain = (function() {
         $('#savedstateselectorlistwrapper').scrollTop(0); //in case they scrolled down previously
 
         //bind no state load to h3
-        $('#savedstateseletorwrapper h3').off().on('mouseup', function() {
+        $('#savedstateseletor h3').off().on('mouseup', function() {
             callback(null);
-            $('#savedstateseletorwrapper').addClass('close');
+            $('#savedstateseletor').addClass('close');
 
         });
 
@@ -766,7 +746,7 @@ var cesMain = (function() {
 
                     //on selection, callback with slot
                     callback(slot);
-                    $('#savedstateseletorwrapper').addClass('close');
+                    $('#savedstateseletor').addClass('close');
 
                 });
 
@@ -782,7 +762,38 @@ var cesMain = (function() {
         }
 
         toolTips();
-        $('#savedstateseletorwrapper').show().removeClass();
+
+        //show dialog
+        _Dialogs.ShowDialog('savedstateseletor');
+    };
+
+    var ShowGameLoading = function(system, title, callback) {
+
+        $('#gameloadingname').text(title);
+
+        //build loading box
+        var box = GetBoxFront(system, title, 170);
+        box.addClass('tada');
+        box.load(function() {
+            $(this).fadeIn(200);
+        });
+        $('#gameloadingimage').append(box);
+
+        //show tips on loading
+        var tipInterval = setInterval(function() {
+            $('#gameloadingname').fadeOut(500);
+            $('#tip').fadeOut(500, function() {
+                var tip = tips[Math.floor(Math.random() * tips.length)];
+
+                if (!$('#gameloading').is(':animated')) {
+                    $('#tip').empty().append('Tip: ' + tip).fadeIn(500);
+                }
+            });
+        }, 5000); //show tip for this long
+
+        _Dialogs.ShowDialog('gameloading', null, function() {
+            callback(tipInterval);
+        }); 
     };
 
     /**

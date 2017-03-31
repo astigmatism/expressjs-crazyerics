@@ -16,7 +16,7 @@ var cesDialogs = (function(dialogs) {
 
         //to all the dialogs, add close (for animating in and out)
         for (dialog in dialogs) {
-            $(dialogs[dialog]).addClass('dialog close');
+            $(dialogs[dialog]).addClass('dialog hide close');
         }
 
     }();
@@ -30,25 +30,34 @@ var cesDialogs = (function(dialogs) {
         dialogs[name] = element;
     };
 
-    this.ShowDialog = function(name, height) {
+    this.ShowDialog = function(name, height, callback) {
 
         height = parseInt(height || maxHeight, 10);
 
         if (dialogOperational) {
+            if (callback) {
+                callback();
+            }
             return;
         }
 
-        //if currently open dialog
-        this.CloseDialog(false);
-
         dialogOperational = true;
-        currentOpenDialog = name;
 
-        this.SetHeight(height, function() {
+        //if currently open dialog
+        this.CloseDialog(false, function() {
 
-            $(dialogs[name]).removeClass('close');
+            currentOpenDialog = name;
 
-            dialogOperational = false;
+            self.SetHeight(height, function() {
+
+                $(dialogs[name]).removeClass('hide').removeClass('close');
+
+                dialogOperational = false;
+
+                if (callback) {
+                    callback();
+                }
+            });
         });
     }
 
@@ -57,13 +66,26 @@ var cesDialogs = (function(dialogs) {
         alsoCloseWrapper = alsoCloseWrapper || false;
 
         if (currentOpenDialog) {
-            $(dialogs[currentOpenDialog]).addClass('close');
-        }
 
-        if (alsoCloseWrapper) {
-            this.SetHeight(0, callback);
+            $(dialogs[currentOpenDialog]).addClass('close');
+
+            setTimeout(function() {
+
+                //if we also collapse the wrapper, do so
+                if (alsoCloseWrapper) {
+                    self.SetHeight(0, callback);
+                } else {
+                    
+                    if (callback) {
+                        callback();
+                    }
+                }
+
+            }, cssTransition);
         } else {
-            setTimeout(callback, cssTransition);
+            if (callback) {
+                callback();
+            }
         }
     };
 
