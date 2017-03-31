@@ -71,6 +71,8 @@ var cesDialogs = (function(dialogs) {
 
             setTimeout(function() {
 
+                $(dialogs[currentOpenDialog]).addClass('hide');
+
                 //if we also collapse the wrapper, do so
                 if (alsoCloseWrapper) {
                     self.SetHeight(0, callback);

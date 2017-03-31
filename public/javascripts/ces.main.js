@@ -479,9 +479,9 @@ var cesMain = (function() {
                             $('#emulatorcontrolswrapper').show(); //show controls tool bar (still has closed class applied)
 
                             //date copmany
-                            if (info) {
-                                var year = info.ReleaseDate ? info.ReleaseDate.match(/(\d{4})/) : [];
-                                $('#gametitlecaption').text((info.Publisher ? info.Publisher : '') + (year.length > 0 ? ', ' + year[0] : ''));
+                            if (info && info.Publisher && info.ReleaseDate) {
+                                var year = info.ReleaseDate.match(/(\d{4})/);
+                                $('#gametitlecaption').text(info.Publisher + (year.length > 0 ? ', ' + year[0] : ''));
                             }
                             
                             _Emulator.WriteStateData(_StateManager.GetSavedSlots());
@@ -490,7 +490,7 @@ var cesMain = (function() {
                             setTimeout(function() {
 
                                 //close loading screen and tips
-                                $('#gameloadingoverlaycontent').addClass('close');
+                                _Dialogs.CloseDialog();
                                 $('#tips').stop().hide();
                                 clearInterval(tipInterval);
 
@@ -777,6 +777,7 @@ var cesMain = (function() {
         box.load(function() {
             $(this).fadeIn(200);
         });
+        $('#gameloadingimage').addClass('centered');
         $('#gameloadingimage').append(box);
 
         //show tips on loading
