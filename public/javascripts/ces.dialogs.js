@@ -2,23 +2,23 @@
  * Object which wraps common functions related to player preferences, data that comes form the server initially but can be changed
  * @type {Object}
  */
-var cesDialogs = (function(dialogs) {
+var cesDialogs = (function(wrapper, ui) {
 
     //private members
     var self = this;
     var dialogOperational = false;
     var currentOpenDialog = null;
     var maxHeight = 600;
-    var defaultDuration = 500;
+    var defaultHeightChangeDuration = 500;
+    var defaultHeightChangeEasing = 'easeInOutCubic'; // see more http://easings.net/#
     var cssTransition = 200; //see css file for .dialog transition:
 
     var Constructor = function() {
 
-        //to all the dialogs, add close (for animating in and out)
-        for (dialog in dialogs) {
-            $(dialogs[dialog]).addClass('dialog hide close');
+        //to all the dialog, add close (for animating in and out)
+        for (dialog in ui) {
+            $(ui[dialog]).addClass('dialog hide close').append();
         }
-
     }();
 
     //public members
@@ -27,7 +27,7 @@ var cesDialogs = (function(dialogs) {
     
     this.AddDialog = function(name, element) {
         $(element).addClass('close');
-        dialogs[name] = element;
+        ui[name] = element;
     };
 
     this.ShowDialog = function(name, height, callback) {
@@ -50,13 +50,18 @@ var cesDialogs = (function(dialogs) {
 
             self.SetHeight(height, function() {
 
-                $(dialogs[name]).removeClass('hide').removeClass('close');
+                $(ui[name]).removeClass('hide');
+                setTimeout(function() {
 
-                dialogOperational = false;
+                    $(ui[name]).removeClass('close');
 
-                if (callback) {
-                    callback();
-                }
+                    dialogOperational = false;
+
+                    if (callback) {
+                        callback();
+                    }
+
+                }, cssTransition);
             });
         });
     }
@@ -67,11 +72,11 @@ var cesDialogs = (function(dialogs) {
 
         if (currentOpenDialog) {
 
-            $(dialogs[currentOpenDialog]).addClass('close');
+            $(ui[currentOpenDialog]).addClass('close');
 
             setTimeout(function() {
 
-                $(dialogs[currentOpenDialog]).addClass('hide');
+                $(ui[currentOpenDialog]).addClass('hide');
 
                 //if we also collapse the wrapper, do so
                 if (alsoCloseWrapper) {
@@ -94,11 +99,19 @@ var cesDialogs = (function(dialogs) {
     this.SetHeight = function(height, callback, duration, easing) {
 
         height = parseInt(height || maxHeight, 10);
-        duration = duration || defaultDuration;
+        duration = duration || defaultHeightChangeDuration;
 
-        $('#dialogs').animate({
+        //if the height is already in the set position, no need to animate, callback
+        if ($(wrapper).height() == height) {
+            if (callback) {
+                callback();
+            }
+            return;
+        }
+
+        $(wrapper).animate({
             'height': height + 'px'
-        }, duration, callback);
+        }, duration, defaultHeightChangeEasing, callback);
     }
 
     return this;

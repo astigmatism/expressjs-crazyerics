@@ -10,29 +10,34 @@ block content
     div#content
         
         div#dialogs(class="darkgrad")
-            div#welcomemessage
-                h2 Welcome!
-                p Get started by searching for a game or selecting a suggestion below
-            div#welcomeback
-                h2 Welcome Back
-                ul
-                p Continue playing, search for, or select a game suggestion below
-            div#systemshaderseletor
-                h2 How do you want your game to appear?
-                ul#shaderselectlist
-                input(type="checkbox") 
-                label Save this choice for all future #[span] games. You can reset this later.
-            div#savedstateseletor
-                h2 Did you want to load a previously saved state?
-                div#savedstateselectorlistwrapper
-                    ul#stateselectlist
-                h3 No State, Load Game From Beginning
-            div#gameloading
-                h2 Now Loading
-                div#gameloadingimage
-                    img(class="tada")
-                p#gameloadingname
-                p#tip Did you know that you rewind that mistake by holding the R key?
+            div(class="dialogwrapper")
+                div#welcomemessage
+                    h2 Welcome!
+                    p Get started by searching for a game or selecting a suggestion below
+            div(class="dialogwrapper")
+                div#welcomeback
+                    h2 Welcome Back
+                    ul
+                    p Continue playing, search for, or select a game suggestion below
+            div(class="dialogwrapper")
+                div#systemshaderseletor
+                    h2 How do you want your game to appear?
+                    ul#shaderselectlist
+                    input(type="checkbox") 
+                    label Save this choice for all future #[span] games. You can reset this later.
+            div(class="dialogwrapper")
+                div#savedstateseletor
+                    h2 Did you want to load a previously saved state?
+                    div#savedstateselectorlistwrapper
+                        ul#stateselectlist
+                    h3 No State, Load Game From Beginning
+            div(class="dialogwrapper")
+                div#gameloading
+                    h2 Now Loading
+                    div#gameloadingimage
+                        img(class="tada")
+                    p#gameloadingname
+                    p#tip Did you know that you rewind that mistake by holding the R key?
 
         div#emulatorwrapper
             div#emulatorcanvas

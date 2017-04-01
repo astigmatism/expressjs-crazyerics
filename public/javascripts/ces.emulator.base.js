@@ -7,7 +7,7 @@
  * @param  {string} file         Super Mario Bros. 3 (U)[!].nes
  * @return {undef}
  */
-var cesEmulatorBase = (function(_Compression, config, system, title, file, key) {
+var cesEmulatorBase = (function(_Compression, config, system, title, file, key, ui) {
 
     // private members
     var self = this;
@@ -49,6 +49,8 @@ var cesEmulatorBase = (function(_Compression, config, system, title, file, key) 
         122: "F11",
         123: "F12"
     };
+    var displayDurationShow = 1000;
+    var displayDurationHide = 500;
 
     //instances
     var _EmulatorInstance = null;
@@ -57,12 +59,15 @@ var cesEmulatorBase = (function(_Compression, config, system, title, file, key) 
     // public/protected members (on prototytpe)
 
     // public methods
-    
+        
+    /**
+     * Calls the start function of the emulator script
+     * @param {Function} callback the function to handle exceptions thrown by the emulator script
+     */
     this.BeginGame = function(callback) {
 
         try {
             _Module.callMain(_Module.arguments);
-            self.GiveEmulatorControlOfInput(true);
         
         } catch (e) {
             if (callback) {
@@ -71,6 +76,12 @@ var cesEmulatorBase = (function(_Compression, config, system, title, file, key) 
         }
     };
 
+    /**
+     * Load all components necssary for game to run
+     * @param {Object} module   from the emulator extention, this custom made module is extended to the emulators "module"
+     * @param {string} shader   a shader selection or pre-defined
+     * @param {Object} deffered when complete
+     */
     this.Load = function(module, shader, deffered) {
 
         var emulatorLoadComplete = $.Deferred();
@@ -95,10 +106,6 @@ var cesEmulatorBase = (function(_Compression, config, system, title, file, key) 
         });
     };
 
-    this.setModuleTemplate = function(module) {
-
-    };
-
     this.WriteStateData = function(slots) {
 
         //states
@@ -115,6 +122,13 @@ var cesEmulatorBase = (function(_Compression, config, system, title, file, key) 
     };
 
     this.LoadSavedState = function(slot, callback) {
+
+        if (!slot) {
+            if (callback) {
+                callback();
+            }
+            return;
+        }
 
         AsyncLoop(parseInt(slot, 10), function(loop) {
 
@@ -145,18 +159,31 @@ var cesEmulatorBase = (function(_Compression, config, system, title, file, key) 
         }
     };
 
-    this.GetCanvasDimensions = function() {
+    this.Show = function (duration, callback) {
 
-        var result = {
-            width: 0,
-            height: 0
-        };
+        duration = duration || displayDurationShow;
 
-        if (_Module && _Module.canvas) {
-            result.width = _Module.canvas.width;
-            result.height = _Module.canvas.height;
-        }
-        return result;
+        $(ui.wrapper).fadeIn(displayDurationShow, function() {
+
+            self.GiveEmulatorControlOfInput(true);
+
+            if (callback) {
+                callback();
+            }
+        });
+    };
+
+    this.Hide = function (duration, callback) {
+
+        duration = duration || displayDurationHide;
+
+        self.GiveEmulatorControlOfInput(false);
+        $(ui.wrapper).fadeOut(displayDurationHide, function() {
+            
+            if (callback) {
+                callback();
+            }
+        });
     };
 
     this.CleanUp = function() {
@@ -194,7 +221,7 @@ var cesEmulatorBase = (function(_Compression, config, system, title, file, key) 
             _EmulatorInstance = null;
         }
         
-        $('#emulator').remove(); //kill all events attached (keyboard, focus, etc)
+        $(ui.canvas).remove(); //kill all events attached (keyboard, focus, etc)
     };
 
     this.GetCurrentStateSlot = function() {
@@ -250,7 +277,7 @@ var cesEmulatorBase = (function(_Compression, config, system, title, file, key) 
             }
 
             document.dispatchEvent(oEvent);
-            $('#emulator').focus();
+            $(ui.canvas).focus();
         };
 
         keypresslocked = true;
@@ -266,7 +293,7 @@ var cesEmulatorBase = (function(_Compression, config, system, title, file, key) 
 
         }, keyUpDelay);
 
-        $('#emulator').focus();
+        $(ui.canvas).focus();
         
     };
 
@@ -311,21 +338,17 @@ var cesEmulatorBase = (function(_Compression, config, system, title, file, key) 
         }
         _Module = emulator[1];
         _EmulatorInstance = emulator[2];
-        emulator = null;
 
         //LoadSupportFiles result
         compressedSupprtData = (support && support[1]) ? support[1] : null; //if not defined, no emulator support
-        support = null;
 
         //LoadGame result
         var gameLoadError = game[0];
         compressedGameData = game[1]; //compressed game data
-        game = null;
 
         //Load Shader result
         //shader data is compressed from server, unpack later
         compressedShaderData = (shader && shader[1]) ? shader[1] : null; //if not defined, not shader used
-        shader = null;
 
         BuildLocalFileSystem();
 
@@ -551,11 +574,11 @@ var cesEmulatorBase = (function(_Compression, config, system, title, file, key) 
         //emulator support, will be null if none
         if (compressedSupprtData) {
             var supportFiles = _Compression.Out.json(compressedSupprtData);
-            if (supportFiles && self._FS) {
+            if (supportFiles) {
                 for (var supportFile in supportFiles) {
                     content = _Compression.Out.bytearray(supportFiles[supportFile]);
                     try {
-                        self._FS.createDataFile('/', supportFile, content, true, true);
+                        _Module.FS_createDataFile('/', supportFile, content, true, true);
                     } catch (e) {
                         //an error on file write.
                     }
@@ -571,14 +594,13 @@ var cesEmulatorBase = (function(_Compression, config, system, title, file, key) 
         if (compressedShaderData) {
             var shaderFiles = _Compression.Out.json(compressedShaderData); //decompress shader files to json object of file names and data
 
-            //if in coming shader parameter is an object, then it has shader files defined. self._FS is a handle to the
-            //_Module's file system. Yes, the other operations here reference the file system through the module, you just don't have to anymore!
-            if (shaderFiles && self._FS) {
+            //if in coming shader parameter is an object, then it has shader files defined.
+            if (shaderFiles) {
 
                 for (var shaderfile in shaderFiles) {
                     content = _Compression.Out.bytearray(shaderFiles[shaderfile]);
                     try {
-                        self._FS.createDataFile('/shaders', shaderfile, content, true, true);
+                        _Module.FS_createDataFile('/shaders', shaderfile, content, true, true);
                     } catch (e) {
                         //an error on file write.
                     }
@@ -699,7 +721,7 @@ var cesEmulatorBase = (function(_Compression, config, system, title, file, key) 
                 switch (key) {
                     case 70: // F - fullscreen
                         _Module.requestFullScreen(true, true);
-                        $('#emulator').focus();
+                        $(ui.canvas).focus();
                     break;
                     case 49: //1 - save state
                         //setup deffered call to save state to server, need callbacks from state file and screenshot capture

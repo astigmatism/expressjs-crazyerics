@@ -19,6 +19,7 @@ html
         script(src='/javascripts/jquery.waitforimages.min.js')
         script(src='/javascripts/jquery.dateFormat.min.js')
         script(src='/javascripts/jquery.knob.js')
+        script(src='/javascripts/jquery.easing.js')
         link(rel='shortcut icon', href='favicon.ico', type='image/x-icon')
         link(rel='stylesheet', href='/stylesheets/style.css')
         link(rel='stylesheet', href='/stylesheets/jquery.auto-complete.css')
@@ -42,7 +43,7 @@ html
         div#container
             div#maincolumn
                 - titlebanner = Math.floor((Math.random() * 19) + 1);
-                div#titlebanner(class='hide', style='background:url(' + assetpath + '/images/titlebanners/' + titlebanner + '.jpg)')
+                div#titlebanner(style='background:url(' + assetpath + '/images/titlebanners/' + titlebanner + '.jpg)')
                     div(class='bannergradient')
                     div(class='titlewrapper')
                         h1 crazyerics.com
