@@ -216,10 +216,10 @@
 		"n64": {
 			"name": "Nintendo 64",
 			"shortname": "Nintendo 64",
-			"live": false,
+			"live": true,
 			"collection": "GoodN64 3.27",
-			"boxcdnversion": "2.0.1",
-			"romcdnversion": "2.0.1",
+			"boxcdnversion": "2.0.2",
+			"romcdnversion": "2.0.3",
 			"emuextention": "2017-03-27",
 			"emuscript": "mupen64plus_libretro.js",
 			"retroarch": "video_aspect_ratio = 1.142857143\ninput_player1_l2 = a\ninput_player1_l_x_plus = right\ninput_player1_l_x_minus = left\ninput_player1_l_y_plus = down\ninput_player1_l_y_minus = up\ninput_player1_left = S\ninput_player1_right = D\ninput_player1_up = E\ninput_player1_down = C\ninput_player1_r_x_plus = l\ninput_player1_r_x_minus = j\ninput_player1_r_y_plus = k\ninput_player1_r_y_minus = i\n",

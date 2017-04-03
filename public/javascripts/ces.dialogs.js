@@ -9,8 +9,8 @@ var cesDialogs = (function(wrapper, ui) {
     var dialogOperational = false;
     var currentOpenDialog = null;
     var maxHeight = 600;
-    var defaultHeightChangeDuration = 500;
-    var defaultHeightChangeEasing = 'easeInOutCubic'; // see more http://easings.net/#
+    var defaultHeightChangeDuration = 600;
+    var defaultHeightChangeEasing = 'easeInOutSine'; // see more http://easings.net/#
     var cssTransition = 200; //see css file for .dialog transition:
 
     var Constructor = function() {
