@@ -25,18 +25,20 @@ var cesRecentlyPlayed = (function(config, _Compression, PlayGame, GetBoxFront, $
 
 		var gamelink = BuildGameLink(system, title, file, 120, true); //get a game link
 
-		gamelink.div.addClass('close');
+		// gamelink.div.addClass('close');
 
-        gamelink.img.load(function() {
-            gamelink.div.removeClass('close');
-        });
+  //       gamelink.img.load(function() {
+  //           gamelink.div.removeClass('close');
+  //       });
 
         //the remove link will delete the game from play history and any saved states
         gamelink.remove
         .addClass('tooltip')
         .attr('title', 'Remove this game and all saved progress')
         .on('click', function() {
+            
             gamelink.div.addClass('slideup');
+            
             $.ajax({
                 url: '/states/delete?key=' + encodeURIComponent(key),
                 type: 'DELETE',
