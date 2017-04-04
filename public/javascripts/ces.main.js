@@ -20,6 +20,7 @@ var cesMain = (function() {
     var preventGamePause = false; //condition for blur event of emulator, sometimes we don't want it to pause when we're giving it back focus
     var loadMoreSuggestionsOnBottom = null; //loads the url of suggestions to call should the list be extended when the user reachs the page bottom
     var minimumGameLoadingTime = 4000; //have to consider tips (make longer) and transition times
+    var _grid;
 
     // instances/libraries
     var _Compression = null;
@@ -44,7 +45,8 @@ var cesMain = (function() {
             'welcomeback': $('#welcomeback'),
             'shaderselector': $('#systemshaderseletor'),
             'savedstateseletor': $('#savedstateseletor'),
-            'gameloading': $('#gameloading')
+            'gameloading': $('#gameloading'),
+            'emulatorexception': $('#emulatorexception')
         });
 
         //unpack client data
@@ -282,6 +284,13 @@ var cesMain = (function() {
 
         _Sliders = new cesSliders();
 
+        _grid = $('#grid').masonry({
+            // options
+            itemSelector: '.grid-item',
+            columnWidth: 120,
+            gutter: 10
+        });
+
         ReplaceSuggestions('/suggest/all/150', true, true); //begin by showing 150 all console suggestions
 
         toolTips();
@@ -299,6 +308,13 @@ var cesMain = (function() {
      */
     var ReplaceSuggestions = function(url, remove, loadMore) {
 
+        //if suggestions are loading, cache if trying to load more
+        if (suggestionsCurrentlyLoading) {
+            cachedSuggestionRequests.push(arguments);
+            return;
+        }
+
+        suggestionsCurrentlyLoading = true;
         loadMoreSuggestionsOnBottom = loadMore ? url : null;
 
         //reset dial
@@ -327,6 +343,14 @@ var cesMain = (function() {
             for (var i = 0; i < response.length; ++i) {
                 var gamelink = BuildGameLink(response[i].system, response[i].title, response[i].file, 120); //build dom elements
                 $(columns[i % columns.length]).append(gamelink.li);
+            
+
+                var $item = $('<div class="grid-item"></div>');
+                $item.append(gamelink.img);
+                  // append items to grid
+                  _grid.append( $item )
+                    // add and lay out newly appended items
+                    .masonry( 'appended', $item );
             }
 
             //when all images have loaded, show suggestions
@@ -341,11 +365,49 @@ var cesMain = (function() {
                 if (loaded === (count - 1)) {
                     $('#suggestionswrapper').slideDown();
                     $('#loading').addClass('close');
+
+                    suggestionsCurrentlyLoading = false;
+
+                    //are there any cached up?
+                    if (cachedSuggestionRequests.length > 0) {
+                        ReplaceSuggestions.apply(this, cachedSuggestionRequests.shift());
+                    }
                 }
             });
 
             toolTips();
         });
+    };
+
+    var suggestionsCurrentlyLoading = false;
+    var cachedSuggestionRequests = [];
+
+    var CleanUpEmulator = function(callback) {
+
+        if (_Emulator) {
+
+            //hide emulator, input is taken away
+            _Emulator.Hide(null, function() {   
+
+                //close game context, no callbacks needed
+                HideGameContext();
+
+                //clean up attempts to remove all events, frees memory
+                _Emulator.CleanUp();
+                _Emulator = null;
+
+                if (callback) {
+                    callback();
+                }
+                return;
+            });
+        } 
+        //no emulator, just callback
+        else {
+            if (callback) {
+                callback();
+            }
+        }   
     };
 
     /**
@@ -367,11 +429,12 @@ var cesMain = (function() {
         preventLoadingGame = true; //prevent loading any other games until this flag is lifted
         preventGamePause = false;
 
-        var executeBootstrap = function() {
-
+        //will clear up existing emulator if it exists
+        CleanUpEmulator(function() {
+            
             $('#emulatorcanvas').empty(); //ensure empty (there can be a canvas here if the user bailed during load)
 
-            //put all UI elements in a state ready to load a game
+            //close any dialogs
             _Dialogs.CloseDialog(null, function() {
 
                 //close any sliders
@@ -390,26 +453,7 @@ var cesMain = (function() {
                     }
                 });
             });
-        };
-
-        if (_Emulator) {
-
-            //hide emulator, input is taken away
-            _Emulator.Hide(null, function() {   
-
-                //close game context, no callbacks needed
-                HideGameContext();
-
-                //clean up attempts to remove all events, frees memory
-                _Emulator.CleanUp();
-                _Emulator = null;
-
-                executeBootstrap();
-            });
-            return;
-
-        }
-        executeBootstrap();
+        });
     };
 
     /**
@@ -430,6 +474,7 @@ var cesMain = (function() {
             if (err) {
                 //not sure how to handle this yet
                 console.error(err);
+                return;
             }
 
             _Emulator = emulator;
@@ -572,16 +617,16 @@ var cesMain = (function() {
 
     var OnEmulatorException = function(e) {
 
-        if (_Emulator) {
-            _Emulator.CleanUp();
-            _Emulator = null;
-        }
+        CleanUpEmulator(function() {
 
-        ResetLayout(function() {
-            console.log(e);
+
+            preventLoadingGame = false; //in case it failed during start
+
+            $('#emulatorexceptiondetails').text(e);
+            console.error(e);
+
+            _Dialogs.ShowDialog('emulatorexception');
         });
-
-        preventLoadingGame = false; //in case it failed during start
     };
 
     var EmulatorFactory = function(system, title, file, key, callback) {

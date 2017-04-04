@@ -579,6 +579,21 @@ p {
 	bottom: 100px;
 }
 
+/* emulator exception dialog */
+
+#emulatorexception p {
+	margin-right: 10%;
+	margin-left: 10%;
+}
+
+#emulatorexceptiondetails {
+	color: red;
+	height: 100px;
+	overflow: scroll;
+	text-align: left;
+	font-family: monospace;
+}
+
 /* emulator */
 
 #emulatorwrapper {
@@ -803,6 +818,16 @@ div.slidingpanel {
 	top: -5px;
 	right: -5px;
 	z-index: 100;
+}
+
+/* grid test */
+
+#grid: {
+	margin: 10px;
+}
+
+.grid-item { 
+	float: left;
 }
 
 /* suggestions */

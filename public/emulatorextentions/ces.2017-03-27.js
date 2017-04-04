@@ -96,7 +96,7 @@ var cesEmulator = (function(_Compression, config, system, title, file, key) {
         /**
          * window and document event handling control
          * OK! So we want keyboard input going to the emulator when it is in progress and we don't want it to when the emulator is paused
-         * too accomplish this, we have to keep references to all events attached to both window and document, remove them when
+         * to accomplish this, we have to keep references to all events attached to both window and document, remove them when
          * paused and reapply them when resumed.
          * @type {Boolean}
          */

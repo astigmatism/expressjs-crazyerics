@@ -91,7 +91,9 @@
 			"boxcdnversion": "2.0.2",
 			"romcdnversion": "2.0.1",
 			"collection": "GoodNES 3.23b",
-			"retroarch": "video_aspect_ratio = 0.75",
+			"retroarch": {
+				"video_aspect_ratio": 0.75
+			},
 			"emuextention": "2017-03-27",
 			"emuscript": "nestopia_libretro.js",
 			"recommendedshaders": []
@@ -112,7 +114,7 @@
 			"shortname": "Super Nintendo",
 			"live": false,
 			"boxcdnversion": "2.0.1",
-			"romcdnversion": "2.0.1",
+			"romcdnversion": "2.0.2",
 			"collection": "GoodSNES 3.23",
 			"emuextention": "2017-03-27",
 			"emuscript": "snes9x2010_libretro.js",
@@ -218,11 +220,26 @@
 			"shortname": "Nintendo 64",
 			"live": true,
 			"collection": "GoodN64 3.27",
-			"boxcdnversion": "2.0.2",
-			"romcdnversion": "2.0.3",
+			"boxcdnversion": "2.0.4",
+			"romcdnversion": "2.0.4",
 			"emuextention": "2017-03-27",
 			"emuscript": "mupen64plus_libretro.js",
-			"retroarch": "video_aspect_ratio = 1.142857143\ninput_player1_l2 = a\ninput_player1_l_x_plus = right\ninput_player1_l_x_minus = left\ninput_player1_l_y_plus = down\ninput_player1_l_y_minus = up\ninput_player1_left = S\ninput_player1_right = D\ninput_player1_up = E\ninput_player1_down = C\ninput_player1_r_x_plus = l\ninput_player1_r_x_minus = j\ninput_player1_r_y_plus = k\ninput_player1_r_y_minus = i\n",
+			"retroarch": {
+				"video_aspect_ratio": 1.142857143,
+				"input_player1_l2": "a",
+				"input_player1_l_x_plus": "right",
+				"input_player1_l_x_minus": "left",
+				"input_player1_l_y_plus": "down",
+				"input_player1_l_y_minus": "up",
+				"input_player1_left": "S",
+				"input_player1_right": "D",
+				"input_player1_up": "E",
+				"input_player1_down": "C",
+				"input_player1_r_x_plus": "l",
+				"input_player1_r_x_minus": "j",
+				"input_player1_r_y_plus": "k",
+				"input_player1_r_y_minus": "i"
+			},
 			"recommendedshaders": [
 				{
 					"title": "Vintage Television",
