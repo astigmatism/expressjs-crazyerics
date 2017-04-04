@@ -347,11 +347,14 @@ var cesMain = (function() {
 
                 var $item = $('<div class="grid-item"></div>');
                 $item.append(gamelink.img);
-                  // append items to grid
-                  _grid.append( $item )
-                    // add and lay out newly appended items
-                    .masonry( 'appended', $item );
+                
+                // append items to grid
+                _grid.masonry('addItems', $item);
             }
+
+            _grid.imagesLoaded().progress( function() {
+                _grid.masonry('layout');
+            });
 
             //when all images have loaded, show suggestions
             $('#suggestionswrapper').waitForImages().progress(function(loaded, count, success) {
