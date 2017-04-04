@@ -7,17 +7,9 @@ var cesPlayerData = (function(_Compression, initialPlayerData) {
     //private members
     var self = this;
     var data = initialPlayerData;
+    var _playHistory = initialPlayerData.playhistory;
     
     //public members
-
-    var playHistory = {};
-
-
-    var Constructor = function() {
-
-        self.playHistory = initialPlayerData.playhistory;
-
-    }();
 
     //public methods
 
@@ -34,15 +26,15 @@ var cesPlayerData = (function(_Compression, initialPlayerData) {
     this.AddToPlayHistory = function(key, system, title, file, played, slots) {
 
         //handling dupes will be a common function, replace the date and handle the states slots
-        if (key in playHistory) {
-            playHistory[key].played = Date.now();
+        if (key in _playHistory) {
+            _playHistory[key].played = Date.now();
             return true;
         }
 
         //not a dupe, let's create a new play histry game
 
         //create a local store to take this with handle to dom elements
-        playHistory[key] = {
+        _playHistory[key] = {
             system: system,
             title: title,
             file: file,
@@ -52,6 +44,10 @@ var cesPlayerData = (function(_Compression, initialPlayerData) {
         };
 
         return false;
+    };
+
+    this.GetPlayHistory = function() {
+        return _playHistory;
     };
 
     /**
@@ -89,6 +85,11 @@ var cesPlayerData = (function(_Compression, initialPlayerData) {
         }
         return;
     };
+
+    var Constructor = (function() {
+
+
+    });
 
     return this;
 

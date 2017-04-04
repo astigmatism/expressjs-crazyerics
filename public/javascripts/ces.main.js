@@ -20,7 +20,6 @@ var cesMain = (function() {
     var preventGamePause = false; //condition for blur event of emulator, sometimes we don't want it to pause when we're giving it back focus
     var loadMoreSuggestionsOnBottom = null; //loads the url of suggestions to call should the list be extended when the user reachs the page bottom
     var minimumGameLoadingTime = 4000; //have to consider tips (make longer) and transition times
-    var _grid;
 
     // instances/libraries
     var _Compression = null;
@@ -29,6 +28,7 @@ var cesMain = (function() {
     var _StateManager = null;
     var _Emulator = null;
     var _Dialogs = null;
+    var _RecentlyPlayed = null;
 
     // public members
     
@@ -66,7 +66,7 @@ var cesMain = (function() {
             PlayGame(openonload.system, openonload.title, openonload.file);
         }
 
-        BuildRecentlyPlayed(_PlayerData.playHistory);
+        _RecentlyPlayed = new cesRecentlyPlayed(config, _Compression, PlayGame, GetBoxFront, $('#recentlyplayedgrid'), _PlayerData.GetPlayHistory());
 
         //show welcome dialog
         if ($.isEmptyObject(_PlayerData.playHistory)) {
@@ -284,10 +284,7 @@ var cesMain = (function() {
 
         _Sliders = new cesSliders();
 
-        _grid = $('grid').isotope({
-        });
-
-        ReplaceSuggestions('/suggest/all/150', true, true); //begin by showing 150 all console suggestions
+        //ReplaceSuggestions('/suggest/all/150', true, true); //begin by showing 150 all console suggestions
 
         toolTips();
     });
@@ -985,19 +982,6 @@ var cesMain = (function() {
     };
 
     /**
-     * on page load, build the recently played content area from clientdata passed from server
-     * @param  {Object} clientdata
-     * @param  {number} maximum        //no used at the moment since we want to show the entire play history and let the user delete what they don't want to see
-     * @return {undef}
-     */
-    var BuildRecentlyPlayed = function(playHistory, maximum) {
-
-        for (var game in playHistory) {
-            AddToPlayHistory(game, playHistory[game].system, playHistory[game].title, playHistory[game].file, playHistory[game].played, playHistory[game].slots);
-        }
-    };
-
-    /**
      * Add or update a game in the play history area
      * @param {Object} key    unique game key
      * @param {string} system
@@ -1006,145 +990,19 @@ var cesMain = (function() {
      * @param {Date} played     date game last played
      * @param {Object} slots    {slot: 3, date: date} //date state saved as property
      */
-    var AddToPlayHistory = function(key, system, title, file, played, slots) {
+    var AddToPlayHistory = function(key, system, title, file, played, slots, callback) {
 
         var slot;
         
         var existsInHistory = _PlayerData.AddToPlayHistory(key, system, title, file, played, slots); //will add or update an existing game
 
-        if (!existsInHistory) {
-
-            var gamelink = BuildGameLink(system, title, file, 120, true); //get a game link
-
-            gamelink.li.addClass('close');
-
-            gamelink.img.load(function() {
-                gamelink.li.removeClass('close');
-            });
-
-            //the remove link will delete the game from play history and any saved states
-            gamelink.remove
-            .addClass('tooltip')
-            .attr('title', 'Remove this game and all saved progress')
-            .on('click', function() {
-                gamelink.li.addClass('slideup');
-                $.ajax({
-                    url: '/states/delete?key=' + encodeURIComponent(key),
-                    type: 'DELETE',
-                    /**
-                     * on successful state deletion
-                     * @return {undef}
-                     */
-                    complete: function() {
-                        setTimeout(function() {
-                            gamelink.li.remove();
-                        }, 500);
-                    }
-                });
-            });
-
-            //append states, if any (what was this for??)
-            if (false && slots && Object.keys(slots).length > 0) {
-
-                for (slot in slots) {
-                    //self._addStateToPlayHistory(playHistory[key], stateswrapper, slot, slots[slot]);
-                }
-
-                gamelink.li.on('mouseover', function(e) {
-                    $(stateswrapper).slideDown(500);
-                    gamelink.li.addClass('selected');
-                });
-
-                $(stateswrapper).on('mouseout', function(e) {
-                    $(stateswrapper).slideUp(500);
-                    gamelink.li.removeClass('selected');
-                });
-            }
-
-            //figure out where to insert this gamelink in the recently played area
-            var columns = $('#recentplayedwrapper ul');
-            var column = columns[0];
-            var columndepth = 0;
-            for (var i = 0; i < columns.length; ++i) {
-                if ($(columns[i]).children().length < $(column).children().length) {
-                    column = columns[i];
-                    columndepth = i;
-                }
-            }
-            $(column).append(gamelink.li); //append to recently played area
-
-            //position statewrapper in correct region of screen
-
-            //set state arrow to correct column
-            //$(stateswrapper).css('left', columndepth + '5%');
-            //$(stateswrapper).find('.triangle').css('left', ((columndepth * 15) + 5) + '%');
-
-            $('#recentplayedwrapper').show(); //ensure it is showing (will be hidden first time)
+        if (existsInHistory) {
+            return;
         }
 
-        toolTips(); //all the time ;)
-    };
+        _RecentlyPlayed.Add(key, system, title, file, played, slots, function() {
 
-    /**
-     * a common function which returns an li of a game box which acts as a link to bootstrap load the game and emulator
-     * @param  {string} system
-     * @param  {string} title
-     * @param  {number} size        the size of the box front image to load (114, 150)
-     * @param  {boolean} close      if true, shows the close button at the corner, no event attached
-     * @return {Object}             Contains reference to the li, img and close button
-     */
-    var BuildGameLink = function(system, title, file, size, close) {
-        close = close || false;
-
-        var li = $('<li class="gamelink"></li>');
-        var box = GetBoxFront(system, title, size);
-
-        box.addClass('tooltip close');
-        box.attr('title', title);
-
-        //show box art when finished loading
-        box.load(function() {
-            $(this)
-            .removeClass('close')
-            .on('mousedown', function() {
-                preventGamePause = true; //prevent current game from pausng before fadeout
-            })
-            .on('mouseup', function() {
-
-                PlayGame(system, title, file);
-                window.scrollTo(0, 0);
-            });
         });
-
-        var imagewrapper = $('<div class="box zoom"></div>');
-
-        imagewrapper.append(box);
-
-        //also when box load fails, in addition to showing the blank cartridge, let's create a fake label for it
-        box.error(function(e) {
-            $(this).parent().append('<div class="boxlabel boxlabel-' + system + '"><p>' + title + '</p></div>');
-        });
-
-        li.append(imagewrapper);
-
-        var remove = null;
-        if (close) {
-            remove = $('<div class="remove"></div>');
-            imagewrapper
-                .append(remove)
-                .on('mouseover', function() {
-                    $(remove).show();
-                })
-                .on('mouseout', function() {
-                    $(remove).hide();
-                });
-        }
-
-        return {
-            li: li,
-            img: box,
-            remove: remove
-        };
     };
 
     /**

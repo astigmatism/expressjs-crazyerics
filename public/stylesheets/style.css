@@ -139,15 +139,6 @@ p {
 	position: relative;
 }
 
-.gamelink {
-	max-height: 1000px;
-}
-
-.gamelink .box {
-	position: relative;
-	cursor: pointer;
-}
-
 .boxlabel {
 	text-align: center;
 	display: inline-block;
@@ -776,57 +767,8 @@ div.slidingpanel {
 	-o-transition:All 200ms ease-in;
 }
 
-/* recently played */
+/* grids */
 
-#recentplayedwrapper {
-	width: 780px;
-	padding: 0px 10px;
-	display: none;
-	position: relative;
-	background: -moz-linear-gradient(top,  rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%); /* FF3.6+ */
-	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(0,0,0,1)), color-stop(100%,rgba(0,0,0,0))); /* Chrome,Safari4+ */
-	background: -webkit-linear-gradient(top,  rgba(0,0,0,1) 0%,rgba(0,0,0,0) 100%); /* Chrome10+,Safari5.1+ */
-	background: -o-linear-gradient(top,  rgba(0,0,0,1) 0%,rgba(0,0,0,0) 100%); /* Opera 11.10+ */
-	background: -ms-linear-gradient(top,  rgba(0,0,0,1) 0%,rgba(0,0,0,0) 100%); /* IE10+ */
-	background: linear-gradient(to bottom,  rgba(0,0,0,1) 0%,rgba(0,0,0,0) 100%); /* W3C */
-	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#000000', endColorstr='#00000000',GradientType=0 ); /* IE6-9 */
-}
-
-#recentplayedwrapper ul {
-	width: 120px;
-	display: inline-block;
-	margin: 0px 5px;
-	padding: 0;
-	vertical-align: top;
-}
-
-#recentplayedwrapper li.gamelink {
-	list-style: none;
-	margin: 5px 0px;
-
-	transition:All 200ms ease-in;
-	-webkit-transition:All 200ms ease-in;
-	-moz-transition:All 200ms ease-in;
-	-o-transition:All 200ms ease-in;
-}
-
-#recentplayedwrapper li .remove {
-	position: absolute;
-	width: 22px;
-	height: 22px;
-	display: none;
-	top: -5px;
-	right: -5px;
-	z-index: 100;
-}
-
-/* grid test */
-
-.grid: {
-	margin: 10px;
-}
-
-/* clear fix */
 .grid:after {
 	content: '';
 	display: block;
@@ -836,6 +778,7 @@ div.slidingpanel {
 .grid-sizer,
 .grid-item {
  	width: 120px;
+ 	margin: 5px;
 }
 
 .grid-item {
@@ -845,6 +788,42 @@ div.slidingpanel {
 .grid-item img {
 	display: block;
 	max-width: 100%;
+}
+
+/* recentlyplayed */
+
+#recentlyplayedgrid {
+	margin: 10px;
+
+	background: -moz-linear-gradient(top,  rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%); /* FF3.6+ */
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(0,0,0,1)), color-stop(100%,rgba(0,0,0,0))); /* Chrome,Safari4+ */
+	background: -webkit-linear-gradient(top,  rgba(0,0,0,1) 0%,rgba(0,0,0,0) 100%); /* Chrome10+,Safari5.1+ */
+	background: -o-linear-gradient(top,  rgba(0,0,0,1) 0%,rgba(0,0,0,0) 100%); /* Opera 11.10+ */
+	background: -ms-linear-gradient(top,  rgba(0,0,0,1) 0%,rgba(0,0,0,0) 100%); /* IE10+ */
+	background: linear-gradient(to bottom,  rgba(0,0,0,1) 0%,rgba(0,0,0,0) 100%); /* W3C */
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#000000', endColorstr='#00000000',GradientType=0 ); /* IE6-9 */
+}
+
+#recentlyplyedgrid .gamelink {
+	transition:All 200ms ease-in;
+	-webkit-transition:All 200ms ease-in;
+	-moz-transition:All 200ms ease-in;
+	-o-transition:All 200ms ease-in;
+}
+
+#recentlyplayedgrid .gamelink .box {
+	position: relative;
+	cursor: pointer;
+}
+
+#recentlyplayedgrid .gamelink .remove {
+	position: absolute;
+	width: 22px;
+	height: 22px;
+	display: none;
+	top: -5px;
+	right: -5px;
+	z-index: 100;
 }
 
 /* suggestions */
@@ -901,16 +880,6 @@ div.slidingpanel {
 	margin-bottom: 10px;
 	padding: 10px;
 	text-align: center;
-}
-
-#recentlyplayedlist {
-	list-style: none;
-	padding: 0;
-	margin: 0;
-}
-
-#recentlyplayedlist li {
-	margin-top: 5px;
 }
 
 
