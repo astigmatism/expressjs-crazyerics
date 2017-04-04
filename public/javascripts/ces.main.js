@@ -284,11 +284,7 @@ var cesMain = (function() {
 
         _Sliders = new cesSliders();
 
-        _grid = $('#grid').masonry({
-            // options
-            itemSelector: '.grid-item',
-            columnWidth: 120,
-            gutter: 10
+        _grid = $('grid').isotope({
         });
 
         ReplaceSuggestions('/suggest/all/150', true, true); //begin by showing 150 all console suggestions
@@ -343,18 +339,7 @@ var cesMain = (function() {
             for (var i = 0; i < response.length; ++i) {
                 var gamelink = BuildGameLink(response[i].system, response[i].title, response[i].file, 120); //build dom elements
                 $(columns[i % columns.length]).append(gamelink.li);
-            
-
-                var $item = $('<div class="grid-item"></div>');
-                $item.append(gamelink.img);
-                
-                // append items to grid
-                _grid.masonry('addItems', $item);
             }
-
-            _grid.imagesLoaded().progress( function() {
-                _grid.masonry('layout');
-            });
 
             //when all images have loaded, show suggestions
             $('#suggestionswrapper').waitForImages().progress(function(loaded, count, success) {

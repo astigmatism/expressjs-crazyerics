@@ -822,12 +822,29 @@ div.slidingpanel {
 
 /* grid test */
 
-#grid: {
+.grid: {
 	margin: 10px;
 }
 
-.grid-item { 
-	float: left;
+/* clear fix */
+.grid:after {
+	content: '';
+	display: block;
+	clear: both;
+}
+
+.grid-sizer,
+.grid-item {
+ 	width: 120px;
+}
+
+.grid-item {
+ 	float: left;
+}
+
+.grid-item img {
+	display: block;
+	max-width: 100%;
 }
 
 /* suggestions */
