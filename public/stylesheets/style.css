@@ -775,25 +775,20 @@ div.slidingpanel {
 	clear: both;
 }
 
-.grid-sizer,
-.grid-item {
- 	width: 120px;
- 	margin: 5px;
-}
-
 .grid-item {
  	float: left;
+ 	margin: 0;
 }
 
 .grid-item img {
 	display: block;
-	max-width: 100%;
 }
 
 /* recentlyplayed */
 
-#recentlyplayedgrid {
-	margin: 10px;
+#recentlyplayedwrapper {
+	height: auto;
+	padding: 10px;
 
 	background: -moz-linear-gradient(top,  rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%); /* FF3.6+ */
 	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(0,0,0,1)), color-stop(100%,rgba(0,0,0,0))); /* Chrome,Safari4+ */
@@ -804,19 +799,23 @@ div.slidingpanel {
 	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#000000', endColorstr='#00000000',GradientType=0 ); /* IE6-9 */
 }
 
-#recentlyplyedgrid .gamelink {
+/* game links */
+
+.gamelink {
+	margin: 5px;
+}
+
+.gamelink .box {
+	position: relative;
+	cursor: pointer;
+
 	transition:All 200ms ease-in;
 	-webkit-transition:All 200ms ease-in;
 	-moz-transition:All 200ms ease-in;
 	-o-transition:All 200ms ease-in;
 }
 
-#recentlyplayedgrid .gamelink .box {
-	position: relative;
-	cursor: pointer;
-}
-
-#recentlyplayedgrid .gamelink .remove {
+.gamelink .remove {
 	position: absolute;
 	width: 22px;
 	height: 22px;
@@ -829,6 +828,7 @@ div.slidingpanel {
 /* suggestions */
 
 #suggestionswrapper {
+	height: auto;
 	padding: 10px;
 }
 

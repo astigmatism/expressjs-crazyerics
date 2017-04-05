@@ -29,6 +29,7 @@ var cesMain = (function() {
     var _Emulator = null;
     var _Dialogs = null;
     var _RecentlyPlayed = null;
+    var _Suggestions = null;
 
     // public members
     
@@ -108,9 +109,12 @@ var cesMain = (function() {
              */
             onChange: function() {
                 var system = $(this).val();
-                ReplaceSuggestions('/suggest/' + system + '/200', true, true);
 
-                //show or hide the alpha bar in the suggestions panel
+                _Suggestions.Load('/suggest/' + system + '/200', true, true, function() {
+                    toolTips();
+                });
+
+                 //show or hide the alpha bar in the suggestions panel
                 if (system === 'all') {
                     $('#alphabar').hide();
                 } else {
@@ -268,7 +272,9 @@ var cesMain = (function() {
         $(window).scroll(function() {
             if ($(window).scrollTo) {
                 if ($(window).scrollTo() + $(window).height() == $(document).height() && loadMoreSuggestionsOnBottom) {
-                    ReplaceSuggestions(loadMoreSuggestionsOnBottom, false, true);
+                    _Suggestions.Load(loadMoreSuggestionsOnBottom, false, true, function() {
+                        toolTips();
+                    });
                 }
             }
         });
@@ -278,94 +284,26 @@ var cesMain = (function() {
             $(item).on('click', function(e) {
                 var system = $('#search select').val();
                 var term = $(item).text();
-                ReplaceSuggestions('/suggest/browse/' + system + '?term=' + term, true, false);
+                _Suggestions.Load('/suggest/browse/' + system + '?term=' + term, true, false, function() {
+                    toolTips();
+                });
             });
         });
 
         _Sliders = new cesSliders();
 
-        //ReplaceSuggestions('/suggest/all/150', true, true); //begin by showing 150 all console suggestions
+        _Suggestions = new cesSuggestions(config, _Compression, PlayGame, $('#suggestionsgrid'));
 
-        toolTips();
+        //begin by showing 150 all console suggestions
+        _Suggestions.Load('/suggest/all/150', true, true, function() {
+            toolTips();
+        });
+
     });
 
     /* public methods */
 
     /* private methods */
-    
-    /**
-     * function for handling the load and replacement of the suggestions content area
-     * @param  {string} system
-     * @param  {number} items  the number of items to load and show
-     * @return {undef}
-     */
-    var ReplaceSuggestions = function(url, remove, loadMore) {
-
-        //if suggestions are loading, cache if trying to load more
-        if (suggestionsCurrentlyLoading) {
-            cachedSuggestionRequests.push(arguments);
-            return;
-        }
-
-        suggestionsCurrentlyLoading = true;
-        loadMoreSuggestionsOnBottom = loadMore ? url : null;
-
-        //reset dial
-        $('.dial').val(0).trigger('change');
-
-        //show loading icon
-        
-        //only hide current suggestions when resetting columns
-        if (remove) {
-            $('#suggestionswrapper').hide();
-            $('#loading').removeClass('close');
-        }
-
-        $.getJSON(url, function(response) {
-
-            response = _Compression.Out.json(response);
-
-            //remove all current gamelinks
-            if (remove) {
-                $('#suggestionswrapper li').remove();
-            }
-
-            var columns = $('#suggestionswrapper ul');
-
-            //use modulus to evenly disperse across all columns
-            for (var i = 0; i < response.length; ++i) {
-                var gamelink = BuildGameLink(response[i].system, response[i].title, response[i].file, 120); //build dom elements
-                $(columns[i % columns.length]).append(gamelink.li);
-            }
-
-            //when all images have loaded, show suggestions
-            $('#suggestionswrapper').waitForImages().progress(function(loaded, count, success) {
-
-                //perc loaded is the number loaded to the number included in the response * 100
-                var perc = parseInt((loaded / response.length) * 100, 10);
-
-                //set loading progress on dial
-                $('.dial').val(perc).trigger('change');
-
-                if (loaded === (count - 1)) {
-                    $('#suggestionswrapper').slideDown();
-                    $('#loading').addClass('close');
-
-                    suggestionsCurrentlyLoading = false;
-
-                    //are there any cached up?
-                    if (cachedSuggestionRequests.length > 0) {
-                        ReplaceSuggestions.apply(this, cachedSuggestionRequests.shift());
-                    }
-                }
-            });
-
-            toolTips();
-        });
-    };
-
-    var suggestionsCurrentlyLoading = false;
-    var cachedSuggestionRequests = [];
 
     var CleanUpEmulator = function(callback) {
 
@@ -994,14 +932,14 @@ var cesMain = (function() {
 
         var slot;
         
-        var existsInHistory = _PlayerData.AddToPlayHistory(key, system, title, file, played, slots); //will add or update an existing game
+        var response = _PlayerData.AddToPlayHistory(key, system, title, file, played, slots); //will add or update an existing game
 
-        if (existsInHistory) {
-            return;
-        }
+        var onRemove = function() {
+            _PlayerData.RemoveFromPlayHistory(key);
+        };
 
-        _RecentlyPlayed.Add(key, system, title, file, played, slots, function() {
-
+        _RecentlyPlayed.Add(key, response.data, response.isnew, onRemove, function() {
+            toolTips();
         });
     };
 

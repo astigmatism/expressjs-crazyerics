@@ -28,7 +28,10 @@ var cesPlayerData = (function(_Compression, initialPlayerData) {
         //handling dupes will be a common function, replace the date and handle the states slots
         if (key in _playHistory) {
             _playHistory[key].played = Date.now();
-            return true;
+            return {
+                isnew: false,
+                data: _playHistory[key]
+            };
         }
 
         //not a dupe, let's create a new play histry game
@@ -43,7 +46,14 @@ var cesPlayerData = (function(_Compression, initialPlayerData) {
             //stateswrapper: stateswrapper
         };
 
-        return false;
+        return {
+            isnew: true,
+            data: _playHistory[key]
+        };
+    };
+
+    this.RemoveFromPlayHistory = function(key) {
+        delete _playHistory[key];
     };
 
     this.GetPlayHistory = function() {

@@ -100,7 +100,8 @@ block content
                         //-         img(class="tooltip",src="#{assetpath}/images/screenshot.png", title="View Screenshots")
                     div#gamedetailsboxfront
 
-    div#recentlyplayedgrid(class="grid")
+    div#recentlyplayedwrapper
+        div#recentlyplayedgrid(class="grid")
 
     div#suggestionswrapper
         div#alphabar Browse: 
@@ -131,12 +132,4 @@ block content
             a Y
             a Z
             a #
-        ul
-        ul
-        ul
-        ul
-        ul
-        ul
-
-    div#loading
-        input(type="text", value="0", class="dial", data-width="100", data-fgColor="#516170", data-bgColor="#242C32", data-thickness=".2", font="Poppins")
+        div#suggestionsgrid(class="grid")
