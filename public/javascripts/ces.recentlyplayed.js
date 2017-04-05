@@ -111,6 +111,9 @@ var cesRecentlyPlayed = (function(config, _Compression, PlayGame, GetBoxFront, $
              */
             complete: function() {
                 
+                //clear mem
+                gamelink = null;
+
                 //callback the function to remove from player data
                 if (onRemove) {
                     onRemove(); //passed in, will remove from player data at main level 

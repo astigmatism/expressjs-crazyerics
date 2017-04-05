@@ -18,8 +18,8 @@ var cesMain = (function() {
     var tipsCycleRate = 5000;
     var preventLoadingGame = false;
     var preventGamePause = false; //condition for blur event of emulator, sometimes we don't want it to pause when we're giving it back focus
-    var loadMoreSuggestionsOnBottom = null; //loads the url of suggestions to call should the list be extended when the user reachs the page bottom
     var minimumGameLoadingTime = 4000; //have to consider tips (make longer) and transition times
+    var _defaultSuggestions = 60;
 
     // instances/libraries
     var _Compression = null;
@@ -110,7 +110,7 @@ var cesMain = (function() {
             onChange: function() {
                 var system = $(this).val();
 
-                _Suggestions.Load('/suggest/' + system + '/200', true, true, function() {
+                _Suggestions.Load('/suggest/' + system + '/' + _defaultSuggestions, function() {
                     toolTips();
                 });
 
@@ -270,21 +270,25 @@ var cesMain = (function() {
 
         //when user has scrolled to bottom of page, load more suggestions
         $(window).scroll(function() {
-            if ($(window).scrollTo) {
-                if ($(window).scrollTo() + $(window).height() == $(document).height() && loadMoreSuggestionsOnBottom) {
-                    _Suggestions.Load(loadMoreSuggestionsOnBottom, false, true, function() {
+            if ($(window).scrollTop) {
+                
+                var x = $(window).scrollTop() + $(window).height();
+                var y = $(document).height(); //- 100; //if you want "near bottom", sub from this amount
+
+                if (x == y) {
+                    _Suggestions.LoadMore(function() {
                         toolTips();
                     });
                 }
             }
         });
 
-        //for browsing, set up links
+        //for browsing with alpha characters
         $('#suggestionswrapper a').each(function(index, item) {
             $(item).on('click', function(e) {
                 var system = $('#search select').val();
                 var term = $(item).text();
-                _Suggestions.Load('/suggest/browse/' + system + '?term=' + term, true, false, function() {
+                _Suggestions.Load('/suggest/browse/' + system + '?term=' + term, function() {
                     toolTips();
                 });
             });
@@ -295,7 +299,7 @@ var cesMain = (function() {
         _Suggestions = new cesSuggestions(config, _Compression, PlayGame, $('#suggestionsgrid'));
 
         //begin by showing 150 all console suggestions
-        _Suggestions.Load('/suggest/all/150', true, true, function() {
+        _Suggestions.Load('/suggest/all/' + _defaultSuggestions, function() {
             toolTips();
         });
 

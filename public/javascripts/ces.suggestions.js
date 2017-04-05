@@ -6,16 +6,51 @@ var cesSuggestions = (function(config, _Compression, PlayGame, $wrapper) {
 
     //private members
     var self = this;
-    var suggestionsCurrentlyLoading = false;
-    var cachedSuggestionRequests = [];
     var _grid = null;
     var _BOXSIZE = 120;
+    var _currentUrl = null;
+    var _currentGameLinks = [];
 
-    this.Load = function(url, remove, loadMore, callback) {
+    this.Load = function(url, callback) {
+
+        Build(url, true, function() {
+
+            if (callback) {
+                callback();
+            }
+        })
+    };
+
+    this.LoadMore = function(callback) {
+
+        if (!_currentUrl) {
+            if (callback) {
+                callback();
+            }
+            return;
+        }
+
+        Build(_currentUrl, false, function() {
+
+            if (callback) {
+                callback();
+            }
+        });
+    };
+
+    var Build = function(url, clear, callback) {
+
+        _currentUrl = url;
 
         //remove all current gamelinks
-        if (remove) {
-            _grid.isotope('remove', _grid.children())
+        if (clear) {
+            _grid.isotope('remove', _grid.children());
+
+            //attempt to free mem
+            for (var i = 0, len = _currentGameLinks.length; i < len; i++) {
+                _currentGameLinks[i] = null;
+            }
+            _currentGameLinks = [];
         }
 
         $.getJSON(url, function(response) {
@@ -41,11 +76,13 @@ var cesSuggestions = (function(config, _Compression, PlayGame, $wrapper) {
                 _grid.isotope('layout');
             });
 
+            _currentGameLinks.push(gamelink);
+
             if (callback) {
                 callback();
             }
         });
-    };
+    }
 
     //constructor
     var Constructor = (function() {
