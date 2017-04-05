@@ -110,7 +110,7 @@ var cesMain = (function() {
             onChange: function() {
                 var system = $(this).val();
 
-                _Suggestions.Load('/suggest/' + system + '/' + _defaultSuggestions, function() {
+                _Suggestions.Load('/suggest/' + system + '/' + _defaultSuggestions, true, function() {
                     toolTips();
                 });
 
@@ -288,7 +288,7 @@ var cesMain = (function() {
             $(item).on('click', function(e) {
                 var system = $('#search select').val();
                 var term = $(item).text();
-                _Suggestions.Load('/suggest/browse/' + system + '?term=' + term, function() {
+                _Suggestions.Load('/suggest/browse/' + system + '?term=' + term, false, function() {
                     toolTips();
                 });
             });
@@ -298,8 +298,8 @@ var cesMain = (function() {
 
         _Suggestions = new cesSuggestions(config, _Compression, PlayGame, $('#suggestionsgrid'));
 
-        //begin by showing 150 all console suggestions
-        _Suggestions.Load('/suggest/all/' + _defaultSuggestions, function() {
+        //begin by showing all console suggestions
+        _Suggestions.Load('/suggest/all/' + _defaultSuggestions, true, function() {
             toolTips();
         });
 

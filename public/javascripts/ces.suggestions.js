@@ -10,8 +10,16 @@ var cesSuggestions = (function(config, _Compression, PlayGame, $wrapper) {
     var _BOXSIZE = 120;
     var _currentUrl = null;
     var _currentGameLinks = [];
+    var _loading = false;
+    var _allowMore = false;
 
-    this.Load = function(url, callback) {
+    this.Load = function(url, allowMore, callback) {
+
+        _allowMore = allowMore === true || false;
+
+        if (_loading) {
+            return;
+        }
 
         Build(url, true, function() {
 
@@ -23,10 +31,7 @@ var cesSuggestions = (function(config, _Compression, PlayGame, $wrapper) {
 
     this.LoadMore = function(callback) {
 
-        if (!_currentUrl) {
-            if (callback) {
-                callback();
-            }
+        if (!_currentUrl || _loading || !_allowMore) {
             return;
         }
 
@@ -41,6 +46,7 @@ var cesSuggestions = (function(config, _Compression, PlayGame, $wrapper) {
     var Build = function(url, clear, callback) {
 
         _currentUrl = url;
+        _loading = true;
 
         //remove all current gamelinks
         if (clear) {
@@ -77,6 +83,8 @@ var cesSuggestions = (function(config, _Compression, PlayGame, $wrapper) {
             });
 
             _currentGameLinks.push(gamelink);
+
+            _loading = false;
 
             if (callback) {
                 callback();
