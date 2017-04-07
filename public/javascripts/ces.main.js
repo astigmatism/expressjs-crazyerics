@@ -503,14 +503,14 @@ var cesMain = (function() {
                                                 _Emulator.Show(); //also input is given to canvas in this step
 
                                                 //show controls initially to reveal their presence
-                                                setTimeout(function() {
+                                                // setTimeout(function() {
 
-                                                    $('#emulatorcontrolswrapper').addClass('closed');
+                                                //     $('#emulatorcontrolswrapper').addClass('closed');
 
-                                                    //to help new players, reveal controls after load
-                                                    _Sliders.Open('controlsslider');
+                                                //     //to help new players, reveal controls after load
+                                                //     _Sliders.Open('controlsslider');
                                                 
-                                                }, 2000);
+                                                // }, 2000);
 
                                                 //assign focus to emulator canvas
                                                 $('#emulator')
@@ -572,7 +572,7 @@ var cesMain = (function() {
                 }
 
                 //the class extention process: on the prototype of the ext, create using the base class.
-                cesEmulator.prototype = new cesEmulatorBase(_Compression, config, system, title, file, key, ui);
+                cesEmulator.prototype = new cesEmulatorBase(_Compression, config, system, title, file, key, ui, OnEmulatorKeydown);
 
                 var emulator = new cesEmulator(_Compression, config, system, title, file, key);
 
@@ -585,6 +585,10 @@ var cesMain = (function() {
                 callback(exception);
             }
         );
+    };
+
+    var OnEmulatorKeydown = function(event) {
+        //nothing yet!
     };
 
     /**

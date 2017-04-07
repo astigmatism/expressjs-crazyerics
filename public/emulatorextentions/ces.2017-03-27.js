@@ -130,13 +130,31 @@ var cesEmulator = (function(_Compression, config, system, title, file, key) {
                 //in the case of keypress handlers
                 if (eventHandler.eventTypeString == 'keydown') {
                     
+                    var originalWork = eventHandler.handlerFunc;
+                    
+                    eventHandler.handlerFunc = function(event) {
 
+                        //perform original handler function
+                        originalWork(event);
+
+                        //run my function next to inform ces what the last keypress was!
+                        if (self.OnEmulatorKeydown) {
+                            self.OnEmulatorKeydown(event);
+                        }
+                    };
 
                     this.cachedEventHandlers.keydown[eventHandler.eventTypeString] = eventHandler;
                 }
             }
 
             return eventHandler;
+        };
+
+        this.cesEmulatorFileWritten = function(filename, contents) {
+
+            if (self.OnEmulatorFileWrite) {
+                self.OnEmulatorFileWrite(filename, contents);
+            }
         };
 
         /**

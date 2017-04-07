@@ -144,7 +144,7 @@ router.get('/emulatorprep', function(req, res, next) {
 
                         re = /var curr=FS\.write\(stream.HEAP8,ptr,len,offset\);/;
                         console.log('found place to intercept emulator writing files  ---> ' + re.test(content));
-                        content = content.replace(re, 'var curr=FS.write(stream,HEAP8,ptr,len,offset);if (Module.emulatorFileWritten && stream && stream.node && stream.node.name && stream.node.contents) { Module.emulatorFileWritten(stream.node.name, stream.node.contents);}');
+                        content = content.replace(re, 'var curr=FS.write(stream,HEAP8,ptr,len,offset);if (Module.cesEmulatorFileWritten && stream && stream.node && stream.node.name && stream.node.contents) { Module.cesEmulatorFileWritten(stream.node.name, stream.node.contents);}');
 
 
                         //beautify for debugging (found this really didnt work too well)

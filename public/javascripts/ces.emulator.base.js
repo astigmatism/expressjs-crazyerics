@@ -7,7 +7,7 @@
  * @param  {string} file         Super Mario Bros. 3 (U)[!].nes
  * @return {undef}
  */
-var cesEmulatorBase = (function(_Compression, config, system, title, file, key, ui) {
+var cesEmulatorBase = (function(_Compression, config, system, title, file, key, ui, OnEmulatorKeydown) {
 
     // private members
     var self = this;
@@ -56,7 +56,9 @@ var cesEmulatorBase = (function(_Compression, config, system, title, file, key, 
     var _EmulatorInstance = null;
     var _Module = null;
 
-    // public/protected members (on prototytpe)
+    //protected
+
+    this.OnEmulatorKeydown;
 
     // public methods
         
@@ -320,6 +322,35 @@ var cesEmulatorBase = (function(_Compression, config, system, title, file, key, 
         }
     };
 
+    /**
+     * for screenshots, the emulator simply dumps the video buffer into a file 8 bytes at a time calling the write function
+     * with each segment in the buffer. it doesn't seem to trigger a "file closed" or "finished writing file" notification.
+     * To get around this, I'll use timers to understand when a file was essentially finished being written to.
+     * @param  {string} key      unique game key, used to save state
+     * @param  {string} system
+     * @param  {string} title
+     * @param  {string} file
+     * @param  {string} filename the file name being saved by the emulator
+     * @param  {UInt8Array} contents the contents of the file saved by the emulator
+     * @return {undef}
+     */
+    this.OnEmulatorFileWrite = function(filename, contents) {
+
+
+        //clear timer if exists
+        if (fileWriteTimers.hasOwnProperty(filename)) {
+            clearTimeout(fileWriteTimers[filename]);
+        }
+
+        //write new timer
+        fileWriteTimers[filename] = setTimeout(function() {
+
+            //if timer runs out before being cleared again, delete it and call file written function
+            delete fileWriteTimers[filename];
+            EmulatorFileWritten(filename, contents);
+        }, fileWriteDelay);
+    };
+
     //private methods
 
     /**
@@ -351,16 +382,6 @@ var cesEmulatorBase = (function(_Compression, config, system, title, file, key, 
         compressedShaderData = (shader && shader[1]) ? shader[1] : null; //if not defined, not shader used
 
         BuildLocalFileSystem();
-
-        /**
-         * register a callback function when the emulator saves a file
-         * @param  {string} filename
-         * @param  {UInt8Array} contents
-         * @return {undef}
-         */
-        _Module.emulatorFileWritten = function(filename, contents) {
-            EmulatorFileWriteListener(filename, contents);
-        };
     };
 
     /**
@@ -652,86 +673,42 @@ var cesEmulatorBase = (function(_Compression, config, system, title, file, key, 
         _Module.FS_createFolder('/', 'screenshots', true, true);
     };
 
-    /**
-     * for screenshots, the emulator simply dumps the video buffer into a file 8 bytes at a time calling the write function
-     * with each segment in the buffer. it doesn't seem to trigger a "file closed" or "finished writing file" notification.
-     * To get around this, I'll use timers to understand when a file was essentially finished being written to.
-     * @param  {string} key      unique game key, used to save state
-     * @param  {string} system
-     * @param  {string} title
-     * @param  {string} file
-     * @param  {string} filename the file name being saved by the emulator
-     * @param  {UInt8Array} contents the contents of the file saved by the emulator
-     * @return {undef}
-     */
-    var EmulatorFileWriteListener = function(filename, contents) {
+    var EmulatorKeypressListener = function(event) {
 
+        var key = event.keyCode;
+        switch (key) {
+            case 70: // F - fullscreen
+                // _Module.requestFullScreen(true, true);
+                // $(ui.canvas).focus();
+            break;
+            case 49: //1 - save state
+                //setup deffered call to save state to server, need callbacks from state file and screenshot capture
+                saveStateDeffers.state = $.Deferred();
+                saveStateDeffers.screen = $.Deferred();
 
-        //clear timer if exists
-        if (fileWriteTimers.hasOwnProperty(filename)) {
-            clearTimeout(fileWriteTimers[filename]);
-        }
+                //use a timeout to clear deffers incase one of them never comes back, 1 sec is plenty. i see this return in about 50ms generally
+                var clearStateDeffers = setTimeout(function() {
+                    saveStateDeffers = {};
+                }, 1000);
 
-        //write new timer
-        fileWriteTimers[filename] = setTimeout(function() {
+                $.when(saveStateDeffers.state, saveStateDeffers.screen).done(function(statedetails, screendetails) {
 
-            //if timer runs out before being cleared again, delete it and call file written function
-            delete fileWriteTimers[filename];
-            EmulatorFileWritten(filename, contents);
-        }, fileWriteDelay);
-    };
+                    clearTimeout(clearStateDeffers); //clear timeout from erasing deffers
+                    saveStateDeffers = {}; //do the clear ourselves
 
-    /**
-     * Function which handles events coming from emulator file.
-     * @param  {event}   event      
-     * @param  {string}   listenType 2.0.0 respond to keydown, 1.0.0 to keyup
-     * @param  {Function} callback   optional
-     * @return {undefined}              
-     */
-    var EmulatorEventListnener = function(event, listenType, callback) {
-
-
-        switch (event.type) {
-            case listenType:
-                var key = event.keyCode;
-                switch (key) {
-                    case 70: // F - fullscreen
-                        _Module.requestFullScreen(true, true);
-                        $(ui.canvas).focus();
-                    break;
-                    case 49: //1 - save state
-                        //setup deffered call to save state to server, need callbacks from state file and screenshot capture
-                        saveStateDeffers.state = $.Deferred();
-                        saveStateDeffers.screen = $.Deferred();
-
-                        //use a timeout to clear deffers incase one of them never comes back, 1 sec is plenty. i see this return in about 50ms generally
-                        var clearStateDeffers = setTimeout(function() {
-                            saveStateDeffers = {};
-                        }, 1000);
-
-                        $.when(saveStateDeffers.state, saveStateDeffers.screen).done(function(statedetails, screendetails) {
-
-                            clearTimeout(clearStateDeffers); //clear timeout from erasing deffers
-                            saveStateDeffers = {}; //do the clear ourselves
-
-                            _StateManager.SaveStateToServer(statedetails, screendetails);
-                        });
-                        _Emulator.SimulateEmulatorKeypress(84); //initiaze screenshot after its defer is in place.
-                    break;
-                    case 50: //2 - state slot decrease
-                        self._activeStateSlot--;
-                        if (self._activeStateSlot < 0) {
-                            self._activeStateSlot = 0;
-                        }
-                    break;
-                    case 51: //3 - state slot increase
-                        self._activeStateSlot++;
-                    break;
+                    //_StateManager.SaveStateToServer(statedetails, screendetails);
+                });
+                self.SimulateEmulatorKeypress(84); //initiaze screenshot after its defer is in place.
+            break;
+            case 50: //2 - state slot decrease
+                self._activeStateSlot--;
+                if (self._activeStateSlot < 0) {
+                    self._activeStateSlot = 0;
                 }
             break;
-        }
-        if (callback) {
-            callback(event);
+            case 51: //3 - state slot increase
+                self._activeStateSlot++;
+            break;
         }
     };
 
@@ -839,6 +816,22 @@ var cesEmulatorBase = (function(_Compression, config, system, title, file, key, 
         loop.next();
         return loop;
     };
+
+    var Constructor = (function() {
+
+
+        var func = OnEmulatorKeydown;
+
+        //hide jack the on keypress handler
+        self.OnEmulatorKeydown = function(event) {
+
+            EmulatorKeypressListener(event);
+
+            func(event);
+
+        };
+
+    })();
 
     return this;
 });
