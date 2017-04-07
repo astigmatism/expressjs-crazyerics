@@ -3,7 +3,7 @@ var cesMain = (function() {
     // private members
     var self = this;
     var config = {}; //the necessary server configuration data provided to the client
-    var tips = [
+    var _tips = [
         'Back out of that mistake you made by holding the R key to rewind the game',
         'Press the Space key to fast forward through those story scenes',
         'If your browser supports it, you can go fullscreen by pressing the F key',
@@ -15,10 +15,10 @@ var cesMain = (function() {
         'Take a screenshot with the T key. Missed that moment? Rewind with R and capture again!',
         'Screenshots are deleted when you leave or refresh the page. Download your favorites to keep them'
     ];
-    var tipsCycleRate = 5000;
-    var preventLoadingGame = false;
-    var preventGamePause = false; //condition for blur event of emulator, sometimes we don't want it to pause when we're giving it back focus
-    var minimumGameLoadingTime = 4000; //have to consider tips (make longer) and transition times
+    var _tipsCycleRate = 5000;
+    var _preventLoadingGame = false;
+    var _preventGamePause = false; //condition for blur event of emulator, sometimes we don't want it to pause when we're giving it back focus
+    var _minimumGameLoadingTime = 4000; //have to consider tips (make longer) and transition times
     var _defaultSuggestions = 60;
 
     // instances/libraries
@@ -349,12 +349,12 @@ var cesMain = (function() {
     var PlayGame = function (system, title, file, slot, shader, callback) {
 
         //bail if attempted to load before current has finished
-        if (preventLoadingGame) {
+        if (_preventLoadingGame) {
             return;
         }
 
-        preventLoadingGame = true; //prevent loading any other games until this flag is lifted
-        preventGamePause = false;
+        _preventLoadingGame = true; //prevent loading any other games until this flag is lifted
+        _preventGamePause = false;
 
         //will clear up existing emulator if it exists
         CleanUpEmulator(function() {
@@ -373,7 +373,7 @@ var cesMain = (function() {
                 //call bootstrap
                 RetroArchBootstrap(system, title, file, slot, shader, function() {
 
-                    preventLoadingGame = false;
+                    _preventLoadingGame = false;
 
                     if(callback) {
                         callback();
@@ -410,12 +410,12 @@ var cesMain = (function() {
             var emulatorLoadComplete = $.Deferred();
             var savePreferencesAndGetPlayerGameDetailsComplete = $.Deferred();
 
-            preventLoadingGame = false; //during shader select, allow other games to load
+            _preventLoadingGame = false; //during shader select, allow other games to load
 
             //show shader selector. returns an object with shader details
             ShowShaderSelection(system, shader, function(shaderselection) {
 
-                preventLoadingGame = true; //lock loading after shader select
+                _preventLoadingGame = true; //lock loading after shader select
                 var gameLoadingStart = Date.now();
 
 
@@ -455,16 +455,16 @@ var cesMain = (function() {
                         
                         _Emulator.WriteStateData(_StateManager.GetSavedSlots());
                             
-                        preventLoadingGame = false; //during shader select, allow other games to load
+                        _preventLoadingGame = false; //during shader select, allow other games to load
 
                         //are there states to load? Let's show a dialog to chose from, if not - will go straight to start
                         ShowStateSelection(system, title, file, function(slot) {
                             
-                            preventLoadingGame = true;
+                            _preventLoadingGame = true;
 
                             //calculate how long the loading screen has been up. Showing it too short looks dumb
                             var gameLoadingDialogUptime = Math.floor(Date.now() - gameLoadingStart);
-                            var artificialDelayForLoadingScreen = gameLoadingDialogUptime > minimumGameLoadingTime ? 0 : minimumGameLoadingTime - gameLoadingDialogUptime;
+                            var artificialDelayForLoadingScreen = gameLoadingDialogUptime > _minimumGameLoadingTime ? 0 : _minimumGameLoadingTime - gameLoadingDialogUptime;
 
                             console.log('extending: ' + artificialDelayForLoadingScreen);
 
@@ -515,7 +515,7 @@ var cesMain = (function() {
                                                 //assign focus to emulator canvas
                                                 $('#emulator')
                                                     .blur(function(event) {
-                                                        if (!preventGamePause) {
+                                                        if (!_preventGamePause) {
                                                             _Emulator.PauseGame();
                                                             $('#emulatorwrapperoverlay').fadeIn();
                                                         }
@@ -547,7 +547,7 @@ var cesMain = (function() {
         CleanUpEmulator(function() {
 
 
-            preventLoadingGame = false; //in case it failed during start
+            _preventLoadingGame = false; //in case it failed during start
 
             $('#emulatorexceptiondetails').text(e);
             console.error(e);
@@ -751,13 +751,13 @@ var cesMain = (function() {
         var tipInterval = setInterval(function() {
             $('#gameloadingname').fadeOut(500);
             $('#tip').fadeOut(500, function() {
-                var tip = tips[Math.floor(Math.random() * tips.length)];
+                var tip = _tips[Math.floor(Math.random() * _tips.length)];
 
                 if (!$('#gameloading').is(':animated')) {
                     $('#tip').empty().append('Tip: ' + tip).fadeIn(500);
                 }
             });
-        }, tipsCycleRate); //show tip for this long
+        }, _tipsCycleRate); //show tip for this long
 
         _Dialogs.ShowDialog('gameloading', null, function() {
             callback(tipInterval);

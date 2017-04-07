@@ -22,7 +22,7 @@ router.get('/emulatorprep', function(req, res, next) {
     
     var writeMemFileToDestination = true;
     
-    var assetPath = '/emulators/' + EMULATOR_VERSION;
+    var assetPath = '/emulators/' + EMULATOR_VERSION + '/';
     var destinationPath = __dirname + '/../public/emulators/' + EMULATOR_VERSION;
 
     //open source folder
@@ -103,10 +103,10 @@ router.get('/emulatorprep', function(req, res, next) {
                         console.log('found reference to JSEvents handler ---> ' + re.test(content));
                         content = content.replace(re, 'Module.JSEvents=JSEvents;$1');
 
-
+                        //this insertion allows event handlers to be monitored in ces
                         re = /(var jsEventHandler=)/;
                         console.log('add handler for window callback location ---> ' + re.test(content));
-                        content = content.replace(re, 'Module.cesEventHandlerRegistered(eventHandler);$1');
+                        content = content.replace(re, 'eventHandler=Module.cesEventHandlerRegistered(eventHandler);$1');
 
                         //adds custom event listener to JSevents and also prevents bubbling
                         // re = /(eventHandler\.handlerFunc\(event\);)/;

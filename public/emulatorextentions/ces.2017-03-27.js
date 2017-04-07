@@ -101,9 +101,11 @@ var cesEmulator = (function(_Compression, config, system, title, file, key) {
          * @type {Boolean}
          */
         this.eventHandlersAttached = true;
+        
         this.cachedEventHandlers = {
             window: {},
-            document: {}
+            document: {},
+            keydown: {}
         };
 
         /**
@@ -117,14 +119,24 @@ var cesEmulator = (function(_Compression, config, system, title, file, key) {
             //ensure the current format
             if (eventHandler.target && eventHandler.eventTypeString) {
                 
-                //we only care about tracking events on window and document (since they are the ones which attempt to take over)
+                //these are the event targets and types we care to track
                 if (eventHandler.target == window) {
                     this.cachedEventHandlers.window[eventHandler.eventTypeString] = eventHandler;
                 }
                 if (eventHandler.target == document) {
                     this.cachedEventHandlers.document[eventHandler.eventTypeString] = eventHandler;
                 }
+
+                //in the case of keypress handlers
+                if (eventHandler.eventTypeString == 'keydown') {
+                    
+
+
+                    this.cachedEventHandlers.keydown[eventHandler.eventTypeString] = eventHandler;
+                }
             }
+
+            return eventHandler;
         };
 
         /**

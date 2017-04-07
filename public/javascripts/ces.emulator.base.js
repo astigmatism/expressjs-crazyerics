@@ -682,30 +682,6 @@ var cesEmulatorBase = (function(_Compression, config, system, title, file, key, 
     };
 
     /**
-     * listens to all events coming from emulator
-     * @param  {string} system
-     * @param  {string} title
-     * @param  {string} file
-     * @return {undef}
-     */
-    var SetupEmulatorEventListener = function(system, title, file) {
-
-
-        if (_Module && _Module.JSEvents) {
-            
-            /**
-             * [crazyericsEventListener description]
-             * @param  {Object} event
-             * @return {undefined}
-             */
-            _Module.JSEvents.crazyericsEventListener = function(event) {
-                EmulatorEventListnener(event, 'keydown');
-            };
-        }
-        
-    };
-
-    /**
      * Function which handles events coming from emulator file.
      * @param  {event}   event      
      * @param  {string}   listenType 2.0.0 respond to keydown, 1.0.0 to keyup
