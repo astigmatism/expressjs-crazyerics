@@ -504,7 +504,6 @@ p {
 
 #savedstateseletor {
 	height: 550px;
-	margin: -250px 0 0 -400px;
 }
 
 #savedstateseletor h3 {
@@ -597,46 +596,6 @@ p {
 	width: 100%;
 }
 
-#emulatormessagewrapper, #emulatorcontrolswrapper {
-	position: absolute;
-	left: 0;
-	width: 100%;
-	background-color: rgba(0,0,0,0.8);
-	max-height: 37px;
-	display: none;
-	overflow: hidden;
-	transition-property: all;
-	transition-duration: 0.5s;
-	transition-timing-function: cubic-bezier(0, 1, 0.5, 1);
-}
-
-#emulatormessagewrapper {
-	top: 0;
-	font-size: 1.5em;
-	padding: 5px;
-	text-align: center;
-}
-
-#emulatorcontrolswrapper {
-	bottom: 0;
-}
-
-#emulatorcontrolswrapper.closed, #emulatormessagewrapper.closed {
-	max-height: 0;
-}
-
-#emulatorcontrolswrapper ul {
-	padding: 7px;
-	margin: 0;
-}
-
-#emulatorcontrolswrapper li {
-	list-style: none;
-	display: inline;
-	padding: 0px 3px;
-	cursor: pointer;
-}
-
 #emulatorwrapperoverlay{
 	display: none;
 	position: absolute;
@@ -660,8 +619,6 @@ p {
 	outline: none;
 	width: 100%;
 }
-
-
 
 /* game details wrapper */
 

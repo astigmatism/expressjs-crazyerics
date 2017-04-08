@@ -2,27 +2,26 @@
  * Emulator class. Holds all properties and functions for managing the instance of a loaded emaultor and game
  * @param  {Object} _Compression compression library
  * @param  {Object} config       ces config
- * @param  {string} system       gen, nes, gb, ...
- * @param  {string} title        Super Mario Bros. 3
+ * @param  {string} _system       gen, nes, gb, ...
+ * @param  {string} _title        Super Mario Bros. 3
  * @param  {string} file         Super Mario Bros. 3 (U)[!].nes
  * @return {undef}
  */
-var cesEmulatorBase = (function(_Compression, config, system, title, file, key, ui, OnEmulatorKeydown) {
+var cesEmulatorBase = (function(_Compression, _config, _system, _title, _file, _key, _ui, _OnEmulatorKeydownHandler, _OnEmulatorFileWriteHandler, _OnStateSavedHandler) {
 
     // private members
     var self = this;
     var FS = null;
-    var isLoading = false;
-    var compressedSupprtData = null;
-    var compressedGameData = null;
-    var compressedShaderData = null;
-    var currentStateSlot = 0;
-    var saveStateDeffers = {}; //since saving state to server requires both state and screenshot data, setup these deffers since tracking which comes back first is unknown
-    var fileWriteDelay = 500; //in ms. The delay in which the client should respond to a file written by the emulator (sometimes is goes out over the network and we don't want to spam the call)
-    var fileWriteTimers = {};
-    var keyboardListener = null; //this is a handle to the listener we put on the keyboard for all emulator input keys. when active, all emulator input is ignored on document
-    var keypresslocked = false; //if we are simulating a keypress (down and up) this boolean prevents another keypress until the current one is complete
-    var browserFunctionKeysWeWantToStop = {
+    var _isLoading = false;
+    var _compressedSupprtData = null;
+    var _compressedGameData = null;
+    var _compressedShaderData = null;
+    var _currentStateSlot = 0;
+    var _saveStateDeffers = {}; //since saving state to server requires both state and screenshot data, setup these deffers since tracking which comes back first is unknown
+    var _fileWriteDelay = 500; //in ms. The delay in which the client should respond to a file written by the emulator (sometimes is goes out over the network and we don't want to spam the call)
+    var _fileWriteTimers = {};
+    var _keypresslocked = false; //if we are simulating a keypress (down and up) this boolean prevents another keypress until the current one is complete
+    var _browserFunctionKeysWeWantToStop = {
         9: "tab",
         13: "enter",
         16: "shift",
@@ -49,16 +48,14 @@ var cesEmulatorBase = (function(_Compression, config, system, title, file, key, 
         122: "F11",
         123: "F12"
     };
-    var displayDurationShow = 1000;
-    var displayDurationHide = 500;
+    var _displayDurationShow = 1000;
+    var _displayDurationHide = 500;
 
     //instances
     var _EmulatorInstance = null;
     var _Module = null;
 
     //protected
-
-    this.OnEmulatorKeydown;
 
     // public methods
         
@@ -91,16 +88,16 @@ var cesEmulatorBase = (function(_Compression, config, system, title, file, key, 
         var gameLoadComplete = $.Deferred();
         var shaderLoadComplete = $.Deferred();
 
-        isLoading = true;
+        _isLoading = true;
 
-        LoadEmulatorScript(system, module, emulatorLoadComplete);
-        LoadSupportFiles(system, supportLoadComplete);
-        LoadGame(key, system, title, file, gameLoadComplete);
+        LoadEmulatorScript(_system, module, emulatorLoadComplete);
+        LoadSupportFiles(_system, supportLoadComplete);
+        LoadGame(gameLoadComplete);
         LoadShader(shader, shaderLoadComplete);
 
         $.when(emulatorLoadComplete, supportLoadComplete, gameLoadComplete, shaderLoadComplete).done(function(emulator, support, game, shader) {
 
-            isLoading = false;
+            _isLoading = false;
 
             OnEmulatorLoadComplete(emulator, support, game, shader);
 
@@ -108,18 +105,15 @@ var cesEmulatorBase = (function(_Compression, config, system, title, file, key, 
         });
     };
 
-    this.WriteStateData = function(slots) {
+    this.WriteStateData = function(stateDataArray) {
 
         //states
         _Module.FS_createFolder('/', 'states', true, true);
 
-        i = slots.length;
-
-        while (i--) {
-            var filenoextension = file.replace(new RegExp('\.[a-z0-9]{1,3}$', 'gi'), '');
-            var statefilename = '/' + filenoextension + '.state' + (slots[i] == 0 ? '' : slots[i]);
-            var statedata = _StateManager.GetState(slots[i]);
-            _Module.FS_createDataFile('/states', statefilename, statedata, true, true);
+        for (var i = 0, len = stateDataArray.length; i < len; ++i) {
+            var filenoextension = _file.replace(new RegExp('\.[a-z0-9]{1,3}$', 'gi'), '');
+            var statefilename = '/' + filenoextension + '.state' + (i == 0 ? '' : i);
+            _Module.FS_createDataFile('/states', statefilename, stateDataArray[i], true, true);
         }
     };
 
@@ -135,12 +129,12 @@ var cesEmulatorBase = (function(_Compression, config, system, title, file, key, 
         AsyncLoop(parseInt(slot, 10), function(loop) {
 
             //simulate increasing state slot (will also set self._activeStateSlot)
-            SimulateEmulatorKeypress(51, 10, function() {
+            self.SimulateEmulatorKeypress(51, 10, function() {
                 loop.next();
             });
 
         }, function() {
-            SimulateEmulatorKeypress(52); //4 load state
+            self.SimulateEmulatorKeypress(52); //4 load state
             if (callback) {
                 callback();
             }
@@ -163,9 +157,9 @@ var cesEmulatorBase = (function(_Compression, config, system, title, file, key, 
 
     this.Show = function (duration, callback) {
 
-        duration = duration || displayDurationShow;
+        duration = duration || _displayDurationShow;
 
-        $(ui.wrapper).fadeIn(displayDurationShow, function() {
+        $(_ui.wrapper).fadeIn(_displayDurationShow, function() {
 
             self.GiveEmulatorControlOfInput(true);
 
@@ -177,10 +171,10 @@ var cesEmulatorBase = (function(_Compression, config, system, title, file, key, 
 
     this.Hide = function (duration, callback) {
 
-        duration = duration || displayDurationHide;
+        duration = duration || _displayDurationHide;
 
         self.GiveEmulatorControlOfInput(false);
-        $(ui.wrapper).fadeOut(displayDurationHide, function() {
+        $(_ui.wrapper).fadeOut(_displayDurationHide, function() {
             
             if (callback) {
                 callback();
@@ -223,11 +217,11 @@ var cesEmulatorBase = (function(_Compression, config, system, title, file, key, 
             _EmulatorInstance = null;
         }
         
-        $(ui.canvas).remove(); //kill all events attached (keyboard, focus, etc)
+        $(_ui.canvas).remove(); //kill all events attached (keyboard, focus, etc)
     };
 
     this.GetCurrentStateSlot = function() {
-        return currentStateSlot;
+        return _currentStateSlot;
     };
 
     /**
@@ -241,7 +235,7 @@ var cesEmulatorBase = (function(_Compression, config, system, title, file, key, 
         var keyUpDelay = keyUpDelay || 10;
 
         //bail if in operation
-        if (keypresslocked) {
+        if (_keypresslocked) {
             return;
         }
 
@@ -279,23 +273,23 @@ var cesEmulatorBase = (function(_Compression, config, system, title, file, key, 
             }
 
             document.dispatchEvent(oEvent);
-            $(ui.canvas).focus();
+            $(_ui.canvas).focus();
         };
 
-        keypresslocked = true;
+        _keypresslocked = true;
         kp(key, 'keydown');
 
         setTimeout(function() {
 
             kp(key, 'keyup');
-            keypresslocked = false;
+            _keypresslocked = false;
             if (callback) {
                 callback();
             }
 
         }, keyUpDelay);
 
-        $(ui.canvas).focus();
+        $(_ui.canvas).focus();
         
     };
 
@@ -305,7 +299,7 @@ var cesEmulatorBase = (function(_Compression, config, system, title, file, key, 
 
             //common listener definition
             var keyboardListener = function (e) {
-                if (browserFunctionKeysWeWantToStop[e.which]) {
+                if (_browserFunctionKeysWeWantToStop[e.which]) {
                     e.preventDefault();
                 }
             }
@@ -326,32 +320,85 @@ var cesEmulatorBase = (function(_Compression, config, system, title, file, key, 
      * for screenshots, the emulator simply dumps the video buffer into a file 8 bytes at a time calling the write function
      * with each segment in the buffer. it doesn't seem to trigger a "file closed" or "finished writing file" notification.
      * To get around this, I'll use timers to understand when a file was essentially finished being written to.
-     * @param  {string} key      unique game key, used to save state
-     * @param  {string} system
-     * @param  {string} title
-     * @param  {string} file
-     * @param  {string} filename the file name being saved by the emulator
-     * @param  {UInt8Array} contents the contents of the file saved by the emulator
-     * @return {undef}
      */
     this.OnEmulatorFileWrite = function(filename, contents) {
 
 
         //clear timer if exists
-        if (fileWriteTimers.hasOwnProperty(filename)) {
-            clearTimeout(fileWriteTimers[filename]);
+        if (_fileWriteTimers.hasOwnProperty(filename)) {
+            clearTimeout(_fileWriteTimers[filename]);
         }
 
         //write new timer
-        fileWriteTimers[filename] = setTimeout(function() {
+        _fileWriteTimers[filename] = setTimeout(function() {
 
             //if timer runs out before being cleared again, delete it and call file written function
-            delete fileWriteTimers[filename];
+            delete _fileWriteTimers[filename];
             EmulatorFileWritten(filename, contents);
-        }, fileWriteDelay);
+        }, _fileWriteDelay);
+    };
+
+    this.OnEmulatorKeydown = function(event) {
+
+        var key = event.keyCode;
+        switch (key) {
+            case 70: // F - fullscreen
+                // _Module.requestFullScreen(true, true);
+                // $(_ui.canvas).focus();
+            break;
+            case 49: //1 - save state
+                GetStateAndScreenshot();
+            break;
+            case 50: //2 - state slot decrease
+                self._activeStateSlot--;
+                if (self._activeStateSlot < 0) {
+                    self._activeStateSlot = 0;
+                }
+            break;
+            case 51: //3 - state slot increase
+                self._activeStateSlot++;
+            break;
+        }
+
+        //pass to ces.main
+        if (_OnEmulatorKeydownHandler) {
+            _OnEmulatorKeydownHandler(event);
+        }
     };
 
     //private methods
+
+    var GetStateAndScreenshot = function(slot) {
+
+        //bail if already in progress
+        if (_saveStateDeffers !== {}) {
+            return;
+        }
+
+        //we've using deferred because the resolve is on a file write, something that is async
+        _saveStateDeffers.state = $.Deferred();
+        _saveStateDeffers.screen = $.Deferred();
+
+        //use a timeout to clear deffers incase one of them never comes back, 1 sec is plenty. i see this return in about 50ms generally however
+        var clearStateDeffers = setTimeout(function() {
+            _saveStateDeffers = {};
+        }, 5000);
+
+        $.when(_saveStateDeffers.state, _saveStateDeffers.screen).done(function(statedetails, screendetails) {
+
+            clearTimeout(clearStateDeffers); //clear timeout from erasing deffers
+            _saveStateDeffers = {}; //do the clear ourselves
+
+            //callback to ces.main
+            if (_OnStateSavedHandler) {
+                _OnStateSavedHandler(statedetails, screendetails);
+            }
+            
+        });
+        setTimeout(function() {
+            self.SimulateEmulatorKeypress(84); //take screen
+        }, 500);
+    };
 
     /**
      * A helper function to separate the post-response functionality from the LoadEmulator function
@@ -371,15 +418,15 @@ var cesEmulatorBase = (function(_Compression, config, system, title, file, key, 
         _EmulatorInstance = emulator[2];
 
         //LoadSupportFiles result
-        compressedSupprtData = (support && support[1]) ? support[1] : null; //if not defined, no emulator support
+        _compressedSupprtData = (support && support[1]) ? support[1] : null; //if not defined, no emulator support
 
         //LoadGame result
         var gameLoadError = game[0];
-        compressedGameData = game[1]; //compressed game data
+        _compressedGameData = game[1]; //compressed game data
 
         //Load Shader result
         //shader data is compressed from server, unpack later
-        compressedShaderData = (shader && shader[1]) ? shader[1] : null; //if not defined, not shader used
+        _compressedShaderData = (shader && shader[1]) ? shader[1] : null; //if not defined, not shader used
 
         BuildLocalFileSystem();
     };
@@ -393,7 +440,7 @@ var cesEmulatorBase = (function(_Compression, config, system, title, file, key, 
     var LoadEmulatorScript = function(system, module, deffered) {
 
         //the path is made of three sections, 1) cdn or local 2) the extention name is the folder where they are stored 3) the file itself
-        var scriptPath = config.emupath + '/' + config.systemdetails[system].emuextention + '/' + config.systemdetails[system].emuscript;
+        var scriptPath = _config.emupath + '/' + _config.systemdetails[system].emuextention + '/' + _config.systemdetails[system].emuscript;
 
         $.getScript(scriptPath)
             .done(function(script, textStatus) {
@@ -419,7 +466,7 @@ var cesEmulatorBase = (function(_Compression, config, system, title, file, key, 
      */
     var LoadSupportFiles = function(system, deffered) {
 
-        var location = config.assetpath + '/emulatorsupport/' + system + '.json';
+        var location = _config.assetpath + '/emulatorsupport/' + system + '.json';
 
         //i know this is a weird construct, but it defaults on systems without support
         switch (system) {
@@ -451,24 +498,24 @@ var cesEmulatorBase = (function(_Compression, config, system, title, file, key, 
     /**
      * load rom file from whatever is defined in the config "rompath" (CDN/crossdomain or local). will come in as compressed string. after unpacked will resolve deffered. loads concurrently with emulator
      * @param  {string} system
-     * @param  {string} title
+     * @param  {string} _title
      * @param  {string} file
      * @param  {Object} deffered
      * @return {undef}
      */
-    var LoadGame = function(key, system, title, file, deffered) {
+    var LoadGame = function(deffered) {
 
-        var location = config.rompath + '/' + system + '/' + config.systemdetails[system].romcdnversion + '/';
-        var flattened = config.flattenedromfiles;
+        var location = _config.rompath + '/' + _system + '/' + _config.systemdetails[_system].romcdnversion + '/';
+        var flattened = _config.flattenedromfiles;
 
         //if rom struture is flattened, this means that all rom files have been converted to single json files
         if (flattened) {
 
-            var filename = _Compression.In.string(title + file);
+            var filename = _Compression.Zip.string(_title + _file);
             //location += '/' + system + '/a.json'; //encode twice: once for the trip, the second because the files are saved that way on the CDN
             location += encodeURIComponent(encodeURIComponent(filename)) + '.json'; //encode twice: once for the trip, the second because the files are saved that way on the CDN
         } else {
-            location += title + '/' + file;
+            location += _title + '/' + _file;
         }
 
         /**
@@ -489,7 +536,7 @@ var cesEmulatorBase = (function(_Compression, config, system, title, file, key, 
 
             var inflated;
             try {
-                var decompressed = _Compression.Out.string(response);
+                var decompressed = _Compression.Unzip.string(response);
                 inflated = pako.inflate(decompressed); //inflate compressed file contents (pako deflated to string in file on CDN)
             } catch (e) {
                 deffered.resolve(e);
@@ -514,7 +561,7 @@ var cesEmulatorBase = (function(_Compression, config, system, title, file, key, 
      */
     var LoadShader = function(name, deffered) {
 
-        var location = config.assetpath + '/shaders';
+        var location = _config.assetpath + '/shaders';
 
         if (name) {
             location += '/' + name + '.json';
@@ -550,7 +597,7 @@ var cesEmulatorBase = (function(_Compression, config, system, title, file, key, 
      * @param  {Object} shader
      * @return {undef}
      */
-    //var BuildLocalFileSystem = function(module, system, file, gamedata, shaderData, compressedSupprtData) {
+    //var BuildLocalFileSystem = function(module, system, file, gamedata, shaderData, _compressedSupprtData) {
     var BuildLocalFileSystem = function() {
 
         var i;
@@ -560,16 +607,16 @@ var cesEmulatorBase = (function(_Compression, config, system, title, file, key, 
 
         //games are stored compressed in json. due to javascript string length limits, these can be broken up into several segments for larger files.
         //the compressedGameFiles object contains data for all files and their segments
-        for (var gameFile in compressedGameData) {
+        for (var gameFile in _compressedGameData) {
 
-            var filename = _Compression.Out.string(gameFile);
-            var compressedGame = compressedGameData[gameFile];
+            var filename = _Compression.Unzip.string(gameFile);
+            var compressedGame = _compressedGameData[gameFile];
             var views = [];
             var bufferLength = 0;
 
             //begin by decopressing all compressed file segments
             for (i = 0; i < compressedGame.length; ++i) {
-                var decompressed = _Compression.Out.string(compressedGame[i]);
+                var decompressed = _Compression.Unzip.string(compressedGame[i]);
                 var view = pako.inflate(decompressed); //inflate compressed file contents (Uint8Array)
                 bufferLength += view.length;
                 views[i] = view;
@@ -589,15 +636,15 @@ var cesEmulatorBase = (function(_Compression, config, system, title, file, key, 
         }
 
         //set the start file
-        _Module.arguments = ['-v', '-f', '/games/' + file];
+        _Module.arguments = ['-v', '-f', '/games/' + _file];
         //_Module.arguments = ['-v', '--menu'];
 
         //emulator support, will be null if none
-        if (compressedSupprtData) {
-            var supportFiles = _Compression.Out.json(compressedSupprtData);
+        if (_compressedSupprtData) {
+            var supportFiles = _Compression.Unzip.json(_compressedSupprtData);
             if (supportFiles) {
                 for (var supportFile in supportFiles) {
-                    content = _Compression.Out.bytearray(supportFiles[supportFile]);
+                    content = _Compression.Unzip.bytearray(supportFiles[supportFile]);
                     try {
                         _Module.FS_createDataFile('/', supportFile, content, true, true);
                     } catch (e) {
@@ -612,14 +659,14 @@ var cesEmulatorBase = (function(_Compression, config, system, title, file, key, 
         var shaderPresetToLoad = null;
 
         //shader files, will be null if none used
-        if (compressedShaderData) {
-            var shaderFiles = _Compression.Out.json(compressedShaderData); //decompress shader files to json object of file names and data
+        if (_compressedShaderData) {
+            var shaderFiles = _Compression.Unzip.json(_compressedShaderData); //decompress shader files to json object of file names and data
 
             //if in coming shader parameter is an object, then it has shader files defined.
             if (shaderFiles) {
 
                 for (var shaderfile in shaderFiles) {
-                    content = _Compression.Out.bytearray(shaderFiles[shaderfile]);
+                    content = _Compression.Unzip.bytearray(shaderFiles[shaderfile]);
                     try {
                         _Module.FS_createDataFile('/shaders', shaderfile, content, true, true);
                     } catch (e) {
@@ -642,15 +689,15 @@ var cesEmulatorBase = (function(_Compression, config, system, title, file, key, 
         try { _Module.FS_createFolder('/home/web_user/', 'retroarch', true, true); } catch (e) {}
         try { _Module.FS_createFolder('/home/web_user/retroarch', 'userdata', true, true); } catch (e) {}
 
-        if (config.retroarch) {
+        if (_config.retroarch) {
 
-            var retroArchConfig = config.retroarch; //in json
+            var retroArchConfig = _config.retroarch; //in json
             var configItem;
 
             //system specific overrides
-            if (config.systemdetails[system] && config.systemdetails[system].retroarch) {
-                for (configItem in config.systemdetails[system].retroarch) {
-                    retroArchConfig[configItem] = config.systemdetails[system].retroarch[configItem];
+            if (_config.systemdetails[_system] && _config.systemdetails[_system].retroarch) {
+                for (configItem in _config.systemdetails[_system].retroarch) {
+                    retroArchConfig[configItem] = _config.systemdetails[_system].retroarch[configItem];
                 }
             }
 
@@ -673,50 +720,11 @@ var cesEmulatorBase = (function(_Compression, config, system, title, file, key, 
         _Module.FS_createFolder('/', 'screenshots', true, true);
     };
 
-    var EmulatorKeypressListener = function(event) {
-
-        var key = event.keyCode;
-        switch (key) {
-            case 70: // F - fullscreen
-                // _Module.requestFullScreen(true, true);
-                // $(ui.canvas).focus();
-            break;
-            case 49: //1 - save state
-                //setup deffered call to save state to server, need callbacks from state file and screenshot capture
-                saveStateDeffers.state = $.Deferred();
-                saveStateDeffers.screen = $.Deferred();
-
-                //use a timeout to clear deffers incase one of them never comes back, 1 sec is plenty. i see this return in about 50ms generally
-                var clearStateDeffers = setTimeout(function() {
-                    saveStateDeffers = {};
-                }, 1000);
-
-                $.when(saveStateDeffers.state, saveStateDeffers.screen).done(function(statedetails, screendetails) {
-
-                    clearTimeout(clearStateDeffers); //clear timeout from erasing deffers
-                    saveStateDeffers = {}; //do the clear ourselves
-
-                    //_StateManager.SaveStateToServer(statedetails, screendetails);
-                });
-                self.SimulateEmulatorKeypress(84); //initiaze screenshot after its defer is in place.
-            break;
-            case 50: //2 - state slot decrease
-                self._activeStateSlot--;
-                if (self._activeStateSlot < 0) {
-                    self._activeStateSlot = 0;
-                }
-            break;
-            case 51: //3 - state slot increase
-                self._activeStateSlot++;
-            break;
-        }
-    };
-
     /**
      * this function is registered with the emulator when a file is written.
      * @param  {string} key      unique game key, used to save state
      * @param  {string} system
-     * @param  {string} title
+     * @param  {string} _title
      * @param  {string} file
      * @param  {string} filename the file name being saved by the emulator
      * @param  {UInt8Array} contents the contents of the file saved by the emulator
@@ -731,13 +739,17 @@ var cesEmulatorBase = (function(_Compression, config, system, title, file, key, 
         if (statematch) {
 
             var slot = statematch[1] === '' ? 0 : statematch[1]; //the 0 state does not use a digit
-            var data = _Compression.In.bytearray(contents);
+            var data = _Compression.Zip.bytearray(contents);
 
-            //if a deffered is setup for recieveing save state data, call it. otherwise, throw this state away (should never happen though!)
-            if (saveStateDeffers.hasOwnProperty('state')) {
-                saveStateDeffers.state.resolve(key, system, title, file, slot, data);
+            //if a deffered is setup for recieveing save state data, call it.
+            if (_saveStateDeffers.hasOwnProperty('state')) {
+                _saveStateDeffers.state.resolve(_key, _system, _title, _file, slot, data);
             }
 
+            //if a handler is defined, call it
+            if (_OnEmulatorFileWriteHandler) {
+                _OnEmulatorFileWriteHandler('state', filename, contents);
+            }
             return;
         }
 
@@ -747,24 +759,25 @@ var cesEmulatorBase = (function(_Compression, config, system, title, file, key, 
             var arrayBufferView = new Uint8Array(contents);
 
             //if a deffered from save state exists, use this screenshot for it and return
-            if (saveStateDeffers.hasOwnProperty('screen')) {
-                saveStateDeffers.screen.resolve(arrayBufferView);
-                return;
+            if (_saveStateDeffers.hasOwnProperty('screen')) {
+                _saveStateDeffers.screen.resolve(arrayBufferView);
             }
 
-            $('p.screenshothelper').remove(); //remove helper text
+            if (_OnEmulatorFileWriteHandler) {
+                _OnEmulatorFileWriteHandler('screen', filename, contents, {
+                    arrayBufferView: arrayBufferView,
+                    system: _system,
+                    title: _title
+                });
+            }
+            return;
+        }
 
-            var width = $('#screenshotsslider div.slidercontainer').width() / 3; //550px is the size of the panel, the second number is how many screens to want to show per line
-            var img = BuildScreenshot(system, arrayBufferView, width);
-
-            $(img).addClass('close').load(function() {
-                $(this).removeClass('close');
-            });
-            var a = $('<a class="screenshotthumb" href="' + img.src + '" download="' + title + '-' + filename + '"></a>'); //html 5 spec downloads image
-            a.append(img).insertAfter('#screenshotsslider p');
-
-            //kick open the screenshot slider
-            _Sliders.Open('screenshotsslider', true);
+        if (filename === 'retroarch.cfg') {
+            if (_OnEmulatorFileWriteHandler) {
+                _OnEmulatorFileWriteHandler('retroarchconfig', filename, contents);
+            }
+            return;
         }
     };
 
@@ -816,22 +829,6 @@ var cesEmulatorBase = (function(_Compression, config, system, title, file, key, 
         loop.next();
         return loop;
     };
-
-    var Constructor = (function() {
-
-
-        var func = OnEmulatorKeydown;
-
-        //hide jack the on keypress handler
-        self.OnEmulatorKeydown = function(event) {
-
-            EmulatorKeypressListener(event);
-
-            func(event);
-
-        };
-
-    })();
 
     return this;
 });

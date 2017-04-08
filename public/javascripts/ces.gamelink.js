@@ -2,7 +2,7 @@
  * Object which wraps common functions related to player preferences, data that comes form the server initially but can be changed
  * @type {Object}
  */
-var cesGameLink = (function(config, _Compression, PlayGame, system, title, file, size, includeRemove) {
+var cesGameLink = (function(config, system, title, file, size, includeRemove, opt_PlayGame) {
 
     //private members
     var self = this;
@@ -27,32 +27,12 @@ var cesGameLink = (function(config, _Compression, PlayGame, system, title, file,
         $(_gamelink).find('*').off();
     };
 
-    /**
-     * a common function to return to the jquery object of a box front image. includes onerror handler for loading generic art when box not found
-     * @param  {string} system
-     * @param  {string} title
-     * @param  {number} size   size of the box art (114, 150...)
-     * @return {Object}        jquery img
-     */
-    var GetBoxFront = function(system, title, size) {
-
-
-        //have box title's been compressed (to obfiscate on cdn)
-        if (config.flattenedboxfiles) {
-            //double encode, once for the url, again for the actual file name (files saved with encoding becase they contain illegal characters without)
-            title = encodeURIComponent(encodeURIComponent(_Compression.In.string(title)));
-        }
-
-        //incldes swap to blank cart onerror
-        return $('<img onerror="this.src=\'' + config.assetpath + '/images/blanks/' + system + '_' + size + '.png\'" src="' + config.boxpath + '/' + system + '/' + config.systemdetails[system].boxcdnversion + '/' + title + '/' + size + '.jpg" />');
-    };
-
     var Constructor = (function() {
 
         includeRemove = includeRemove || false;
 
         var $div = $('<div class="gamelink"></div>');
-        var $box = GetBoxFront(system, title, size);
+        var $box = cesGetBoxFront(config, system, title, size);
 
         $box.addClass('tooltip close');
         $box.attr('title', title);
@@ -66,7 +46,9 @@ var cesGameLink = (function(config, _Compression, PlayGame, system, title, file,
             })
             .on('mouseup', function() {
 
-                PlayGame(system, title, file);
+                if (opt_PlayGame) {
+                    opt_PlayGame(system, title, file);
+                }
                 window.scrollTo(0, 0);
             });
         });

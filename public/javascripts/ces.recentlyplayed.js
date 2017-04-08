@@ -1,4 +1,4 @@
-var cesRecentlyPlayed = (function(config, _Compression, PlayGame, GetBoxFront, $wrapper, initialData) {
+var cesRecentlyPlayed = (function(config, _Compression, PlayGame, $wrapper, initialData) {
 		
 	//private members
 	var self = this;
@@ -73,7 +73,7 @@ var cesRecentlyPlayed = (function(config, _Compression, PlayGame, GetBoxFront, $
         //create the grid item
         var $griditem = $('<div class="grid-item" />');
 
-		var gamelink = new cesGameLink(config, _Compression, PlayGame, system, title, file, 120, true);
+		var gamelink = new cesGameLink(config, system, title, file, 120, true, PlayGame);
 
         //set the on remove function
         gamelink.OnRemoveClick(function() {

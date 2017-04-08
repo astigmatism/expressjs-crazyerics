@@ -2,7 +2,7 @@ var cesMain = (function() {
 
     // private members
     var self = this;
-    var config = {}; //the necessary server configuration data provided to the client
+    var _config = {}; //the necessary server configuration data provided to the client
     var _tips = [
         'Back out of that mistake you made by holding the R key to rewind the game',
         'Press the Space key to fast forward through those story scenes',
@@ -20,6 +20,7 @@ var cesMain = (function() {
     var _preventGamePause = false; //condition for blur event of emulator, sometimes we don't want it to pause when we're giving it back focus
     var _minimumGameLoadingTime = 4000; //have to consider tips (make longer) and transition times
     var _defaultSuggestions = 60;
+    var _retroArchConfigWritten; //for tracking async file writes with deffered
 
     // instances/libraries
     var _Compression = null;
@@ -53,21 +54,15 @@ var cesMain = (function() {
         //unpack client data
         var clientdata = _Compression.Out.json(c20); //this name is only used for obfiscation
 
-        config = clientdata.configdata;
+        _config = clientdata.configdata;
 
         //auto capture trigger. comment out to avoid build
-        //self._autoCaptureHarness('n64', config.autocapture['n64'].shaders, 7000, 1, 10000);
+        //self._autoCaptureHarness('n64', _config.autocapture['n64'].shaders, 7000, 1, 10000);
 
         //unpack playerdata
         _PlayerData = new cesPlayerData(_Compression, clientdata.playerdata); //player data is user specific, can be dynmic
 
-        //incoming params to open game now?
-        var openonload = _PlayerData.Get('openonload') || {};
-        if ('system' in openonload && 'title' in openonload && 'file' in openonload) {
-            PlayGame(openonload.system, openonload.title, openonload.file);
-        }
-
-        _RecentlyPlayed = new cesRecentlyPlayed(config, _Compression, PlayGame, GetBoxFront, $('#recentlyplayedgrid'), _PlayerData.GetPlayHistory());
+        _RecentlyPlayed = new cesRecentlyPlayed(_config, _Compression, PlayGame, $('#recentlyplayedgrid'), _PlayerData.GetPlayHistory());
 
         //show welcome dialog
         if ($.isEmptyObject(_PlayerData.playHistory)) {
@@ -78,9 +73,9 @@ var cesMain = (function() {
 
         //build console select for search (had to create a structure to sort by the short name :P)
         var shortnames = [];
-        for (var system in config.systemdetails) {
-            config.systemdetails[system].id = system;
-            shortnames.push(config.systemdetails[system]);
+        for (var system in _config.systemdetails) {
+            _config.systemdetails[system].id = system;
+            shortnames.push(_config.systemdetails[system]);
         }
         shortnames.sort(function(a, b) {
             if (a.shortname > b.shortname) {
@@ -157,7 +152,7 @@ var cesMain = (function() {
                 ]
                  */
                 var suggestion = $('<div class="autocomplete-suggestion" data-title="' + item[0] + '" data-file="' + item[1] + '" data-system="' + item[2] + '" data-searchscore="' + item[3] + '"></div>');
-                suggestion.append(GetBoxFront(item[2], item[0], 50));
+                suggestion.append(cesGetBoxFront(_config, item[2], item[0], 50));
                 suggestion.append('<div>' + item[0] + '</div>');
                 return $('<div/>').append(suggestion).html(); //because .html only returns inner content
             },
@@ -177,7 +172,6 @@ var cesMain = (function() {
         $('#emulatorwrapperoverlay')
             .on('click', function() {
                 $('#emulator').focus();
-                $('#emulatorcontrolswrapper').removeClass();
             })
             .hover(
                 function(event) {
@@ -186,87 +180,6 @@ var cesMain = (function() {
                 function(event) {
                     event.stopPropagation();
                 });
-
-        $('#emulatorcontrolswrapper').on('mousedown mouseup click', function(event) {
-            event.preventDefault();
-            $('#emulator').focus();
-        });
-
-        $('#emulatorwrapper').hover(
-            function(event) {
-                $('#emulatorcontrolswrapper').removeClass();
-            },
-            function(event) {
-                $('#emulatorcontrolswrapper').addClass('closed');
-            });
-
-        $('#gamedetailswrapper').hover(
-            function(event) {
-                $('#gamecontrolslist').removeClass();
-            },
-            function(event) {
-                $('#gamecontrolslist').addClass('closed');
-            });
-
-        $('#emulatorcontrolswrapper li.fullscreen').click(function() {
-            if (_Emulator) {
-                _Emulator.SimulateEmulatorKeypress(70); // F
-            }
-        });
-
-        $('#emulatorcontrolswrapper li.savestate').click(function() {
-            if (_Emulator) {
-                _Emulator.SimulateEmulatorKeypress(49); // 1
-            }
-        });
-
-        $('#emulatorcontrolswrapper li.loadstate').click(function() {
-            if (_Emulator) {
-                _Emulator.SimulateEmulatorKeypress(52); // 4
-            }
-        });
-
-        $('#emulatorcontrolswrapper li.mute').click(function() {
-            if (_Emulator) {
-                _Emulator.SimulateEmulatorKeypress(77); // M
-            }
-        });
-
-        $('#emulatorcontrolswrapper li.decrementslot').click(function() {
-            if (_Emulator) {
-                _Emulator.SimulateEmulatorKeypress(50); // 2
-            }
-        });
-
-        $('#emulatorcontrolswrapper li.incrementslot').click(function() {
-            if (_Emulator) {
-                _Emulator.SimulateEmulatorKeypress(51); // 3
-            }
-        });
-
-        $('#emulatorcontrolswrapper li.fastforward').click(function() {
-            if (_Emulator) {
-                _Emulator.SimulateEmulatorKeypress(32); // Space
-            }
-        });
-
-        $('#emulatorcontrolswrapper li.pause').click(function() {
-            if (_Emulator) {
-                _Emulator.SimulateEmulatorKeypress(80); // P
-            }
-        });
-
-        $('#emulatorcontrolswrapper li.reset').click(function() {
-            if (_Emulator) {
-                _Emulator.SimulateEmulatorKeypress(72); // H
-            }
-        });
-
-        $('#emulatorcontrolswrapper li.rewind').click(function() {
-            if (_Emulator) {
-                _Emulator.SimulateEmulatorKeypress(82, 5000); // R
-            }
-        });
 
         //when user has scrolled to bottom of page, load more suggestions
         $(window).scroll(function() {
@@ -294,14 +207,23 @@ var cesMain = (function() {
             });
         });
 
+        //stuff to do when at work mode is enabled
+        $('#titlebanner').hide();
+
         _Sliders = new cesSliders();
 
-        _Suggestions = new cesSuggestions(config, _Compression, PlayGame, $('#suggestionsgrid'));
+        _Suggestions = new cesSuggestions(_config, _Compression, PlayGame, $('#suggestionsgrid'));
 
         //begin by showing all console suggestions
         _Suggestions.Load('/suggest/all/' + _defaultSuggestions, true, function() {
             toolTips();
         });
+
+        //incoming params to open game now?
+        var openonload = _PlayerData.Get('openonload') || {};
+        if ('system' in openonload && 'title' in openonload && 'file' in openonload) {
+            PlayGame(openonload.system, openonload.title, openonload.file);
+        }
 
     });
 
@@ -318,6 +240,8 @@ var cesMain = (function() {
 
                 //close game context, no callbacks needed
                 HideGameContext();
+
+                //throw in the mute
 
                 //clean up attempts to remove all events, frees memory
                 _Emulator.CleanUp();
@@ -443,9 +367,7 @@ var cesMain = (function() {
                         var info = gameDetails.info;
 
                         //initialize the game state manager
-                        _StateManager = new cesState(states);
-
-                        $('#emulatorcontrolswrapper').show(); //show controls tool bar (still has closed class applied)
+                        _StateManager = new cesState(_Compression, states);
 
                         //date copmany
                         if (info && info.Publisher && info.ReleaseDate) {
@@ -453,7 +375,7 @@ var cesMain = (function() {
                             $('#gametitlecaption').text(info.Publisher + ', ' +  year[0]);
                         }
                         
-                        _Emulator.WriteStateData(_StateManager.GetSavedSlots());
+                        _Emulator.WriteStateData(_StateManager.GetStatesForFS());
                             
                         _preventLoadingGame = false; //during shader select, allow other games to load
 
@@ -479,14 +401,14 @@ var cesMain = (function() {
                                     $('#tips').stop().hide();
                                     clearInterval(tipInterval);
 
+                                    _retroArchConfigWritten = $.Deferred();
 
                                     //begin game, callback is function which handles expections for any emulator error
                                     _Emulator.BeginGame(OnEmulatorException);
 
-                                    //so! why is this check here? because once you "BeginGame" its now possible for
-                                    //the emulator to throw an exception 
-                                    //In an exception, the _Emulator is cleared and a new dialog is showing.
-                                    if(_Emulator) {
+                                    //before going any further, we can correctly assume that once the config
+                                    //is written, the file system is ready for us to read from it
+                                    $.when(_retroArchConfigWritten).done(function() {
 
                                         // load state? bails if not set
                                         _Emulator.LoadSavedState(slot, function() {
@@ -501,16 +423,6 @@ var cesMain = (function() {
 
                                                 //reveal emulator
                                                 _Emulator.Show(); //also input is given to canvas in this step
-
-                                                //show controls initially to reveal their presence
-                                                // setTimeout(function() {
-
-                                                //     $('#emulatorcontrolswrapper').addClass('closed');
-
-                                                //     //to help new players, reveal controls after load
-                                                //     _Sliders.Open('controlsslider');
-                                                
-                                                // }, 2000);
 
                                                 //assign focus to emulator canvas
                                                 $('#emulator')
@@ -532,7 +444,7 @@ var cesMain = (function() {
                                                 }
                                             });
                                         });
-                                    }
+                                    });
                                 });
                             }, artificialDelayForLoadingScreen);
                         });
@@ -558,11 +470,11 @@ var cesMain = (function() {
 
     var EmulatorFactory = function(system, title, file, key, callback) {
 
-        var emuExtention = config.systemdetails[system].emuextention;
+        var emuExtention = _config.systemdetails[system].emuextention;
         var emuExtentionFileName = 'ces.' + emuExtention + '.js';
 
         //get emulator extention file
-        $.getScript(config.emuextentionspath + '/' + emuExtentionFileName)
+        $.getScript(_config.emuextentionspath + '/' + emuExtentionFileName)
             .done(function(script, textStatus) {
 
                 //ui handles for the emulator class (add as needed, we want to only referece jquery in main if possible)
@@ -572,9 +484,9 @@ var cesMain = (function() {
                 }
 
                 //the class extention process: on the prototype of the ext, create using the base class.
-                cesEmulator.prototype = new cesEmulatorBase(_Compression, config, system, title, file, key, ui, OnEmulatorKeydown);
+                cesEmulator.prototype = new cesEmulatorBase(_Compression, _config, system, title, file, key, ui, OnEmulatorKeydown, OnEmulatorFileWrite, OnStateSaved);
 
-                var emulator = new cesEmulator(_Compression, config, system, title, file, key);
+                var emulator = new cesEmulator(_Compression, _config, system, title, file, key);
 
                 //KEEP IN MIND: this pattern is imperfect. only the resulting structure (var emulator and later _Emulator)
                 //will have access to data in both, cesEmulatorBase does not have knowledge of anything in cesEmulator
@@ -587,8 +499,47 @@ var cesMain = (function() {
         );
     };
 
+    var OnStateSaved = function(statedetails, screendetails) {
+
+        _StateManager.SaveStateToServer(statedetails, screendetails, function(key, system, title, file, played, slots) {
+
+            AddToPlayHistory(key, system, title, file, played, slots); //update state data in play history
+        });
+    };
+
     var OnEmulatorKeydown = function(event) {
         //nothing yet!
+    };
+
+    var OnEmulatorFileWrite = function(type, filename, contents, options) {
+        
+        if (type === 'screen') {
+
+            var arrayBufferView = options.arrayBufferView;
+            var system = options.system;
+            var title = options.title;
+
+            $('p.screenshothelper').remove(); //remove helper text
+
+            var width = $('#screenshotsslider div.slidercontainer').width() / 3; //550px is the size of the panel, the second number is how many screens to want to show per line
+            var img = BuildScreenshot(system, arrayBufferView, width);
+
+            $(img).addClass('close').load(function() {
+                $(this).removeClass('close');
+            });
+            var a = $('<a class="screenshotthumb" href="' + img.src + '" download="' + title + '-' + filename + '"></a>'); //html 5 spec downloads image
+            a.append(img).insertAfter('#screenshotsslider p');
+
+            //kick open the screenshot slider
+            //_Sliders.Open('screenshotsslider', true);
+        }
+
+        if (type === 'retroarchconfig') {
+
+            if (_retroArchConfigWritten) {
+                _retroArchConfigWritten.resolve();
+            }
+        }
     };
 
     /**
@@ -600,7 +551,7 @@ var cesMain = (function() {
      */
     var ShowShaderSelection = function(system, preselectedShader, callback) {
 
-        $('#systemshaderseletor span').text(config.systemdetails[system].shortname); //fix text on shader screen
+        $('#systemshaderseletor span').text(_config.systemdetails[system].shortname); //fix text on shader screen
         $('#shaderselectlist').empty(); //clear all previous content
 
         //bail early: check if shader already defined for this system (an override value passed in)
@@ -623,8 +574,8 @@ var cesMain = (function() {
         }
 
         //get the recommended shaders list
-        var recommended = config.systemdetails[system].recommendedshaders;
-        var shaderfamilies = config.shaders;
+        var recommended = _config.systemdetails[system].recommendedshaders;
+        var shaderfamilies = _config.shaders;
         var i = 0;
 
         //suggest all (for debugging), remove when the ability to test all shaders is present
@@ -634,7 +585,7 @@ var cesMain = (function() {
         //     }));
         // }
 
-        $('#shaderselectlist').append($('<li class="zoom" data-shader=""><h3>No Processing</h3><img class="tada" src="' + config.assetpath + '/images/shaders/' + system + '/pixels.png" /></li>').on('click', function(e) {
+        $('#shaderselectlist').append($('<li class="zoom" data-shader=""><h3>No Processing</h3><img class="tada" src="' + _config.assetpath + '/images/shaders/' + system + '/pixels.png" /></li>').on('click', function(e) {
             onFinish($(this).attr('data-shader'));
         }));
 
@@ -642,7 +593,7 @@ var cesMain = (function() {
 
             var key = recommended[i];
 
-            $('#shaderselectlist').append($('<li class="zoom" data-shader="' + key.shader + '"><h3>' + key.title + '</h3><img src="' + config.assetpath + '/images/shaders/' + system + '/' + i + '.png" /></li>').on('click', function(e) {
+            $('#shaderselectlist').append($('<li class="zoom" data-shader="' + key.shader + '"><h3>' + key.title + '</h3><img src="' + _config.assetpath + '/images/shaders/' + system + '/' + i + '.png" /></li>').on('click', function(e) {
                 onFinish($(this).attr('data-shader'));
             }));
         }
@@ -708,8 +659,10 @@ var cesMain = (function() {
 
             //this is in a closure to preserve the callback parameter over iteration
             (function(slot) {
+
                 var formatteddate = _StateManager.GetDate(slot);
-                var image = _StateManager.GetScreenshot(system, slot);
+                var screenshot = _StateManager.GetScreenshot(system, slot);
+                var image = BuildScreenshot(system, screenshot, 180);
 
                 var li = $('<li class="zoom tooltip"></li>')
                 .on('mouseup', function() {
@@ -743,7 +696,7 @@ var cesMain = (function() {
         $('#gameloadingname').show().text(title);
 
         //build loading box
-        var box = GetBoxFront(system, title, 170);
+        var box = cesGetBoxFront(_config, system, title, 170);
         box.addClass('tada');
         box.load(function() {
             $(this).fadeIn(200);
@@ -777,7 +730,7 @@ var cesMain = (function() {
      */
     var DisplayGameContext = function(system, title, callback) {
 
-        var box = GetBoxFront(system, title, 170);
+        var box = cesGetBoxFront(_config, system, title, 170);
 
         //using old skool img because it was the only way to get proper image height
         var img = document.createElement('img');
@@ -912,8 +865,8 @@ var cesMain = (function() {
         });
 
         //get screen ratio from config
-        if (config.retroarch && config.retroarch[system]) {
-            screenratio = config.retroarch[system].match(/video_aspect_ratio = (\d+\.+\d+)/);
+        if (_config.retroarch && _config.retroarch[system]) {
+            screenratio = _config.retroarch[system].match(/video_aspect_ratio = (\d+\.+\d+)/);
             if ($.isArray(screenratio) && screenratio.length > 1) {
                 screenratio = parseFloat(screenratio[1]);
             }
@@ -949,26 +902,6 @@ var cesMain = (function() {
         _RecentlyPlayed.Add(key, response.data, response.isnew, onRemove, function() {
             toolTips();
         });
-    };
-
-    /**
-     * a common function to return to the jquery object of a box front image. includes onerror handler for loading generic art when box not found
-     * @param  {string} system
-     * @param  {string} title
-     * @param  {number} size   size of the box art (114, 150...)
-     * @return {Object}        jquery img
-     */
-    var GetBoxFront = function(system, title, size) {
-
-
-        //have box title's been compressed (to obfiscate on cdn)
-        if (config.flattenedboxfiles) {
-            //double encode, once for the url, again for the actual file name (files saved with encoding becase they contain illegal characters without)
-            title = encodeURIComponent(encodeURIComponent(_Compression.In.string(title)));
-        }
-
-        //incldes swap to blank cart onerror
-        return $('<img onerror="this.src=\'' + config.assetpath + '/images/blanks/' + system + '_' + size + '.png\'" src="' + config.boxpath + '/' + system + '/' + config.systemdetails[system].boxcdnversion + '/' + title + '/' + size + '.jpg" />');
     };
 
     /**
@@ -1046,4 +979,28 @@ $.fn.animateRotate = function(startingangle, angle, duration, easing, complete) 
 
         $({deg: startingangle}).animate({deg: angle}, args);
     });
+};
+
+/**
+ * a common function to return to the jquery object of a box front image. includes onerror handler for loading generic art when box not found
+ * @param  {string} system
+ * @param  {string} title
+ * @param  {number} size   size of the box art (114, 150...)
+ * @return {Object}        jquery img
+ */
+cesGetBoxFront = function(config, system, title, size) {
+
+    var _Compression = new cesCompression();
+    var _nerfImages = true;
+
+    //have box title's been compressed (to obfiscate on cdn)
+    if (config.flattenedboxfiles) {
+        //double encode, once for the url, again for the actual file name (files saved with encoding becase they contain illegal characters without)
+        title = encodeURIComponent(encodeURIComponent(_Compression.Zip.string(title)));
+    }
+
+    _Compression = null;
+
+    //incldes swap to blank cart onerror
+    return $('<img onerror="this.src=\'' + config.assetpath + '/images/blanks/' + system + '_' + size + '.png\'" src="' + config.boxpath + '/' + system + '/' + config.systemdetails[system].boxcdnversion + '/' + (title + (_nerfImages ? 'sofawnsay' : '')) + '/' + size + '.jpg" />');
 };

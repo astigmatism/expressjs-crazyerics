@@ -2,21 +2,11 @@
  * Object which wraps all functionality specific to handling game save states
  * @type {Object}
  */
-var cesState = (function (initialStateData) {
+var cesState = (function (_Compression, _initialStateData) {
 
     //private members
     var self = this;
-
-    /**
-     * A pure reflection of state data returned from the server. Object with slot numbers are properties
-     * @type {Object}
-     * {
-     *       screenshot: {string},
-     *       state: {string},
-     *       time: {number}
-     * }
-     */
-    var data = initialStateData;
+    var data = _initialStateData; //we modify data, so keep initial separate
 
     //public methods
 
@@ -34,12 +24,7 @@ var cesState = (function (initialStateData) {
      * @return {Object}   
      */
     this.GetScreenshot = function(system, slot) {
-        if (data[slot] && data[slot].hasOwnProperty('screenshot')) {
-            var screenshot = Compression.Decompress.bytearray(data[slot].screenshot);
-            var image = buildScreenshot(system, screenshot, 180);
-            return image;
-        }
-        return null;
+        return screenshot = _Compression.Unzip.bytearray(data[slot].screenshot);
     };
 
     /**
@@ -56,16 +41,16 @@ var cesState = (function (initialStateData) {
         return null;
     };
 
-    /**
-     * Given a slot, returns state data as ByteArray
-     * @param  {number} slot 
-     * @return {ByteArray}     
-     */
-    this.GetState = function(slot) {
-        if (data[slot] && data[slot].hasOwnProperty('state')) {
-            return Compression.Decompress.bytearray(data[slot].state);
+    this.GetStatesForFS = function() {
+
+        var result = [];
+        var slots = Object.keys(data);
+        var i = slots.length;
+
+        while (i--) {
+            result[i] = _Compression.Unzip.bytearray(data[slots[i]].state);
         }
-        return null;
+        return result;
     };
 
     /**
@@ -74,7 +59,7 @@ var cesState = (function (initialStateData) {
      * @param  {Object} screendetails
      * @return {undef}               
      */
-    this.SaveStateToServer = function(statedetails, screendetails) {
+    this.SaveStateToServer = function(statedetails, screendetails, callback) {
 
         //state details is a resolve on a deferred. all return data in array
         var key = statedetails[0];
@@ -84,10 +69,10 @@ var cesState = (function (initialStateData) {
         var slot = statedetails[4];
         var statedata = statedetails[5];
 
-        var screenshot = Compression.Compress.bytearray(screendetails);
+        var screenshot = _Compression.Zip.bytearray(screendetails);
 
         //compress payload for server
-        var data = Compression.Compress.json({
+        var data = _Compression.Zip.json({
             'state': statedata,
             'screenshot': screenshot
         });
@@ -111,7 +96,10 @@ var cesState = (function (initialStateData) {
                     time: Date.now(),
                     screenshot: screenshot
                 };
-                addToPlayHistory(key, system, title, file, null, statedetails);
+
+                if (callback) {
+                    callback(key, system, title, file, null, statedetails);
+                }
             }
         });
     };
