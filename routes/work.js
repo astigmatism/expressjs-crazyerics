@@ -142,10 +142,25 @@ router.get('/emulatorprep', function(req, res, next) {
                         // console.log('found place to insert handle to RI ---> ' + re.test(content));
                         // content = content.replace(re, 'Module.RI = RI;function _RWebInputDestroy');
 
-                        re = /var curr=FS\.write\(stream.HEAP8,ptr,len,offset\);/;
-                        console.log('found place to intercept emulator writing files  ---> ' + re.test(content));
-                        content = content.replace(re, 'var curr=FS.write(stream,HEAP8,ptr,len,offset);if (Module.cesEmulatorFileWritten && stream && stream.node && stream.node.name && stream.node.contents) { Module.cesEmulatorFileWritten(stream.node.name, stream.node.contents);}');
+                        //module.fs, just in case we want it
+                        re = /(Module\["FS_createFolder"\]=FS.createFolder;)/;
+                        console.log('found place to attach fs  ---> ' + re.test(content));
+                        content = content.replace(re, 'Module.FS=FS;$1');
 
+                        //trap file writes
+                        re = /(return ret\}\),varargs)/;
+                        console.log('found place to intercept emulator writing files  ---> ' + re.test(content));
+                        content = content.replace(re, 'if (Module.cesEmulatorFileWritten && stream && stream.node && stream.node.name && stream.node.contents) { Module.cesEmulatorFileWritten(stream.node.name, stream.node.contents);}$1');
+
+                        //trap file writes
+                        // re = /var curr=FS\.write\(stream,HEAP8,ptr,len,offset\);/;
+                        // console.log('found place to intercept emulator writing files  ---> ' + re.test(content));
+                        // content = content.replace(re, 'var curr=FS.write(stream,HEAP8,ptr,len,offset);if (Module.cesEmulatorFileWritten && stream && stream.node && stream.node.name && stream.node.contents) { Module.cesEmulatorFileWritten(stream.node.name, stream.node.contents, len, ptr, offset);}');
+
+                        //trap file reads
+                        // re = /(var curr = FS\.read\(stream,HEAP8,ptr,len,offset\));/;
+                        // console.log('found place to intercept emulator reading files  ---> ' + re.test(content));
+                        // content = content.replace(re, '$1if (Module.cesEmulatorFileRead && stream && stream.node && stream.node.name && stream.node.contents) { Module.cesEmulatorFileRead(stream.node.name, stream.node.contents, len, ptr, offset);}');
 
                         //beautify for debugging (found this really didnt work too well)
                         // try {

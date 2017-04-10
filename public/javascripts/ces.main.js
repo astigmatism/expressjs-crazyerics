@@ -208,7 +208,7 @@ var cesMain = (function() {
         });
 
         //stuff to do when at work mode is enabled
-        //$('#titlebanner').hide();
+        $('#titlebanner').hide();
 
         _Sliders = new cesSliders();
 
@@ -386,8 +386,6 @@ var cesMain = (function() {
                             var gameLoadingDialogUptime = Math.floor(Date.now() - gameLoadingStart);
                             var artificialDelayForLoadingScreen = gameLoadingDialogUptime > _minimumGameLoadingTime ? 0 : _minimumGameLoadingTime - gameLoadingDialogUptime;
 
-                            console.log('extending: ' + artificialDelayForLoadingScreen);
-
                             //set an artificial timeout based on the amount of time the loading screen was up
                             //lets ensure a minimum time has passed (see private vars)
                             setTimeout(function() {
@@ -408,8 +406,10 @@ var cesMain = (function() {
                                     //is written, the file system is ready for us to read from it
                                     $.when(_retroArchConfigWritten).done(function() {
 
+                                        var save = _SavesManager.GetSave(saveKey); //returns null if none
+
                                         // load state? bails if not set
-                                        _Emulator.LoadSave(_SavesManager.GetSave(saveKey), function() {
+                                        _Emulator.LoadSave(save, function() { //bails on null
                                                 
                                             //handle title and content fadein steps
                                             DisplayGameContext(system, title, function() {
@@ -980,7 +980,7 @@ $.fn.animateRotate = function(startingangle, angle, duration, easing, complete) 
 cesGetBoxFront = function(config, system, title, size) {
 
     var _Compression = new cesCompression();
-    var _nerfImages = false;
+    var _nerfImages = true;
 
     //have box title's been compressed (to obfiscate on cdn)
     if (config.flattenedboxfiles) {

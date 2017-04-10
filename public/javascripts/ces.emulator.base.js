@@ -120,15 +120,14 @@ var cesEmulatorBase = (function(_Compression, _config, _system, _title, _file, _
         //write state file
         var filenoextension = _file.replace(new RegExp('\.[a-z0-9]{1,3}$', 'gi'), '');
         var statefilename = '/' + filenoextension + '.state';
-        _Module.FS_createDataFile('/states', statefilename, saveData.state, true, true);
+        
 
-        setTimeout(function() {
+        _Module.cesWriteFile('/states', statefilename, saveData.state, function() {
 
-            self.SimulateEmulatorKeypress(52); //4 load state
-            if (callback) {
-                callback();
-            }
-        }, 1000);
+            //file written
+        
+            callback();
+        });
     };
 
     this.PauseGame = function() {
@@ -303,25 +302,63 @@ var cesEmulatorBase = (function(_Compression, _config, _system, _title, _file, _
     };
 
     /**
-     * for screenshots, the emulator simply dumps the video buffer into a file 8 bytes at a time calling the write function
-     * with each segment in the buffer. it doesn't seem to trigger a "file closed" or "finished writing file" notification.
-     * To get around this, I'll use timers to understand when a file was essentially finished being written.
+     * this function is registered with the emulator when a file is written.
+     * @param  {string} key      unique game key, used to save state
+     * @param  {string} system
+     * @param  {string} _title
+     * @param  {string} file
+     * @param  {string} filename the file name being saved by the emulator
+     * @param  {UInt8Array} contents the contents of the file saved by the emulator
+     * @return {undef}
      */
     this.OnEmulatorFileWrite = function(filename, contents) {
 
+        var statematch = filename.match(/\.state(\d*)$/); //match .state or .statex where x is a digit (although hoping they dont use slots :P)
+        var screenshotmatch = filename.match(/\.bmp$|\.png$/);
 
-        //clear timer if exists
-        if (_fileWriteTimers.hasOwnProperty(filename)) {
-            clearTimeout(_fileWriteTimers[filename]);
+        // match will return an array when match was successful, our capture group with the slot value, its 1 index
+        if (statematch) {
+
+            var data = _Compression.Zip.bytearray(contents);
+
+            //if a deffered is setup for recieveing save state data, call it.
+            if (_saveStateDeffers.hasOwnProperty('state')) {
+                _saveStateDeffers.state.resolve(data);
+            }
+
+            //if a handler is defined, call it
+            if (_OnEmulatorFileWriteHandler) {
+                _OnEmulatorFileWriteHandler('state', filename, contents);
+            }
+            return;
         }
 
-        //write new timer
-        _fileWriteTimers[filename] = setTimeout(function() {
+        if (screenshotmatch) {
 
-            //if timer runs out before being cleared again, delete it and call file written function
-            delete _fileWriteTimers[filename];
-            EmulatorFileWritten(filename, contents);
-        }, _fileWriteDelay);
+            //construct image into blob for use
+            var arrayBufferView = new Uint8Array(contents);
+
+            //if a deffered from save state exists, use this screenshot for it and return
+            if (_saveStateDeffers.hasOwnProperty('screen')) {
+                _saveStateDeffers.screen.resolve(arrayBufferView);
+            }
+
+            if (_OnEmulatorFileWriteHandler) {
+                _OnEmulatorFileWriteHandler('screen', filename, contents, {
+                    arrayBufferView: arrayBufferView,
+                    system: _system,
+                    title: _title
+                });
+            }
+            return;
+        }
+
+        if (filename === 'retroarch.cfg') {
+            if (_OnEmulatorFileWriteHandler) {
+                _OnEmulatorFileWriteHandler('retroarchconfig', filename, contents);
+            }
+            return;
+        }
     };
 
     this.OnEmulatorKeydown = function(event) {
@@ -691,66 +728,6 @@ var cesEmulatorBase = (function(_Compression, _config, _system, _title, _file, _
 
         //screenshots
         _Module.FS_createFolder('/', 'screenshots', true, true);
-    };
-
-    /**
-     * this function is registered with the emulator when a file is written.
-     * @param  {string} key      unique game key, used to save state
-     * @param  {string} system
-     * @param  {string} _title
-     * @param  {string} file
-     * @param  {string} filename the file name being saved by the emulator
-     * @param  {UInt8Array} contents the contents of the file saved by the emulator
-     * @return {undef}
-     */
-    var EmulatorFileWritten = function(filename, contents) {
-
-        var statematch = filename.match(/\.state(\d*)$/); //match .state or .statex where x is a digit (although hoping they dont use slots :P)
-        var screenshotmatch = filename.match(/\.bmp$|\.png$/);
-
-        // match will return an array when match was successful, our capture group with the slot value, its 1 index
-        if (statematch) {
-
-            var data = _Compression.Zip.bytearray(contents);
-
-            //if a deffered is setup for recieveing save state data, call it.
-            if (_saveStateDeffers.hasOwnProperty('state')) {
-                _saveStateDeffers.state.resolve(data);
-            }
-
-            //if a handler is defined, call it
-            if (_OnEmulatorFileWriteHandler) {
-                _OnEmulatorFileWriteHandler('state', filename, contents);
-            }
-            return;
-        }
-
-        if (screenshotmatch) {
-
-            //construct image into blob for use
-            var arrayBufferView = new Uint8Array(contents);
-
-            //if a deffered from save state exists, use this screenshot for it and return
-            if (_saveStateDeffers.hasOwnProperty('screen')) {
-                _saveStateDeffers.screen.resolve(arrayBufferView);
-            }
-
-            if (_OnEmulatorFileWriteHandler) {
-                _OnEmulatorFileWriteHandler('screen', filename, contents, {
-                    arrayBufferView: arrayBufferView,
-                    system: _system,
-                    title: _title
-                });
-            }
-            return;
-        }
-
-        if (filename === 'retroarch.cfg') {
-            if (_OnEmulatorFileWriteHandler) {
-                _OnEmulatorFileWriteHandler('retroarchconfig', filename, contents);
-            }
-            return;
-        }
     };
 
     /**

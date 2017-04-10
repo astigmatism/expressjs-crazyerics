@@ -11,6 +11,10 @@ var cesEmulator = (function(_Compression, config, system, title, file, key) {
 
     // private members
     var self = this;
+    var _fileWriteTimeout = {};
+    var _fileTimerDelay = 100;       //the amount of time we allow to pass in which we assume a file is no longer being written
+
+    var _writeWriteCompleteHandlers = {};
 
     // public/protected members (on prototytpe)
 
@@ -150,10 +154,59 @@ var cesEmulator = (function(_Compression, config, system, title, file, key) {
             return eventHandler;
         };
 
+        /**
+         * Files are written a chunk at a time. To know when a file has been written, it is no longer growing
+         * @param  {string} filename [description]
+         * @param  {array} contents the existing file's contents with the added chunk
+         * @param  {number} length   the amount added since the last write
+         * @param  {[type]} pointer  [description]
+         * @param  {[type]} offset   [description]
+         * @return {[type]}          [description]
+         */
         this.cesEmulatorFileWritten = function(filename, contents) {
 
-            if (self.OnEmulatorFileWrite) {
-                self.OnEmulatorFileWrite(filename, contents);
+            var size = contents.length; //the total length of the file contents as they are written
+
+            //still bring written, extend timer
+            if (_fileWriteTimeout[filename]) {
+
+                clearTimeout(_fileWriteTimeout[filename]);
+            }
+            
+            //create a timer which when expires, indicates that no more file writing is taking place
+            _fileWriteTimeout[filename] = setTimeout(function() {
+
+                clearTimeout(_fileWriteTimeout[filename]);
+
+                delete _fileWriteTimeout[filename];
+
+                //local handlers
+                if (_writeWriteCompleteHandlers[filename]) {
+
+                    _writeWriteCompleteHandlers[filename](contents);
+                    _writeWriteCompleteHandlers[filename] = null;
+                    delete _writeWriteCompleteHandlers[filename];
+                }
+
+                //bubble up
+                if (self.OnEmulatorFileWrite) {
+                    self.OnEmulatorFileWrite(filename, contents);
+                }
+
+            }, _fileTimerDelay);
+        };
+
+        this.cesEmulatorFileRead = function(filename, contents) {
+
+            //nothing yet
+        };
+
+        this.cesWriteFile = function(parent, filename, contents, callback) {
+
+            this.FS.createDataFile(parent, filename, contents, true, true, true);
+
+            if (callback) {
+                callback();
             }
         };
 
