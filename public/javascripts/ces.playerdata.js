@@ -23,11 +23,11 @@ var cesPlayerData = (function(_Compression, initialPlayerData) {
      * @param {Object} slots    {slot: 3, date: date} //date state saved as property
      * @return {bool} whether the game exists in history already or not
      */
-    this.AddToPlayHistory = function(key, system, title, file, played, slots) {
+    this.AddOrUpdatePlayHistory = function(key, system, title, file, lastPlayed) {
 
         //handling dupes will be a common function, replace the date and handle the states slots
         if (key in _playHistory) {
-            _playHistory[key].played = Date.now();
+            _playHistory[key].lastPlayed = Date.now();
             return {
                 isnew: false,
                 data: _playHistory[key]
@@ -41,9 +41,7 @@ var cesPlayerData = (function(_Compression, initialPlayerData) {
             system: system,
             title: title,
             file: file,
-            played: played || Date.now(),
-            slots: slots || {}
-            //stateswrapper: stateswrapper
+            lastPlayed: lastPlayed || Date.now()
         };
 
         return {

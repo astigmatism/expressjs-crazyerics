@@ -26,7 +26,7 @@ var cesMain = (function() {
     var _Compression = null;
     var _PlayerData = null;
     var _Sliders = null;
-    var _StateManager = null;
+    var _SavesManager = null;
     var _Emulator = null;
     var _Dialogs = null;
     var _RecentlyPlayed = null;
@@ -208,7 +208,7 @@ var cesMain = (function() {
         });
 
         //stuff to do when at work mode is enabled
-        $('#titlebanner').hide();
+        //$('#titlebanner').hide();
 
         _Sliders = new cesSliders();
 
@@ -367,20 +367,18 @@ var cesMain = (function() {
                         var info = gameDetails.info;
 
                         //initialize the game state manager
-                        _StateManager = new cesState(_Compression, states);
+                        _SavesManager = new cesSavesManager(_Compression, states);
 
                         //date copmany
                         if (info && info.Publisher && info.ReleaseDate) {
                             var year = info.ReleaseDate.match(/(\d{4})/);
                             $('#gametitlecaption').text(info.Publisher + ', ' +  year[0]);
                         }
-                        
-                        _Emulator.WriteStateData(_StateManager.GetStatesForFS());
                             
                         _preventLoadingGame = false; //during shader select, allow other games to load
 
                         //are there states to load? Let's show a dialog to chose from, if not - will go straight to start
-                        ShowStateSelection(system, title, file, function(slot) {
+                        ShowSaveSelection(system, title, file, function(saveKey) {
                             
                             _preventLoadingGame = true;
 
@@ -411,7 +409,7 @@ var cesMain = (function() {
                                     $.when(_retroArchConfigWritten).done(function() {
 
                                         // load state? bails if not set
-                                        _Emulator.LoadSavedState(slot, function() {
+                                        _Emulator.LoadSave(_SavesManager.GetSave(saveKey), function() {
                                                 
                                             //handle title and content fadein steps
                                             DisplayGameContext(system, title, function() {
@@ -499,11 +497,11 @@ var cesMain = (function() {
         );
     };
 
-    var OnStateSaved = function(statedetails, screendetails) {
+    var OnStateSaved = function(key, system, title, file, statedata, screendetails) {
 
-        _StateManager.SaveStateToServer(statedetails, screendetails, function(key, system, title, file, played, slots) {
+        _SavesManager.AddSave(key, statedata, screendetails, function() {
 
-            AddToPlayHistory(key, system, title, file, played, slots); //update state data in play history
+            //nothing yet
         });
     };
 
@@ -633,12 +631,12 @@ var cesMain = (function() {
      * @param  {Function} callback
      * @return {undef}
      */
-    var ShowStateSelection = function(system, title, file, callback) {
+    var ShowSaveSelection = function(system, title, file, callback) {
 
-        var slots = _StateManager.GetSavedSlots();
+        var saves = _SavesManager.GetSaves();
 
         //no states saved to chose from
-        if (slots.length === 0) {
+        if (saves.length == 0) {
             callback();
             return;
         }
@@ -653,35 +651,27 @@ var cesMain = (function() {
 
         });
 
-        //fast way of handling interation in js. look it up!
-        var i = slots.length;
-        while (i--) {
+        for (var i = 0, len = saves.length; i < len; ++i) {
 
-            //this is in a closure to preserve the callback parameter over iteration
-            (function(slot) {
+            (function(i) {
 
-                var formatteddate = _StateManager.GetDate(slot);
-                var screenshot = _StateManager.GetScreenshot(system, slot);
-                var image = BuildScreenshot(system, screenshot, 180);
+                var image = BuildScreenshot(system, saves[i].screenshot, 180);
 
                 var li = $('<li class="zoom tooltip"></li>')
                 .on('mouseup', function() {
 
-                    //on selection, callback with slot
-                    callback(slot);
+                    //on selection, callback with key
+                    callback(saves[i].key);
                     $('#savedstateseletor').addClass('close');
 
                 });
 
-                if (formatteddate && (parseInt(slot, 10) > -1)) {
-                    li.attr('title', 'Slot ' + slot + ': ' + formatteddate);
-                }
+                li.attr('title', saves[i].time);
 
                 $(li).prepend(image);
 
                 $('#stateselectlist').prepend(li);
-
-            })(slots[i]);
+            })(i);
         }
 
         toolTips();
@@ -842,7 +832,7 @@ var cesMain = (function() {
         }, function(data) {
 
             //add to play history
-            AddToPlayHistory(key, system, title, file);
+            AddOrUpdatePlayHistory(key, system, title, file);
 
             deffered.resolve(data);
         });
@@ -887,13 +877,12 @@ var cesMain = (function() {
      * @param {string} title
      * @param {string} file
      * @param {Date} played     date game last played
-     * @param {Object} slots    {slot: 3, date: date} //date state saved as property
      */
-    var AddToPlayHistory = function(key, system, title, file, played, slots, callback) {
+    var AddOrUpdatePlayHistory = function(key, system, title, file, lastPlayed, callback) {
 
         var slot;
         
-        var response = _PlayerData.AddToPlayHistory(key, system, title, file, played, slots); //will add or update an existing game
+        var response = _PlayerData.AddOrUpdatePlayHistory(key, system, title, file, lastPlayed); //will add or update an existing game
 
         var onRemove = function() {
             _PlayerData.RemoveFromPlayHistory(key);
@@ -991,7 +980,7 @@ $.fn.animateRotate = function(startingangle, angle, duration, easing, complete) 
 cesGetBoxFront = function(config, system, title, size) {
 
     var _Compression = new cesCompression();
-    var _nerfImages = true;
+    var _nerfImages = false;
 
     //have box title's been compressed (to obfiscate on cdn)
     if (config.flattenedboxfiles) {

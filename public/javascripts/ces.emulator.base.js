@@ -16,9 +16,8 @@ var cesEmulatorBase = (function(_Compression, _config, _system, _title, _file, _
     var _compressedSupprtData = null;
     var _compressedGameData = null;
     var _compressedShaderData = null;
-    var _currentStateSlot = 0;
     var _saveStateDeffers = {}; //since saving state to server requires both state and screenshot data, setup these deffers since tracking which comes back first is unknown
-    var _fileWriteDelay = 500; //in ms. The delay in which the client should respond to a file written by the emulator (sometimes is goes out over the network and we don't want to spam the call)
+    var _fileWriteDelay = 750; //in ms. The delay in which the client should respond to a file written by the emulator (sometimes is goes out over the network and we don't want to spam the call)
     var _fileWriteTimers = {};
     var _keypresslocked = false; //if we are simulating a keypress (down and up) this boolean prevents another keypress until the current one is complete
     var _browserFunctionKeysWeWantToStop = {
@@ -105,40 +104,31 @@ var cesEmulatorBase = (function(_Compression, _config, _system, _title, _file, _
         });
     };
 
-    this.WriteStateData = function(stateDataArray) {
+    this.LoadSave = function(saveData, callback) {
 
-        //states
-        _Module.FS_createFolder('/', 'states', true, true);
-
-        for (var i = 0, len = stateDataArray.length; i < len; ++i) {
-            var filenoextension = _file.replace(new RegExp('\.[a-z0-9]{1,3}$', 'gi'), '');
-            var statefilename = '/' + filenoextension + '.state' + (i == 0 ? '' : i);
-            _Module.FS_createDataFile('/states', statefilename, stateDataArray[i], true, true);
-        }
-    };
-
-    this.LoadSavedState = function(slot, callback) {
-
-        if (!slot) {
+        //if null, we want to inform the loading process can continue with a load
+        if (!saveData) {
             if (callback) {
                 callback();
             }
             return;
         }
 
-        AsyncLoop(parseInt(slot, 10), function(loop) {
+        //ensure states folder exists
+        _Module.FS_createFolder('/', 'states', true, true);
 
-            //simulate increasing state slot (will also set self._activeStateSlot)
-            self.SimulateEmulatorKeypress(51, 10, function() {
-                loop.next();
-            });
+        //write state file
+        var filenoextension = _file.replace(new RegExp('\.[a-z0-9]{1,3}$', 'gi'), '');
+        var statefilename = '/' + filenoextension + '.state';
+        _Module.FS_createDataFile('/states', statefilename, saveData.state, true, true);
 
-        }, function() {
+        setTimeout(function() {
+
             self.SimulateEmulatorKeypress(52); //4 load state
             if (callback) {
                 callback();
             }
-        });
+        }, 1000);
     };
 
     this.PauseGame = function() {
@@ -218,10 +208,6 @@ var cesEmulatorBase = (function(_Compression, _config, _system, _title, _file, _
         }
         
         $(_ui.canvas).remove(); //kill all events attached (keyboard, focus, etc)
-    };
-
-    this.GetCurrentStateSlot = function() {
-        return _currentStateSlot;
     };
 
     /**
@@ -319,7 +305,7 @@ var cesEmulatorBase = (function(_Compression, _config, _system, _title, _file, _
     /**
      * for screenshots, the emulator simply dumps the video buffer into a file 8 bytes at a time calling the write function
      * with each segment in the buffer. it doesn't seem to trigger a "file closed" or "finished writing file" notification.
-     * To get around this, I'll use timers to understand when a file was essentially finished being written to.
+     * To get around this, I'll use timers to understand when a file was essentially finished being written.
      */
     this.OnEmulatorFileWrite = function(filename, contents) {
 
@@ -342,21 +328,8 @@ var cesEmulatorBase = (function(_Compression, _config, _system, _title, _file, _
 
         var key = event.keyCode;
         switch (key) {
-            case 70: // F - fullscreen
-                // _Module.requestFullScreen(true, true);
-                // $(_ui.canvas).focus();
-            break;
             case 49: //1 - save state
                 GetStateAndScreenshot();
-            break;
-            case 50: //2 - state slot decrease
-                self._activeStateSlot--;
-                if (self._activeStateSlot < 0) {
-                    self._activeStateSlot = 0;
-                }
-            break;
-            case 51: //3 - state slot increase
-                self._activeStateSlot++;
             break;
         }
 
@@ -368,10 +341,10 @@ var cesEmulatorBase = (function(_Compression, _config, _system, _title, _file, _
 
     //private methods
 
-    var GetStateAndScreenshot = function(slot) {
+    var GetStateAndScreenshot = function() {
 
         //bail if already in progress
-        if (_saveStateDeffers !== {}) {
+        if (!$.isEmptyObject(_saveStateDeffers)) {
             return;
         }
 
@@ -379,19 +352,19 @@ var cesEmulatorBase = (function(_Compression, _config, _system, _title, _file, _
         _saveStateDeffers.state = $.Deferred();
         _saveStateDeffers.screen = $.Deferred();
 
-        //use a timeout to clear deffers incase one of them never comes back, 1 sec is plenty. i see this return in about 50ms generally however
+        //use a timeout to clear deffers in case one of them never comes back, 3 sec is plenty. i see this return in about 50ms generally however
         var clearStateDeffers = setTimeout(function() {
             _saveStateDeffers = {};
-        }, 5000);
+        }, 3000);
 
-        $.when(_saveStateDeffers.state, _saveStateDeffers.screen).done(function(statedetails, screendetails) {
+        $.when(_saveStateDeffers.state, _saveStateDeffers.screen).done(function(stateData, screenData) {
 
             clearTimeout(clearStateDeffers); //clear timeout from erasing deffers
             _saveStateDeffers = {}; //do the clear ourselves
 
-            //callback to ces.main
+            //callback to ces.main, pass the other privates just in case
             if (_OnStateSavedHandler) {
-                _OnStateSavedHandler(statedetails, screendetails);
+                _OnStateSavedHandler(_key, _system, _title, _file, stateData, screenData);
             }
             
         });
@@ -732,18 +705,17 @@ var cesEmulatorBase = (function(_Compression, _config, _system, _title, _file, _
      */
     var EmulatorFileWritten = function(filename, contents) {
 
-        var statematch = filename.match(/\.state(\d*)$/); //match .state or .statex where x is a digit
+        var statematch = filename.match(/\.state(\d*)$/); //match .state or .statex where x is a digit (although hoping they dont use slots :P)
         var screenshotmatch = filename.match(/\.bmp$|\.png$/);
 
         // match will return an array when match was successful, our capture group with the slot value, its 1 index
         if (statematch) {
 
-            var slot = statematch[1] === '' ? 0 : statematch[1]; //the 0 state does not use a digit
             var data = _Compression.Zip.bytearray(contents);
 
             //if a deffered is setup for recieveing save state data, call it.
             if (_saveStateDeffers.hasOwnProperty('state')) {
-                _saveStateDeffers.state.resolve(_key, _system, _title, _file, slot, data);
+                _saveStateDeffers.state.resolve(data);
             }
 
             //if a handler is defined, call it

@@ -86,8 +86,7 @@ router.post('/load/game', function(req, res, next) {
             req.session.games.history[key] = {
                 system: game.system,
                 title: game.title,
-                file: game.file,
-                slots: {}
+                file: game.file
             }
         }
         req.session.games.history[key].played = Date.now();

@@ -352,6 +352,7 @@
 	},
 	"retroarch": {
 		"system_directory": "/",
+		"input_menu_toggle":  "f1",
 		"savestate_directory": "/states",
 		"video_message_pos_y": 0.05,
 		"video_shader_enable": true,
