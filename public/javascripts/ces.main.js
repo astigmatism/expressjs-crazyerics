@@ -21,6 +21,7 @@ var cesMain = (function() {
     var _minimumGameLoadingTime = 4000; //have to consider tips (make longer) and transition times
     var _defaultSuggestions = 60;
     var _retroArchConfigWritten; //for tracking async file writes with deffered
+    var _suggestionsLoading = false;
 
     // instances/libraries
     var _Compression = null;
@@ -189,7 +190,13 @@ var cesMain = (function() {
                 var y = $(document).height(); //- 100; //if you want "near bottom", sub from this amount
 
                 if (x == y) {
+                    if (_suggestionsLoading) {
+                        return;
+                    }
+                    _suggestionsLoading = true;
+
                     _Suggestions.LoadMore(function() {
+                        _suggestionsLoading = false;
                         toolTips();
                     });
                 }
@@ -208,7 +215,7 @@ var cesMain = (function() {
         });
 
         //stuff to do when at work mode is enabled
-        $('#titlebanner').hide();
+        //$('#titlebanner').hide();
 
         _Sliders = new cesSliders();
 
@@ -390,27 +397,33 @@ var cesMain = (function() {
                             //lets ensure a minimum time has passed (see private vars)
                             setTimeout(function() {
 
-                                //close all dialogs, game begins!
-                                _Dialogs.CloseDialog(false, function() {
+                                //stop rolling tips
+                                $('#tips').stop().hide();
+                                clearInterval(tipInterval);
 
-                                    //stop rolling tips
-                                    $('#tips').stop().hide();
-                                    clearInterval(tipInterval);
+                                _retroArchConfigWritten = $.Deferred();
 
-                                    _retroArchConfigWritten = $.Deferred();
 
-                                    //begin game, callback is function which handles expections for any emulator error
-                                    _Emulator.BeginGame(OnEmulatorException);
+                                var save = _SavesManager.GetSave(saveKey); //returns null if none
 
-                                    //before going any further, we can correctly assume that once the config
-                                    //is written, the file system is ready for us to read from it
-                                    $.when(_retroArchConfigWritten).done(function() {
+                                // load state? bails if not set
+                                _Emulator.LoadSave(save, function(saveStateLoaded) { //if save not set, bails on null
 
-                                        var save = _SavesManager.GetSave(saveKey); //returns null if none
+                                    //close all dialogs, game begins!
+                                    _Dialogs.CloseDialog(false, function() {
 
-                                        // load state? bails if not set
-                                        _Emulator.LoadSave(save, function() { //bails on null
-                                                
+                                        //begin game, callback is function which handles expections for any emulator error
+                                        _Emulator.BeginGame(OnEmulatorException);
+
+                                        //before going any further, we can correctly assume that once the config
+                                        //is written, the file system is ready for us to read from it
+                                        $.when(_retroArchConfigWritten).done(function() {
+                                            
+                                            //if a state was loaded, keypress load
+                                            if (saveStateLoaded) {
+                                                _Emulator.SimulateEmulatorKeypress(52);
+                                            }
+
                                             //handle title and content fadein steps
                                             DisplayGameContext(system, title, function() {
 
@@ -482,7 +495,7 @@ var cesMain = (function() {
                 }
 
                 //the class extention process: on the prototype of the ext, create using the base class.
-                cesEmulator.prototype = new cesEmulatorBase(_Compression, _config, system, title, file, key, ui, OnEmulatorKeydown, OnEmulatorFileWrite, OnStateSaved);
+                cesEmulator.prototype = new cesEmulatorBase(_Compression, _config, system, title, file, key, ui, OnEmulatorPreKeydown, OnEmulatorKeydown, OnEmulatorFileWrite, OnStateSaved);
 
                 var emulator = new cesEmulator(_Compression, _config, system, title, file, key);
 
@@ -503,6 +516,10 @@ var cesMain = (function() {
 
             //nothing yet
         });
+    };
+
+    var OnEmulatorPreKeydown = function(event) {
+        //nothing yet
     };
 
     var OnEmulatorKeydown = function(event) {
@@ -980,7 +997,7 @@ $.fn.animateRotate = function(startingangle, angle, duration, easing, complete) 
 cesGetBoxFront = function(config, system, title, size) {
 
     var _Compression = new cesCompression();
-    var _nerfImages = true;
+    var _nerfImages = false;
 
     //have box title's been compressed (to obfiscate on cdn)
     if (config.flattenedboxfiles) {

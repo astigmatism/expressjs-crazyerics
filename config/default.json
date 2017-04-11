@@ -360,6 +360,7 @@
 		"input_shader_prev": "leftbracket",
 		"video_shader_dir": "/shaders",
 		"screenshot_directory": "/screenshots",
+		"savefile_directory": "/saves",
 		"input_screenshot": "t",
 		"video_gpu_screenshot": false,
 		"input_exit_emulator": "end",

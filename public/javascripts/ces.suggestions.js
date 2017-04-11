@@ -76,19 +76,23 @@ var cesSuggestions = (function(config, _Compression, PlayGame, $wrapper) {
             }
 
             //functionality for when each images loads
-            _grid.find('img').imagesLoaded().progress(function(imgLoad, image) {
-                
-                $(image.img).parent().removeClass('close');
-                _grid.isotope('layout');
-            });
+            _grid.find('img').imagesLoaded()
+                .progress(function(imgLoad, image) {
+                    
+                    $(image.img).parent().removeClass('close');
+                    _grid.isotope('layout');
+                })
+                .done(function() {
+
+                    if (callback) {
+                        callback();
+                    }
+                });
 
             _currentGameLinks.push(gamelink);
 
             _loading = false;
 
-            if (callback) {
-                callback();
-            }
         });
     }
 

@@ -7,12 +7,13 @@
  * @param  {string} file         Super Mario Bros. 3 (U)[!].nes
  * @return {undef}
  */
-var cesEmulator = (function(_Compression, config, system, title, file, key) {
+var cesEmulator = (function(_Compression, _config, _system, _title, _file, _key) {
 
     // private members
     var self = this;
     var _fileWriteTimeout = {};
     var _fileTimerDelay = 100;       //the amount of time we allow to pass in which we assume a file is no longer being written
+    var _startToMenu = false;
 
     var _writeWriteCompleteHandlers = {};
 
@@ -138,13 +139,17 @@ var cesEmulator = (function(_Compression, config, system, title, file, key) {
                     
                     eventHandler.handlerFunc = function(event) {
 
-                        //perform original handler function
-                        originalWork(event);
+                        //sometimes I want to influence behaviors before I begin
+                        self.OnEmulatorPreKeydown(event, function() {
 
-                        //run my function next to inform ces what the last keypress was!
-                        if (self.OnEmulatorKeydown) {
-                            self.OnEmulatorKeydown(event);
-                        }
+                            //perform original handler function
+                            originalWork(event);
+
+                            //run my function next to inform ces what the last keypress was!
+                            if (self.OnEmulatorKeydown) {
+                                self.OnEmulatorKeydown(event);
+                            }
+                        });
                     };
 
                     this.cachedEventHandlers.keydown[eventHandler.eventTypeString] = eventHandler;
@@ -203,10 +208,10 @@ var cesEmulator = (function(_Compression, config, system, title, file, key) {
 
         this.cesWriteFile = function(parent, filename, contents, callback) {
 
-            this.FS.createDataFile(parent, filename, contents, true, true, true);
+            var result = this.FS_createDataFile(parent, filename, contents, true, true);
 
             if (callback) {
-                callback();
+                callback(result);
             }
         };
 
@@ -241,6 +246,143 @@ var cesEmulator = (function(_Compression, config, system, title, file, key) {
                 }
 
             }
+        };
+
+        /**
+         * Once module has loaded with its own file system, populate ir with config and rom file
+         * @param  {Object} module
+         * @param  {string} system
+         * @param  {string} file
+         * @param  {string} data
+         * @param  {Object} shader
+         * @return {undef}
+         */
+        this.BuildLocalFileSystem = function(compressedGameData, compressedSupprtData, compressedShaderData) {
+
+            var i;
+            var content;
+
+            this.FS_createFolder('/', 'games', true, true);
+
+            //games are stored compressed in json. due to javascript string length limits, these can be broken up into several segments for larger files.
+            //the compressedGameFiles object contains data for all files and their segments
+            for (var gameFile in compressedGameData) {
+
+                var filename = _Compression.Unzip.string(gameFile);
+                var compressedGame = compressedGameData[gameFile];
+                var views = [];
+                var bufferLength = 0;
+
+                //begin by decopressing all compressed file segments
+                for (i = 0; i < compressedGame.length; ++i) {
+                    var decompressed = _Compression.Unzip.string(compressedGame[i]);
+                    var view = pako.inflate(decompressed); //inflate compressed file contents (Uint8Array)
+                    bufferLength += view.length;
+                    views[i] = view;
+                }
+
+                //let's combine all file segments now by writing a new uint8array
+                var gamedata = new Uint8Array(bufferLength);
+                var bufferPosition = 0;
+
+                for (i = 0; i < views.length; ++i) {
+                    gamedata.set(new Uint8Array(views[i]), bufferPosition);
+                    bufferPosition += views[i].length;
+                }
+
+                //write uncompressed game data to emu file system
+                this.FS_createDataFile('/games', filename, gamedata, true, true);
+            }
+
+            //set the start file
+            if (!_startToMenu) {
+                this.arguments = ['-v', '-f', '/games/' + _file];
+            } else {
+                this.arguments = ['-v', '--menu'];
+            }
+
+            //emulator support, will be null if none
+            if (compressedSupprtData) {
+                var supportFiles = _Compression.Unzip.json(compressedSupprtData);
+                if (supportFiles) {
+                    for (var supportFile in supportFiles) {
+                        content = _Compression.Unzip.bytearray(supportFiles[supportFile]);
+                        try {
+                            this.FS_createDataFile('/', supportFile, content, true, true);
+                        } catch (e) {
+                            //an error on file write.
+                        }
+                    }
+                }
+            }
+
+            //shaders
+            this.FS_createFolder('/', 'shaders', true, true);
+            var shaderPresetToLoad = null;
+
+            //shader files, will be null if none used
+            if (compressedShaderData) {
+                var shaderFiles = _Compression.Unzip.json(compressedShaderData); //decompress shader files to json object of file names and data
+
+                //if in coming shader parameter is an object, then it has shader files defined.
+                if (shaderFiles) {
+
+                    for (var shaderfile in shaderFiles) {
+                        content = _Compression.Unzip.bytearray(shaderFiles[shaderfile]);
+                        try {
+                            this.FS_createDataFile('/shaders', shaderfile, content, true, true);
+                        } catch (e) {
+                            //an error on file write.
+                        }
+
+                        //is file preset? if so, save to define in config for auto load
+                        if (shaderfile.match(/\.glslp$/g)) {
+                            shaderPresetToLoad = shaderfile;
+                        }
+                    }
+                }
+            }
+
+            //config, must be after shader
+            //wrap folder creation in catch since error is thrown if exists
+            try { this.FS_createFolder('/', 'home', true, true); } catch (e) {}
+            try { this.FS_createFolder('/home', 'web_user', true, true); } catch (e) {}
+            try { this.FS_createFolder('/home/web_user/', 'retroarch', true, true); } catch (e) {}
+            try { this.FS_createFolder('/home/web_user/retroarch', 'userdata', true, true); } catch (e) {}
+
+            if (_config.retroarch) {
+
+                var retroArchConfig = _config.retroarch; //in json
+                var configItem;
+
+                //system specific overrides
+                if (_config.systemdetails[_system] && _config.systemdetails[_system].retroarch) {
+                    for (configItem in _config.systemdetails[_system].retroarch) {
+                        retroArchConfig[configItem] = _config.systemdetails[_system].retroarch[configItem];
+                    }
+                }
+
+                if (shaderPresetToLoad) {
+                    retroArchConfig.video_shader = '/shaders/' + shaderPresetToLoad;
+                }
+
+                //convert json to string delimited list
+                var configString = '';
+                for (configItem in retroArchConfig) {
+                    configString +=  configItem + ' = ' + retroArchConfig[configItem] + '\n';
+                }
+
+                this.FS_createDataFile('/home/web_user/retroarch/userdata', 'retroarch.cfg', configString, true, true);
+            }
+
+            //screenshots
+            this.FS_createFolder('/', 'screenshots', true, true);
+
+            //state save location
+            this.FS_createFolder('/', 'states', true, true);
+
+            //save file location
+            this.FS_createFolder('/', 'saves', true, true);
         };
 
         return this;

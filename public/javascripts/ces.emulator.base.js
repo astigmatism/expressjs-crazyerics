@@ -7,18 +7,13 @@
  * @param  {string} file         Super Mario Bros. 3 (U)[!].nes
  * @return {undef}
  */
-var cesEmulatorBase = (function(_Compression, _config, _system, _title, _file, _key, _ui, _OnEmulatorKeydownHandler, _OnEmulatorFileWriteHandler, _OnStateSavedHandler) {
+var cesEmulatorBase = (function(_Compression, _config, _system, _title, _file, _key, _ui, _OnEmulatorPreKeydownHandler, _OnEmulatorKeydownHandler, _OnEmulatorFileWriteHandler, _OnStateSavedHandler) {
 
     // private members
     var self = this;
     var FS = null;
     var _isLoading = false;
-    var _compressedSupprtData = null;
-    var _compressedGameData = null;
-    var _compressedShaderData = null;
     var _saveStateDeffers = {}; //since saving state to server requires both state and screenshot data, setup these deffers since tracking which comes back first is unknown
-    var _fileWriteDelay = 750; //in ms. The delay in which the client should respond to a file written by the emulator (sometimes is goes out over the network and we don't want to spam the call)
-    var _fileWriteTimers = {};
     var _keypresslocked = false; //if we are simulating a keypress (down and up) this boolean prevents another keypress until the current one is complete
     var _browserFunctionKeysWeWantToStop = {
         9: "tab",
@@ -49,6 +44,7 @@ var cesEmulatorBase = (function(_Compression, _config, _system, _title, _file, _
     };
     var _displayDurationShow = 1000;
     var _displayDurationHide = 500;
+    var _screenAndStateWait = 30000; //how long to wait until both are finished writing to file
 
     //instances
     var _EmulatorInstance = null;
@@ -109,13 +105,10 @@ var cesEmulatorBase = (function(_Compression, _config, _system, _title, _file, _
         //if null, we want to inform the loading process can continue with a load
         if (!saveData) {
             if (callback) {
-                callback();
+                callback(false);
             }
             return;
         }
-
-        //ensure states folder exists
-        _Module.FS_createFolder('/', 'states', true, true);
 
         //write state file
         var filenoextension = _file.replace(new RegExp('\.[a-z0-9]{1,3}$', 'gi'), '');
@@ -124,9 +117,7 @@ var cesEmulatorBase = (function(_Compression, _config, _system, _title, _file, _
 
         _Module.cesWriteFile('/states', statefilename, saveData.state, function() {
 
-            //file written
-        
-            callback();
+            callback(true);
         });
     };
 
@@ -376,6 +367,23 @@ var cesEmulatorBase = (function(_Compression, _config, _system, _title, _file, _
         }
     };
 
+    this.OnEmulatorPreKeydown = function(event, callback) {
+
+        var key = event.keyCode;
+        switch (key) {
+            case 49: //1 - before save state
+                self.SimulateEmulatorKeypress(84, null, function() {
+                    callback();
+                });
+            break;
+        }
+
+        //pass to ces.main
+        if (_OnEmulatorPreKeydownHandler) {
+            _OnEmulatorPreKeydownHandler(event, callback);
+        }
+    };
+
     //private methods
 
     var GetStateAndScreenshot = function() {
@@ -392,7 +400,7 @@ var cesEmulatorBase = (function(_Compression, _config, _system, _title, _file, _
         //use a timeout to clear deffers in case one of them never comes back, 3 sec is plenty. i see this return in about 50ms generally however
         var clearStateDeffers = setTimeout(function() {
             _saveStateDeffers = {};
-        }, 3000);
+        }, _screenAndStateWait);
 
         $.when(_saveStateDeffers.state, _saveStateDeffers.screen).done(function(stateData, screenData) {
 
@@ -405,9 +413,6 @@ var cesEmulatorBase = (function(_Compression, _config, _system, _title, _file, _
             }
             
         });
-        setTimeout(function() {
-            self.SimulateEmulatorKeypress(84); //take screen
-        }, 500);
     };
 
     /**
@@ -428,17 +433,17 @@ var cesEmulatorBase = (function(_Compression, _config, _system, _title, _file, _
         _EmulatorInstance = emulator[2];
 
         //LoadSupportFiles result
-        _compressedSupprtData = (support && support[1]) ? support[1] : null; //if not defined, no emulator support
+        var compressedSupprtData = (support && support[1]) ? support[1] : null; //if not defined, no emulator support
 
         //LoadGame result
         var gameLoadError = game[0];
-        _compressedGameData = game[1]; //compressed game data
+        var compressedGameData = game[1]; //compressed game data
 
         //Load Shader result
         //shader data is compressed from server, unpack later
-        _compressedShaderData = (shader && shader[1]) ? shader[1] : null; //if not defined, not shader used
+        var compressedShaderData = (shader && shader[1]) ? shader[1] : null; //if not defined, not shader used
 
-        BuildLocalFileSystem();
+        _Module.BuildLocalFileSystem(compressedGameData, compressedSupprtData, compressedShaderData);
     };
 
     /**
@@ -596,138 +601,6 @@ var cesEmulatorBase = (function(_Compression, _config, _system, _title, _file, _
             type: 'GET',
             dataType: 'jsonp'
         });
-    };
-
-    /**
-     * Once module has loaded with its own file system, populate ir with config and rom file
-     * @param  {Object} module
-     * @param  {string} system
-     * @param  {string} file
-     * @param  {string} data
-     * @param  {Object} shader
-     * @return {undef}
-     */
-    //var BuildLocalFileSystem = function(module, system, file, gamedata, shaderData, _compressedSupprtData) {
-    var BuildLocalFileSystem = function() {
-
-        var i;
-        var content;
-
-        _Module.FS_createFolder('/', 'games', true, true);
-
-        //games are stored compressed in json. due to javascript string length limits, these can be broken up into several segments for larger files.
-        //the compressedGameFiles object contains data for all files and their segments
-        for (var gameFile in _compressedGameData) {
-
-            var filename = _Compression.Unzip.string(gameFile);
-            var compressedGame = _compressedGameData[gameFile];
-            var views = [];
-            var bufferLength = 0;
-
-            //begin by decopressing all compressed file segments
-            for (i = 0; i < compressedGame.length; ++i) {
-                var decompressed = _Compression.Unzip.string(compressedGame[i]);
-                var view = pako.inflate(decompressed); //inflate compressed file contents (Uint8Array)
-                bufferLength += view.length;
-                views[i] = view;
-            }
-
-            //let's combine all file segments now by writing a new uint8array
-            var gamedata = new Uint8Array(bufferLength);
-            var bufferPosition = 0;
-
-            for (i = 0; i < views.length; ++i) {
-                gamedata.set(new Uint8Array(views[i]), bufferPosition);
-                bufferPosition += views[i].length;
-            }
-
-            //write uncompressed game data to emu file system
-            _Module.FS_createDataFile('/games', filename, gamedata, true, true);
-        }
-
-        //set the start file
-        _Module.arguments = ['-v', '-f', '/games/' + _file];
-        //_Module.arguments = ['-v', '--menu'];
-
-        //emulator support, will be null if none
-        if (_compressedSupprtData) {
-            var supportFiles = _Compression.Unzip.json(_compressedSupprtData);
-            if (supportFiles) {
-                for (var supportFile in supportFiles) {
-                    content = _Compression.Unzip.bytearray(supportFiles[supportFile]);
-                    try {
-                        _Module.FS_createDataFile('/', supportFile, content, true, true);
-                    } catch (e) {
-                        //an error on file write.
-                    }
-                }
-            }
-        }
-
-        //shaders
-        _Module.FS_createFolder('/', 'shaders', true, true);
-        var shaderPresetToLoad = null;
-
-        //shader files, will be null if none used
-        if (_compressedShaderData) {
-            var shaderFiles = _Compression.Unzip.json(_compressedShaderData); //decompress shader files to json object of file names and data
-
-            //if in coming shader parameter is an object, then it has shader files defined.
-            if (shaderFiles) {
-
-                for (var shaderfile in shaderFiles) {
-                    content = _Compression.Unzip.bytearray(shaderFiles[shaderfile]);
-                    try {
-                        _Module.FS_createDataFile('/shaders', shaderfile, content, true, true);
-                    } catch (e) {
-                        //an error on file write.
-                    }
-
-                    //is file preset? if so, save to define in config for auto load
-                    if (shaderfile.match(/\.glslp$/g)) {
-                        shaderPresetToLoad = shaderfile;
-                    }
-                }
-            }
-        }
-
-        //config, must be after shader
-        //wrap folder creation in catch since error is thrown if exists
-        try { _Module.FS_createFolder('/', 'etc', true, true); } catch (e) {}
-        try { _Module.FS_createFolder('/', 'home', true, true); } catch (e) {}
-        try { _Module.FS_createFolder('/home', 'web_user', true, true); } catch (e) {}
-        try { _Module.FS_createFolder('/home/web_user/', 'retroarch', true, true); } catch (e) {}
-        try { _Module.FS_createFolder('/home/web_user/retroarch', 'userdata', true, true); } catch (e) {}
-
-        if (_config.retroarch) {
-
-            var retroArchConfig = _config.retroarch; //in json
-            var configItem;
-
-            //system specific overrides
-            if (_config.systemdetails[_system] && _config.systemdetails[_system].retroarch) {
-                for (configItem in _config.systemdetails[_system].retroarch) {
-                    retroArchConfig[configItem] = _config.systemdetails[_system].retroarch[configItem];
-                }
-            }
-
-            if (shaderPresetToLoad) {
-                retroArchConfig.video_shader = '/shaders/' + shaderPresetToLoad;
-            }
-
-            //convert json to string delimited list
-            var configString = '';
-            for (configItem in retroArchConfig) {
-                configString +=  configItem + ' = ' + retroArchConfig[configItem] + '\n';
-            }
-
-            //write to both locations since we could be using older or newer emulators
-            _Module.FS_createDataFile('/home/web_user/retroarch/userdata', 'retroarch.cfg', configString, true, true);
-            _Module.FS_createDataFile('/etc', 'retroarch.cfg', configString, true, true);
-        }
-
-        //screenshots
-        _Module.FS_createFolder('/', 'screenshots', true, true);
     };
 
     /**
