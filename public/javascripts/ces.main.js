@@ -215,7 +215,7 @@ var cesMain = (function() {
         });
 
         //stuff to do when at work mode is enabled
-        //$('#titlebanner').hide();
+        $('#titlebanner').hide();
 
         _Sliders = new cesSliders();
 
@@ -495,7 +495,7 @@ var cesMain = (function() {
                 }
 
                 //the class extention process: on the prototype of the ext, create using the base class.
-                cesEmulator.prototype = new cesEmulatorBase(_Compression, _config, system, title, file, key, ui, OnEmulatorPreKeydown, OnEmulatorKeydown, OnEmulatorFileWrite, OnStateSaved);
+                cesEmulator.prototype = new cesEmulatorBase(_Compression, _config, system, title, file, key, ui, OnEmulatorKeydown, OnEmulatorFileWrite, OnNewSave);
 
                 var emulator = new cesEmulator(_Compression, _config, system, title, file, key);
 
@@ -510,20 +510,28 @@ var cesMain = (function() {
         );
     };
 
-    var OnStateSaved = function(key, system, title, file, statedata, screendetails) {
+    var OnNewSave = function(key, system, title, file, statedata, screendata) {
 
-        _SavesManager.AddSave(key, statedata, screendetails, function() {
+        _SavesManager.AddSave(key, statedata, screendata, function() {
 
             //nothing yet
         });
     };
 
-    var OnEmulatorPreKeydown = function(event) {
-        //nothing yet
-    };
+    var OnEmulatorKeydown = function(event, callback) {
+        
+        var key = event.keyCode;
+            switch (key) {
+                case 49: //1 - save state
+                    
+                    //todo: notification of saving game
 
-    var OnEmulatorKeydown = function(event) {
-        //nothing yet!
+                    callback(true);
+                break;
+            default:
+                callback(true);
+            break;
+        }
     };
 
     var OnEmulatorFileWrite = function(type, filename, contents, options) {
@@ -997,7 +1005,7 @@ $.fn.animateRotate = function(startingangle, angle, duration, easing, complete) 
 cesGetBoxFront = function(config, system, title, size) {
 
     var _Compression = new cesCompression();
-    var _nerfImages = false;
+    var _nerfImages = true;
 
     //have box title's been compressed (to obfiscate on cdn)
     if (config.flattenedboxfiles) {

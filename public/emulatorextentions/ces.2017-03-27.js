@@ -140,14 +140,11 @@ var cesEmulator = (function(_Compression, _config, _system, _title, _file, _key)
                     eventHandler.handlerFunc = function(event) {
 
                         //sometimes I want to influence behaviors before I begin
-                        self.OnEmulatorPreKeydown(event, function() {
+                        self.OnEmulatorKeydown(event, function(proceed) {
 
                             //perform original handler function
-                            originalWork(event);
-
-                            //run my function next to inform ces what the last keypress was!
-                            if (self.OnEmulatorKeydown) {
-                                self.OnEmulatorKeydown(event);
+                            if (proceed) {
+                                originalWork(event);
                             }
                         });
                     };

@@ -48,10 +48,10 @@ var cesSavesManager = (function (_Compression, _initialSaveData) {
         return result;
     };
 
-    var AddSave = function(key, state, screenshot) {
+    var AddSave = function(key, stateData, screenshotData) {
 
-        screenshot  = _Compression.Unzip.bytearray(screenshot);
-        state       = _Compression.Unzip.bytearray(state);
+        var screenshot  = _Compression.Unzip.bytearray(screenshotData);
+        var state       = _Compression.Unzip.bytearray(stateData);
 
         key = parseInt(key, 10); //convert to int for this function
         var time = $.format.date(key, 'ddd MM-dd-yyyy h:mma'); //using the jquery dateFormat plugin
