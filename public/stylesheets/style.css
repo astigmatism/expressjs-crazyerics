@@ -530,12 +530,12 @@ p {
 
 /* game loading dialog */
 
-#gameloading {
+#gameloading, #saveloading {
 
 	height: 600px;
 }
 
-#gameloadingimage img {
+#gameloadingimage img, #saveloadingimage img {
 	width: 130px;
 	display: none;
 
@@ -547,7 +547,7 @@ p {
     -webkit-animation-iteration-count:infinite;
 }
 
-#gameloading h2 {
+#gameloading h2, #saveloading h2 {
 	position: absolute;
 	text-align: center;
 	width: 100%;

@@ -55,6 +55,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
     var _Module = null;
 
     //protected
+    this.activeStateFileName = null; //this is a space I use for indictaing a state file was written during load
 
     // public methods
         
@@ -107,10 +108,9 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
     this.LoadSave = function(saveData, callback) {
 
         //if null, we want to inform the loading process can continue with a load
-        if (!saveData) {
-            if (callback) {
-                callback(false);
-            }
+        if ($.isEmptyObject(saveData)) {
+            self.activeStateFileName = null;
+            callback(false);
             return;
         }
 
@@ -121,6 +121,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
 
         _Module.cesWriteFile('/states', statefilename, saveData.state, function() {
 
+            self.activeStateFileName = statefilename;
             callback(true);
         });
     };
@@ -340,6 +341,17 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
         }
     };
 
+    this.OnEmulatorFileRead = function(filename, contents) {
+
+        var statematch = filename.match(/\.state(\d*)$/); //match .state or .statex where x is a digit (although hoping they dont use slots :P)
+
+        if (statematch) {
+
+            _PubSub.Publish('stateRead', [filename, contents]);
+            return;
+        }
+    };
+
     this.OnEmulatorKeydown = function(event, proceedWithKeypressToEmulator) {
 
         var key = event.keyCode;
@@ -370,18 +382,16 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
         _creatingNewSave = true;
 
         //before state save, perform a screen capture
-        var removeScreenshotSubscription = _PubSub.Subscribe('screenshotWritten', function(filename, contents, arrayBufferView, system, title) {
+        _PubSub.SubscribeOnce('screenshotWritten', function(filename, contents, arrayBufferView, system, title) {
 
             clearTimeout(screenshotTimeout);
-            removeScreenshotSubscription();
 
             if (arrayBufferView) {
 
                 //it can take a while too, sucks
-                var removeStateSubscription = _PubSub.Subscribe('stateWritten', function(filename, contents, stateData) {
+                _PubSub.SubscribeOnce('stateWritten', function(filename, contents, stateData) {
 
                     clearTimeout(saveStateTimeout);
-                    removeStateSubscription();
 
                     //finally the state file was written
 

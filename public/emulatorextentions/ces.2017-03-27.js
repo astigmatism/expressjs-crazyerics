@@ -12,10 +12,9 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _system, _title, _fi
     // private members
     var self = this;
     var _fileWriteTimeout = {};
+    var _fileReadTimeout = {};
     var _fileTimerDelay = 100;       //the amount of time we allow to pass in which we assume a file is no longer being written
     var _startToMenu = false;
-
-    var _writeWriteCompleteHandlers = {};
 
     // public/protected members (on prototytpe)
 
@@ -182,14 +181,6 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _system, _title, _fi
 
                 delete _fileWriteTimeout[filename];
 
-                //local handlers
-                if (_writeWriteCompleteHandlers[filename]) {
-
-                    _writeWriteCompleteHandlers[filename](contents);
-                    _writeWriteCompleteHandlers[filename] = null;
-                    delete _writeWriteCompleteHandlers[filename];
-                }
-
                 //bubble up
                 if (self.OnEmulatorFileWrite) {
                     self.OnEmulatorFileWrite(filename, contents);
@@ -198,9 +189,27 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _system, _title, _fi
             }, _fileTimerDelay);
         };
 
-        this.cesEmulatorFileRead = function(filename, contents) {
+        this.cesEmulatorFileRead = function(filename, contents, iov, iovcnt, offset) {
 
-            //nothing yet
+            //still bring written, extend timer
+            if (_fileReadTimeout[filename]) {
+
+                clearTimeout(_fileReadTimeout[filename]);
+            }
+
+            //create a timer which when expires, indicates that no more file writing is taking place
+            _fileReadTimeout[filename] = setTimeout(function() {
+
+                clearTimeout(_fileReadTimeout[filename]);
+
+                delete _fileReadTimeout[filename];
+
+                //bubble up
+                if (self.OnEmulatorFileRead) {
+                    self.OnEmulatorFileRead(filename, contents);
+                }
+
+            }, _fileTimerDelay);
         };
 
         this.cesWriteFile = function(parent, filename, contents, callback) {

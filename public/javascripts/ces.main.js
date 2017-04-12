@@ -51,7 +51,8 @@ var cesMain = (function() {
             'shaderselector': $('#systemshaderseletor'),
             'savedstateseletor': $('#savedstateseletor'),
             'gameloading': $('#gameloading'),
-            'emulatorexception': $('#emulatorexception')
+            'emulatorexception': $('#emulatorexception'),
+            'saveloading': $('#saveloading')
         });
 
         //unpack client data
@@ -65,7 +66,7 @@ var cesMain = (function() {
         //unpack playerdata
         _PlayerData = new cesPlayerData(_Compression, clientdata.playerdata); //player data is user specific, can be dynmic
 
-        _RecentlyPlayed = new cesRecentlyPlayed(_config, _Compression, PlayGame, $('#recentlyplayedgrid'), _PlayerData.GetPlayHistory());
+        _RecentlyPlayed = new cesRecentlyPlayed(_config, _Compression, PlayGame, $('#recentlyplayedgrid'), _PlayerData.GetPlayHistory(), _PlayerData.RemoveFromPlayHistory);
 
         //show welcome dialog
         if ($.isEmptyObject(_PlayerData.playHistory)) {
@@ -388,7 +389,7 @@ var cesMain = (function() {
                             $('#gametitlecaption').text(info.Publisher + ', ' +  year[0]);
                         }
                             
-                        _preventLoadingGame = false; //during shader select, allow other games to load
+                        _preventLoadingGame = false; //during save select, allow other games to load
 
                         //are there states to load? Let's show a dialog to chose from, if not - will go straight to start
                         ShowSaveSelection(system, title, file, function(saveKey) {
@@ -403,61 +404,58 @@ var cesMain = (function() {
                             //lets ensure a minimum time has passed (see private vars)
                             setTimeout(function() {
 
-                                //stop rolling tips
-                                $('#tips').stop().hide();
-                                clearInterval(tipInterval);
-
                                 var save = _SavesManager.GetSave(saveKey); //returns null if none
 
                                 // load state? bails if not set
-                                _Emulator.LoadSave(save, function(saveStateLoaded) { //if save not set, bails on null
+                                _Emulator.LoadSave(save, function() { //if save not set, bails on null
 
-                                    //close all dialogs, game begins!
-                                    _Dialogs.CloseDialog(false, function() {
+                                    //begin game, callback is function which handles expections for any emulator error
+                                    _Emulator.BeginGame(OnEmulatorException);
 
-                                        //begin game, callback is function which handles expections for any emulator error
-                                        _Emulator.BeginGame(OnEmulatorException);
+                                    //before going any further, we can correctly assume that once the config
+                                    //is written, the file system is ready for us to read from it
+                                    _PubSub.SubscribeOnce('retroArchConfigWritten', self, function() {
 
-                                        //before going any further, we can correctly assume that once the config
-                                        //is written, the file system is ready for us to read from it
-                                        var removeSubcription = _PubSub.Subscribe('retroArchConfigWritten', function(filename, contents) {
-                                            
-                                            removeSubcription();
+                                        //load state? bails if not
+                                        LoadEmulatorState(_Emulator.activeStateFileName, function() {
 
-                                            //if a state was loaded, keypress load
-                                            if (saveStateLoaded) {
-                                                _Emulator.SimulateEmulatorKeypress(52);
-                                            }
+                                            //close all dialogs, game begins!
+                                            _Dialogs.CloseDialog(false, function() {
 
-                                            //handle title and content fadein steps
-                                            DisplayGameContext(system, title, function() {
+                                                //stop rolling tips
+                                                $('#tips').stop().hide();
+                                                clearInterval(tipInterval);
 
-                                            });
+                                                //handle title and content fadein steps
+                                                DisplayGameContext(system, title, function() {
 
-                                            //enlarge dialog area for emulator
-                                            _Dialogs.SetHeight($('#emulatorwrapper').outerHeight(), function() {
+                                                });
 
-                                                //reveal emulator
-                                                _Emulator.Show(); //also input is given to canvas in this step
+                                                //enlarge dialog area for emulator
+                                                _Dialogs.SetHeight($('#emulatorwrapper').outerHeight(), function() {
 
-                                                //assign focus to emulator canvas
-                                                $('#emulator')
-                                                    .blur(function(event) {
-                                                        if (!_preventGamePause) {
-                                                            _Emulator.PauseGame();
-                                                            $('#emulatorwrapperoverlay').fadeIn();
-                                                        }
-                                                    })
-                                                    .focus(function() {
-                                                        _Emulator.ResumeGame();
-                                                        $('#emulatorwrapperoverlay').hide();
-                                                    })
-                                                    .focus();
+                                                    //reveal emulator
+                                                    _Emulator.Show(); //also input is given to canvas in this step
 
-                                                //with all operations complete, callback
-                                                if (callback) {
-                                                    callback();
-                                                }
+                                                    //assign focus to emulator canvas
+                                                    $('#emulator')
+                                                        .blur(function(event) {
+                                                            if (!_preventGamePause) {
+                                                                _Emulator.PauseGame();
+                                                                $('#emulatorwrapperoverlay').fadeIn();
+                                                            }
+                                                        })
+                                                        .focus(function() {
+                                                            _Emulator.ResumeGame();
+                                                            $('#emulatorwrapperoverlay').hide();
+                                                        })
+                                                        .focus();
+
+                                                    //with all operations complete, callback
+                                                    if (callback) {
+                                                        callback();
+                                                    }
+                                                });
                                             });
                                         });
                                     });
@@ -468,6 +466,30 @@ var cesMain = (function() {
                 });
             });
         });
+    };
+
+    var LoadEmulatorState = function(saveStateFileName, callback) {
+
+        if (!saveStateFileName) {
+            callback();
+            return;
+        }
+
+        //create a subscription for when the state file will have finished loading, then resume
+        _PubSub.SubscribeOnce('stateRead', self, function() {
+
+            _Emulator.SimulateEmulatorKeypress(77, null, function() { //unmute
+                callback();
+            });
+        });
+
+        _Emulator.SimulateEmulatorKeypress(77, null, function() { //mute
+
+            _Emulator.SimulateEmulatorKeypress(52); //load state
+
+        });
+
+        _Dialogs.ShowDialog('saveloading');
     };
 
     var OnEmulatorException = function(e) {
@@ -901,16 +923,10 @@ var cesMain = (function() {
      * @param {Date} played     date game last played
      */
     var AddOrUpdatePlayHistory = function(key, system, title, file, lastPlayed, callback) {
-
-        var slot;
         
         var response = _PlayerData.AddOrUpdatePlayHistory(key, system, title, file, lastPlayed); //will add or update an existing game
 
-        var onRemove = function() {
-            _PlayerData.RemoveFromPlayHistory(key);
-        };
-
-        _RecentlyPlayed.Add(key, response.data, response.isnew, onRemove, function() {
+        _RecentlyPlayed.Add(key, response.data, response.isnew, _PlayerData.RemoveFromPlayHistory, function() {
             toolTips();
         });
     };

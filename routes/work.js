@@ -152,6 +152,11 @@ router.get('/emulatorprep', function(req, res, next) {
                         console.log('found place to intercept emulator writing files  ---> ' + re.test(content));
                         content = content.replace(re, 'if (Module.cesEmulatorFileWritten && stream && stream.node && stream.node.name && stream.node.contents) { Module.cesEmulatorFileWritten(stream.node.name, stream.node.contents);}$1');
 
+                        //trap file reads
+                        re = /(return ret\}\),doWritev)/;
+                        console.log('found place to intercept emulator reading files  ---> ' + re.test(content));
+                        content = content.replace(re, 'if (Module.cesEmulatorFileRead && stream && stream.node && stream.node.name && stream.node.contents) { Module.cesEmulatorFileRead(stream.node.name, stream.node.contents, iov, iovcnt, offset);}$1');
+
                         //trap file writes
                         // re = /var curr=FS\.write\(stream,HEAP8,ptr,len,offset\);/;
                         // console.log('found place to intercept emulator writing files  ---> ' + re.test(content));

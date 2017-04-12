@@ -1,4 +1,4 @@
-var cesRecentlyPlayed = (function(config, _Compression, PlayGame, $wrapper, initialData) {
+var cesRecentlyPlayed = (function(config, _Compression, _PlayGame, $wrapper, _initialData, _OnRemoveHandler) {
 		
 	//private members
 	var self = this;
@@ -22,15 +22,15 @@ var cesRecentlyPlayed = (function(config, _Compression, PlayGame, $wrapper, init
         });
     };
 
-	this.Add = function (key, data, isNew, onRemove, callback) {
+	this.Add = function (key, data, isNew, callback) {
 
         //data comes in from playerdata
-        if (data.system && data.title && data.file && data.played && data.slots) {
+        if (data.system && data.title && data.file && data.lastPlayed) {
 
             //is new, create a gamelink and add
             if (isNew) {
 
-        		AddToGrid(key, data.system, data.title, data.file, data.played, data.slots, onRemove, function() {
+        		AddToGrid(key, data.system, data.title, data.file, data.lastPlayed, function() {
 
                     OnImagesLoaded();
                 });
@@ -40,9 +40,9 @@ var cesRecentlyPlayed = (function(config, _Compression, PlayGame, $wrapper, init
                 
                 var $item = _grid.find('*[data-key="' + key + '"]');
 
-                $item.attr('data-played', data.played);
+                $item.attr('data-lastPlayed', data.lastPlayed);
 
-                self.SortBy('played', false);
+                self.SortBy('lastPlayed', false);
 
                 OnImagesLoaded();
             }
@@ -68,21 +68,21 @@ var cesRecentlyPlayed = (function(config, _Compression, PlayGame, $wrapper, init
      * @param {[type]}   slots    [description]
      * @param {Function} callback [description]
      */
-	var AddToGrid = function(key, system, title, file, played, slots, onRemove, callback) {
+	var AddToGrid = function(key, system, title, file, lastPlayed, callback) {
 
         //create the grid item
         var $griditem = $('<div class="grid-item" />');
 
-		var gamelink = new cesGameLink(config, system, title, file, 120, true, PlayGame);
+		var gamelink = new cesGameLink(config, system, title, file, 120, true, _PlayGame);
 
         //set the on remove function
         gamelink.OnRemoveClick(function() {
-            OnRemove(key, gamelink, $griditem, onRemove);
+            Remove(key, gamelink, $griditem);
         });
 
         //place sorting data on grid item
         $griditem.attr('data-key', key);
-        $griditem.attr('data-played', played);
+        $griditem.attr('data-lastPlayed', lastPlayed);
 
         $griditem.append(gamelink.GetDOM()); //add gamelink
         
@@ -93,7 +93,7 @@ var cesRecentlyPlayed = (function(config, _Compression, PlayGame, $wrapper, init
         }
 	};
 
-    var OnRemove = function(key, gamelink, griditem, onRemove) {
+    var Remove = function(key, gamelink, griditem) {
 
         //maybe set a loading spinner on image here?
         
@@ -115,8 +115,8 @@ var cesRecentlyPlayed = (function(config, _Compression, PlayGame, $wrapper, init
                 gamelink = null;
 
                 //callback the function to remove from player data
-                if (onRemove) {
-                    onRemove(); //passed in, will remove from player data at main level 
+                if (_OnRemoveHandler) {
+                    _OnRemoveHandler(key); //passed in, will remove from player data at main level 
                 }
             }
         });
@@ -129,17 +129,17 @@ var cesRecentlyPlayed = (function(config, _Compression, PlayGame, $wrapper, init
             itemSelector: '.grid-item',
             getSortData: {
                 played: function(item) {
-                    var played = $(item).attr('data-played');
+                    var played = $(item).attr('data-lastPlayed');
                     return parseInt(played, 10);
                 }
             }
         });
 
-        for (var game in initialData) {
-            AddToGrid(game, initialData[game].system, initialData[game].title, initialData[game].file, initialData[game].played, initialData[game].slots); 
+        for (var game in _initialData) {
+            AddToGrid(game, _initialData[game].system, _initialData[game].title, _initialData[game].file, _initialData[game].lastPlayed); 
         }
 
-        self.SortBy('played', false);
+        self.SortBy('lastPlayed', false);
 
         OnImagesLoaded();
 
