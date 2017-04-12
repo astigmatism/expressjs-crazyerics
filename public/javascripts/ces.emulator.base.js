@@ -7,13 +7,12 @@
  * @param  {string} file         Super Mario Bros. 3 (U)[!].nes
  * @return {undef}
  */
-var cesEmulatorBase = (function(_Compression, _config, _system, _title, _file, _key, _ui, _OnEmulatorKeydownHandler, _OnEmulatorFileWriteHandler, _OnStateSavedHandler) {
+var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title, _file, _key, _ui) {
 
     // private members
     var self = this;
     var FS = null;
     var _isLoading = false;
-    var _fileWriteDeffers = {}; //since saving state to server requires both state and screenshot data, setup these deffers since tracking which comes back first is unknown
     var _keypresslocked = false; //if we are simulating a keypress (down and up) this boolean prevents another keypress until the current one is complete
     var _browserFunctionKeysWeWantToStop = {
         9: "tab",
@@ -42,9 +41,14 @@ var cesEmulatorBase = (function(_Compression, _config, _system, _title, _file, _
         122: "F11",
         123: "F12"
     };
+    var _inputMap = {
+
+    };
     var _displayDurationShow = 1000;
     var _displayDurationHide = 500;
-    var _fileWriteTimeout = 30000; //hopefully never take more than 30 sec!
+    var _creatingNewSave = false;
+    var _timeToWaitForScreenshot = 10000; //hopefully never take more than 10
+    var _timeToWaitForSaveState = 30000; //hopefully never more than 30
 
     //instances
     var _EmulatorInstance = null;
@@ -182,6 +186,11 @@ var cesEmulatorBase = (function(_Compression, _config, _system, _title, _file, _
         }
 
         if (_Module) {
+            
+            //try and auto save before closing down
+
+            self.SimulateEmulatorKeypress(77); //mute
+
             try {
 
                 //calls exit on emulator ending loop (just to be safe)
@@ -312,15 +321,7 @@ var cesEmulatorBase = (function(_Compression, _config, _system, _title, _file, _
 
             var data = _Compression.Zip.bytearray(contents);
 
-            //if a deffered is setup for recieveing save state data, call it.
-            if (_fileWriteDeffers.hasOwnProperty('state')) {
-                _fileWriteDeffers.state.resolve(data);
-            }
-
-            //if a handler is defined, call it
-            if (_OnEmulatorFileWriteHandler) {
-                _OnEmulatorFileWriteHandler('state', filename, contents);
-            }
+            _PubSub.Publish('stateWritten', [filename, contents, data]);
             return;
         }
 
@@ -329,140 +330,95 @@ var cesEmulatorBase = (function(_Compression, _config, _system, _title, _file, _
             //construct image into blob for use
             var arrayBufferView = new Uint8Array(contents);
 
-            //if a deffered from save state exists, use this screenshot for it and return
-            if (_fileWriteDeffers.hasOwnProperty('screen')) {
-                _fileWriteDeffers.screen.resolve(arrayBufferView);
-            }
-
-            if (_OnEmulatorFileWriteHandler) {
-                _OnEmulatorFileWriteHandler('screen', filename, contents, {
-                    arrayBufferView: arrayBufferView,
-                    system: _system,
-                    title: _title
-                });
-            }
+            _PubSub.Publish('screenshotWritten', [filename, contents, arrayBufferView, _system, _title]);
             return;
         }
 
         if (filename === 'retroarch.cfg') {
-            if (_OnEmulatorFileWriteHandler) {
-                _OnEmulatorFileWriteHandler('retroarchconfig', filename, contents);
-            }
+            _PubSub.Publish('retroArchConfigWritten', [contents]);
             return;
         }
     };
 
-    this.OnEmulatorKeydown = function(event, callback) {
+    this.OnEmulatorKeydown = function(event, proceedWithKeypressToEmulator) {
 
-        //pass the event up to the ces.main level for operation and result, proceed must be true
-        _OnEmulatorKeydownHandler(event, function(proceed) {
-
-            if (!proceed) {
-                callback(false);
-                return;
-            }
-
-            var key = event.keyCode;
-            switch (key) {
-                case 49: //1 - save state
+        var key = event.keyCode;
+        switch (key) {
+            case 49: //1 - save state
+                
+                CreateNewSave(function(proceed) {
                     
-                    //before state save, perform a screen capture
-                    TakeScreenshot(function(screenData) {
-
-                        //prepare a differed to listen when the state file is finished.
-                        //it can take a while too, sucks
-                        PrepareForState(function(stateData) {
-
-                            //finally the state file was written
-                            //or, its possible there was an error and either was not written
-                            //I handle this case with timeouts. the values will be null if not present
-                            //in this case I at least allow the pause process to bail and the user
-                            //can continue
-
-                            //callback to ces.main, pass the other privates just in case
-                            if (_OnStateSavedHandler && screenData && stateData) {
-                                _OnStateSavedHandler(_key, _system, _title, _file, stateData, screenData);
-                            }
-
-                        });
-                        callback(true); //allow original function to exe now that we have prepared our filesystem
-                    });
-                break;
-                default:
-                    callback(true);
-                break;
-            }
-
-        });
+                    proceedWithKeypressToEmulator(proceed);
+                });
+            break;
+            default:
+                proceedWithKeypressToEmulator(true);
+            break;
+        }
     };
 
     //private methods
 
-    var TakeScreenshot = function(callback) {
+    var CreateNewSave = function(proceedCallback) {
 
-        //bail if already in progress
-        if (_fileWriteDeffers.hasOwnProperty('screen')) {
+        //bail if already working
+        if (_creatingNewSave) {
+            proceedCallback(false);
             return;
         }
 
-        _fileWriteDeffers.screen = $.Deferred(); //define new deffer to wait for file write
+        _creatingNewSave = true;
 
-        //just in case we never hear back from the file write, 
-        var clearScreenFileDeffer = setTimeout(function() {
-            
-            _fileWriteDeffers.screen = null;
-            delete _fileWriteDeffers.screen;
-            
-            callback(null); //callback with null in this case
+        //before state save, perform a screen capture
+        var removeScreenshotSubscription = _PubSub.Subscribe('screenshotWritten', function(filename, contents, arrayBufferView, system, title) {
 
-        }, _fileWriteTimeout);
+            clearTimeout(screenshotTimeout);
+            removeScreenshotSubscription();
 
-        $.when(_fileWriteDeffers.screen).done(function(arrayBufferView) {
+            if (arrayBufferView) {
 
-            clearTimeout(clearScreenFileDeffer);
+                //it can take a while too, sucks
+                var removeStateSubscription = _PubSub.Subscribe('stateWritten', function(filename, contents, stateData) {
 
-            _fileWriteDeffers.screen = null;
-            delete _fileWriteDeffers.screen;
+                    clearTimeout(saveStateTimeout);
+                    removeStateSubscription();
 
-            if (callback) {
-                callback(arrayBufferView);
+                    //finally the state file was written
+
+                    //ok, to publish a new save is ready, we require screen and state data
+                    if (stateData) {
+                        _PubSub.Publish('newsave', [_key, arrayBufferView, stateData]);
+                    }
+
+                    _creatingNewSave = false;
+                });
+
+                //just like with screenshots, create a timer to remove the subscription in case we never hear back
+                var saveStateTimeout = setTimeout(function() {
+
+                    removeStateSubscription();
+                    _creatingNewSave = false;
+
+                }, _timeToWaitForSaveState);
+
+                proceedCallback(true); //allow original function to exe now that we have prepared our filesystem
+
+            } else {
+
+                proceedCallback(false);
             }
         });
+
+        //if I never hear back about a new screenshot, then remove this sub
+        var screenshotTimeout = setTimeout(function() {
+            
+            removeScreenshotSubscription();
+            _creatingNewSave = false;
+
+        }, _timeToWaitForScreenshot);
 
         //press key to begin screenshot capture
         self.SimulateEmulatorKeypress(84);
-    };
-
-    var PrepareForState = function(callback) {
-
-        //bail if already in progress
-        if (_fileWriteDeffers.hasOwnProperty('state')) {
-            return;
-        }
-
-        _fileWriteDeffers.state = $.Deferred(); //define new deffer to wait for file write
-
-        //just in case we never hear back from the file write, 
-        var clearStateFileDeffer = setTimeout(function() {
-            
-            _fileWriteDeffers.state = null;
-            delete _fileWriteDeffers.state;
-            
-            callback(null); //callback with null in this case
-
-        }, _fileWriteTimeout);
-
-        $.when(_fileWriteDeffers.state).done(function(bytearray) {
-
-            clearTimeout(clearStateFileDeffer);
-
-            _fileWriteDeffers.state = null;
-            delete _fileWriteDeffers.state;
-
-            if (callback) {
-                callback(bytearray);
-            }
-        });
 
     };
 

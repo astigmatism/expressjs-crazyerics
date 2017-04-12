@@ -20,11 +20,11 @@ var cesMain = (function() {
     var _preventGamePause = false; //condition for blur event of emulator, sometimes we don't want it to pause when we're giving it back focus
     var _minimumGameLoadingTime = 4000; //have to consider tips (make longer) and transition times
     var _defaultSuggestions = 60;
-    var _retroArchConfigWritten; //for tracking async file writes with deffered
     var _suggestionsLoading = false;
 
     // instances/libraries
     var _Compression = null;
+    var _PubSub = null;
     var _PlayerData = null;
     var _Sliders = null;
     var _SavesManager = null;
@@ -41,6 +41,8 @@ var cesMain = (function() {
 
         //load libraries
         _Compression = new cesCompression();
+
+        _PubSub = new cesPubSub();
         
         //ui handles for the dialog class (add as needed, we want to only referece jquery in main if possible)
         _Dialogs = new cesDialogs($('#dialogs'), {
@@ -215,7 +217,7 @@ var cesMain = (function() {
         });
 
         //stuff to do when at work mode is enabled
-        $('#titlebanner').hide();
+        //$('#titlebanner').hide();
 
         _Sliders = new cesSliders();
 
@@ -231,6 +233,10 @@ var cesMain = (function() {
         if ('system' in openonload && 'title' in openonload && 'file' in openonload) {
             PlayGame(openonload.system, openonload.title, openonload.file);
         }
+
+        //setup always on listeners
+        _PubSub.Subscribe('newsave', OnNewSaveSubscription);
+        _PubSub.Subscribe('keydown', OnEmulatorKeydownSubscription);
 
     });
 
@@ -401,9 +407,6 @@ var cesMain = (function() {
                                 $('#tips').stop().hide();
                                 clearInterval(tipInterval);
 
-                                _retroArchConfigWritten = $.Deferred();
-
-
                                 var save = _SavesManager.GetSave(saveKey); //returns null if none
 
                                 // load state? bails if not set
@@ -417,8 +420,10 @@ var cesMain = (function() {
 
                                         //before going any further, we can correctly assume that once the config
                                         //is written, the file system is ready for us to read from it
-                                        $.when(_retroArchConfigWritten).done(function() {
+                                        var removeSubcription = _PubSub.Subscribe('retroArchConfigWritten', function(filename, contents) {
                                             
+                                            removeSubcription();
+
                                             //if a state was loaded, keypress load
                                             if (saveStateLoaded) {
                                                 _Emulator.SimulateEmulatorKeypress(52);
@@ -469,7 +474,6 @@ var cesMain = (function() {
 
         CleanUpEmulator(function() {
 
-
             _preventLoadingGame = false; //in case it failed during start
 
             $('#emulatorexceptiondetails').text(e);
@@ -495,9 +499,9 @@ var cesMain = (function() {
                 }
 
                 //the class extention process: on the prototype of the ext, create using the base class.
-                cesEmulator.prototype = new cesEmulatorBase(_Compression, _config, system, title, file, key, ui, OnEmulatorKeydown, OnEmulatorFileWrite, OnNewSave);
+                cesEmulator.prototype = new cesEmulatorBase(_Compression, _PubSub, _config, system, title, file, key, ui);
 
-                var emulator = new cesEmulator(_Compression, _config, system, title, file, key);
+                var emulator = new cesEmulator(_Compression, _PubSub, _config, system, title, file, key);
 
                 //KEEP IN MIND: this pattern is imperfect. only the resulting structure (var emulator and later _Emulator)
                 //will have access to data in both, cesEmulatorBase does not have knowledge of anything in cesEmulator
@@ -510,7 +514,7 @@ var cesMain = (function() {
         );
     };
 
-    var OnNewSave = function(key, system, title, file, statedata, screendata) {
+    var OnNewSaveSubscription = function(key, screendata, statedata) {
 
         _SavesManager.AddSave(key, statedata, screendata, function() {
 
@@ -518,7 +522,7 @@ var cesMain = (function() {
         });
     };
 
-    var OnEmulatorKeydown = function(event, callback) {
+    var OnEmulatorKeydownSubscription = function(event, callback) {
         
         var key = event.keyCode;
             switch (key) {
@@ -534,7 +538,7 @@ var cesMain = (function() {
         }
     };
 
-    var OnEmulatorFileWrite = function(type, filename, contents, options) {
+    var OnEmulatorFileWrite = function(filename, contents, options) {
         
         if (type === 'screen') {
 
@@ -555,13 +559,6 @@ var cesMain = (function() {
 
             //kick open the screenshot slider
             //_Sliders.Open('screenshotsslider', true);
-        }
-
-        if (type === 'retroarchconfig') {
-
-            if (_retroArchConfigWritten) {
-                _retroArchConfigWritten.resolve();
-            }
         }
     };
 
@@ -1005,7 +1002,7 @@ $.fn.animateRotate = function(startingangle, angle, duration, easing, complete) 
 cesGetBoxFront = function(config, system, title, size) {
 
     var _Compression = new cesCompression();
-    var _nerfImages = true;
+    var _nerfImages = false;
 
     //have box title's been compressed (to obfiscate on cdn)
     if (config.flattenedboxfiles) {
