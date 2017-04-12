@@ -236,8 +236,8 @@ var cesMain = (function() {
         }
 
         //setup always on listeners
-        _PubSub.Subscribe('newsave', OnNewSaveSubscription);
-        _PubSub.Subscribe('keydown', OnEmulatorKeydownSubscription);
+        _PubSub.Subscribe('newsave', self, OnNewSaveSubscription);
+        _PubSub.Subscribe('keydown', self, OnEmulatorKeydownSubscription);
 
     });
 

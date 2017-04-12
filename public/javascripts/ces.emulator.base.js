@@ -382,14 +382,14 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
         _creatingNewSave = true;
 
         //before state save, perform a screen capture
-        _PubSub.SubscribeOnce('screenshotWritten', function(filename, contents, arrayBufferView, system, title) {
+        _PubSub.SubscribeOnce('screenshotWritten', self, function(filename, contents, arrayBufferView, system, title) {
 
             clearTimeout(screenshotTimeout);
 
             if (arrayBufferView) {
 
                 //it can take a while too, sucks
-                _PubSub.SubscribeOnce('stateWritten', function(filename, contents, stateData) {
+                _PubSub.SubscribeOnce('stateWritten', self, function(filename, contents, stateData) {
 
                     clearTimeout(saveStateTimeout);
 
