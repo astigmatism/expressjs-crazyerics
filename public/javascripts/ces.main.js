@@ -19,6 +19,7 @@ var cesMain = (function() {
     var _preventLoadingGame = false;
     var _preventGamePause = false; //condition for blur event of emulator, sometimes we don't want it to pause when we're giving it back focus
     var _minimumGameLoadingTime = 4000; //have to consider tips (make longer) and transition times
+    var _minimumSaveLoadingTime = 3000; //have to consider tips (make longer) and transition times
     var _defaultSuggestions = 60;
     var _suggestionsLoading = false;
 
@@ -49,7 +50,7 @@ var cesMain = (function() {
             'welcomefirst': $('#welcomemessage'),
             'welcomeback': $('#welcomeback'),
             'shaderselector': $('#systemshaderseletor'),
-            'savedstateseletor': $('#savedstateseletor'),
+            'savedgameselector': $('#savedgameselector'),
             'gameloading': $('#gameloading'),
             'emulatorexception': $('#emulatorexception'),
             'saveloading': $('#saveloading')
@@ -416,10 +417,11 @@ var cesMain = (function() {
                                     //is written, the file system is ready for us to read from it
                                     _PubSub.SubscribeOnce('retroArchConfigWritten', self, function() {
 
-                                        //load state? bails if not
-                                        LoadEmulatorState(_Emulator.activeStateFileName, function() {
+                                        //load state? bails if null.. if valid, will show a new save loading dialog
+                                        //and will load state. callback occurs after state has loaded
+                                        LoadEmulatorState(system, _Emulator.loadedSaveData, function() {
 
-                                            //close all dialogs, game begins!
+                                            //close all dialogs (save loading or game loading), game begins!
                                             _Dialogs.CloseDialog(false, function() {
 
                                                 //stop rolling tips
@@ -468,19 +470,28 @@ var cesMain = (function() {
         });
     };
 
-    var LoadEmulatorState = function(saveStateFileName, callback) {
+    var LoadEmulatorState = function(system, saveData, callback) {
 
-        if (!saveStateFileName) {
+        if ($.isEmptyObject(saveData)) {
             callback();
             return;
         }
 
+        //build loading dialog with image
+        var saveLoadingStart = Date.now();
+
         //create a subscription for when the state file will have finished loading, then resume
         _PubSub.SubscribeOnce('stateRead', self, function() {
 
-            _Emulator.SimulateEmulatorKeypress(77, null, function() { //unmute
-                callback();
-            });
+            //just like game loading, show the save loading screen for a minimum time before pressing the load
+            var saveLoadingDialogUptime = Math.floor(Date.now() - saveLoadingStart);
+            var artificialDelayForLoadingScreen = saveLoadingDialogUptime > _minimumGameLoadingTime ? 0 : _minimumGameLoadingTime - saveLoadingDialogUptime;
+
+            setTimeout(function() {
+                _Emulator.SimulateEmulatorKeypress(77, null, function() { //unmute
+                    callback();
+                });
+            }, _minimumSaveLoadingTime);
         });
 
         _Emulator.SimulateEmulatorKeypress(77, null, function() { //mute
@@ -488,8 +499,6 @@ var cesMain = (function() {
             _Emulator.SimulateEmulatorKeypress(52); //load state
 
         });
-
-        _Dialogs.ShowDialog('saveloading');
     };
 
     var OnEmulatorException = function(e) {
@@ -685,43 +694,42 @@ var cesMain = (function() {
             return;
         }
 
-        $('#stateselectlist').empty(); //empty list from last load
-        $('#savedstateselectorlistwrapper').scrollTop(0); //in case they scrolled down previously
+        $('#savesselectlist').empty();
 
-        //bind no state load to h3
-        $('#savedstateseletor h3').off().on('mouseup', function() {
-            callback(null);
-            $('#savedstateseletor').addClass('close');
-
-        });
-
-        for (var i = 0, len = saves.length; i < len; ++i) {
-
+        //show up to latest 3
+        for (var i = 0, len = saves.length; i < len && i < 3; ++i) {
             (function(i) {
-
-                var image = BuildScreenshot(system, saves[i].screenshot, 180);
-
-                var li = $('<li class="zoom tooltip"></li>')
-                .on('mouseup', function() {
-
-                    //on selection, callback with key
+                var $image = $(BuildScreenshot(system, saves[i].screenshot, 200));
+                var $li = $('<li class="zoom" data-shader=""><h3>' + ((i === 0) ? 'Latest: ' : '') + saves[i].time + '</h3></li>').on('click', function(e) {
+                    
                     callback(saves[i].key);
-                    $('#savedstateseletor').addClass('close');
-
+                    ShowSaveLoading(system, saves[i].screenshot);
                 });
-
-                li.attr('title', saves[i].time);
-
-                $(li).prepend(image);
-
-                $('#stateselectlist').prepend(li);
+                $li.append($image);
+                $('#savesselectlist').append($li);
             })(i);
         }
 
-        toolTips();
+        $('#loadnosaves').off().on('mouseup', function() {
+            callback(null);
+            _Dialogs.CloseDialog(); //close now
+        });
 
         //show dialog
-        _Dialogs.ShowDialog('savedstateseletor');
+        _Dialogs.ShowDialog('savedgameselector');
+    };
+
+    var ShowSaveLoading = function(system, screenshotData) {
+
+        var $image = $(BuildScreenshot(system, screenshotData, 200));
+        $image.addClass('tada');
+        $image.load(function() {
+            $(this).fadeIn(200);
+        });
+
+        $('#saveloadingimage').empty().addClass('centered').append($image);
+
+        _Dialogs.ShowDialog('saveloading');
     };
 
     var ShowGameLoading = function(system, title, callback) {
@@ -899,11 +907,8 @@ var cesMain = (function() {
         });
 
         //get screen ratio from config
-        if (_config.retroarch && _config.retroarch[system]) {
-            screenratio = _config.retroarch[system].match(/video_aspect_ratio = (\d+\.+\d+)/);
-            if ($.isArray(screenratio) && screenratio.length > 1) {
-                screenratio = parseFloat(screenratio[1]);
-            }
+        if (_config.systemdetails[system] && _config.systemdetails[system].retroarch && _config.systemdetails[system].retroarch.video_aspect_ratio) {
+            screenratio = parseFloat(_config.systemdetails[system].retroarch.video_aspect_ratio);
         }
 
         var urlCreator = window.URL || window.webkitURL;

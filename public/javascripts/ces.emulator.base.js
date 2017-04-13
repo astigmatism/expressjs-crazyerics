@@ -55,7 +55,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
     var _Module = null;
 
     //protected
-    this.activeStateFileName = null; //this is a space I use for indictaing a state file was written during load
+    this.loadedSaveData = null; //this is a space I use for indictaing a state file was written during load
 
     // public methods
         
@@ -109,7 +109,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
 
         //if null, we want to inform the loading process can continue with a load
         if ($.isEmptyObject(saveData)) {
-            self.activeStateFileName = null;
+            self.loadedSaveData = null;
             callback(false);
             return;
         }
@@ -121,7 +121,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
 
         _Module.cesWriteFile('/states', statefilename, saveData.state, function() {
 
-            self.activeStateFileName = statefilename;
+            self.loadedSaveData = saveData;
             callback(true);
         });
     };

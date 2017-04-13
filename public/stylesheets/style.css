@@ -500,31 +500,42 @@ p {
 	margin-left: 10px;	
 }
 
-/* saved state selector */
+/* saved game selector */
 
-#savedstateseletor {
-	height: 550px;
+#savedgameselector {
+	height: 450px;
 }
 
-#savedstateseletor h3 {
-	cursor: pointer;
-	margin-bottom: 20px;
-}
-
-#savedstateselectorlistwrapper {
-	height: 400px;
-	overflow-y: scroll;
-}
-
-#stateselectlist {
-	margin: 10px;
-	padding: 0;
-}
-
-#stateselectlist li {
+#savesselectlist {
+	margin: 40px auto;
 	list-style: none;
+	padding: 0;
+	width: 800px;
+}
+
+#savesselectlist li {
+	height: 200px;
+	width: 200px;
+	margin: 10px 20px;
 	display: inline-block;
-	margin: 0px 5px;
+	cursor: pointer;
+}
+
+#savesselectlist li h3 {
+	margin: 0;
+	padding: 10px 0;
+	font-size: 1.0em;
+}
+
+#savesselectlist li p {
+	margin: 0;
+	padding: 0;
+	font-size: 12px;
+}
+
+#loadnosaves {
+	font-size: 1.2em;
+	margin-left: 10px;	
 	cursor: pointer;
 }
 
@@ -535,8 +546,11 @@ p {
 	height: 600px;
 }
 
-#gameloadingimage img, #saveloadingimage img {
+#gameloadingimage img {
 	width: 130px;
+}
+
+#gameloadingimage img, #saveloadingimage img {
 	display: none;
 
 	-webkit-animation-duration: 5s; 

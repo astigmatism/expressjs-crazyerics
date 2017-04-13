@@ -128,7 +128,7 @@ var cesRecentlyPlayed = (function(config, _Compression, _PlayGame, $wrapper, _in
 		_grid = $wrapper.isotope({
             itemSelector: '.grid-item',
             getSortData: {
-                played: function(item) {
+                lastPlayed: function(item) {
                     var played = $(item).attr('data-lastPlayed');
                     return parseInt(played, 10);
                 }

@@ -39,6 +39,9 @@
 			"collection": "GoodGBx 3.14",
 			"emuextention": "2017-03-27",
 			"emuscript": "gambatte_libretro.js",
+			"retroarch": {
+				"video_aspect_ratio": 1.111
+			},
 			"recommendedshaders": [ 
 				{
 					"title": "Game Boy Advance",
@@ -92,7 +95,7 @@
 			"romcdnversion": "2.0.1",
 			"collection": "GoodNES 3.23b",
 			"retroarch": {
-				"video_aspect_ratio": 0.75
+				"video_aspect_ratio": 1.143
 			},
 			"emuextention": "2017-03-27",
 			"emuscript": "nestopia_libretro.js",
@@ -278,7 +281,10 @@
 			"romcdnversion": "2.0.1",
 			"emuextention": "2017-03-27",
 			"emuscript": "mednafen_vb_libretro.js",
-			"recommendedshaders": []
+			"recommendedshaders": [],
+			"retroarch": {
+				"video_aspect_ratio": 1.25
+			}
 		},
 		"wsx": {
 			"name": "Bandai WonderSwan",

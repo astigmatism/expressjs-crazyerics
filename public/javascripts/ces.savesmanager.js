@@ -54,7 +54,8 @@ var cesSavesManager = (function (_Compression, _initialSaveData) {
         var state       = _Compression.Unzip.bytearray(stateData);
 
         key = parseInt(key, 10); //convert to int for this function
-        var time = $.format.date(key, 'ddd MM-dd-yyyy h:mma'); //using the jquery dateFormat plugin
+        //var time = $.format.date(key, 'ddd MM-dd-yyyy h:mma'); //using the jquery dateFormat plugin
+        var time = $.format.date(key, 'MMM D h:mma'); //using the jquery dateFormat plugin
 
         _savesData[key] = {
             state: state,
@@ -65,9 +66,9 @@ var cesSavesManager = (function (_Compression, _initialSaveData) {
 
         _keys.push(key);
 
-        //oldest to newest
+        //newest to oldest
         _keys.sort(function(a, b) {
-          return a - b;
+          return b - a;
         });
     };
 

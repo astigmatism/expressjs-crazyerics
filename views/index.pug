@@ -26,11 +26,11 @@ block content
                     input(type="checkbox") 
                     label Save this choice for all future #[span] games. You can reset this later.
             div(class="dialogwrapper")
-                div#savedstateseletor
-                    h2 Did you want to load a previously saved state?
-                    div#savedstateselectorlistwrapper
-                        ul#stateselectlist
-                    h3 No State, Load Game From Beginning
+                div#savedgameselector
+                    h2 Load recent saved progress?
+                    ul#savesselectlist
+                    h3#loadnosaves(class="zoom") No Thanks, Load Game From Beginning
+                    div#loadsavegrid(class="grid")
             div(class="dialogwrapper")
                 div#gameloading
                     h2 Now Loading
@@ -45,7 +45,7 @@ block content
                     p#emulatorexceptiondetails
             div(class="dialogwrapper")
                 div#saveloading
-                    h2 Now Loading Save
+                    h2 Loading Saved Progress
                     div#saveloadingimage
                         img(class="tada")
 
