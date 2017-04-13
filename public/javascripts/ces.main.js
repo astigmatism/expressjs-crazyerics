@@ -700,12 +700,17 @@ var cesMain = (function() {
         for (var i = 0, len = saves.length; i < len && i < 3; ++i) {
             (function(i) {
                 var $image = $(BuildScreenshot(system, saves[i].screenshot, 200));
-                var $li = $('<li class="zoom" data-shader=""><h3>' + ((i === 0) ? 'Latest: ' : '') + saves[i].time + '</h3></li>').on('click', function(e) {
+                var $li = $('<li class="zoom" data-shader=""><h3>' + saves[i].time + '</h3></li>').on('click', function(e) {
                     
                     callback(saves[i].key);
                     ShowSaveLoading(system, saves[i].screenshot);
                 });
-                $li.append($image);
+
+                var $ribbonInner = $('<div class="ribbon-green" />').text('MONEY');//.append($image);
+                var $ribbonOuter = $('<div class="ribbon-wrapper-green" />').append($ribbonInner);
+                var $imageWrapper = $('<div style="position:relative" />').append($ribbonOuter);
+
+                $li.append($imageWrapper);
                 $('#savesselectlist').append($li);
             })(i);
         }
