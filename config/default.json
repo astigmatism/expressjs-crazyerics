@@ -17,7 +17,8 @@
 			"romcdnversion": "2.0.2",
 			"emuextention": "2017-03-27",
 			"emuscript": "vecx_libretro.js",
-			"recommendedshaders": []
+			"recommendedshaders": [],
+			"screenshotaspectratio": 0.8
 		},
 		"a7800": {
 			"name": "Atari 7800",
@@ -28,7 +29,8 @@
 			"collection": "Good7800 3.28",
 			"emuextention": "2017-03-27",
 			"emuscript": "prosystem_libretro.js",
-			"recommendedshaders": []
+			"recommendedshaders": [],
+			"screenshotaspectratio": 1.714
 		},
 		"gb": {
 			"name": "Nintendo Game Boy",
@@ -39,9 +41,7 @@
 			"collection": "GoodGBx 3.14",
 			"emuextention": "2017-03-27",
 			"emuscript": "gambatte_libretro.js",
-			"retroarch": {
-				"video_aspect_ratio": 1.111
-			},
+			"screenshotaspectratio": 1.11,
 			"recommendedshaders": [ 
 				{
 					"title": "Game Boy Advance",
@@ -69,6 +69,7 @@
 			"collection": "GoodGBA v3.23",
 			"emuextention": "2017-03-27",
 			"emuscript": "vba_next_libretro.js",
+			"screenshotaspectratio": 1.5,
 			"recommendedshaders": [
 				{
 					"title": "Game Boy Advance",
@@ -94,12 +95,10 @@
 			"boxcdnversion": "2.0.2",
 			"romcdnversion": "2.0.1",
 			"collection": "GoodNES 3.23b",
-			"retroarch": {
-				"video_aspect_ratio": 1.143
-			},
 			"emuextention": "2017-03-27",
 			"emuscript": "nestopia_libretro.js",
-			"recommendedshaders": []
+			"recommendedshaders": [],
+			"screenshotaspectratio": 1.142857142857143
 		},
 		"pce": {
 			"name": "NEC TurboGrafx-16",
@@ -110,7 +109,8 @@
 			"collection": "GoodPCE 1.09a GoodMerged",
 			"emuextention": "2017-03-27",
 			"emuscript": "mednafen_pce_fast_libretro.js",
-			"recommendedshaders": []
+			"recommendedshaders": [],
+			"screenshotaspectratio": 1.142857142857143
 		},
 		"snes": {
 			"name": "Super Nintendo Entermainment System",
@@ -121,6 +121,7 @@
 			"collection": "GoodSNES 3.23",
 			"emuextention": "2017-03-27",
 			"emuscript": "snes9x2010_libretro.js",
+			"screenshotaspectratio": 1.142857142857143,
 			"recommendedshaders": [
 				{
 					"title": "Vintage Television",
@@ -146,6 +147,7 @@
 			"boxcdnversion": "2.0.2",
 			"romcdnversion": "2.0.1",
 			"emuextention": "2017-03-27",
+			"screenshotaspectratio": 1.333333333333333,
 			"emuscript": "genesis_plus_gx_libretro.js",
 			"recommendedshaders": [
 				{
@@ -173,6 +175,7 @@
 			"romcdnversion": "2.0.0",
 			"emuextention": "2017-03-27",
 			"emuscript": "genesis_plus_gx_libretro.js",
+			"screenshotaspectratio": 1.333333333333333,
 			"recommendedshaders": [
 				{
 					"title": "Vintage Television",
@@ -200,6 +203,7 @@
 			"romcdnversion": "2.0.1",
 			"emuextention": "2017-03-27",
 			"emuscript": "genesis_plus_gx_libretro.js",
+			"screenshotaspectratio": 1.11,
 			"recommendedshaders": [
 				{
 					"title": "Vintage LCD",
@@ -227,6 +231,7 @@
 			"romcdnversion": "2.0.4",
 			"emuextention": "2017-03-27",
 			"emuscript": "mupen64plus_libretro.js",
+			"screenshotaspectratio": 1.142857143,
 			"retroarch": {
 				"video_aspect_ratio": 1.142857143,
 				"input_player1_l2": "a",
@@ -270,7 +275,8 @@
 			"romcdnversion": "2.0.1",
 			"emuextention": "2017-03-27",
 			"emuscript": "handy_libretro.js",
-			"recommendedshaders": []
+			"recommendedshaders": [],
+			"screenshotaspectratio": 1.57
 		},
 		"vb": {
 			"name": "Nintendo Virtual Boy",
@@ -282,9 +288,7 @@
 			"emuextention": "2017-03-27",
 			"emuscript": "mednafen_vb_libretro.js",
 			"recommendedshaders": [],
-			"retroarch": {
-				"video_aspect_ratio": 1.25
-			}
+			"screenshotaspectratio": 1.25
 		},
 		"wsx": {
 			"name": "Bandai WonderSwan",
@@ -296,7 +300,8 @@
 			"suggestionThreshold": 250,
 			"emuextention": "2017-03-27",
 			"emuscript": "mednafen_wswan_libretro.js",
-			"recommendedshaders": []
+			"recommendedshaders": [],
+			"screenshotaspectratio": 1.56
 		},
 		"a5200": {
 			"name": "Atari 5200",
@@ -317,7 +322,8 @@
 			"romcdnversion": "2.0.1",
 			"emuextention": "2017-03-27",
 			"emuscript": "stella_libretro.js",
-			"recommendedshaders": []
+			"recommendedshaders": [],
+			"screenshotaspectratio": 1.2
 		},
 		"ngpx": {
 			"name": "Neo Geo Pocket",
@@ -327,7 +333,8 @@
 			"romcdnversion": "2.0.0",
 			"emuextention": "2017-03-27",
 			"emuscript": "mednafen_ngp_libretro.js",
-			"recommendedshaders": []
+			"recommendedshaders": [],
+			"screenshotaspectratio": 1.05
 		},
 		"jag": {
 			"name": "Atari Jaguar",
@@ -338,7 +345,8 @@
 			"romcdnversion": "2.0.2",
 			"emuextention": "2017-03-27",
 			"emuscript": "virtualjaguar_libretro.js",
-			"recommendedshaders": []
+			"recommendedshaders": [],
+			"screenshotaspectratio": 1.428571428571429
 		},
 		"nds": {
 			"name": "Nintendo DS",
@@ -348,7 +356,8 @@
 			"romcdnversion": "2.0.0",
 			"emuextention": "2017-03-27",
 			"emuscript": "desmume_libretro.js",
-			"recommendedshaders": []
+			"recommendedshaders": [],
+			"screenshotaspectratio": 1.33
 		}
 	},
 	"search": {

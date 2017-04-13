@@ -706,9 +706,23 @@ var cesMain = (function() {
                     ShowSaveLoading(system, saves[i].screenshot);
                 });
 
-                var $ribbonInner = $('<div class="ribbon-green" />').text('MONEY');//.append($image);
-                var $ribbonOuter = $('<div class="ribbon-wrapper-green" />').append($ribbonInner);
-                var $imageWrapper = $('<div style="position:relative" />').append($ribbonOuter);
+                var $imageWrapper; 
+                var $ribbonInner;
+                var $ribbonOuter;
+
+                if (i === 0) {
+                    $ribbonInner = $('<div class="ribbon-green ribbon" />').text('NEWEST');//.append($image);
+                    $ribbonOuter = $('<div class="ribbon-wrapper" />').append($ribbonInner);
+                    $imageWrapper = $('<div class="rel" />').append($ribbonOuter).append($image);
+                } 
+                else if (i === 1) {
+                    $ribbonInner = $('<div class="ribbon ribbon-red" />').text('PREVIOUS');//.append($image);
+                    $ribbonOuter = $('<div class="ribbon-wrapper" />').append($ribbonInner);
+                    $imageWrapper = $('<div class="rel" />').append($ribbonOuter).append($image);
+                }
+                else {
+                    $imageWrapper = $('<div class="rel" />').append($image);
+                }
 
                 $li.append($imageWrapper);
                 $('#savesselectlist').append($li);
@@ -904,7 +918,6 @@ var cesMain = (function() {
      */
     var BuildScreenshot = function(system, arraybufferview, width) {
 
-
         var screenratio = 1;
 
         var blob = new Blob([arraybufferview], {
@@ -912,8 +925,8 @@ var cesMain = (function() {
         });
 
         //get screen ratio from config
-        if (_config.systemdetails[system] && _config.systemdetails[system].retroarch && _config.systemdetails[system].retroarch.video_aspect_ratio) {
-            screenratio = parseFloat(_config.systemdetails[system].retroarch.video_aspect_ratio);
+        if (_config.systemdetails[system] && _config.systemdetails[system].screenshotaspectratio) {
+            screenratio = parseFloat(_config.systemdetails[system].screenshotaspectratio);
         }
 
         var urlCreator = window.URL || window.webkitURL;

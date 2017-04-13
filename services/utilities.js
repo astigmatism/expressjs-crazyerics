@@ -596,7 +596,8 @@ UtilitiesService.collectDataForClient = function(req, openonload, callback) {
                 'romcdnversion': systems[system].romcdnversion,
                 'emuextention': systems[system].emuextention,
                 'emuscript': systems[system].emuscript,
-                'retroarch': systems[system].retroarch
+                'retroarch': systems[system].retroarch,
+                'screenshotaspectratio': systems[system].screenshotaspectratio
             };
 
             //optional
