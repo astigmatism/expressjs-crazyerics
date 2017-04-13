@@ -39,12 +39,12 @@ var cesPubSub = (function() {
 
     this.Subscribe = function(topic, context, handler) {
 
-        Subscribe(topic, context, handler);
+        return Subscribe(topic, context, handler);
 
     };
 
     this.SubscribeOnce = function(topic, context, handler) {
-        Subscribe(topic, context, handler, 1);
+        return Subscribe(topic, context, handler, 1);
     };
 
     var Subscribe = function(topic, context, handler, countdown) {
