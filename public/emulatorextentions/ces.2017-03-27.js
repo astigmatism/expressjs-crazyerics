@@ -108,8 +108,7 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _system, _title, _fi
         
         this.cachedEventHandlers = {
             window: {},
-            document: {},
-            keydown: {}
+            document: {}
         };
 
         /**
@@ -122,33 +121,18 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _system, _title, _fi
 
             //ensure the current format
             if (eventHandler.target && eventHandler.eventTypeString) {
-                
+
+                //in the case of keypress handlers
+                if (eventHandler.eventTypeString == 'keydown') {
+                    eventHandler = OverrideKeydownHandlers(eventHandler);
+                }
+
                 //these are the event targets and types we care to track
                 if (eventHandler.target == window) {
                     this.cachedEventHandlers.window[eventHandler.eventTypeString] = eventHandler;
                 }
                 if (eventHandler.target == document) {
                     this.cachedEventHandlers.document[eventHandler.eventTypeString] = eventHandler;
-                }
-
-                //in the case of keypress handlers
-                if (eventHandler.eventTypeString == 'keydown') {
-                    
-                    var originalWork = eventHandler.handlerFunc;
-                    
-                    eventHandler.handlerFunc = function(event) {
-
-                        //sometimes I want to influence behaviors before I begin
-                        self.OnEmulatorKeydown(event, function(proceed) {
-
-                            //perform original handler function
-                            if (proceed) {
-                                originalWork(event);
-                            }
-                        });
-                    };
-
-                    this.cachedEventHandlers.keydown[eventHandler.eventTypeString] = eventHandler;
                 }
             }
 
@@ -232,7 +216,7 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _system, _title, _fi
 
                 //if giving back input, reassign all input handlers for both window and document
                 if (this.JSEvents && this.JSEvents.registerOrRemoveHandler && !this.eventHandlersAttached) {
-                        
+                      
                     for (eventHandler in this.cachedEventHandlers.window) {
                         this.JSEvents.registerOrRemoveHandler(this.cachedEventHandlers.window[eventHandler]);
                     }
@@ -253,6 +237,25 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _system, _title, _fi
 
             }
         };
+
+        var OverrideKeydownHandlers = function(eventHandler) {
+
+            var originalWork = eventHandler.handlerFunc;
+                    
+            eventHandler.handlerFunc = function(event) {
+
+                //sometimes I want to influence behaviors before I begin
+                self.OnEmulatorKeydown(event, function(proceed) {
+
+                    //perform original handler function
+                    if (proceed) {
+                        originalWork(event);
+                    }
+                });
+            };
+
+            return eventHandler;
+        }
 
         /**
          * Once module has loaded with its own file system, populate ir with config and rom file

@@ -69,7 +69,7 @@ router.post('/load/game', function(req, res, next) {
     var shader = req.body.shader; //if we are to load a shader definition with this game, it was passed here
     var savePreference = req.body.savePreference; //should we save this shader selection for all games of this system?
     var game = UtilitiesService.decompress.json(key); //extract values
-    var states = {};
+    var saves = {};
 
     savePreference = (savePreference === 'true') ? true : false; //boolean correction
 
@@ -97,9 +97,9 @@ router.post('/load/game', function(req, res, next) {
             req.session.shaders[game.system] = shader;
         }
 
-        //get states used by this game
-        if (req.session.games[key] && req.session.games[key].states) {
-            states = req.session.games[key].states;
+        //get saves used by this game
+        if (req.session.games[key] && req.session.games[key].saves) {
+            saves = req.session.games[key].saves;
         }
 
         //also return the game files used by this title (for selecting a different file to load)
@@ -109,7 +109,7 @@ router.post('/load/game', function(req, res, next) {
             }
 
             var result = {
-                states: states, //state files
+                saves: saves,
                 files: details.files, //rom files
                 info: details.info //thegamesdb data
             };

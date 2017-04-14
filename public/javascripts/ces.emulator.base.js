@@ -47,8 +47,8 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
     var _displayDurationShow = 1000;
     var _displayDurationHide = 500;
     var _creatingNewSave = false;
-    var _timeToWaitForScreenshot = 10000; //hopefully never take more than 10
-    var _timeToWaitForSaveState = 30000; //hopefully never more than 30
+    var _timeToWaitForScreenshot = 2000; //hopefully never take more than 10
+    var _timeToWaitForSaveState = 10000; //hopefully never more than 10
 
     //instances
     var _EmulatorInstance = null;
@@ -358,7 +358,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
         switch (key) {
             case 49: //1 - save state
                 
-                CreateNewSave(function(proceed) {
+                CreateNewSave('user', function(proceed) {
                     
                     proceedWithKeypressToEmulator(proceed);
                 });
@@ -371,7 +371,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
 
     //private methods
 
-    var CreateNewSave = function(proceedCallback) {
+    var CreateNewSave = function(saveType, proceedCallback) {
 
         //bail if already working
         if (_creatingNewSave) {
@@ -393,11 +393,11 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
 
                     clearTimeout(saveStateTimeout);
 
-                    //finally the state file was written
-
                     //ok, to publish a new save is ready, we require screen and state data
-                    if (stateData) {
-                        _PubSub.Publish('newsave', [_key, arrayBufferView, stateData]);
+                    if (stateData && arrayBufferView) {
+
+                        //finally the save is complete
+                        _PubSub.Publish('newsave', [saveType, _key, arrayBufferView, stateData]);
                     }
 
                     _creatingNewSave = false;

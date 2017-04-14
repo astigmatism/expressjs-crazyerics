@@ -5,13 +5,34 @@
 var cesSavesManager = (function (_Compression, _initialSaveData) {
 
     var self = this;
+    
+    /*
+    {
+        user: {
+            12345: {...}
+            54321: {...}
+        },
+        auto: {
+            13245: {...}
+        }
+    }
+     */
     var _savesData = {};
-    var _keys = [];
+    
+    //for keys, I need to keep them in arrays so I can sort them by date
+    /*
+    {
+        user: [12345, 54321],
+        auto: [13245]
+    }
+     */
+    var _keys = {};
 
-    this.AddSave = function(key, statedata, screendetails, callback) {
+    this.AddSave = function(saveType, key, statedata, screendetails, callback) {
 
-        AddSaveToServer(key, statedata, screendetails, function (data) {
+        AddSaveToServer(saveType, key, statedata, screendetails, function (data) {
             
+            //data coming back is formatted to help
             if (data && data.save && data.key) {
 
                 //the server controls the maximum number of saves. if over the max, it will return the key to delete (usually the oldest save)
@@ -19,7 +40,8 @@ var cesSavesManager = (function (_Compression, _initialSaveData) {
                     delete _savesData[data.deletekey];
                 }
 
-                AddSave(data.key, data.save.state, data.save.screenshot);
+                //add save to local store, only do it after successful server response
+                AddSave(saveType, data.key, data.save.state, data.save.screenshot);
             }
 
             if (callback) {
@@ -28,27 +50,21 @@ var cesSavesManager = (function (_Compression, _initialSaveData) {
         })
     };
 
-    this.GetSave = function(key) {
-
-        if (!_savesData.hasOwnProperty(key)) {
-            return null;
-        }
-
-        return _savesData[key];
-    };
-
-    this.GetSaves = function() {
+    this.GetSaves = function(type, maxCount) {
         
+        maxCount = maxCount || Infinity;
         var result = [];
 
-        for(var i = 0, len = _keys.length; i < len; ++i) {
-            result.push(_savesData[_keys[i]]);
-        }
+        if (_keys[type]) {
 
+            for(var i = 0, len = _keys[type].length; i < len && i < maxCount; ++i) {
+                result.push(_savesData[type][_keys[type][i]]);
+            }
+        }
         return result;
     };
 
-    var AddSave = function(key, stateData, screenshotData) {
+    var AddSave = function(saveType, key, stateData, screenshotData) {
 
         var screenshot  = _Compression.Unzip.bytearray(screenshotData);
         var state       = _Compression.Unzip.bytearray(stateData);
@@ -57,23 +73,26 @@ var cesSavesManager = (function (_Compression, _initialSaveData) {
         //var time = $.format.date(key, 'ddd MM-dd-yyyy h:mma'); //using the jquery dateFormat plugin
         var time = $.format.date(key, 'MMM D h:mma'); //using the jquery dateFormat plugin
 
-        _savesData[key] = {
+        _savesData[saveType] = _savesData[saveType] ? _savesData[saveType] : {}; //create type object
+        _keys[saveType] = _keys[saveType] ? _keys[saveType] : [];
+
+        _savesData[saveType][key] = {
             state: state,
             screenshot: screenshot,
             time: time,
             key: key
         };
 
-        _keys.push(key);
+        _keys[saveType].push(key);
 
         //newest to oldest
-        _keys.sort(function(a, b) {
+        _keys[saveType].sort(function(a, b) {
           return b - a;
         });
     };
 
 
-    var AddSaveToServer = function(key, statedata, screendetails, callback) {
+    var AddSaveToServer = function(saveType, key, statedata, screendetails, callback) {
 
         //compression screen
         var screenshot = _Compression.Zip.bytearray(screendetails);
@@ -81,7 +100,8 @@ var cesSavesManager = (function (_Compression, _initialSaveData) {
         //compress payload for server
         var data = _Compression.Zip.json({
             'state': statedata,
-            'screenshot': screenshot
+            'screenshot': screenshot,
+            'type': saveType
         });
 
         $.ajax({
@@ -103,9 +123,12 @@ var cesSavesManager = (function (_Compression, _initialSaveData) {
 
         if (_initialSaveData) {
 
-            for (savedate in _initialSaveData) {
+            for (type in _initialSaveData)
+            {
+                for (key in _initialSaveData[type]) {
 
-                AddSave(savedate, _initialSaveData[savedate].state, _initialSaveData[savedate].screenshot);
+                    AddSave(type, key, _initialSaveData[type][key].state, _initialSaveData[type][key].screenshot);
+                }
             }
         }
 
@@ -113,117 +136,3 @@ var cesSavesManager = (function (_Compression, _initialSaveData) {
     })();
     
 });
-
-
-
-
-
-/**
- * Object which wraps all functionality specific to handling game save states
- * @type {Object}
- */
-// var cesState = (function (_Compression, _initialStateData) {
-
-//     //private members
-//     var self = this;
-//     var data = _initialStateData; //we modify data, so keep initial separate
-
-//     //public methods
-
-//     /**
-//      * Reutns as an array, the slots which hold saved state data
-//      * @return {Array}
-//      */
-//     this.GetSavedSlots = function() {
-//         return Object.keys(data);
-//     };
-
-//     /**
-//      * Given a slot, returns image data
-//      * @param  {number} slot
-//      * @return {Object}   
-//      */
-//     this.GetScreenshot = function(system, slot) {
-//         return screenshot = _Compression.Unzip.bytearray(data[slot].screenshot);
-//     };
-
-//     /**
-//      * Given a slot, returns a formatted date string
-//      * @param  {number} slot
-//      * @return {string}    
-//      */
-//     this.GetDate = function(slot) {
-//         if (data[slot] && data[slot].hasOwnProperty('time')) {
-//             var date = new Date(data[slot].time);
-//             var formatteddate = $.format.date(date, 'ddd MM-dd-yyyy hmma'); //using the jquery dateFormat plugin
-//             return formatteddate;
-//         }
-//         return null;
-//     };
-
-//     this.GetStatesForFS = function() {
-
-//         var result = [];
-//         var slots = Object.keys(data);
-//         var i = slots.length;
-
-//         while (i--) {
-//             result[i] = _Compression.Unzip.bytearray(data[slots[i]].state);
-//         }
-//         return result;
-//     };
-
-//     *
-//      * saves state to server
-//      * @param  {Object} statedetails
-//      * @param  {Object} screendetails
-//      * @return {undef}               
-     
-//     this.SaveStateToServer = function(statedetails, screendetails, callback) {
-
-//         //state details is a resolve on a deferred. all return data in array
-//         var key = statedetails[0];
-//         var system = statedetails[1];
-//         var title = statedetails[2];
-//         var file = statedetails[3];
-//         var slot = statedetails[4];
-//         var statedata = statedetails[5];
-
-//         var screenshot = _Compression.Zip.bytearray(screendetails);
-
-//         //compress payload for server
-//         var data = _Compression.Zip.json({
-//             'state': statedata,
-//             'screenshot': screenshot
-//         });
-
-//         $.ajax({
-//             url: '/states/save?key=' + encodeURIComponent(key) + '&slot=' + slot,
-//             data: data,
-//             processData: false,
-//             contentType: 'text/plain',
-//             type: 'POST',
-//             /**
-//              * on completion of state save
-//              * @param  {string} data
-//              * @return {undef}
-//              */
-//             complete: function(data) {
-
-//                 //when complete, we have something to load. show in recently played
-//                 var statedetails = {};
-//                 statedetails[slot] = {
-//                     time: Date.now(),
-//                     screenshot: screenshot
-//                 };
-
-//                 if (callback) {
-//                     callback(key, system, title, file, null, statedetails);
-//                 }
-//             }
-//         });
-//     };
-
-//     return this;
-
-// });

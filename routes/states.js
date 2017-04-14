@@ -3,7 +3,10 @@ var pug = require('pug');
 var UtilitiesService = require('../services/utilities.js');
 var router = express.Router();
 
-var _maxNumberOfSaves = 10;
+var _maxNumberOfSaves = {
+    user: 20,
+    auto: 1
+};
 
 router.post('/save', function(req, res, next) {
     
@@ -12,17 +15,21 @@ router.post('/save', function(req, res, next) {
 
     if (req.session) {
         
+        var saveType = postdata.type; //user, system...
+
         //create strcture for states if this is first time
         req.session.games = req.session.games ? req.session.games : {};
         req.session.games[key] = req.session.games[key] ? req.session.games[key] : {};
-        req.session.games[key].states = req.session.games[key].states ? req.session.games[key].states : {};
+        req.session.games[key].saves = req.session.games[key].saves ? req.session.games[key].saves : {};
+        req.session.games[key].saves[saveType] = req.session.games[key].saves[saveType] ? req.session.games[key].saves[saveType] : {};
         
-        var stack = req.session.games[key].states;
+        var stack = req.session.games[key].saves[saveType];
         var keys = Object.keys(stack);
         var deletekey = null;
+        var max = _maxNumberOfSaves[saveType] ? _maxNumberOfSaves[saveType] : 1;
 
         //before, adding ensure user does not exceed limit
-        if (keys.length + 1 > _maxNumberOfSaves) {
+        if (keys.length + 1 > max) {
             
             //find oldest, sort keys smallest to greatest
             keys.sort(function(a, b) {

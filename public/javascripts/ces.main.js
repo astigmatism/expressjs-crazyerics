@@ -377,12 +377,12 @@ var cesMain = (function() {
 
                         //decompress game details here since we need state data for selection
                         var gameDetails = _Compression.Out.json(compressedGameDetails);
-                        var states = gameDetails.states;
+                        var saves = gameDetails.saves;
                         var files = gameDetails.files;
                         var info = gameDetails.info;
 
                         //initialize the game state manager
-                        _SavesManager = new cesSavesManager(_Compression, states);
+                        _SavesManager = new cesSavesManager(_Compression, saves);
 
                         //date copmany
                         if (info && info.Publisher && info.ReleaseDate) {
@@ -392,8 +392,8 @@ var cesMain = (function() {
                             
                         _preventLoadingGame = false; //during save select, allow other games to load
 
-                        //are there states to load? Let's show a dialog to chose from, if not - will go straight to start
-                        ShowSaveSelection(system, title, file, function(saveKey) {
+                        //are there saves to load? Let's show a dialog to chose from, if not - will go straight to start
+                        ShowSaveSelection(system, title, file, function(selectedSaveData) {
                             
                             _preventLoadingGame = true;
 
@@ -405,10 +405,8 @@ var cesMain = (function() {
                             //lets ensure a minimum time has passed (see private vars)
                             setTimeout(function() {
 
-                                var save = _SavesManager.GetSave(saveKey); //returns null if none
-
                                 // load state? bails if not set
-                                _Emulator.LoadSave(save, function() { //if save not set, bails on null
+                                _Emulator.LoadSave(selectedSaveData, function() { //if save not set, bails on null
 
                                     //begin game, callback is function which handles expections for any emulator error
                                     _Emulator.BeginGame(OnEmulatorException);
@@ -443,7 +441,9 @@ var cesMain = (function() {
                                                     $('#emulator')
                                                         .blur(function(event) {
                                                             if (!_preventGamePause) {
-                                                                _Emulator.PauseGame();
+                                                                //_Emulator.SimulateEmulatorKeypress(49, null, function() { //unmute
+                                                                    _Emulator.PauseGame();
+                                                                //}
                                                                 $('#emulatorwrapperoverlay').fadeIn();
                                                             }
                                                         })
@@ -545,9 +545,9 @@ var cesMain = (function() {
         );
     };
 
-    var OnNewSaveSubscription = function(key, screendata, statedata) {
+    var OnNewSaveSubscription = function(saveType, key, screendata, statedata) {
 
-        _SavesManager.AddSave(key, statedata, screendata, function() {
+        _SavesManager.AddSave(saveType, key, statedata, screendata, function() {
 
             //nothing yet
         });
@@ -686,47 +686,48 @@ var cesMain = (function() {
      */
     var ShowSaveSelection = function(system, title, file, callback) {
 
-        var saves = _SavesManager.GetSaves();
+        var userSaves = _SavesManager.GetSaves('user', 2);
+        var autoSaves = _SavesManager.GetSaves('auto', 1);
 
         //no states saved to chose from
-        if (saves.length == 0) {
+        if (userSaves.length == 0 && autoSaves.length == 0) {
             callback();
             return;
         }
 
-        $('#savesselectlist').empty();
+        $('#savesselectlist').empty(); //clear from last time
 
-        //show up to latest 3
-        for (var i = 0, len = saves.length; i < len && i < 3; ++i) {
-            (function(i) {
-                var $image = $(BuildScreenshot(system, saves[i].screenshot, 200));
-                var $li = $('<li class="zoom" data-shader=""><h3>' + saves[i].time + '</h3></li>').on('click', function(e) {
+        //generic function for adding auto and user saves to list
+        var addToSelectionList = function(saveData, ribbonColor, ribbonText) {
+
+            var $image = $(BuildScreenshot(system, saveData.screenshot, 200));
+
+            var $li = $('<li class="zoom" data-shader=""><h3>' + saveData.time + '</h3></li>').on('click', function(e) {
                     
-                    callback(saves[i].key);
-                    ShowSaveLoading(system, saves[i].screenshot);
-                });
+                callback(saveData);
+                ShowSaveLoading(system, saveData.screenshot);
+            });
 
-                var $imageWrapper; 
-                var $ribbonInner;
-                var $ribbonOuter;
+            var $ribbonInner = $('<div class="ribbon-' + ribbonColor + ' ribbon" />').text(ribbonText);
+            var $ribbonOuter = $('<div class="ribbon-wrapper" />').append($ribbonInner);
+            var $imageWrapper = $('<div class="rel" />').append($ribbonOuter).append($image);
 
-                if (i === 0) {
-                    $ribbonInner = $('<div class="ribbon-green ribbon" />').text('NEWEST');//.append($image);
-                    $ribbonOuter = $('<div class="ribbon-wrapper" />').append($ribbonInner);
-                    $imageWrapper = $('<div class="rel" />').append($ribbonOuter).append($image);
-                } 
-                else if (i === 1) {
-                    $ribbonInner = $('<div class="ribbon ribbon-red" />').text('PREVIOUS');//.append($image);
-                    $ribbonOuter = $('<div class="ribbon-wrapper" />').append($ribbonInner);
-                    $imageWrapper = $('<div class="rel" />').append($ribbonOuter).append($image);
-                }
-                else {
-                    $imageWrapper = $('<div class="rel" />').append($image);
-                }
+            $li.append($imageWrapper);
+            $('#savesselectlist').append($li);
+        };
 
-                $li.append($imageWrapper);
-                $('#savesselectlist').append($li);
-            })(i);
+        //is there an auto save to show?
+        if (autoSaves.length > 0) {
+            addToSelectionList(autoSaves[0], 'red', 'AUTO-SAVE');
+        }
+
+        //user saves
+        if (userSaves[0]) {
+            addToSelectionList(userSaves[0], 'green', 'NEWEST');
+        }
+
+        if (userSaves[1]) {
+            addToSelectionList(userSaves[1], 'red', 'PREVIOUS');
         }
 
         $('#loadnosaves').off().on('mouseup', function() {
@@ -740,7 +741,7 @@ var cesMain = (function() {
 
     var ShowSaveLoading = function(system, screenshotData) {
 
-        var $image = $(BuildScreenshot(system, screenshotData, 200));
+        var $image = $(BuildScreenshot(system, screenshotData, null, 200));
         $image.addClass('tada');
         $image.load(function() {
             $(this).fadeIn(200);
@@ -916,7 +917,7 @@ var cesMain = (function() {
      * @param  {number} width
      * @return {Object}
      */
-    var BuildScreenshot = function(system, arraybufferview, width) {
+    var BuildScreenshot = function(system, arraybufferview, width, height) {
 
         var screenratio = 1;
 
@@ -931,7 +932,15 @@ var cesMain = (function() {
 
         var urlCreator = window.URL || window.webkitURL;
         var imageUrl = urlCreator.createObjectURL(blob);
-        var img = new Image(width, width / screenratio);        //create new image with correct ratio
+        
+        if (width) {
+            var img = new Image(width, width / screenratio);        //create new image with correct ratio
+        }
+        if (height) {
+            var img = new Image(height * screenratio, height);        //create new image with correct ratio   
+        }
+
+        
         img.src = imageUrl;
 
         return img;
