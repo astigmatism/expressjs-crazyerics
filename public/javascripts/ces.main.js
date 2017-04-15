@@ -406,7 +406,7 @@ var cesMain = (function() {
                             setTimeout(function() {
 
                                 // load state? bails if not set
-                                _Emulator.LoadSave(selectedSaveData, function() { //if save not set, bails on null
+                                _Emulator.WriteSaveData(selectedSaveData, function() { //if save not set, bails on null
 
                                     //begin game, callback is function which handles expections for any emulator error
                                     _Emulator.BeginGame(OnEmulatorException);

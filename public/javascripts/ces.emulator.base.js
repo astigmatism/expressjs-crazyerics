@@ -13,37 +13,6 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
     var self = this;
     var FS = null;
     var _isLoading = false;
-    var _keypresslocked = false; //if we are simulating a keypress (down and up) this boolean prevents another keypress until the current one is complete
-    var _browserFunctionKeysWeWantToStop = {
-        9: "tab",
-        13: "enter",
-        16: "shift",
-        18: "alt",
-        27: "esc",
-        33: "rePag",
-        34: "avPag",
-        35: "end",
-        36: "home",
-        37: "left",
-        38: "up",
-        39: "right",
-        40: "down",
-        112: "F1",
-        113: "F2",
-        114: "F3",
-        115: "F4",
-        116: "F5",
-        117: "F6",
-        118: "F7",
-        119: "F8",
-        120: "F9",
-        121: "F10",
-        122: "F11",
-        123: "F12"
-    };
-    var _inputMap = {
-
-    };
     var _displayDurationShow = 1000;
     var _displayDurationHide = 500;
     var _creatingNewSave = false;
@@ -53,12 +22,21 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
     //instances
     var _EmulatorInstance = null;
     var _Module = null;
+    
+    this._InputHelper = null;
 
     //protected
     this.loadedSaveData = null; //this is a space I use for indictaing a state file was written during load
 
+
+    $(document).ready(function() {
+
+        _InputHelper = new cesInputHelper();
+
+    });
+
     // public methods
-        
+    
     /**
      * Calls the start function of the emulator script
      * @param {Function} callback the function to handle exceptions thrown by the emulator script
@@ -105,7 +83,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
         });
     };
 
-    this.LoadSave = function(saveData, callback) {
+    this.WriteSaveData = function(saveData, callback) {
 
         //if null, we want to inform the loading process can continue with a load
         if ($.isEmptyObject(saveData)) {
@@ -210,75 +188,6 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
         $(_ui.canvas).remove(); //kill all events attached (keyboard, focus, etc)
     };
 
-    /**
-     * simulator keypress on emulator. used to allow interaction of dom elements
-     * @param  {number} key ascii key code
-     * @param {number} keyUpDelay the time delay (in ms) the key will be in the down position before lift
-     * @return {undef}
-     */
-    this.SimulateEmulatorKeypress = function(key, keyUpDelay, callback) {
-
-        var keyUpDelay = keyUpDelay || 10;
-
-        //bail if in operation
-        if (_keypresslocked) {
-            return;
-        }
-
-        /**
-         * [kp description]
-         * @param  {number} k
-         * @param  {Object} event
-         * @return {undefined}
-         */
-        kp = function(k, event) {
-            var oEvent = document.createEvent('KeyboardEvent');
-
-            // Chromium Hack
-            Object.defineProperty(oEvent, 'keyCode', {
-                get : function() {
-                    return this.keyCodeVal;
-                }
-            });
-            Object.defineProperty(oEvent, 'which', {
-                get : function() {
-                    return this.keyCodeVal;
-                }
-            });
-
-            if (oEvent.initKeyboardEvent) {
-                oEvent.initKeyboardEvent(event, true, true, document.defaultView, false, false, false, false, k, k);
-            } else {
-                oEvent.initKeyEvent(event, true, true, document.defaultView, false, false, false, false, k, 0);
-            }
-
-            oEvent.keyCodeVal = k;
-
-            if (oEvent.keyCode !== k) {
-                alert("keyCode mismatch " + oEvent.keyCode + "(" + oEvent.which + ")");
-            }
-
-            document.dispatchEvent(oEvent);
-            $(_ui.canvas).focus();
-        };
-
-        _keypresslocked = true;
-        kp(key, 'keydown');
-
-        setTimeout(function() {
-
-            kp(key, 'keyup');
-            _keypresslocked = false;
-            if (callback) {
-                callback();
-            }
-
-        }, keyUpDelay);
-
-        $(_ui.canvas).focus();
-        
-    };
-
     this.GiveEmulatorControlOfInput = function(giveEmulatorInput) {
         
         if (giveEmulatorInput) {
@@ -298,7 +207,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
 
         //also set emulator-specific event handlers on and off (see custom module def)
         if (_Module) {
-            _Module.giveEmulatorControlOfInput(giveEmulatorInput);
+            _Module.GiveEmulatorControlOfInput(giveEmulatorInput);
         }
     };
 
@@ -352,7 +261,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
         }
     };
 
-    this.OnEmulatorKeydown = function(event, proceedWithKeypressToEmulator) {
+    this.OnBeforeEmulatorKeydown = function(event, proceedWithKeypressToEmulator) {
 
         var key = event.keyCode;
         switch (key) {

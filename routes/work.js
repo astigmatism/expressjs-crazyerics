@@ -106,7 +106,7 @@ router.get('/emulatorprep', function(req, res, next) {
                         //this insertion allows event handlers to be monitored in ces
                         re = /(var jsEventHandler=)/;
                         console.log('add handler for window callback location ---> ' + re.test(content));
-                        content = content.replace(re, 'eventHandler=Module.cesEventHandlerRegistered(eventHandler);$1');
+                        content = content.replace(re, 'eventHandler=Module.cesEventHandlerRegistered(eventHandler);if(!eventHandler)return;$1');
 
                         //adds custom event listener to JSevents and also prevents bubbling
                         // re = /(eventHandler\.handlerFunc\(event\);)/;

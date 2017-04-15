@@ -26,10 +26,13 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _system, _title, _fi
     //module def
     var module = (function() {
 
+        var _module = this;
+
         this.noInitialRun = true;
         this.preRun = [];
         this.postRun = [];
         this.canvas = document.getElementById('emulator');
+        this.keydownHandler = null;
         
         //run now
         this.print = (function() {
@@ -104,9 +107,9 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _system, _title, _fi
          * paused and reapply them when resumed.
          * @type {Boolean}
          */
-        this.eventHandlersAttached = true;
+        var eventHandlersAttached = true;
         
-        this.cachedEventHandlers = {
+        var cachedEventHandlers = {
             window: {},
             document: {}
         };
@@ -122,17 +125,17 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _system, _title, _fi
             //ensure the current format
             if (eventHandler.target && eventHandler.eventTypeString) {
 
-                //in the case of keypress handlers
+                //a keydown handler will come through, lets handle it special like
                 if (eventHandler.eventTypeString == 'keydown') {
-                    eventHandler = OverrideKeydownHandlers(eventHandler);
+                    eventHandler = self._InputHelper.InterceptEmulatorKeydownHandler(eventHandler);
                 }
 
                 //these are the event targets and types we care to track
                 if (eventHandler.target == window) {
-                    this.cachedEventHandlers.window[eventHandler.eventTypeString] = eventHandler;
+                    cachedEventHandlers.window[eventHandler.eventTypeString] = eventHandler;
                 }
                 if (eventHandler.target == document) {
-                    this.cachedEventHandlers.document[eventHandler.eventTypeString] = eventHandler;
+                    cachedEventHandlers.document[eventHandler.eventTypeString] = eventHandler;
                 }
             }
 
@@ -210,18 +213,18 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _system, _title, _fi
          * @param  {bool} giveEmulatorInput
          * @return {undef}
          */
-        this.giveEmulatorControlOfInput = function(giveEmulatorInput) {
+        this.GiveEmulatorControlOfInput = function(giveEmulatorInput) {
 
             if (giveEmulatorInput) {
 
                 //if giving back input, reassign all input handlers for both window and document
-                if (this.JSEvents && this.JSEvents.registerOrRemoveHandler && !this.eventHandlersAttached) {
+                if (this.JSEvents && this.JSEvents.registerOrRemoveHandler && !eventHandlersAttached) {
                       
-                    for (eventHandler in this.cachedEventHandlers.window) {
-                        this.JSEvents.registerOrRemoveHandler(this.cachedEventHandlers.window[eventHandler]);
+                    for (eventHandler in cachedEventHandlers.window) {
+                        this.JSEvents.registerOrRemoveHandler(cachedEventHandlers.window[eventHandler]);
                     }
-                    for (eventHandler in this.cachedEventHandlers.document) {
-                        this.JSEvents.registerOrRemoveHandler(this.cachedEventHandlers.document[eventHandler]);
+                    for (eventHandler in cachedEventHandlers.document) {
+                        this.JSEvents.registerOrRemoveHandler(cachedEventHandlers.document[eventHandler]);
                     }
                 }
 
@@ -232,30 +235,11 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _system, _title, _fi
 
                     this.JSEvents.removeAllHandlersOnTarget(window);
                     this.JSEvents.removeAllHandlersOnTarget(document);
-                    this.eventHandlersAttached = false;
+                    eventHandlersAttached = false;
                 }
 
             }
         };
-
-        var OverrideKeydownHandlers = function(eventHandler) {
-
-            var originalWork = eventHandler.handlerFunc;
-                    
-            eventHandler.handlerFunc = function(event) {
-
-                //sometimes I want to influence behaviors before I begin
-                self.OnEmulatorKeydown(event, function(proceed) {
-
-                    //perform original handler function
-                    if (proceed) {
-                        originalWork(event);
-                    }
-                });
-            };
-
-            return eventHandler;
-        }
 
         /**
          * Once module has loaded with its own file system, populate ir with config and rom file
