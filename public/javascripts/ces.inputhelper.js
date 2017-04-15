@@ -70,8 +70,15 @@ var cesInputHelper = (function() {
 
     var OnBeforeEmulatorKeydown = function(event, proceedToEmulatorCallback) {
 
-        
-        
+        var keyCode = event.keyCode;
+
+        if (_handlers[keycode]) {
+            _handlers[keycode](event, function(result) {
+                proceedToEmulatorCallback(result);
+            });
+            return;
+        }
+
         proceedToEmulatorCallback(true);
     }
 

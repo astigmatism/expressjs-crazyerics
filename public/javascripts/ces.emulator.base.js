@@ -261,22 +261,22 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
         }
     };
 
-    this.OnBeforeEmulatorKeydown = function(event, proceedWithKeypressToEmulator) {
+    // this.OnBeforeEmulatorKeydown = function(event, proceedWithKeypressToEmulator) {
 
-        var key = event.keyCode;
-        switch (key) {
-            case 49: //1 - save state
+    //     var key = event.keyCode;
+    //     switch (key) {
+    //         case 49: //1 - save state
                 
-                CreateNewSave('user', function(proceed) {
+    //             CreateNewSave('user', function(proceed) {
                     
-                    proceedWithKeypressToEmulator(proceed);
-                });
-            break;
-            default:
-                proceedWithKeypressToEmulator(true);
-            break;
-        }
-    };
+    //                 proceedWithKeypressToEmulator(proceed);
+    //             });
+    //         break;
+    //         default:
+    //             proceedWithKeypressToEmulator(true);
+    //         break;
+    //     }
+    // };
 
     //private methods
 
