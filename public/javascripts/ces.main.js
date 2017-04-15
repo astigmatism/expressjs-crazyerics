@@ -295,6 +295,8 @@ var cesMain = (function() {
         _preventLoadingGame = true; //prevent loading any other games until this flag is lifted
         _preventGamePause = false;
 
+        window.scrollTo(0, 0); //will bring scroll to top of page (if case they clicked a suggestion, no need to scroll back up)
+
         //will clear up existing emulator if it exists
         CleanUpEmulator(function() {
             
@@ -441,13 +443,13 @@ var cesMain = (function() {
                                                     $('#emulator')
                                                         .blur(function(event) {
                                                             if (!_preventGamePause) {
-                                                                //_Emulator.SimulateEmulatorKeypress(49, null, function() { //unmute
-                                                                    _Emulator.PauseGame();
-                                                                //}
+
+                                                                _Emulator.PauseGame();
                                                                 $('#emulatorwrapperoverlay').fadeIn();
                                                             }
                                                         })
                                                         .focus(function() {
+                                                            window.scrollTo(0, 0); //bring attention back up top
                                                             _Emulator.ResumeGame();
                                                             $('#emulatorwrapperoverlay').hide();
                                                         })
@@ -488,16 +490,15 @@ var cesMain = (function() {
             var artificialDelayForLoadingScreen = saveLoadingDialogUptime > _minimumGameLoadingTime ? 0 : _minimumGameLoadingTime - saveLoadingDialogUptime;
 
             setTimeout(function() {
-                _Emulator.SimulateEmulatorKeypress(77, null, function() { //unmute
+                _Emulator._InputHelper.Keypress('mute', function() {
                     callback();
                 });
             }, _minimumSaveLoadingTime);
         });
 
-        _Emulator.SimulateEmulatorKeypress(77, null, function() { //mute
+        _Emulator._InputHelper.Keypress('mute', function() {
 
-            _Emulator.SimulateEmulatorKeypress(52); //load state
-
+            _Emulator._InputHelper.Keypress('loadstate');
         });
     };
 
@@ -877,8 +878,7 @@ var cesMain = (function() {
                 pause = keycode[1];
             }
         }
-
-        _Emulator.SimulateEmulatorKeypress(keycode, 1, function() {
+        _Emulator._InputHelper.Keypress('', function() {
             runKeyboardMacro(instructions.slice(1), callback);
         });
     };

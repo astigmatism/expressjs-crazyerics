@@ -23,6 +23,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
     var _EmulatorInstance = null;
     var _Module = null;
     
+    //protected instance
     this._InputHelper = null;
 
     //protected
@@ -31,7 +32,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
 
     $(document).ready(function() {
 
-        _InputHelper = new cesInputHelper();
+        self._InputHelper = new cesInputHelper(_ui);
 
     });
 
@@ -51,6 +52,12 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
                 callback(e);
             }
         }
+
+        //attach operation handlers
+        this._InputHelper.RegisterOperationHandler('statesave', function(event, proceed) {
+
+            CreateNewSave('user', proceed);
+        });
     };
 
     /**
@@ -168,7 +175,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
             
             //try and auto save before closing down
 
-            self.SimulateEmulatorKeypress(77); //mute
+            self._InputHelper.Keypress('mute');
 
             try {
 
@@ -189,21 +196,8 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
     };
 
     this.GiveEmulatorControlOfInput = function(giveEmulatorInput) {
-        
-        if (giveEmulatorInput) {
 
-            //common listener definition
-            var keyboardListener = function (e) {
-                if (_browserFunctionKeysWeWantToStop[e.which]) {
-                    e.preventDefault();
-                }
-            }
-
-            $(window).on('keydown', keyboardListener); //using jQuerys on and off here worked :P
-
-        } else {
-            $(window).off('keydown');
-        }
+        self._InputHelper.PreventBrowserKeys(giveEmulatorInput);
 
         //also set emulator-specific event handlers on and off (see custom module def)
         if (_Module) {
@@ -260,23 +254,6 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
             return;
         }
     };
-
-    // this.OnBeforeEmulatorKeydown = function(event, proceedWithKeypressToEmulator) {
-
-    //     var key = event.keyCode;
-    //     switch (key) {
-    //         case 49: //1 - save state
-                
-    //             CreateNewSave('user', function(proceed) {
-                    
-    //                 proceedWithKeypressToEmulator(proceed);
-    //             });
-    //         break;
-    //         default:
-    //             proceedWithKeypressToEmulator(true);
-    //         break;
-    //     }
-    // };
 
     //private methods
 
@@ -337,7 +314,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
         }, _timeToWaitForScreenshot);
 
         //press key to begin screenshot capture
-        self.SimulateEmulatorKeypress(84);
+        self._InputHelper.Keypress('screenshot');
 
     };
 

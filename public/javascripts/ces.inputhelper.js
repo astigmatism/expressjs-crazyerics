@@ -1,19 +1,52 @@
 
-var cesInputHelper = (function() {
+var cesInputHelper = (function(_ui) {
 
     //private members
     var self = this;
     var _keypresslocked = false; //if we are simulating a keypress (down and up) this boolean prevents another keypress until the current one is complete
-    var _emulatorKeydownHandler = null;
-    var _handlers = {};
+    
+    var _originalEmulatorKeydownHandlerFunctions = {}; //the separated original work functions attached to the keydown handlers
+    var _modifiedEmulatorKeydownHandlers = {};
+    
+    var _originalEmulatorKeyupHandlerFunctions = {}; //the separated original work functions attached to the keyup handlers
+    var _modifiedEmulatorKeyupHandlers = {};
 
+    var _operationHandlers = {}; // { keycode: function}
 
-    var _operationMap {
-        'statesave': 'num1'
+    var _operationMap = {
+        'statesave': 49,
+        'loadstate': 52,
+        'mute': 77,
+        'screenshot': 84
     };
 
-    var _commandToKeycode { 'backspace':8,'right':39,'up':38,'down':40,'enter':13,'kp_enter':-1,'tab':9,'insert':45,'del':46,'end':35,'home':36,'rshift':-1,'shift':16,'ctrl':17,'alt':18,'space':32,'escape':27,'add':107,'subtract':109,'kp_plus':-1,'kp_minus':-1,'f1':112,'f2':113,'f3':114,'f4':115,'f5':116,'f6':117,'f7':118,'f8':119,'f9':120,'f10':121,'f11':122,'f12':123,'num0':48,'num1':49,'num2':50,'num3':51,'num4':52,'num5':53,'num6':54,'num7':55,'num8':56,'num9':57,'pageup':33,'pagedown':34,'keypad0':96,'keypad1':97,'keypad2':98,'keypad3':99,'keypad4':100,'keypad5':101,'keypad6':102,'keypad7':103,'keypad8':104,'keypad9':105,'period':190,'capslock':20,'numlock':144,'multiply':106,'divide':111,'print_screen':44,'scroll_lock':145,'tilde':192,'backquote':192,'pause':19,'quote':222,'comma':188,'minus':189,'slash':191,'semicolon':186,'equals':187,'leftbracket':219,'rightbracket':221,'backslash':220,'kp_period':190,'kp_equals':187,'rctrl':17,'ralt':18};
-    var _keycodeToCommand = {};
+    var _keysWhichHaveFunctionalityInTheBrowserWeWantToPrevent = {
+        9: "tab",
+        13: "enter",
+        16: "shift",
+        18: "alt",
+        27: "esc",
+        33: "rePag",
+        34: "avPag",
+        35: "end",
+        36: "home",
+        37: "left",
+        38: "up",
+        39: "right",
+        40: "down",
+        112: "F1",
+        113: "F2",
+        114: "F3",
+        115: "F4",
+        116: "F5",
+        117: "F6",
+        118: "F7",
+        119: "F8",
+        120: "F9",
+        121: "F10",
+        122: "F11",
+        123: "F12"
+    };
 
     /*
     from retroarchfig:
@@ -26,20 +59,21 @@ var cesInputHelper = (function() {
     #   tilde, backquote, pause, quote, comma, minus, slash, semicolon, equals, leftbracket,
     #   backslash, rightbracket, kp_period, kp_equals, rctrl, ralt
      */
-    
-    for (command in _commandToKeycode) {
-        _keycodeToCommand[_commandToKeycode[command]] = command;
-    }
 
-
-    this.InterceptEmulatorKeydownHandler = function(eventHandler) {
+    this.OverrideEmulatorKeydownHandler = function(eventHandler) {
         
-        //if already intercepted, return modified handler
-        if (_emulatorKeydownHandler) {
-            return _emulatorKeydownHandler;
+        if (!eventHandler.hasOwnProperty('target')) {
+            return eventHandler;
         }
 
-        _emulatorKeydownHandler = eventHandler.handlerFunc;
+        var target = eventHandler.target;
+
+        //if already intercepted, return modified handler
+        if (target in _modifiedEmulatorKeydownHandlers) {
+            return _modifiedEmulatorKeydownHandlers[target];
+        }
+
+        _originalEmulatorKeydownHandlerFunctions[target] = eventHandler.handlerFunc;
                     
         eventHandler.handlerFunc = function(event) {
 
@@ -48,32 +82,89 @@ var cesInputHelper = (function() {
 
                 //perform original handler function
                 if (proceed) {
-                    _emulatorKeydownHandler.keydownHandler(event);
+                    _originalEmulatorKeydownHandlerFunctions[target](event);
                 }
             });
         };
 
+        _modifiedEmulatorKeydownHandlers[target] = eventHandler;
+
         return eventHandler;
     };
 
-    this.RegisterHandlerOnKeydown = function(operation, handler) {
+    this.OverrideEmulatorKeyupHandler = function(eventHandler) {
+
+        if (!eventHandler.hasOwnProperty('target')) {
+            return eventHandler;
+        }
+
+        var target = eventHandler.target;
+
+        //if already intercepted, return handler
+        if (target in _modifiedEmulatorKeyupHandlers) {
+            return _modifiedEmulatorKeyupHandlers[target];
+        }
+
+        _originalEmulatorKeyupHandlerFunctions[target] = eventHandler.handlerFunc;
+
+        //although no modifications to the handler were performed
+        _modifiedEmulatorKeyupHandlers = eventHandler;
+
+        return eventHandler;
+    };
+
+    this.RegisterOperationHandler = function(operation, handler) {
 
         if (!_operationMap.hasOwnProperty(operation)) {
             return;
         }
 
-        var command = _operationMap[operation];
-        var keycode = _commandToKeycode[command];
-
-        _handlers[keycode] - handler;
+        var keycode = _operationMap[operation];
+        _operationHandlers[keycode] = handler;
     };
+
+    this.UnregisterHandler = function(operation) {
+
+        if (!_operationMap.hasOwnProperty(operation)) {
+            return;
+        }
+        var keycode = _operationMap[operation];
+        delete _operationHandlers[keycode];
+    };
+
+    this.Keypress = function(operation, callback) {
+
+        if (!_operationMap.hasOwnProperty(operation) || _keypresslocked || $.isEmptyObject(_originalEmulatorKeydownHandlerFunctions)) {
+            return;
+        }
+        var keycode = _operationMap[operation];
+        SimulateEmulatorKeypress(keycode, callback);
+    };
+
+    this.PreventBrowserKeys = function(prevent) {
+
+        if (prevent) {
+
+            //common listener definition
+            var keyboardListener = function (e) {
+                if (_keysWhichHaveFunctionalityInTheBrowserWeWantToPrevent[e.which]) {
+                    e.preventDefault();
+                }
+            }
+
+            $(window).on('keydown', keyboardListener); //using jQuerys on and off here worked :P
+
+        } else {
+            $(window).off('keydown');
+        }
+    }
 
     var OnBeforeEmulatorKeydown = function(event, proceedToEmulatorCallback) {
 
-        var keyCode = event.keyCode;
+        var keycode = event.keyCode;
 
-        if (_handlers[keycode]) {
-            _handlers[keycode](event, function(result) {
+        if (keycode in _operationHandlers) {
+            _operationHandlers[keycode](event, function(result) {
                 proceedToEmulatorCallback(result);
             });
             return;
@@ -88,68 +179,56 @@ var cesInputHelper = (function() {
      * @param {number} keyUpDelay the time delay (in ms) the key will be in the down position before lift
      * @return {undef}
      */
-    var SimulateEmulatorKeypress = function(key, keyUpDelay, callback) {
+    var SimulateEmulatorKeypress = function(keycode, callback, keyUpDelay) {
 
         var keyUpDelay = keyUpDelay || 10;
 
-        //bail if in operation
-        if (_keypresslocked) {
-            return;
-        }
-
-        /**
-         * [kp description]
-         * @param  {number} k
-         * @param  {Object} event
-         * @return {undefined}
-         */
-        kp = function(k, event) {
-            var oEvent = document.createEvent('KeyboardEvent');
-
-            // Chromium Hack
-            Object.defineProperty(oEvent, 'keyCode', {
-                get : function() {
-                    return this.keyCodeVal;
-                }
-            });
-            Object.defineProperty(oEvent, 'which', {
-                get : function() {
-                    return this.keyCodeVal;
-                }
-            });
-
-            if (oEvent.initKeyboardEvent) {
-                oEvent.initKeyboardEvent(event, true, true, document.defaultView, false, false, false, false, k, k);
-            } else {
-                oEvent.initKeyEvent(event, true, true, document.defaultView, false, false, false, false, k, 0);
-            }
-
-            oEvent.keyCodeVal = k;
-
-            if (oEvent.keyCode !== k) {
-                alert("keyCode mismatch " + oEvent.keyCode + "(" + oEvent.which + ")");
-            }
-
-            document.dispatchEvent(oEvent);
-            $(_ui.canvas).focus();
-        };
-
-        _keypresslocked = true;
-        kp(key, 'keydown');
+        
+        var keydownHandler = _originalEmulatorKeydownHandlerFunctions[Object.keys(_originalEmulatorKeydownHandlerFunctions)[0]]; //take first handler, doesn't matter which really
+        var keyupHandler = _originalEmulatorKeyupHandlerFunctions[Object.keys(_originalEmulatorKeyupHandlerFunctions)[0]]; //take first handler, doesn't matter which really
+        var keydown = GenerateEvent(keycode, 'keydown');
+        var keyup = GenerateEvent(keycode, 'keyup');
 
         setTimeout(function() {
-
-            kp(key, 'keyup');
-            _keypresslocked = false;
+            keyupHandler(keyup);
+            
             if (callback) {
                 callback();
             }
-
         }, keyUpDelay);
-
-        $(_ui.canvas).focus();
-        
+        keydownHandler(keydown);
     };
+
+    var GenerateEvent = function(keyCode, eventType) {
+
+        var oEvent = document.createEvent('KeyboardEvent');
+
+        // Chromium Hack
+        Object.defineProperty(oEvent, 'keyCode', {
+            get : function() {
+                return this.keyCodeVal;
+            }
+        });
+        Object.defineProperty(oEvent, 'which', {
+            get : function() {
+                return this.keyCodeVal;
+            }
+        });
+
+        if (oEvent.initKeyboardEvent) {
+            oEvent.initKeyboardEvent(eventType, true, true, document.defaultView, false, false, false, false, keyCode, keyCode);
+        } else {
+            oEvent.initKeyEvent(eventType, true, true, document.defaultView, false, false, false, false, keyCode, 0);
+        }
+
+        oEvent.keyCodeVal = keyCode;
+
+        if (oEvent.keyCode !== keyCode) {
+            //alert("keyCode mismatch " + oEvent.keyCode + "(" + oEvent.which + ")");
+        }
+
+        return oEvent;
+    }
 
     //public members
     return this;

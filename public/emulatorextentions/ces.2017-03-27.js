@@ -127,7 +127,11 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _system, _title, _fi
 
                 //a keydown handler will come through, lets handle it special like
                 if (eventHandler.eventTypeString == 'keydown') {
-                    eventHandler = self._InputHelper.InterceptEmulatorKeydownHandler(eventHandler);
+                    eventHandler = self._InputHelper.OverrideEmulatorKeydownHandler(eventHandler);
+                }
+
+                if (eventHandler.eventTypeString == 'keyup') {
+                    eventHandler = self._InputHelper.OverrideEmulatorKeyupHandler(eventHandler);
                 }
 
                 //these are the event targets and types we care to track
@@ -213,13 +217,13 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _system, _title, _fi
          * @param  {bool} giveEmulatorInput
          * @return {undef}
          */
-        this.GiveEmulatorControlOfInput = function(giveEmulatorInput) {
+        this.GiveEmulatorControlOfInput = function(allowInput) {
 
-            if (giveEmulatorInput) {
+            if (allowInput) {
 
                 //if giving back input, reassign all input handlers for both window and document
                 if (this.JSEvents && this.JSEvents.registerOrRemoveHandler && !eventHandlersAttached) {
-                      
+
                     for (eventHandler in cachedEventHandlers.window) {
                         this.JSEvents.registerOrRemoveHandler(cachedEventHandlers.window[eventHandler]);
                     }

@@ -115,8 +115,8 @@
 		"snes": {
 			"name": "Super Nintendo Entermainment System",
 			"shortname": "Super Nintendo",
-			"live": false,
-			"boxcdnversion": "2.0.1",
+			"live": true,
+			"boxcdnversion": "2.0.2",
 			"romcdnversion": "2.0.2",
 			"collection": "GoodSNES 3.23",
 			"emuextention": "2017-03-27",

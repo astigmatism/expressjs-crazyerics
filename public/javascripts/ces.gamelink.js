@@ -49,7 +49,6 @@ var cesGameLink = (function(config, system, title, file, size, includeRemove, op
                 if (opt_PlayGame) {
                     opt_PlayGame(system, title, file);
                 }
-                window.scrollTo(0, 0);
             });
         });
 
