@@ -14,10 +14,10 @@ var cesInputHelper = (function(_ui) {
     var _operationHandlers = {}; // { keycode: function}
 
     var _operationMap = {
-        'statesave': 49,
-        'loadstate': 52,
-        'mute': 77,
-        'screenshot': 84
+        'statesave': 49,    //1
+        'loadstate': 52,        //4
+        'mute': 77,             //m
+        'screenshot': 84        //t
     };
 
     var _keysWhichHaveFunctionalityInTheBrowserWeWantToPrevent = {

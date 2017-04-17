@@ -22,6 +22,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
     //instances
     var _EmulatorInstance = null;
     var _Module = null;
+    var _SavesManager = null;
     
     //protected instance
     this._InputHelper = null;
@@ -33,6 +34,8 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
     $(document).ready(function() {
 
         self._InputHelper = new cesInputHelper(_ui);
+
+        _PubSub.Subscribe('newsave', self, OnNewSaveSubscription);
 
     });
 
@@ -191,6 +194,10 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
         if (_EmulatorInstance) {
             _EmulatorInstance = null;
         }
+
+        if (self._InputHelper) {
+            self._InputHelper = null;
+        }
         
         $(_ui.canvas).remove(); //kill all events attached (keyboard, focus, etc)
     };
@@ -255,6 +262,30 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
         }
     };
 
+    this.InitializeSavesManager = function(saveData, callback) {
+
+        _SavesManager = new cesSavesManager(_Compression, saveData);
+    };
+
+
+    this.GetSavesForSelection = function(savesRequest) { 
+
+        var result = {};
+
+        /*
+        the expected format is save type and the number of recent saves to retrieve
+        savesRequest = {
+            'user': 4,
+            'auto': 1
+        }
+        */
+        for (saveType in savesRequest) {
+            result[saveType] = _SavesManager.GetSaves(saveType, savesRequest[saveType]);
+        }
+
+        return result;
+    };
+
     //private methods
 
     var CreateNewSave = function(saveType, proceedCallback) {
@@ -297,7 +328,11 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
 
                 }, _timeToWaitForSaveState);
 
-                proceedCallback(true); //allow original function to exe now that we have prepared our filesystem
+                //TODO: investigate deleting save states files before saving again because emulator shows that it reads state first.
+                //_Module.FS.unlink('', function(err) {
+
+                    proceedCallback(true); //allow original function to exe now that we have prepared our filesystem
+                //});
 
             } else {
 
@@ -316,6 +351,14 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
         //press key to begin screenshot capture
         self._InputHelper.Keypress('screenshot');
 
+    };
+
+    var OnNewSaveSubscription = function(saveType, key, screendata, statedata) {
+
+        _SavesManager.AddSave(saveType, key, statedata, screendata, function() {
+
+            //nothing yet
+        });
     };
 
     /**

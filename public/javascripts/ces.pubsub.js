@@ -7,6 +7,7 @@ var cesPubSub = (function() {
     //private members
     var self = this;
     var _topics = {};
+    var _muted = {};
     
     //public members
 

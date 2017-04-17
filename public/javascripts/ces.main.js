@@ -235,11 +235,6 @@ var cesMain = (function() {
         if ('system' in openonload && 'title' in openonload && 'file' in openonload) {
             PlayGame(openonload.system, openonload.title, openonload.file);
         }
-
-        //setup always on listeners
-        _PubSub.Subscribe('newsave', self, OnNewSaveSubscription);
-        _PubSub.Subscribe('keydown', self, OnEmulatorKeydownSubscription);
-
     });
 
     /* public methods */
@@ -258,7 +253,7 @@ var cesMain = (function() {
 
                 //throw in the mute
 
-                //clean up attempts to remove all events, frees memory
+                //clean up attempts to remove all events, frees memory (yeah I wish)
                 _Emulator.CleanUp();
                 _Emulator = null;
 
@@ -383,8 +378,7 @@ var cesMain = (function() {
                         var files = gameDetails.files;
                         var info = gameDetails.info;
 
-                        //initialize the game state manager
-                        _SavesManager = new cesSavesManager(_Compression, saves);
+                        _Emulator.InitializeSavesManager(saves);
 
                         //date copmany
                         if (info && info.Publisher && info.ReleaseDate) {
@@ -546,30 +540,6 @@ var cesMain = (function() {
         );
     };
 
-    var OnNewSaveSubscription = function(saveType, key, screendata, statedata) {
-
-        _SavesManager.AddSave(saveType, key, statedata, screendata, function() {
-
-            //nothing yet
-        });
-    };
-
-    var OnEmulatorKeydownSubscription = function(event, callback) {
-        
-        var key = event.keyCode;
-            switch (key) {
-                case 49: //1 - save state
-                    
-                    //todo: notification of saving game
-
-                    callback(true);
-                break;
-            default:
-                callback(true);
-            break;
-        }
-    };
-
     var OnEmulatorFileWrite = function(filename, contents, options) {
         
         if (type === 'screen') {
@@ -687,8 +657,20 @@ var cesMain = (function() {
      */
     var ShowSaveSelection = function(system, title, file, callback) {
 
-        var userSaves = _SavesManager.GetSaves('user', 2);
-        var autoSaves = _SavesManager.GetSaves('auto', 1);
+        if (!_Emulator) {
+            callback();
+            return;
+        }
+
+        //get saves from emaultor saves manager to show for selection
+        //will return an array for each type, empty if none
+        var saves = _Emulator.GetSavesForSelection({
+            'user': 2,
+            'auto': 1
+        });
+
+        var userSaves = saves['user'];
+        var autoSaves = saves['auto'];
 
         //no states saved to chose from
         if (userSaves.length == 0 && autoSaves.length == 0) {
