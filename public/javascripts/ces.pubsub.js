@@ -48,6 +48,33 @@ var cesPubSub = (function() {
         return Subscribe(topic, context, handler, 1);
     };
 
+    this.Unsubscribe = function(topic) {
+
+        if (!_topics.hasOwnProperty(topic)) {
+            return;
+        }
+        delete _topics[topic];
+    };
+
+    this.Mute = function(topic) {
+
+        if (!_topics.hasOwnProperty(topic)) {
+            return;
+        }
+
+        _muted[topic] = _topics[topic];
+        delete _topics[topic];
+    };
+
+    this.Unmute = function(topic) {
+
+        if (!_muted.hasOwnProperty(topic)) {
+            return;
+        }
+        _topics[topic] = _muted[topic];
+        delete _muted[topic];
+    };
+
     var Subscribe = function(topic, context, handler, countdown) {
 
         //create topic

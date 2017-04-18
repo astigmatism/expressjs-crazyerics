@@ -53,7 +53,8 @@ var cesMain = (function() {
             'savedgameselector': $('#savedgameselector'),
             'gameloading': $('#gameloading'),
             'emulatorexception': $('#emulatorexception'),
-            'saveloading': $('#saveloading')
+            'saveloading': $('#saveloading'),
+            'emulatorcleanup': $('#emulatorcleanup')
         });
 
         //unpack client data
@@ -251,16 +252,16 @@ var cesMain = (function() {
                 //close game context, no callbacks needed
                 HideGameContext();
 
-                //throw in the mute
-
                 //clean up attempts to remove all events, frees memory (yeah I wish)
-                _Emulator.CleanUp();
-                _Emulator = null;
+                _Emulator.CleanUp(function() {
 
-                if (callback) {
-                    callback();
-                }
-                return;
+                    _Emulator = null;
+
+                    if (callback) {
+                        callback();
+                    }
+                });
+                
             });
         } 
         //no emulator, just callback
@@ -665,7 +666,7 @@ var cesMain = (function() {
         //get saves from emaultor saves manager to show for selection
         //will return an array for each type, empty if none
         var saves = _Emulator.GetSavesForSelection({
-            'user': 2,
+            'user': 3,
             'auto': 1
         });
 
@@ -711,6 +712,10 @@ var cesMain = (function() {
 
         if (userSaves[1]) {
             addToSelectionList(userSaves[1], 'red', 'PREVIOUS');
+        }
+
+        if (autoSaves.length == 0 && userSaves[2]) {
+            addToSelectionList(userSaves[2], 'red', 'OLDER');   
         }
 
         $('#loadnosaves').off().on('mouseup', function() {

@@ -11,13 +11,15 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
 
     // private members
     var self = this;
-    var FS = null;
     var _isLoading = false;
     var _displayDurationShow = 1000;
     var _displayDurationHide = 500;
     var _creatingNewSave = false;
     var _timeToWaitForScreenshot = 2000; //hopefully never take more than 10
     var _timeToWaitForSaveState = 10000; //hopefully never more than 10
+    var _saveStateType = 'user';
+    var _autoSaveTimer = null;
+    var _autoSaveTimerDuration = 30000; //300000; //5 minutes
 
     //instances
     var _EmulatorInstance = null;
@@ -30,13 +32,10 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
     //protected
     this.loadedSaveData = null; //this is a space I use for indictaing a state file was written during load
 
-
+    //wait for document as this is an external script
     $(document).ready(function() {
 
         self._InputHelper = new cesInputHelper(_ui);
-
-        _PubSub.Subscribe('newsave', self, OnNewSaveSubscription);
-
     });
 
     // public methods
@@ -57,10 +56,26 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
         }
 
         //attach operation handlers
-        this._InputHelper.RegisterOperationHandler('statesave', function(event, proceed) {
+        this._InputHelper.RegisterOperationHandler('statesave', function(event, proceed, args) {
 
-            CreateNewSave('user', proceed);
+            saveType = 'user';
+
+            //the savetype can come in on args (auto)
+            if (args && args.length && args[0]) {
+                saveType = args[0];
+            }
+
+            //reset the auto save to the maximum duration. this is something we want for all types of saves
+            ResetAutoSaveInterval();
+
+            CreateNewSave(saveType, proceed);
         });
+
+        //pub subs
+        _PubSub.Subscribe('saveready', self, OnNewSaveSubscription);
+
+        //auto save timer
+        ResetAutoSaveInterval();
     };
 
     /**
@@ -155,7 +170,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
         });
     };
 
-    this.CleanUp = function() {
+    this.CleanUp = function(callback) {
 
         //since each Module attached an event to the parent document, we need to clean those up too:
         $(document).unbind('fullscreenchange');
@@ -168,17 +183,12 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
         $(document).unbind('webkitpointerlockchange');
         $(document).unbind('mspointerlockchange');
 
-        self.GiveEmulatorControlOfInput(false); //also unbinds events from document and window
-
-        if (FS) {
-            FS = null;
-        }
+        ResetAutoSaveInterval(true); //terminate auto-saves
 
         if (_Module) {
-            
-            //try and auto save before closing down
 
-            self._InputHelper.Keypress('mute');
+            //also unbinds events from document and window
+            self.GiveEmulatorControlOfInput(false);
 
             try {
 
@@ -189,17 +199,21 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
 
             }
             _Module = null;
-        }
 
-        if (_EmulatorInstance) {
-            _EmulatorInstance = null;
-        }
+            if (_EmulatorInstance) {
+                _EmulatorInstance = null;
+            }
 
-        if (self._InputHelper) {
-            self._InputHelper = null;
+            if (self._InputHelper) {
+                self._InputHelper = null;
+            }
+            
+            $(_ui.canvas).remove(); //kill all events attached (keyboard, focus, etc)
+
+            if (callback) {
+                callback();
+            }
         }
-        
-        $(_ui.canvas).remove(); //kill all events attached (keyboard, focus, etc)
     };
 
     this.GiveEmulatorControlOfInput = function(giveEmulatorInput) {
@@ -287,6 +301,27 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
     };
 
     //private methods
+    
+    var ResetAutoSaveInterval = function(terminate) {
+
+        terminate = terminate === true ? true : false;
+
+        clearTimeout(_autoSaveTimer);
+
+        if (!terminate)
+        {
+            _autoSaveTimer = setTimeout(function() {
+
+                MakeAutoSave();
+
+            }, _autoSaveTimerDuration);
+        }
+    };
+
+    var MakeAutoSave = function() {
+
+        self._InputHelper.Keypress('statesave', null, ['auto']);
+    };
 
     var CreateNewSave = function(saveType, proceedCallback) {
 
@@ -313,8 +348,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
                     //ok, to publish a new save is ready, we require screen and state data
                     if (stateData && arrayBufferView) {
 
-                        //finally the save is complete
-                        _PubSub.Publish('newsave', [saveType, _key, arrayBufferView, stateData]);
+                        _PubSub.Publish('saveready', [saveType, _key, arrayBufferView, stateData]);
                     }
 
                     _creatingNewSave = false;
@@ -328,11 +362,8 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
 
                 }, _timeToWaitForSaveState);
 
-                //TODO: investigate deleting save states files before saving again because emulator shows that it reads state first.
-                //_Module.FS.unlink('', function(err) {
-
-                    proceedCallback(true); //allow original function to exe now that we have prepared our filesystem
-                //});
+                
+                proceedCallback(true); //allow original function to exe now that we have prepared our filesystem
 
             } else {
 

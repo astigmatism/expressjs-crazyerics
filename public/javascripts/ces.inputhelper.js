@@ -14,10 +14,11 @@ var cesInputHelper = (function(_ui) {
     var _operationHandlers = {}; // { keycode: function}
 
     var _operationMap = {
-        'statesave': 49,    //1
+        'statesave': 49,        //1
         'loadstate': 52,        //4
         'mute': 77,             //m
-        'screenshot': 84        //t
+        'screenshot': 84,       //t
+        'pause': 80             //p
     };
 
     var _keysWhichHaveFunctionalityInTheBrowserWeWantToPrevent = {
@@ -75,7 +76,7 @@ var cesInputHelper = (function(_ui) {
 
         _originalEmulatorKeydownHandlerFunctions[target] = eventHandler.handlerFunc;
                     
-        eventHandler.handlerFunc = function(event) {
+        eventHandler.handlerFunc = function(event, args) {
 
             //sometimes I want to influence behaviors before I begin
             OnBeforeEmulatorKeydown(event, function(proceed) {
@@ -84,7 +85,7 @@ var cesInputHelper = (function(_ui) {
                 if (proceed) {
                     _originalEmulatorKeydownHandlerFunctions[target](event);
                 }
-            });
+            }, args);
         };
 
         _modifiedEmulatorKeydownHandlers[target] = eventHandler;
@@ -108,7 +109,7 @@ var cesInputHelper = (function(_ui) {
         _originalEmulatorKeyupHandlerFunctions[target] = eventHandler.handlerFunc;
 
         //although no modifications to the handler were performed
-        _modifiedEmulatorKeyupHandlers = eventHandler;
+        _modifiedEmulatorKeyupHandlers[target] = eventHandler;
 
         return eventHandler;
     };
@@ -132,13 +133,13 @@ var cesInputHelper = (function(_ui) {
         delete _operationHandlers[keycode];
     };
 
-    this.Keypress = function(operation, callback) {
+    this.Keypress = function(operation, callback, args) {
 
         if (!_operationMap.hasOwnProperty(operation) || _keypresslocked || $.isEmptyObject(_originalEmulatorKeydownHandlerFunctions)) {
             return;
         }
         var keycode = _operationMap[operation];
-        SimulateEmulatorKeypress(keycode, callback);
+        SimulateEmulatorKeypress(keycode, callback, args);
     };
 
     this.PreventBrowserKeys = function(prevent) {
@@ -159,14 +160,21 @@ var cesInputHelper = (function(_ui) {
         }
     }
 
-    var OnBeforeEmulatorKeydown = function(event, proceedToEmulatorCallback) {
+    /**
+     * This is the function we override the emulator handler with. Its resulting callback will pass a boolean to indictae if the original functionality should proceed
+     * to the emulator.
+     * @param {Object} event                        Event object
+     * @param {Function} proceedToEmulatorCallback  The callback function which with the boolean passed with it, determines if the emulator should handle the input
+     * @param {Array} args                          This parameter is sourced from the Keypress function. If we simulate a keypress, we can pass args here that will show up in the handler for this operation.
+     */
+    var OnBeforeEmulatorKeydown = function(event, proceedToEmulatorCallback, args) {
 
         var keycode = event.keyCode;
 
         if (keycode in _operationHandlers) {
             _operationHandlers[keycode](event, function(result) {
                 proceedToEmulatorCallback(result);
-            });
+            }, args);
             return;
         }
 
@@ -174,29 +182,36 @@ var cesInputHelper = (function(_ui) {
     }
 
     /**
-     * simulator keypress on emulator. used to allow interaction of dom elements
-     * @param  {number} key ascii key code
-     * @param {number} keyUpDelay the time delay (in ms) the key will be in the down position before lift
-     * @return {undef}
+     * Given a keycode, simulate a keypress by generating a keydown and keyup event and pass them through the handlers destined for the emulator (but first pass through here ;)
+     * @param {int}   keycode
+     * @param {Function} callback   After keyup fires
+     * @param {int}   keyUpDelay    Define this for long holds, otherwise leave it and allow the default of 10
      */
-    var SimulateEmulatorKeypress = function(keycode, callback, keyUpDelay) {
+    var SimulateEmulatorKeypress = function(keycode, callback, args, keyUpDelay) {
+
+        //we need to have keydown and up handlers cached to simulate keypresses
+        if ($.isEmptyObject(_modifiedEmulatorKeydownHandlers) || $.isEmptyObject(_modifiedEmulatorKeyupHandlers)) {
+            callback();
+            return;
+        }
 
         var keyUpDelay = keyUpDelay || 10;
 
         
-        var keydownHandler = _originalEmulatorKeydownHandlerFunctions[Object.keys(_originalEmulatorKeydownHandlerFunctions)[0]]; //take first handler, doesn't matter which really
-        var keyupHandler = _originalEmulatorKeyupHandlerFunctions[Object.keys(_originalEmulatorKeyupHandlerFunctions)[0]]; //take first handler, doesn't matter which really
+        var keydownHandler = _modifiedEmulatorKeydownHandlers[Object.keys(_modifiedEmulatorKeydownHandlers)[0]].handlerFunc; //take first handler, doesn't matter which really, its likely attached to window
+        var keyupHandler = _modifiedEmulatorKeyupHandlers[Object.keys(_modifiedEmulatorKeyupHandlers)[0]].handlerFunc; //take first handler, doesn't matter which really
+        
         var keydown = GenerateEvent(keycode, 'keydown');
         var keyup = GenerateEvent(keycode, 'keyup');
 
         setTimeout(function() {
-            keyupHandler(keyup);
+            keyupHandler(keyup, args); //send the keyup event
             
             if (callback) {
                 callback();
             }
         }, keyUpDelay);
-        keydownHandler(keydown);
+        keydownHandler(keydown, args); //send the keydown event
     };
 
     var GenerateEvent = function(keyCode, eventType) {
