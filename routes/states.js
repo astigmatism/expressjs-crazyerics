@@ -4,8 +4,8 @@ var UtilitiesService = require('../services/utilities.js');
 var router = express.Router();
 
 var _maxNumberOfSaves = {
-    user: 20,
-    auto: 1
+    user: 100,
+    auto: 100
 };
 
 router.post('/save', function(req, res, next) {

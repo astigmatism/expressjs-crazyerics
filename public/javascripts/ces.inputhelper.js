@@ -1,5 +1,5 @@
 
-var cesInputHelper = (function(_ui) {
+var cesInputHelper = (function(_Emulator, _ui) {
 
     //private members
     var self = this;
@@ -12,6 +12,11 @@ var cesInputHelper = (function(_ui) {
     var _modifiedEmulatorKeyupHandlers = {};
 
     var _operationHandlers = {}; // { keycode: function}
+
+    var _idleKeyCheckInterval = null;
+    var _idleKeyCheckDuration = 5000; //how often to check when the last key was pressed
+    var _idleKeyDuration = 5000; //the amount of time to required to be idle to fire the OnIdleKeys functionality
+    var _lastInput = null;
 
     var _operationMap = {
         'statesave': 49,        //1
@@ -142,9 +147,9 @@ var cesInputHelper = (function(_ui) {
         SimulateEmulatorKeypress(keycode, callback, args);
     };
 
-    this.PreventBrowserKeys = function(prevent) {
+    this.GiveEmulatorControlOfInput = function(giveInput) {
 
-        if (prevent) {
+        if (giveInput) {
 
             //common listener definition
             var keyboardListener = function (e) {
@@ -152,13 +157,42 @@ var cesInputHelper = (function(_ui) {
                     e.preventDefault();
                 }
             }
-
             $(window).on('keydown', keyboardListener); //using jQuerys on and off here worked :P
 
+            UpdateIdleKeyInterval(false); //begin idle key interval
+
         } else {
+            
+             UpdateIdleKeyInterval(true); //stop interval
             $(window).off('keydown');
         }
     }
+
+    var UpdateIdleKeyInterval = function(terminate) {
+
+        if (terminate) {
+            clearInterval(_idleKeyCheckInterval);
+            _idleKeyCheckInterval = null;
+            return;
+        }
+
+        clearInterval(_idleKeyCheckInterval); //just in case, we cant have it running before we start another!
+        _idleKeyCheckInterval = null;
+
+        _idleKeyCheckInterval = setInterval(function() {
+
+            if (_lastInput) {
+
+                var now = new Date();
+
+                //if current time is greater than the last time input was taken plus the minimum amount of waiting for idle
+                if (now.getTime() > (_lastInput.getTime() + _idleKeyDuration)) {
+
+                    _Emulator.OnInputIdle();
+                }
+            }
+        }, _idleKeyCheckDuration);
+    };
 
     /**
      * This is the function we override the emulator handler with. Its resulting callback will pass a boolean to indictae if the original functionality should proceed
@@ -179,6 +213,8 @@ var cesInputHelper = (function(_ui) {
         }
 
         proceedToEmulatorCallback(true);
+
+        _lastInput = new Date();
     }
 
     /**

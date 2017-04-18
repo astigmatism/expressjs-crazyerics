@@ -431,9 +431,6 @@ var cesMain = (function() {
                                                 //enlarge dialog area for emulator
                                                 _Dialogs.SetHeight($('#emulatorwrapper').outerHeight(), function() {
 
-                                                    //reveal emulator
-                                                    _Emulator.Show(); //also input is given to canvas in this step
-
                                                     //assign focus to emulator canvas
                                                     $('#emulator')
                                                         .blur(function(event) {
@@ -447,8 +444,12 @@ var cesMain = (function() {
                                                             window.scrollTo(0, 0); //bring attention back up top
                                                             _Emulator.ResumeGame();
                                                             $('#emulatorwrapperoverlay').hide();
-                                                        })
-                                                        .focus();
+                                                        });
+
+                                                    //reveal emulator
+                                                    _Emulator.Show(); //also input is given to canvas in this step
+
+                                                    $('#emulator').focus(); //give focus (also calls resume game :P)
 
                                                     //with all operations complete, callback
                                                     if (callback) {
@@ -485,10 +486,10 @@ var cesMain = (function() {
             var artificialDelayForLoadingScreen = saveLoadingDialogUptime > _minimumGameLoadingTime ? 0 : _minimumGameLoadingTime - saveLoadingDialogUptime;
 
             setTimeout(function() {
-                _Emulator._InputHelper.Keypress('mute', function() {
-                    callback();
-                });
+                callback();
+                _Emulator._InputHelper.Keypress('mute');
             }, _minimumSaveLoadingTime);
+            
         });
 
         _Emulator._InputHelper.Keypress('mute', function() {
@@ -665,16 +666,10 @@ var cesMain = (function() {
 
         //get saves from emaultor saves manager to show for selection
         //will return an array for each type, empty if none
-        var saves = _Emulator.GetSavesForSelection({
-            'user': 3,
-            'auto': 1
-        });
-
-        var userSaves = saves['user'];
-        var autoSaves = saves['auto'];
+        var saves = _Emulator.GetMostRecentSaves(3);
 
         //no states saved to chose from
-        if (userSaves.length == 0 && autoSaves.length == 0) {
+        if ($.isEmptyObject(saves)) {
             callback();
             return;
         }
@@ -700,28 +695,16 @@ var cesMain = (function() {
             $('#savesselectlist').append($li);
         };
 
-        //is there an auto save to show?
-        if (autoSaves.length > 0) {
-            addToSelectionList(autoSaves[0], 'red', 'AUTO-SAVE');
+        for (save in saves) {
+            switch (saves[save].type) {
+                case 'user':
+                addToSelectionList(saves[save], 'green', 'YOUR SAVE');
+                break;
+                case 'auto':
+                addToSelectionList(saves[save], 'orange', 'AUTO-SAVED');
+                break;
+            }
         }
-
-        //user saves
-        if (userSaves[0]) {
-            addToSelectionList(userSaves[0], 'green', 'NEWEST');
-        }
-
-        if (userSaves[1]) {
-            addToSelectionList(userSaves[1], 'red', 'PREVIOUS');
-        }
-
-        if (autoSaves.length == 0 && userSaves[2]) {
-            addToSelectionList(userSaves[2], 'red', 'OLDER');   
-        }
-
-        $('#loadnosaves').off().on('mouseup', function() {
-            callback(null);
-            _Dialogs.CloseDialog(); //close now
-        });
 
         //show dialog
         _Dialogs.ShowDialog('savedgameselector');

@@ -8,6 +8,7 @@ var cesPlayerData = (function(_Compression, initialPlayerData) {
     var self = this;
     var data = initialPlayerData;
     var _playHistory = initialPlayerData.playhistory;
+    var _autoSaveDisabled = false; //TODO
     
     //public members
 

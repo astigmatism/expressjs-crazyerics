@@ -5,28 +5,8 @@
 var cesSavesManager = (function (_Compression, _initialSaveData) {
 
     var self = this;
-    
-    /*
-    {
-        user: {
-            12345: {...}
-            54321: {...}
-        },
-        auto: {
-            13245: {...}
-        }
-    }
-     */
     var _savesData = {};
-    
-    //for keys, I need to keep them in arrays so I can sort them by date
-    /*
-    {
-        user: [12345, 54321],
-        auto: [13245]
-    }
-     */
-    var _keys = {};
+    var _keys = [];
 
     this.AddSave = function(saveType, key, statedata, screendetails, callback) {
 
@@ -50,16 +30,11 @@ var cesSavesManager = (function (_Compression, _initialSaveData) {
         })
     };
 
-    this.GetSaves = function(type, maxCount) {
-        
-        maxCount = maxCount || Infinity;
-        var result = [];
+    this.GetMostRecentSaves = function(count) {
 
-        if (_keys[type]) {
-
-            for(var i = 0, len = _keys[type].length; i < len && i < maxCount; ++i) {
-                result.push(_savesData[type][_keys[type][i]]);
-            }
+        result = {};
+        for (var i = 0, len = _keys.length; i < len && i < count; ++i) {
+            result[_keys[i]] = _savesData[_keys[i]];
         }
         return result;
     };
@@ -71,22 +46,20 @@ var cesSavesManager = (function (_Compression, _initialSaveData) {
 
         key = parseInt(key, 10); //convert to int for this function
         //var time = $.format.date(key, 'ddd MM-dd-yyyy h:mma'); //using the jquery dateFormat plugin
-        var time = $.format.date(key, 'MMM D h:mma'); //using the jquery dateFormat plugin
+        var time = $.format.date(key, 'MMM D h:mm:ss a'); //using the jquery dateFormat plugin
 
-        _savesData[saveType] = _savesData[saveType] ? _savesData[saveType] : {}; //create type object
-        _keys[saveType] = _keys[saveType] ? _keys[saveType] : [];
-
-        _savesData[saveType][key] = {
+        _savesData[key] = {
             state: state,
             screenshot: screenshot,
             time: time,
-            key: key
+            key: key,
+            type: saveType
         };
 
-        _keys[saveType].push(key);
+        _keys.push(key); //store keys separately for sorting
 
         //newest to oldest
-        _keys[saveType].sort(function(a, b) {
+        _keys.sort(function(a, b) {
           return b - a;
         });
     };

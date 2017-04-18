@@ -12,14 +12,12 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
     // private members
     var self = this;
     var _isLoading = false;
+    var _isPaused = false;
     var _displayDurationShow = 1000;
     var _displayDurationHide = 500;
     var _creatingNewSave = false;
-    var _timeToWaitForScreenshot = 2000; //hopefully never take more than 10
-    var _timeToWaitForSaveState = 10000; //hopefully never more than 10
-    var _saveStateType = 'user';
-    var _autoSaveTimer = null;
-    var _autoSaveTimerDuration = 30000; //300000; //5 minutes
+    var _timeToWaitForScreenshot = 2000; //hopefully never take more than 2 sec
+    var _timeToWaitForSaveState = 30000; //hopefully never more than 30 sec
 
     //instances
     var _EmulatorInstance = null;
@@ -35,7 +33,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
     //wait for document as this is an external script
     $(document).ready(function() {
 
-        self._InputHelper = new cesInputHelper(_ui);
+        self._InputHelper = new cesInputHelper(self, _ui);
     });
 
     // public methods
@@ -65,17 +63,11 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
                 saveType = args[0];
             }
 
-            //reset the auto save to the maximum duration. this is something we want for all types of saves
-            ResetAutoSaveInterval();
-
             CreateNewSave(saveType, proceed);
         });
 
         //pub subs
         _PubSub.Subscribe('saveready', self, OnNewSaveSubscription);
-
-        //auto save timer
-        ResetAutoSaveInterval();
     };
 
     /**
@@ -130,16 +122,18 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
     };
 
     this.PauseGame = function() {
-        if (_Module) {
+        if (_Module && !_isPaused) {
             self.GiveEmulatorControlOfInput(false);
             _Module.pauseMainLoop();
+            _isPaused = true;
         }
     };
 
     this.ResumeGame = function() {
-        if (_Module) {
+        if (_Module && _isPaused) {
             self.GiveEmulatorControlOfInput(true);
             _Module.resumeMainLoop();
+            _isPaused = false;
         }
     };
 
@@ -183,8 +177,6 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
         $(document).unbind('webkitpointerlockchange');
         $(document).unbind('mspointerlockchange');
 
-        ResetAutoSaveInterval(true); //terminate auto-saves
-
         if (_Module) {
 
             //also unbinds events from document and window
@@ -218,7 +210,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
 
     this.GiveEmulatorControlOfInput = function(giveEmulatorInput) {
 
-        self._InputHelper.PreventBrowserKeys(giveEmulatorInput);
+        self._InputHelper.GiveEmulatorControlOfInput(giveEmulatorInput);
 
         //also set emulator-specific event handlers on and off (see custom module def)
         if (_Module) {
@@ -276,51 +268,30 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
         }
     };
 
+    this.OnInputIdle = function() {
+
+        //the keys are idle while the game runs! let's auto save
+        MakeAutoSave();
+    }
+
     this.InitializeSavesManager = function(saveData, callback) {
 
         _SavesManager = new cesSavesManager(_Compression, saveData);
     };
 
 
-    this.GetSavesForSelection = function(savesRequest) { 
+    this.GetMostRecentSaves = function(count) { 
 
-        var result = {};
-
-        /*
-        the expected format is save type and the number of recent saves to retrieve
-        savesRequest = {
-            'user': 4,
-            'auto': 1
-        }
-        */
-        for (saveType in savesRequest) {
-            result[saveType] = _SavesManager.GetSaves(saveType, savesRequest[saveType]);
-        }
-
-        return result;
+        return _SavesManager.GetMostRecentSaves(count);
     };
 
     //private methods
-    
-    var ResetAutoSaveInterval = function(terminate) {
-
-        terminate = terminate === true ? true : false;
-
-        clearTimeout(_autoSaveTimer);
-
-        if (!terminate)
-        {
-            _autoSaveTimer = setTimeout(function() {
-
-                MakeAutoSave();
-
-            }, _autoSaveTimerDuration);
-        }
-    };
 
     var MakeAutoSave = function() {
 
-        self._InputHelper.Keypress('statesave', null, ['auto']);
+        if (self._InputHelper) {
+            self._InputHelper.Keypress('statesave', null, ['auto']);
+        }
     };
 
     var CreateNewSave = function(saveType, proceedCallback) {

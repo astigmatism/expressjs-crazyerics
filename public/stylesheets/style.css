@@ -856,7 +856,7 @@ div.slidingpanel {
 }
 
 .ribbon {
-	font: bold 13px Sans-Serif;
+	font: bold 11px Sans-Serif;
 	color: #333;
 	text-align: center;
 	text-shadow: rgba(255,255,255,0.5) 0px 1px 0px;
@@ -904,6 +904,38 @@ div.slidingpanel {
 .ribbon-red:before, .ribbon-red:after {
 	
 	border-top:   3px solid #610059;
+}
+
+.ribbon-orange {
+
+	background-color: #EBC681;
+	background-image: -webkit-gradient(linear, left top, left bottom, from(#EBC681), to(#D0A84B)); 
+	background-image: -webkit-linear-gradient(top, #EBC681, #D0A84B); 
+	background-image:    -moz-linear-gradient(top, #EBC681, #D0A84B); 
+	background-image:     -ms-linear-gradient(top, #EBC681, #D0A84B); 
+	background-image:      -o-linear-gradient(top, #EBC681, #D0A84B); 
+	color: #333;
+}
+
+.ribbon-orange:before, .ribbon-orange:after {
+	
+	border-top:   3px solid #8F5400;
+}
+
+.ribbon-blue {
+
+	background-color: #5D739C;
+	background-image: -webkit-gradient(linear, left top, left bottom, from(#5D739C), to(#3E4E8E)); 
+	background-image: -webkit-linear-gradient(top, #5D739C, #3E4E8E); 
+	background-image:    -moz-linear-gradient(top, #5D739C, #3E4E8E); 
+	background-image:     -ms-linear-gradient(top, #5D739C, #3E4E8E); 
+	background-image:      -o-linear-gradient(top, #5D739C, #3E4E8E); 
+	color: #333;
+}
+
+.ribbon-blue:before, .ribbon-blue:after {
+	
+	border-top:   3px solid #07345D;
 }
 
 
