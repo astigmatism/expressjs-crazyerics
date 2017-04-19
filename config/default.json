@@ -7,6 +7,10 @@
 	"emupath": "/emulators",
 	"flattenedboxfiles": true,
 	"flattenedromfiles": true,
+	"maxsaves": {
+		"user": 20,
+		"auto": 20
+	},
 	"systems": {
 		"vect": {
 			"name": "Vectrex",

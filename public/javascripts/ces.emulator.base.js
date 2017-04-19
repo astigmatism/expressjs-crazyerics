@@ -121,6 +121,12 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
     this.PauseGame = function() {
         if (_Module && !_isPaused) {
             self.GiveEmulatorControlOfInput(false);
+            
+            //when game is paused, file saving will trigger as complete although it might only be partial,
+            //remove the subs to fix this issue
+            _PubSub.Unsubscribe('screenshotWritten');
+            _PubSub.Unsubscribe('stateWritten');
+
             _Module.pauseMainLoop();
             _isPaused = true;
         }

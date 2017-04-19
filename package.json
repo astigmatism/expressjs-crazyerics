@@ -17,7 +17,6 @@
     "js-beautify": "^1.6.8",
     "merge": "^1.2.0",
     "merge-descriptors": "^1.0.1",
-    "mongodb": "^2.2.21",
     "mongoose": "^4.7.6",
     "morgan": "^1.7.0",
     "node-cache": "^4.1.1",

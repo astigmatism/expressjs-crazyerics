@@ -503,7 +503,7 @@ var cesMain = (function() {
 
                 }, _minimumSaveLoadingTime);
             });
-        });
+        }, true); //sub once exclusive flag
 
         _Emulator._InputHelper.Keypress('mute', function() {
 

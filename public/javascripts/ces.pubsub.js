@@ -95,8 +95,16 @@ var cesPubSub = (function() {
             countdown: countdown
         });
 
+        //we can use this to allow a sub to remove itself, check first since I could have removed it through unsub
         return function() {
-            delete _topics[topic][index];
+
+            if (!_topics.hasOwnProperty(topic)) {
+                return;
+            }
+            if (_topics[topic].hasOwnProperty(index)) {
+                delete _topics[topic][index];
+            }
+            return;
         }
     }
 

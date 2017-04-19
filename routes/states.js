@@ -2,19 +2,17 @@ var express = require('express');
 var pug = require('pug');
 var UtilitiesService = require('../services/utilities.js');
 var router = express.Router();
-
-var _maxNumberOfSaves = {
-    user: 100,
-    auto: 100
-};
+var config = require('config');
 
 router.post('/save', function(req, res, next) {
-    
+
     var key = decodeURIComponent(req.query.key);
     var postdata = UtilitiesService.decompress.json(req.body); //unpack form data
 
-    if (req.session) {
+    if (req.session && postdata.hasOwnProperty('state') && postdata.hasOwnProperty('screenshot')) {
         
+        var maxsaves = config.get('assetpath');
+
         var saveType = postdata.type; //user, system...
 
         //create strcture for states if this is first time
@@ -26,7 +24,7 @@ router.post('/save', function(req, res, next) {
         var stack = req.session.games[key].saves[saveType];
         var keys = Object.keys(stack);
         var deletekey = null;
-        var max = _maxNumberOfSaves[saveType] ? _maxNumberOfSaves[saveType] : 1;
+        var max = maxsaves.hasOwnProperty(saveType) ? maxsaves[saveType] : 1;
 
         //before, adding ensure user does not exceed limit
         if (keys.length + 1 > max) {
@@ -47,13 +45,17 @@ router.post('/save', function(req, res, next) {
             screenshot: postdata.screenshot
         };
 
+        console.log(save);
+
         //use the date as a key for this saves data
         stack[savedDate] = save;
 
         return res.json({
             save: save,
             key: savedDate,
-            deletekey: deletekey
+            deletekey: deletekey,
+            used: keys.length + 1,
+            max: max
         });
     }
     res.json();

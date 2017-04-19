@@ -597,8 +597,6 @@ UtilitiesService.collectDataForClient = function(req, openonload, callback) {
         }
     }
 
-    console.log(configdata);
-
     //default retroarch configuration
     configdata['retroarch'] = config.get('retroarch');
 
