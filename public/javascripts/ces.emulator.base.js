@@ -100,24 +100,21 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
         });
     };
 
-    this.WriteSaveData = function(saveData, callback) {
+    this.WriteSaveData = function(saveKey, saveData, callback) {
 
         //if null, we want to inform the loading process can continue with a load
         if ($.isEmptyObject(saveData)) {
-            self.loadedSaveData = null;
-            callback(false);
+            callback(false); //false indicating there is not a save to load
             return;
         }
 
-        //write state file
+        //determine state name
         var filenoextension = _file.replace(new RegExp('\.[a-z0-9]{1,3}$', 'gi'), '');
         var statefilename = '/' + filenoextension + '.state';
-        
 
         _Module.cesWriteFile('/states', statefilename, saveData.state, function() {
 
-            self.loadedSaveData = saveData;
-            callback(true);
+            callback(true); //true indicating there is a state to load now
         });
     };
 
@@ -176,6 +173,11 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
         $(document).unbind('mozpointerlockchange');
         $(document).unbind('webkitpointerlockchange');
         $(document).unbind('mspointerlockchange');
+
+        //important! tear down all topics subscribed in this class otherwise the handlers will remain and fire on the next instance of emulator
+        _PubSub.Unsubscribe('saveready');
+        _PubSub.Unsubscribe('screenshotWritten');
+        _PubSub.Unsubscribe('stateWritten');
 
         if (_Module) {
 
@@ -323,7 +325,8 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
                     }
 
                     _creatingNewSave = false;
-                });
+
+                }, true); //SubscribeOnce exclusive flag
 
                 //just like with screenshots, create a timer to remove the subscription in case we never hear back
                 var saveStateTimeout = setTimeout(function() {
@@ -340,7 +343,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
 
                 proceedCallback(false);
             }
-        });
+        }, true); //sub once, exclusive flag
 
         //if I never hear back about a new screenshot, then remove this sub
         var screenshotTimeout = setTimeout(function() {

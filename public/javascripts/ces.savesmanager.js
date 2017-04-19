@@ -7,6 +7,7 @@ var cesSavesManager = (function (_Compression, _initialSaveData) {
     var self = this;
     var _savesData = {};
     var _keys = [];
+    var _currentlyWrittenSaveData = {};
 
     this.AddSave = function(saveType, key, statedata, screendetails, callback) {
 
@@ -37,6 +38,15 @@ var cesSavesManager = (function (_Compression, _initialSaveData) {
             result[_keys[i]] = _savesData[_keys[i]];
         }
         return result;
+    };
+
+    this.WriteSaveStateFromSave = function(saveData, callback) {
+
+        //simply save here :P
+        _currentlyWrittenSaveData = saveData;
+        if (callback) {
+            callabck();
+        }
     };
 
     var AddSave = function(saveType, key, stateData, screenshotData) {

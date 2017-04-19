@@ -7,18 +7,18 @@ var cesMain = (function() {
         'Back out of that mistake you made by holding the R key to rewind the game',
         'Press the Space key to fast forward through those story scenes',
         'If your browser supports it, you can go fullscreen by pressing the F key',
-        'You can save your progress (or state) by pressing the 1 key, return to it anytime with the 4 key',
-        'We\'ll store all of your save states as long as you return within two weeks',
+        //'You can save your progress (or state) by pressing the 1 key, return to it anytime with the 4 key',
+        'We\'ll store all of your saves as long as you return within two weeks',
         'Pause your game with the P key',
         'Select a system from the dropdown to generate a new list of suggested games',
         'To search for more obsurace or forgeign titles, select a system from the dropdown first',
         'Take a screenshot with the T key. Missed that moment? Rewind with R and capture again!',
         'Screenshots are deleted when you leave or refresh the page. Download your favorites to keep them'
     ];
-    var _tipsCycleRate = 5000;
+    var _tipsCycleRate = 3000;
     var _preventLoadingGame = false;
     var _preventGamePause = false; //condition for blur event of emulator, sometimes we don't want it to pause when we're giving it back focus
-    var _minimumGameLoadingTime = 4000; //have to consider tips (make longer) and transition times
+    var _minimumGameLoadingTime = 6000; //have to consider tips (make longer) and transition times
     var _minimumSaveLoadingTime = 3000; //have to consider tips (make longer) and transition times
     var _defaultSuggestions = 60;
     var _suggestionsLoading = false;
@@ -332,6 +332,7 @@ var cesMain = (function() {
     var RetroArchBootstrap = function(system, title, file, slot, shader, callback) {
 
         var key = _Compression.In.gamekey(system, title, file); //create key for anything that might need it
+        var box = cesGetBoxFront(_config, system, title, 170); //preload loading screen box
 
         //which emulator to load?
         EmulatorFactory(system, title, file, key, function(err, emulator) {
@@ -357,7 +358,7 @@ var cesMain = (function() {
 
 
                 //game load dialog show
-                ShowGameLoading(system, title, function(tipInterval) {
+                ShowGameLoading(system, title, box, function(tipInterval) {
 
                     //begin loading all content. I know it seems like some of these (game, emulator, etc) could load while the user
                     //is viewing the shader select, but I found that when treated as background tasks, it interfere with the performance
@@ -390,7 +391,7 @@ var cesMain = (function() {
                         _preventLoadingGame = false; //during save select, allow other games to load
 
                         //are there saves to load? Let's show a dialog to chose from, if not - will go straight to start
-                        ShowSaveSelection(system, title, file, function(selectedSaveData) {
+                        ShowSaveSelection(system, title, file, function(selectedSaveKey, selectedSaveData) {
                             
                             _preventLoadingGame = true;
 
@@ -403,7 +404,7 @@ var cesMain = (function() {
                             setTimeout(function() {
 
                                 // load state? bails if not set
-                                _Emulator.WriteSaveData(selectedSaveData, function() { //if save not set, bails on null
+                                _Emulator.WriteSaveData(selectedSaveKey, selectedSaveData, function(stateToLoad) { //if save not set, bails on null
 
                                     //begin game, callback is function which handles expections for any emulator error
                                     _Emulator.BeginGame(OnEmulatorException);
@@ -414,7 +415,7 @@ var cesMain = (function() {
 
                                         //load state? bails if null.. if valid, will show a new save loading dialog
                                         //and will load state. callback occurs after state has loaded
-                                        LoadEmulatorState(system, _Emulator.loadedSaveData, function() {
+                                        LoadEmulatorState(system, stateToLoad, function() {
 
                                             //close all dialogs (save loading or game loading), game begins!
                                             _Dialogs.CloseDialog(false, function() {
@@ -458,7 +459,7 @@ var cesMain = (function() {
                                                 });
                                             });
                                         });
-                                    });
+                                    }, true); //subscribe once, exclusive flag
                                 });
                             }, artificialDelayForLoadingScreen);
                         });
@@ -468,9 +469,9 @@ var cesMain = (function() {
         });
     };
 
-    var LoadEmulatorState = function(system, saveData, callback) {
+    var LoadEmulatorState = function(system, stateToLoad, callback) {
 
-        if ($.isEmptyObject(saveData)) {
+        if (!stateToLoad) {
             callback();
             return;
         }
@@ -481,15 +482,27 @@ var cesMain = (function() {
         //create a subscription for when the state file will have finished loading, then resume
         _PubSub.SubscribeOnce('stateRead', self, function() {
 
+            //keep in mind that this publish fires once the state has been loaded so the game is currently running
+            // callback();
+            // _Emulator._InputHelper.Keypress('mute');
+            
             //just like game loading, show the save loading screen for a minimum time before pressing the load
             var saveLoadingDialogUptime = Math.floor(Date.now() - saveLoadingStart);
             var artificialDelayForLoadingScreen = saveLoadingDialogUptime > _minimumGameLoadingTime ? 0 : _minimumGameLoadingTime - saveLoadingDialogUptime;
 
-            setTimeout(function() {
-                callback();
-                _Emulator._InputHelper.Keypress('mute');
-            }, _minimumSaveLoadingTime);
-            
+            //pause loaded state because we want to show the loading screen for a minimim amount of time
+            _Emulator._InputHelper.Keypress('pause', function() {
+
+                setTimeout(function() {
+                    callback();
+
+                    //unpause and unmute
+                    _Emulator._InputHelper.Keypress('pause', function() {
+                        _Emulator._InputHelper.Keypress('mute');
+                    });
+
+                }, _minimumSaveLoadingTime);
+            });
         });
 
         _Emulator._InputHelper.Keypress('mute', function() {
@@ -677,13 +690,13 @@ var cesMain = (function() {
         $('#savesselectlist').empty(); //clear from last time
 
         //generic function for adding auto and user saves to list
-        var addToSelectionList = function(saveData, ribbonColor, ribbonText) {
+        var addToSelectionList = function(saveKey, saveData, ribbonColor, ribbonText) {
 
             var $image = $(BuildScreenshot(system, saveData.screenshot, 200));
 
             var $li = $('<li class="zoom" data-shader=""><h3>' + saveData.time + '</h3></li>').on('click', function(e) {
                     
-                callback(saveData);
+                callback(saveKey, saveData);
                 ShowSaveLoading(system, saveData.screenshot);
             });
 
@@ -698,13 +711,18 @@ var cesMain = (function() {
         for (save in saves) {
             switch (saves[save].type) {
                 case 'user':
-                addToSelectionList(saves[save], 'green', 'YOUR SAVE');
+                addToSelectionList(save, saves[save], 'green', 'YOUR SAVE');
                 break;
                 case 'auto':
-                addToSelectionList(saves[save], 'orange', 'AUTO-SAVED');
+                addToSelectionList(save, saves[save], 'orange', 'AUTO-SAVED');
                 break;
             }
         }
+
+        $('#loadnosaves').off().on('mouseup', function() {
+            callback(null);
+            _Dialogs.CloseDialog(); //close now
+        });
 
         //show dialog
         _Dialogs.ShowDialog('savedgameselector');
@@ -723,13 +741,13 @@ var cesMain = (function() {
         _Dialogs.ShowDialog('saveloading');
     };
 
-    var ShowGameLoading = function(system, title, callback) {
+    var ShowGameLoading = function(system, title, box, callback) {
 
         $('#tip').hide();
         $('#gameloadingname').show().text(title);
 
         //build loading box
-        var box = cesGetBoxFront(_config, system, title, 170);
+        var box = cesGetBoxFront(_config, system, title, 170) || box; //if it was preloaded!
         box.addClass('tada');
         box.load(function() {
             $(this).fadeIn(200);
@@ -1028,8 +1046,14 @@ cesGetBoxFront = function(config, system, title, size) {
         title = encodeURIComponent(encodeURIComponent(_Compression.Zip.string(title)));
     }
 
+    var errorsrc = config.assetpath + '/images/blanks/' + system + '_' + size + '.png';
+    var src = config.boxpath + '/' + system + '/' + config.systemdetails[system].boxcdnversion + '/' + (title + (_nerfImages ? 'sofawnsay' : '')) + '/' + size + '.jpg';
+
+    //a trick to preload the image
+    var nothing = (new Image()).src = src;
+
     _Compression = null;
 
     //incldes swap to blank cart onerror
-    return $('<img onerror="this.src=\'' + config.assetpath + '/images/blanks/' + system + '_' + size + '.png\'" src="' + config.boxpath + '/' + system + '/' + config.systemdetails[system].boxcdnversion + '/' + (title + (_nerfImages ? 'sofawnsay' : '')) + '/' + size + '.jpg" />');
+    return $('<img onerror="this.src=\'' + errorsrc + '\'" src="' + src + '" />');
 };

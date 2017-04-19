@@ -44,7 +44,13 @@ var cesPubSub = (function() {
 
     };
 
-    this.SubscribeOnce = function(topic, context, handler) {
+    this.SubscribeOnce = function(topic, context, handler, exclusive) {
+        
+        //if exclusive, that means we only have one listener
+        if (exclusive) {
+            self.Unsubscribe(topic); //remove all topics
+        }
+
         return Subscribe(topic, context, handler, 1);
     };
 
