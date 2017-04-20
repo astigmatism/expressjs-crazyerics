@@ -11,6 +11,19 @@ var session = require('express-session');
 var UtilitiesService = require('./services/utilities');
 var MongoStore = require('connect-mongo')(session);
 
+// var Dropbox = require('dropbox');
+// var config = require('config');
+// var dbx = new Dropbox({ 
+//     accessToken: config.get('dropboxaccesstoken')
+// });
+// dbx.filesListFolder({path: ''})
+//           .then(function(response) {
+//             console.log(response);
+//           })
+//           .catch(function(error) {
+//             console.log(error);
+//           });
+
 mongoose.connect('mongodb://localhost/crazyerics');
 
 var routes = require('./routes/index');

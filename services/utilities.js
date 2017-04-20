@@ -6,7 +6,7 @@ var pako = require('pako');
 var btoa = require('btoa');
 var atob = require('atob');
 var merge = require('merge');
-var DataService = require('../services/data.js');
+var FileService = require('../services/fileservice.js');
 
 /**
  * UtilitiesService Constructor
@@ -44,21 +44,21 @@ UtilitiesService.onApplicationStart = function(callback) {
         }
 
         //ok, lets open the data file
-        DataService.getFile('/data/' + system + '.json', function(err, data) {
+        FileService.getFile('/data/' + system + '.json', function(err, data) {
             if (err) {
                 console.log('Could not find data file for ' + system + ' even though they are defined in config');
                 return nextsystem();
             }
 
             //let's cache files in this section
-            DataService.getFile('/data/' + system + '_thegamesdb.json', function(err, thegamesdb) {
+            FileService.getFile('/data/' + system + '_thegamesdb.json', function(err, thegamesdb) {
                 if (err) {
                     console.log('Could not find thegamesdb file for ' + system + '.');
                 }
             
 
                 //let's try opening the boxart data file now too
-                DataService.getFile('/data/' + system + '_boxart.json', function(err, boxartdata) {
+                FileService.getFile('/data/' + system + '_boxart.json', function(err, boxartdata) {
                     if (err) {
                         console.log('Could not find boxart file for ' + system + '. No suggests can be made without boxart');
                         //if error, console log only, we can still build cache
@@ -140,7 +140,7 @@ UtilitiesService.onApplicationStart = function(callback) {
                     }
 
                     //cache suggestions for this system
-                    DataService.setCache('suggestions.' + system, suggestions); //ok to be sync
+                    FileService.setCache('suggestions.' + system, suggestions); //ok to be sync
 
                     console.log('suggestions.' + system + ' (threshold: ' + systemSuggestionThreshold + ') total suggestions --> ' + suggestions.best.length + '. total with thegamesdb rating --> ' + titlesWithRating);
 
@@ -154,7 +154,7 @@ UtilitiesService.onApplicationStart = function(callback) {
             return callback(err);
         }
 
-        DataService.wholescaleSetCache({
+        FileService.wholescaleSetCache({
             'suggestions.all': suggestionsall,
             '/data/all.json': search
         }, 0, function(err) {
@@ -188,7 +188,7 @@ UtilitiesService.search = function(systemfilter, term, maximum, callback) {
     var rank;
     var words = term.split(' '); //split all search terms
 
-    DataService.getFile('/data/' + systemfilter + '.json', function(err, data) {
+    FileService.getFile('/data/' + systemfilter + '.json', function(err, data) {
         if (err) {
             return callback(err);
         }
@@ -338,7 +338,7 @@ UtilitiesService.findSuggestionsAll = function(items, callback) {
     var aggrigation = [];
     var systems = config.get('systems');
 
-    DataService.getCache('suggestions.all', function(err, suggestionsCache) {
+    FileService.getCache('suggestions.all', function(err, suggestionsCache) {
 
         async.each(Object.keys(suggestionsCache), function(system, nextsystem) {
 
@@ -413,7 +413,7 @@ UtilitiesService.findSuggestions = function(system, items, forgienMixPerc, callb
     var i;
 
     //get suggestions cache
-    DataService.getCache('suggestions.' + system, function(err, suggestionsCache) {
+    FileService.getCache('suggestions.' + system, function(err, suggestionsCache) {
         if (err) {
             return callback(err);
         }
@@ -459,7 +459,7 @@ UtilitiesService.browse = function(system, term, callback) {
 
     var regex = new RegExp('^' + (term ? term : '[^a-z]'), 'i');
 
-    DataService.getFile('/data/' + system + '.json', function(err, titles) {
+    FileService.getFile('/data/' + system + '.json', function(err, titles) {
         if (err) {
             return callback(err);
         }
@@ -490,7 +490,7 @@ UtilitiesService.findGame = function(system, title, file, callback) {
 
     //I found it faster to save all the results in a cache rather than load all the caches to create the result.
     //went from 120ms response to about 30ms
-    DataService.getCache(system + title + file, function(err, data) {
+    FileService.getCache(system + title + file, function(err, data) {
         if (err) {
             return callback(err);
         }
@@ -510,7 +510,7 @@ UtilitiesService.findGame = function(system, title, file, callback) {
         };
 
         //open data file for details
-        DataService.getFile('/data/' + system + '.json', function(err, games) {
+        FileService.getFile('/data/' + system + '.json', function(err, games) {
             if (err) {
                 return callback(err);
             }
@@ -524,7 +524,7 @@ UtilitiesService.findGame = function(system, title, file, callback) {
                 data.files = games[title].files;
 
                 //is there box art too?
-                DataService.getFile('/data/' + system + '_boxart.json', function(err, boxartgames) {
+                FileService.getFile('/data/' + system + '_boxart.json', function(err, boxartgames) {
                     if (err) {
                         //no need to trap here
                     } else {
@@ -535,7 +535,7 @@ UtilitiesService.findGame = function(system, title, file, callback) {
                     }
 
                     //is there info?
-                    DataService.getFile('/data/' + system + '_thegamesdb.json', function(err, thegamesdb) {
+                    FileService.getFile('/data/' + system + '_thegamesdb.json', function(err, thegamesdb) {
                         if (err) {
                             //no need to trap here
                         } else {
@@ -545,7 +545,7 @@ UtilitiesService.findGame = function(system, title, file, callback) {
                             }
                         }
 
-                        DataService.setCache(system + title + file, data);
+                        FileService.setCache(system + title + file, data);
 
                         return callback(null, data);
                     });

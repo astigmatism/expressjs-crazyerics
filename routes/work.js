@@ -3,7 +3,7 @@ var router = express.Router();
 var config = require('config');
 var fs = require('fs');
 var beautify = require('js-beautify');
-var DataService = require('../services/data.js');
+var FileService = require('../services/fileservice.js');
 var async = require('async');
 
 router.get('/', function(req, res, next) {
@@ -32,7 +32,7 @@ router.get('/emulatorprep', function(req, res, next) {
         }
 
         //passing true to second param says to overwrite on exist
-        DataService.createFolder(destinationPath, true, function(err) {
+        FileService.createFolder(destinationPath, true, function(err) {
             if (err) {
                 return res.json(err);
             }

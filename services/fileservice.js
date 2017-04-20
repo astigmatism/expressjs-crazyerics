@@ -9,9 +9,9 @@ var nodecache = new NodeCache({
 });
 
 /**
- * DataService Constructor
+ * FileService Constructor
  */
-DataService = function() {
+FileService = function() {
 };
 
 /**
@@ -22,7 +22,7 @@ DataService = function() {
  * @param  {number}   cacheLifetime 	when cached, optionally define how long, default is forever
  * @return {Function}
  */
-DataService.getFile = function(path, callback, forceLoad, cacheLifetime, buffer) {
+FileService.getFile = function(path, callback, forceLoad, cacheLifetime, buffer) {
 
     var self = this;
 
@@ -66,7 +66,7 @@ DataService.getFile = function(path, callback, forceLoad, cacheLifetime, buffer)
 };
 
 //writes each object property/value to cache
-DataService.wholescaleSetCache = function(object, cacheLifetime, callback) {
+FileService.wholescaleSetCache = function(object, cacheLifetime, callback) {
 
     var self        = this;
     cacheLifetime   = cacheLifetime || 0; //how long should this file's content persist in cache? 0 = forever, -1 = don't put in cache at all
@@ -86,7 +86,7 @@ DataService.wholescaleSetCache = function(object, cacheLifetime, callback) {
 
 };
 
-DataService.getCache = function(key, callback) {
+FileService.getCache = function(key, callback) {
 
     //console.log('cache request: ' + key);
 
@@ -106,7 +106,7 @@ DataService.getCache = function(key, callback) {
     });
 };
 
-DataService.setCache = function(key, data, cacheLifetime, callback) {
+FileService.setCache = function(key, data, cacheLifetime, callback) {
     
     cacheLifetime    = cacheLifetime || 0; //how long should this file's content persist in cache? 0 = forever, -1 = don't put in cache at all
 
@@ -119,7 +119,7 @@ DataService.setCache = function(key, data, cacheLifetime, callback) {
     });
 };
 
-DataService.createFolder = function(path, overwrite, callback) {
+FileService.createFolder = function(path, overwrite, callback) {
 
     fs.exists(path, function (exists) {
 
@@ -137,7 +137,7 @@ DataService.createFolder = function(path, overwrite, callback) {
         if (exists) {
 
             if (overwrite) {
-                DataService.rmdir(path, function (err) {
+                FileService.rmdir(path, function (err) {
                     if (err) {
                         return callback(err);
                     }
@@ -155,7 +155,7 @@ DataService.createFolder = function(path, overwrite, callback) {
     });
 };
 
-DataService.rmdir = function(path, callback) {
+FileService.rmdir = function(path, callback) {
     fs.readdir(path, function(err, files) {
         if(err) {
             // Pass the error on to callback
@@ -187,7 +187,7 @@ DataService.rmdir = function(path, callback) {
                     return;
                 }
                 if( stats.isDirectory() ) {
-                    DataService.rmdir(curPath, folderDone);
+                    FileService.rmdir(curPath, folderDone);
                 } else {
                     fs.unlink(curPath, folderDone);
                 }
@@ -196,7 +196,7 @@ DataService.rmdir = function(path, callback) {
     });
 };
 
-DataService.emptydir = function(path, callback) {
+FileService.emptydir = function(path, callback) {
     fs.readdir(path, function(err, files) {
         if(err) {
             // Pass the error on to callback
@@ -228,7 +228,7 @@ DataService.emptydir = function(path, callback) {
                     return;
                 }
                 if( stats.isDirectory() ) {
-                    DataService.rmdir(curPath, folderDone);
+                    FileService.rmdir(curPath, folderDone);
                 } else {
                     fs.unlink(curPath, folderDone);
                 }
@@ -237,4 +237,4 @@ DataService.emptydir = function(path, callback) {
     });
 };
 
-module.exports = DataService;
+module.exports = FileService;

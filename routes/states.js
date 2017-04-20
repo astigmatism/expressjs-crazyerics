@@ -3,59 +3,80 @@ var pug = require('pug');
 var UtilitiesService = require('../services/utilities.js');
 var router = express.Router();
 var config = require('config');
+var SaveService = require('../services/saveservice.js');
 
 router.post('/save', function(req, res, next) {
 
     var key = decodeURIComponent(req.query.key);
+    var saveName = Date.now();
     var postdata = UtilitiesService.decompress.json(req.body); //unpack form data
+    var saveType = postdata.type; //user, auto...
+    var maxsaves = parseInt(config.get('maxsaves'), 10);
+    var deletekey = null;
 
-    if (req.session && postdata.hasOwnProperty('state') && postdata.hasOwnProperty('screenshot')) {
+    if (req.session && key && saveType && postdata.hasOwnProperty('state') && postdata.hasOwnProperty('screenshot')) {
         
-        var maxsaves = config.get('assetpath');
 
-        var saveType = postdata.type; //user, system...
+        //ok! what do to here. I save the screen and state data as a file on dropbox. why? because its heavy and mongo (session) has a 16MB limit on docs
+        //because of this, I tag the save with a name (a timestamp) and save that reference to mongo on the session
 
-        //create strcture for states if this is first time
+
+        //create strcture for saves in session data if this is first time
         req.session.games = req.session.games ? req.session.games : {};
         req.session.games[key] = req.session.games[key] ? req.session.games[key] : {};
-        req.session.games[key].saves = req.session.games[key].saves ? req.session.games[key].saves : {};
-        req.session.games[key].saves[saveType] = req.session.games[key].saves[saveType] ? req.session.games[key].saves[saveType] : {};
-        
-        var stack = req.session.games[key].saves[saveType];
-        var keys = Object.keys(stack);
-        var deletekey = null;
-        var max = maxsaves.hasOwnProperty(saveType) ? maxsaves[saveType] : 1;
+        req.session.games[key].saves = req.session.games[key].saves ? req.session.games[key].saves : [];
 
-        //before, adding ensure user does not exceed limit
-        if (keys.length + 1 > max) {
-            
-            //find oldest, sort keys smallest to greatest
-            keys.sort(function(a, b) {
-              return a - b;
+        var sessionSaves = req.session.games[key].saves;
+
+        //save the screen and state data. response is the dropbox plugin response (includes file write data)
+        SaveService.NewSave(req.sessionID, key, saveName, postdata.screenshot, postdata.state, saveType, function(err, response) {
+
+            //if there was a dbx error in writing the file, we have to throw this save away
+            if (err) {
+                console.log (err);
+                return res.json({
+                    error: err
+                });
+            }
+
+            //ok, now add the saveName as a key to the file in session data
+            sessionSaves.push(saveName);
+
+            //do we need to prune the total?
+            if (sessionSaves.length > maxsaves) {
+
+                //sort oldest to newest
+                keys.sort(function(a, b) {
+                    return a - b;
+                });
+
+                deletekey = sessionSaves[0];
+            }
+
+            //because we're async here, I need to wait for a response.
+            //bails if delete key is null
+            SaveService.DeleteSave(req.sessionID, key, deletekey, function(err, response, deleted) {
+
+                //again, bail on error
+                if (err) {
+                    console.log (err);
+                    return res.json({
+                        error: err
+                    });
+                }
+                
+                //delete was successful
+                if (deleted) {
+                    sessionSaves.shift(); //removes 0 index
+                }
+
+                //ok! with delete (or no delete, just the save) complete we can respond to the client
+                return res.json({
+                    deletekey: deletekey,
+                    used: sessionSaves.length,
+                    max: max
+                });
             });
-
-            delete stack[keys[0]];
-            deletekey = keys[0];
-        }
-
-        var savedDate = Date.now();
-
-        var save = {
-            state: postdata.state,
-            screenshot: postdata.screenshot
-        };
-
-        console.log(save);
-
-        //use the date as a key for this saves data
-        stack[savedDate] = save;
-
-        return res.json({
-            save: save,
-            key: savedDate,
-            deletekey: deletekey,
-            used: keys.length + 1,
-            max: max
         });
     }
     res.json();
