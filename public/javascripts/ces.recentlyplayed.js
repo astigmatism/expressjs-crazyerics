@@ -103,7 +103,7 @@ var cesRecentlyPlayed = (function(config, _Compression, _PlayGame, $wrapper, _in
         _grid.isotope('remove', griditem).isotope('layout');
 
         $.ajax({
-            url: '/states/delete?key=' + encodeURIComponent(key),
+            url: '/states/delete?gameKey=' + encodeURIComponent(key),
             type: 'DELETE',
             /**
              * on successful state deletion

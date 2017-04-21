@@ -100,22 +100,31 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
         });
     };
 
-    this.WriteSaveData = function(saveKey, saveData, callback) {
+    this.WriteSaveData = function(timeStamp, callback) {
 
         //if null, we want to inform the loading process can continue with a load
-        if ($.isEmptyObject(saveData)) {
+        if (timeStamp) {
+
+            _SavesManager.GetState(timeStamp, function(err, stateData) {
+                if (err) {
+                    callback(false);
+                    return;
+                }
+
+                //determine state name
+                var filenoextension = _file.replace(new RegExp('\.[a-z0-9]{1,3}$', 'gi'), '');
+                var statefilename = '/' + filenoextension + '.state';
+
+                _Module.cesWriteFile('/states', statefilename, stateData, function() {
+
+                    callback(true); //true indicating there is a state to load now
+                });
+            });
+        }
+        else {
             callback(false); //false indicating there is not a save to load
             return;
         }
-
-        //determine state name
-        var filenoextension = _file.replace(new RegExp('\.[a-z0-9]{1,3}$', 'gi'), '');
-        var statefilename = '/' + filenoextension + '.state';
-
-        _Module.cesWriteFile('/states', statefilename, saveData.state, function() {
-
-            callback(true); //true indicating there is a state to load now
-        });
     };
 
     this.PauseGame = function() {
@@ -244,18 +253,16 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
         // match will return an array when match was successful, our capture group with the slot value, its 1 index
         if (statematch) {
 
-            var data = _Compression.Zip.bytearray(contents);
-
-            _PubSub.Publish('stateWritten', [filename, contents, data]);
+            _PubSub.Publish('stateWritten', [filename, contents]);
             return;
         }
 
         if (screenshotmatch) {
 
             //construct image into blob for use
-            var arrayBufferView = new Uint8Array(contents);
+            var screenDataUnzipped = new Uint8Array(contents);
 
-            _PubSub.Publish('screenshotWritten', [filename, contents, arrayBufferView, _system, _title]);
+            _PubSub.Publish('screenshotWritten', [filename, contents, screenDataUnzipped, _system, _title]);
             return;
         }
 
@@ -282,9 +289,9 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
         MakeAutoSave();
     }
 
-    this.InitializeSavesManager = function(saveData, callback) {
+    this.InitializeSavesManager = function(saveData, gameKey, callback) {
 
-        _SavesManager = new cesSavesManager(_Compression, saveData);
+        _SavesManager = new cesSavesManager(_Compression, gameKey, saveData);
     };
 
 
@@ -313,21 +320,21 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
         _creatingNewSave = true;
 
         //before state save, perform a screen capture
-        var removeScreenshotSubscription = _PubSub.SubscribeOnce('screenshotWritten', self, function(filename, contents, arrayBufferView, system, title) {
+        var removeScreenshotSubscription = _PubSub.SubscribeOnce('screenshotWritten', self, function(filename, contents, screenDataUnzipped, system, title) {
 
             clearTimeout(screenshotTimeout);
 
-            if (arrayBufferView) {
+            if (screenDataUnzipped) {
 
                 //it can take a while too, sucks
-                var removeStateSubscription = _PubSub.SubscribeOnce('stateWritten', self, function(filename, contents, stateData) {
+                var removeStateSubscription = _PubSub.SubscribeOnce('stateWritten', self, function(filename, stateDataUnzipped) {
 
                     clearTimeout(saveStateTimeout);
 
                     //ok, to publish a new save is ready, we require screen and state data
-                    if (stateData && arrayBufferView) {
+                    if (stateDataUnzipped && screenDataUnzipped) {
 
-                        _PubSub.Publish('saveready', [saveType, _key, arrayBufferView, stateData]);
+                        _PubSub.Publish('saveready', [saveType, screenDataUnzipped, stateDataUnzipped]);
                     }
 
                     _creatingNewSave = false;
@@ -364,9 +371,9 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
 
     };
 
-    var OnNewSaveSubscription = function(saveType, key, screendata, statedata) {
+    var OnNewSaveSubscription = function(saveType, screenDataUnzipped, stateDataUnzipped) {
 
-        _SavesManager.AddSave(saveType, key, statedata, screendata, function() {
+        _SavesManager.AddSave(saveType, screenDataUnzipped, stateDataUnzipped, function() {
 
             //nothing yet
         });

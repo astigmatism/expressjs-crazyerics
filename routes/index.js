@@ -3,6 +3,7 @@ var UtilitiesService = require('../services/utilities.js');
 var router = express.Router();
 var config = require('config');
 var fs = require('fs');
+var SaveService = require('../services/saveservice.js');
 
 router.get('/', function(req, res, next) {
 
@@ -98,23 +99,26 @@ router.post('/load/game', function(req, res, next) {
         }
 
         //get saves used by this game
-        if (req.session.games[key] && req.session.games[key].saves) {
-            saves = req.session.games[key].saves;
-        }
-
-        //also return the game files used by this title (for selecting a different file to load)
-        UtilitiesService.findGame(game.system, game.title, game.file, function(err, details) {
+        SaveService.GetSavesForClient(req.sessionID, key, function(err, saveDocs) {
             if (err) {
-                return res.json(err);
+                //there's really nothing I can do at this point, simply return a null set of saves
+                saveDocs = {};
             }
 
-            var result = {
-                saves: saves,
-                files: details.files, //rom files
-                info: details.info //thegamesdb data
-            };
+            //also return the game files used by this title (for selecting a different file to load)
+            UtilitiesService.findGame(game.system, game.title, game.file, function(err, details) {
+                if (err) {
+                    return res.json(err);
+                }
 
-            res.json(UtilitiesService.compress.json(result));
+                var result = {
+                    saves: saveDocs,
+                    files: details.files, //rom files
+                    info: details.info //thegamesdb data
+                };
+
+                res.json(UtilitiesService.compress.json(result));
+            });
         });
     }
 });

@@ -380,7 +380,7 @@ var cesMain = (function() {
                         var files = gameDetails.files;
                         var info = gameDetails.info;
 
-                        _Emulator.InitializeSavesManager(saves);
+                        _Emulator.InitializeSavesManager(saves, key);
 
                         //date copmany
                         if (info && info.Publisher && info.ReleaseDate) {
@@ -391,7 +391,7 @@ var cesMain = (function() {
                         _preventLoadingGame = false; //during save select, allow other games to load
 
                         //are there saves to load? Let's show a dialog to chose from, if not - will go straight to start
-                        ShowSaveSelection(system, title, file, function(selectedSaveKey, selectedSaveData) {
+                        ShowSaveSelection(system, title, file, function(selectedSaveTimeStamp) {
                             
                             _preventLoadingGame = true;
 
@@ -404,7 +404,7 @@ var cesMain = (function() {
                             setTimeout(function() {
 
                                 // load state? bails if not set
-                                _Emulator.WriteSaveData(selectedSaveKey, selectedSaveData, function(stateToLoad) { //if save not set, bails on null
+                                _Emulator.WriteSaveData(selectedSaveTimeStamp, function(stateToLoad) { //if save not set, bails on null
 
                                     //begin game, callback is function which handles expections for any emulator error
                                     _Emulator.BeginGame(OnEmulatorException);
@@ -690,13 +690,13 @@ var cesMain = (function() {
         $('#savesselectlist').empty(); //clear from last time
 
         //generic function for adding auto and user saves to list
-        var addToSelectionList = function(saveKey, saveData, ribbonColor, ribbonText) {
+        var addToSelectionList = function(timeStamp, saveData, ribbonColor, ribbonText) {
 
             var $image = $(BuildScreenshot(system, saveData.screenshot, 200));
 
             var $li = $('<li class="zoom" data-shader=""><h3>' + saveData.time + '</h3></li>').on('click', function(e) {
                     
-                callback(saveKey, saveData);
+                callback(timeStamp);
                 ShowSaveLoading(system, saveData.screenshot);
             });
 
@@ -708,13 +708,13 @@ var cesMain = (function() {
             $('#savesselectlist').append($li);
         };
 
-        for (save in saves) {
-            switch (saves[save].type) {
+        for (timeStamp in saves) {
+            switch (saves[timeStamp].type) {
                 case 'user':
-                addToSelectionList(save, saves[save], 'green', 'YOUR SAVE');
+                addToSelectionList(timeStamp, saves[timeStamp], 'green', 'YOUR SAVE');
                 break;
                 case 'auto':
-                addToSelectionList(save, saves[save], 'orange', 'AUTO-SAVED');
+                addToSelectionList(timeStamp, saves[timeStamp], 'orange', 'AUTO-SAVED');
                 break;
             }
         }

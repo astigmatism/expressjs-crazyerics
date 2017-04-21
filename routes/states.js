@@ -4,25 +4,43 @@ var UtilitiesService = require('../services/utilities.js');
 var router = express.Router();
 var SaveService = require('../services/saveservice.js');
 
+router.get('/', function(req, res, next) {
+
+    var gameKey = decodeURIComponent(req.query.gameKey);
+    var timeStamp = req.query.timeStamp;
+
+    if (gameKey && timeStamp) {
+
+        SaveService.GetState(req.sessionID, gameKey, timeStamp, function(err, result) {
+            if (err) {
+                return res.json({ error: err });
+            }
+            res.json(result);
+        });
+    }
+    else {
+        res.json({ error: 'The required querystrings are not found.' });
+    }
+});
+
 router.post('/save', function(req, res, next) {
 
-    var key = decodeURIComponent(req.query.key);
-    var saveName = Date.now();
+    var gameKey = decodeURIComponent(req.query.gameKey);
+    var timeStamp = Date.now();
     var postdata = UtilitiesService.decompress.json(req.body); //unpack form data
     var saveType = postdata.type; //user, auto...
-    var deletekey = null;
 
-    if (req.session && key && saveType && postdata.hasOwnProperty('state') && postdata.hasOwnProperty('screenshot')) {
+    if (req.session && gameKey && saveType && postdata.hasOwnProperty('state') && postdata.hasOwnProperty('screenshot')) {
         
         //create strcture for saves in session data if this is first time
         req.session.games = req.session.games ? req.session.games : {};
-        req.session.games[key] = req.session.games[key] ? req.session.games[key] : {};
-        req.session.games[key].saves = req.session.games[key].saves ? req.session.games[key].saves : [];
+        req.session.games[gameKey] = req.session.games[gameKey] ? req.session.games[gameKey] : {};
+        req.session.games[gameKey].saves = req.session.games[gameKey].saves ? req.session.games[gameKey].saves : [];
 
-        var sessionSaves = req.session.games[key].saves;
+        var sessionSaves = req.session.games[gameKey].saves;
 
         //save the screen and state data. response is the _id from the insert into the mongo collection
-        SaveService.NewSave(req.sessionID, key, saveName, postdata.screenshot, postdata.state, saveType, function(err, saveId) {
+        SaveService.NewSave(req.sessionID, gameKey, timeStamp, postdata.screenshot, postdata.state, saveType, function(err, saveId, deleteSaveTimeStamp) {
 
             //if there was a dbx error in writing the file, we have to throw this save away
             if (err) {
@@ -32,95 +50,44 @@ router.post('/save', function(req, res, next) {
                 });
             }
 
-            //ok, now add the saveName as a key to the file in session data
+            //ok, now add the timeStamp as a gameKey to the file in session data
             sessionSaves.push(saveId);
 
             return res.json({
-                
+                ds: deleteSaveTimeStamp,
+                ts: timeStamp
             });
         });
-
-        /*
-        //ok! what do to here. I save the screen and state data as a file on dropbox. why? because its heavy and mongo (session) has a 16MB limit on docs
-        //because of this, I tag the save with a name (a timestamp) and save that reference to mongo on the session
-
-
-        //create strcture for saves in session data if this is first time
-        req.session.games = req.session.games ? req.session.games : {};
-        req.session.games[key] = req.session.games[key] ? req.session.games[key] : {};
-        req.session.games[key].saves = req.session.games[key].saves ? req.session.games[key].saves : [];
-
-        var sessionSaves = req.session.games[key].saves;
-
-        //save the screen and state data. response is the dropbox plugin response (includes file write data)
-        SaveService.NewSave(req.sessionID, key, saveName, postdata.screenshot, postdata.state, saveType, function(err, response) {
-
-            //if there was a dbx error in writing the file, we have to throw this save away
-            if (err) {
-                console.log (err);
-                return res.json({
-                    error: err
-                });
-            }
-
-            //ok, now add the saveName as a key to the file in session data
-            sessionSaves.push(saveName);
-
-            //do we need to prune the total?
-            if (sessionSaves.length > maxsaves) {
-
-                //sort oldest to newest
-                keys.sort(function(a, b) {
-                    return a - b;
-                });
-
-                deletekey = sessionSaves[0];
-            }
-
-            //because we're async here, I need to wait for a response.
-            //bails if delete key is null
-            SaveService.DeleteSave(req.sessionID, key, deletekey, function(err, response, deleted) {
-
-                //again, bail on error
-                if (err) {
-                    console.log (err);
-                    return res.json({
-                        error: err
-                    });
-                }
-                
-                //delete was successful
-                if (deleted) {
-                    sessionSaves.shift(); //removes 0 index
-                }
-
-                //ok! with delete (or no delete, just the save) complete we can respond to the client
-                return res.json({
-                    deletekey: deletekey,
-                    used: sessionSaves.length,
-                    max: max
-                });
-            });
-        });
-        */
     }
-    res.json();
+    else {
+        res.json({
+            error: 'the required data (postdata querystring) was not all present'
+        });
+    }
 });
 
 router.delete('/delete', function(req, res, next) {
 
-    var key = decodeURIComponent(req.query.key);
+    var gameKey = decodeURIComponent(req.query.gameKey);
 
+    //remove game from session data
     if (req.session) {
-        if (req.session.games && req.session.games[key] && req.session.games[key]) {
-             delete req.session.games[key];
+        if (req.session.games && req.session.games[gameKey] && req.session.games[gameKey]) {
+             delete req.session.games[gameKey];
         }
 
-        if (req.session.games.history && req.session.games.history[key]) {
-            delete req.session.games.history[key]
+        if (req.session.games.history && req.session.games.history[gameKey]) {
+            delete req.session.games.history[gameKey]
         }
     }
-    res.json();
+
+    //remove all saves
+    SaveService.DeleteAllGameSaves(req.sessionID, gameKey, function(err, result) {
+        if (err) {
+            return res.json({ error: err });
+        }
+        res.json();
+    });
     
 });
 
