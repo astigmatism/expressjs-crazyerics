@@ -2,7 +2,6 @@ var express = require('express');
 var pug = require('pug');
 var UtilitiesService = require('../services/utilities.js');
 var router = express.Router();
-var config = require('config');
 var SaveService = require('../services/saveservice.js');
 
 router.post('/save', function(req, res, next) {
@@ -11,12 +10,37 @@ router.post('/save', function(req, res, next) {
     var saveName = Date.now();
     var postdata = UtilitiesService.decompress.json(req.body); //unpack form data
     var saveType = postdata.type; //user, auto...
-    var maxsaves = parseInt(config.get('maxsaves'), 10);
     var deletekey = null;
 
     if (req.session && key && saveType && postdata.hasOwnProperty('state') && postdata.hasOwnProperty('screenshot')) {
         
+        //create strcture for saves in session data if this is first time
+        req.session.games = req.session.games ? req.session.games : {};
+        req.session.games[key] = req.session.games[key] ? req.session.games[key] : {};
+        req.session.games[key].saves = req.session.games[key].saves ? req.session.games[key].saves : [];
 
+        var sessionSaves = req.session.games[key].saves;
+
+        //save the screen and state data. response is the _id from the insert into the mongo collection
+        SaveService.NewSave(req.sessionID, key, saveName, postdata.screenshot, postdata.state, saveType, function(err, saveId) {
+
+            //if there was a dbx error in writing the file, we have to throw this save away
+            if (err) {
+                console.log (err);
+                return res.json({
+                    error: err
+                });
+            }
+
+            //ok, now add the saveName as a key to the file in session data
+            sessionSaves.push(saveId);
+
+            return res.json({
+                
+            });
+        });
+
+        /*
         //ok! what do to here. I save the screen and state data as a file on dropbox. why? because its heavy and mongo (session) has a 16MB limit on docs
         //because of this, I tag the save with a name (a timestamp) and save that reference to mongo on the session
 
@@ -78,6 +102,7 @@ router.post('/save', function(req, res, next) {
                 });
             });
         });
+        */
     }
     res.json();
 });
