@@ -6,7 +6,7 @@ var SaveService = require('../services/saveservice.js');
 
 router.get('/', function(req, res, next) {
 
-    var gameKey = decodeURIComponent(req.query.gameKey);
+    var gameKey = decodeURIComponent(req.query.gk);
     var timeStamp = req.query.timeStamp;
 
     if (gameKey && timeStamp) {
@@ -25,7 +25,7 @@ router.get('/', function(req, res, next) {
 
 router.post('/save', function(req, res, next) {
 
-    var gameKey = decodeURIComponent(req.query.gameKey);
+    var gameKey = decodeURIComponent(req.query.gk);
     var timeStamp = Date.now();
     var postdata = UtilitiesService.decompress.json(req.body); //unpack form data
     var saveType = postdata.type; //user, auto...
@@ -68,7 +68,7 @@ router.post('/save', function(req, res, next) {
 
 router.delete('/delete', function(req, res, next) {
 
-    var gameKey = decodeURIComponent(req.query.gameKey);
+    var gameKey = decodeURIComponent(req.query.gk);
 
     //remove game from session data
     if (req.session) {

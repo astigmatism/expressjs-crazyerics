@@ -54,7 +54,7 @@ var cesSavesManager = (function (_Compression, _gameKey, _initialSaveData) {
         }
         //don't have it! go and get it
         $.ajax({
-            url: '/states?gameKey=' + encodeURIComponent(_gameKey) + '&timeStamp=' + timeStamp,
+            url: '/states?gk=' + encodeURIComponent(_gameKey) + '&timeStamp=' + timeStamp,
             contentType: 'text/plain',
             type: 'GET'
         })
@@ -115,7 +115,7 @@ var cesSavesManager = (function (_Compression, _gameKey, _initialSaveData) {
         });
 
         $.ajax({
-            url: '/states/save?gameKey=' + encodeURIComponent(_gameKey),
+            url: '/states/save?gk=' + encodeURIComponent(_gameKey),
             data: data,
             processData: false,
             contentType: 'text/plain',
