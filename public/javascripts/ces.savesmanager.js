@@ -31,11 +31,17 @@ var cesSavesManager = (function (_Compression, _gameKey, _initialSaveData) {
         })
     };
 
-    this.GetMostRecentSaves = function(count) {
+    this.GetMostRecentSaves = function(count, type) {
 
         result = {};
         for (var i = 0, len = _timeStamps.length; i < len && i < count; ++i) {
-            result[_timeStamps[i]] = _savesData[_timeStamps[i]];
+            
+            if (type && type == _savesData[_timeStamps[i]].type) {
+                result[_timeStamps[i]] = _savesData[_timeStamps[i]];
+            }
+            else {
+                result[_timeStamps[i]] = _savesData[_timeStamps[i]];
+            }
         }
         return result;
     };

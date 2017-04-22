@@ -16,7 +16,9 @@ var cesInputHelper = (function(_Emulator, _ui) {
     var _idleKeyCheckInterval = null;
     var _idleKeyCheckDuration = 5000; //how often to check when the last key was pressed
     var _idleKeyDuration = 5000; //the amount of time to required to be idle to fire the OnIdleKeys functionality
-    var _lastInput = null;
+    
+    var _lastInputTime = null;
+    var _lastInputKeyCode = null;
 
     var _operationMap = {
         'statesave': 49,        //1
@@ -181,14 +183,26 @@ var cesInputHelper = (function(_Emulator, _ui) {
 
         _idleKeyCheckInterval = setInterval(function() {
 
-            if (_lastInput) {
+            if (_lastInputTime && _lastInputKeyCode) {
 
                 var now = new Date();
 
                 //if current time is greater than the last time input was taken plus the minimum amount of waiting for idle
-                if (now.getTime() > (_lastInput.getTime() + _idleKeyDuration)) {
+                //also if last keycode is not loadstate or savestate
+                if (now.getTime() > (_lastInputTime.getTime() + _idleKeyDuration)) {
 
-                    _Emulator.OnInputIdle();
+                    //with that check out of the way, now a heavier one. We have to invalidate the opertational keys
+                    var operationalKeyUsed = false;
+                    for (operation in _operationMap) {
+                        if (_lastInputKeyCode == _operationMap[operation]) {
+                            operationalKeyUsed = true;
+                            break;
+                        }
+                    }
+
+                    if (!operationalKeyUsed) {
+                        _Emulator.OnInputIdle();
+                    }
                 }
             }
         }, _idleKeyCheckDuration);
@@ -214,7 +228,8 @@ var cesInputHelper = (function(_Emulator, _ui) {
 
         proceedToEmulatorCallback(true);
 
-        _lastInput = new Date();
+        _lastInputTime = new Date();
+        _lastInputKeyCode = keycode;
     }
 
     /**

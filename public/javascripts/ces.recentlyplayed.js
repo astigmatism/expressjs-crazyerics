@@ -4,6 +4,7 @@ var cesRecentlyPlayed = (function(config, _Compression, _PlayGame, $wrapper, _in
 	var self = this;
 	var _grid = null;
 	var _BOXSIZE = 120;
+    var _currentLoadingGame = null;
 
 	//public members
 
@@ -49,6 +50,14 @@ var cesRecentlyPlayed = (function(config, _Compression, _PlayGame, $wrapper, _in
         }
 	};
 
+    this.SetCurrentGameLoading = function(gameKey) {
+        _currentLoadingGame = gameKey;
+    };
+
+    this.RemoveCurrentGameLoading = function() {
+        _currentLoadingGame = null;
+    };
+
     var OnImagesLoaded = function() {
 
         _grid.find('img').imagesLoaded().progress(function(imgLoad, image) {
@@ -93,17 +102,28 @@ var cesRecentlyPlayed = (function(config, _Compression, _PlayGame, $wrapper, _in
         }
 	};
 
-    var Remove = function(key, gamelink, griditem) {
+    
+    /**
+     * @param  {String} gameKey
+     * @param  {Object} gamelink
+     * @param  {Object} griditem
+     */
+    var Remove = function(gameKey, gamelink, griditem) {
+
+        //before removing, is this the current game being loaded? 
+        //we cannot allow it to be deleted (like if there are selecting a save)
+        if (gameKey == _currentLoadingGame) {
+            return;
+        }
 
         //maybe set a loading spinner on image here?
-        
         gamelink.DisableAllEvents(); //disabled buttons on gamelink to prevent loading game or removing again
 
         //immediately remove from grid (i used to wait for response but why right?)
         _grid.isotope('remove', griditem).isotope('layout');
 
         $.ajax({
-            url: '/states/delete?gk=' + encodeURIComponent(key),
+            url: '/states/delete?gk=' + encodeURIComponent(gameKey),
             type: 'DELETE',
             /**
              * on successful state deletion
@@ -116,13 +136,17 @@ var cesRecentlyPlayed = (function(config, _Compression, _PlayGame, $wrapper, _in
 
                 //callback the function to remove from player data
                 if (_OnRemoveHandler) {
-                    _OnRemoveHandler(key); //passed in, will remove from player data at main level 
+                    _OnRemoveHandler(gameKey); //passed in, will remove from player data at main level 
                 }
             }
         });
     };
 
-    //constructor
+    
+    /**
+     * Constructors live at the bottom so that all private functions are available
+     * @param  {} function(
+     */
     var Constructor = (function() {
 
 		_grid = $wrapper.isotope({

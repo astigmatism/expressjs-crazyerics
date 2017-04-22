@@ -1,21 +1,31 @@
 var fs = require('fs');
 var async = require('async');
-var Dropbox = require('dropbox');
 var config = require('config');
 var maxSavesPerGame = parseInt(config.get('maxSavesPerGame'), 10);
-var dbx = new Dropbox({ 
-    accessToken: config.get('dropboxaccesstoken')
-});
 var SavesModel = require('../models/saves');
+// var Dropbox = require('dropbox');
+// var dbx = new Dropbox({ 
+//     accessToken: config.get('dropboxaccesstoken')
+// });
 //dropbox apis: http://dropbox.github.io/dropbox-sdk-js/Dropbox.html
 //mongoose: http://mongoosejs.com/docs/api.html
 
 /**
- * SaveService Constructor
+ * Constructor
  */
 SaveService = function() {
 };
 
+/**
+ * Adds a new save to mongo. screen and state data have been compressed on the client
+ * @param  {String} sessionId
+ * @param  {String} gameKey
+ * @param  {Number} timeStamp
+ * @param  {String} screenData
+ * @param  {String} stateData
+ * @param  {String} type
+ * @param  {Function} callback
+ */
 SaveService.NewSave = function(sessionId, gameKey, timeStamp, screenData, stateData, type, callback) {
 
     var deleteSaveTimeStamp = null;
@@ -30,12 +40,13 @@ SaveService.NewSave = function(sessionId, gameKey, timeStamp, screenData, stateD
         type: type
     });
 
-    //first get saves to determine if we need to prune
+    //obtain all saves for this game but obtain everything since we need to use its values (not just a count)
     SaveService.GetAllSavesForGame(sessionId, gameKey, function(err, saveDocs) {
         if (err) {
             return callback(err);
         }
 
+        //saveDocs is sorted oldest to newest, the 0 index holds the oldest save
         if (saveDocs.length >= maxSavesPerGame) {
             var oldestSave = saveDocs[0];
             deleteSaveTimeStamp = oldestSave.timeStamp;
@@ -54,18 +65,49 @@ SaveService.NewSave = function(sessionId, gameKey, timeStamp, screenData, stateD
     });
 };
 
+/**
+ * Deletes a specific save by timestamp for a given user and game
+ * @param  {String} sessionId
+ * @param  {String} gameKey
+ * @param  {Number} timeStamp
+ * @param  {Function} callback
+ */
 SaveService.DeleteSave = function(sessionId, gameKey, timeStamp, callback) {
     
     SavesModel.find({ sessionId: sessionId,  gameKey: gameKey, timeStamp: timeStamp }).remove(callback);
 };
-
+/**
+ * Delete all saves for a user and a game
+ * @param  {String} sessionId
+ * @param  {String} gameKey
+ * @param  {Function} callback
+ */
 SaveService.DeleteAllGameSaves = function(sessionId, gameKey, callback) {
 
     SavesModel.find({ sessionId: sessionId,  gameKey: gameKey }).remove(callback);
 };
+/**
+ * Returns a count of documents for a given user and game
+ * @param  {String} sessionId
+ * @param  {String} gameKey
+ * @param  {Function} callback
+ */
+SaveService.GetSaveCountForGame = function(sessionId, gameKey, callback) {
+
+    SavesModel.find({ sessionId: sessionId,  gameKey: gameKey })
+    .count(function(err, count) {
+        if (err) {
+            return callback(err);
+        }
+        callback(null, count);
+    });
+};
 
 /**
  * For this, we only need to supply the client with screens, type and time because we will load the state separate when/if they make a selection
+ * @param  {String} sessionId
+ * @param  {String} gameKey
+ * @param  {Function} callback
  */
 SaveService.GetSavesForClient = function(sessionId, gameKey, callback) {
 
@@ -76,6 +118,11 @@ SaveService.GetSavesForClient = function(sessionId, gameKey, callback) {
     .exec(callback);
 };
 
+/**
+ * Get all saves for al games for a given user
+ * @param  {String} sessionId
+ * @param  {Function} callback
+ */
 SaveService.GetAllSaves = function(sessionId, callback) {
 
     SavesModel.find({ sessionId: sessionId })
@@ -83,6 +130,12 @@ SaveService.GetAllSaves = function(sessionId, callback) {
     .exec(callback);
 };
 
+/**
+ * Return all saves for a given game and user
+ * @param  {String} sessionId
+ * @param  {String} gameKey
+ * @param  {Function} callback
+ */
 SaveService.GetAllSavesForGame = function(sessionId, gameKey, callback) {
 
     SavesModel.find({ sessionId: sessionId, gameKey: gameKey })
@@ -90,7 +143,13 @@ SaveService.GetAllSavesForGame = function(sessionId, gameKey, callback) {
     .sort({ timeStamp: 1 })
     .exec(callback)
 };
-
+/**
+ * Return state data for a given user, game and timestamp
+ * @param  {String} sessionId
+ * @param  {String} gameKey
+ * @param  {String} timeStamp
+ * @param  {Functon} callback
+ */
 SaveService.GetState = function(sessionId, gameKey, timeStamp, callback) {
 
     SavesModel.findOne({ sessionId: sessionId, gameKey: gameKey, timeStamp: timeStamp })
@@ -98,52 +157,5 @@ SaveService.GetState = function(sessionId, gameKey, timeStamp, callback) {
     .select({ state: 1})
     .exec(callback)
 };
-
-//Dropbox implementation. Not used but perhaps useful later
-
-// SaveService.DeleteSaveDropBox = function(sessionId, gameKey, fileName, callback) {
-
-//     //there is nothing to delete?
-//     if (!filename) {
-//         return callback(null, null, false);
-//     }
-
-//     var path = '/' + sessionId + '/saves/' + gameKey + '/' + fileName + '.json';
-
-//     dbx.filesDelete({ path: path, contents: JSON.stringify(contents) })
-//         .then(function (response) {
-            
-//             callback(null, response, true);
-//         })
-//         .catch(function (err) {
-            
-//             callback(err);
-//         });
-// };
-
-// SaveService.NewSaveDropbox = function(sessionId, gameKey, fileName, screenData, stateData, type, callback) {
-
-//     //write file to save all these details in
-//     var contents = {
-//         key: fileName,
-//         screen: screenData,
-//         state: stateData,
-//         type: type
-//     };
-
-//     var path = '/' + sessionId + '/saves/' + gameKey + '/' + fileName + '.json';
-
-//     //upload file to dropbox!
-//     dbx.filesUpload({ path: path, contents: JSON.stringify(contents) })
-//         .then(function (response) {
-            
-//             callback(null, response);
-//         })
-//         .catch(function (err) {
-            
-//             callback(err);
-//         });
-    
-// };
 
 module.exports = SaveService;

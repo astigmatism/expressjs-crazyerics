@@ -506,14 +506,25 @@ p {
 	height: 450px;
 }
 
-#savesselectlist {
+#savesselectgrid {
 	margin: 40px auto;
-	list-style: none;
 	padding: 0;
 	width: 800px;
 }
 
-#savesselectlist li {
+#savesselectgrid.one-item {
+	margin-left: 284px;
+}
+
+#savesselectgrid.two-items {
+	margin-left: 164px;
+}
+
+#savesselectgrid.items {
+	margin-left: 44px;
+}
+
+#savesselectgrid div.grid-item {
 	height: 200px;
 	width: 200px;
 	margin: 10px 20px;
@@ -521,13 +532,13 @@ p {
 	cursor: pointer;
 }
 
-#savesselectlist li h3 {
+#savesselectgrid div.grid-item h3 {
 	margin: 0;
 	padding: 10px 0;
 	font-size: 1.0em;
 }
 
-#savesselectlist li p {
+#savesselectgrid div.grid-item p {
 	margin: 0;
 	padding: 0;
 	font-size: 12px;

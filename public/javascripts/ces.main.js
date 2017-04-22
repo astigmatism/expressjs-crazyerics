@@ -33,6 +33,7 @@ var cesMain = (function() {
     var _Dialogs = null;
     var _RecentlyPlayed = null;
     var _Suggestions = null;
+    var _SaveSelection = null;
 
     // public members
     
@@ -64,6 +65,8 @@ var cesMain = (function() {
 
         //auto capture trigger. comment out to avoid build
         //self._autoCaptureHarness('n64', _config.autocapture['n64'].shaders, 7000, 1, 10000);
+
+        //setup const instances
 
         //unpack playerdata
         _PlayerData = new cesPlayerData(_Compression, clientdata.playerdata); //player data is user specific, can be dynmic
@@ -333,6 +336,7 @@ var cesMain = (function() {
 
         var key = _Compression.In.gamekey(system, title, file); //create key for anything that might need it
         var box = cesGetBoxFront(_config, system, title, 170); //preload loading screen box
+        _RecentlyPlayed.SetCurrentGameLoading(key); //inform recently played what the current game is so that they don't attempt to delete it during load
 
         //which emulator to load?
         EmulatorFactory(system, title, file, key, function(err, emulator) {
@@ -391,8 +395,12 @@ var cesMain = (function() {
                         _preventLoadingGame = false; //during save select, allow other games to load
 
                         //are there saves to load? Let's show a dialog to chose from, if not - will go straight to start
-                        ShowSaveSelection(system, title, file, function(selectedSaveTimeStamp) {
+                        _SaveSelection = new cesSaveSelection(_config, _Dialogs, _Emulator, system, $('#savedgameselector'), function(err, selectedSaveTimeStamp, selectedSavescreenshot) {
                             
+                            if (selectedSaveTimeStamp) {
+                                ShowSaveLoading(system, selectedSavescreenshot);
+                            }
+
                             _preventLoadingGame = true;
 
                             //calculate how long the loading screen has been up. Showing it too short looks dumb
@@ -450,7 +458,10 @@ var cesMain = (function() {
                                                     //reveal emulator
                                                     _Emulator.Show(); //also input is given to canvas in this step
 
-                                                    $('#emulator').focus(); //give focus (also calls resume game :P)
+                                                    $('#emulator').focus(); //give focus (also calls resume game, I took care of the oddities :P)
+
+                                                    //inform instances that game is starting (for those that care)
+                                                    _RecentlyPlayed.RemoveCurrentGameLoading();
 
                                                     //with all operations complete, callback
                                                     if (callback) {
@@ -566,7 +577,7 @@ var cesMain = (function() {
             $('p.screenshothelper').remove(); //remove helper text
 
             var width = $('#screenshotsslider div.slidercontainer').width() / 3; //550px is the size of the panel, the second number is how many screens to want to show per line
-            var img = BuildScreenshot(system, arrayBufferView, width);
+            var img = BuildScreenshot(_config, system, arrayBufferView, width);
 
             $(img).addClass('close').load(function() {
                 $(this).removeClass('close');
@@ -664,73 +675,73 @@ var cesMain = (function() {
         _Dialogs.ShowDialog('shaderselector');
     };
 
-    /**
-     * saved state selection dialog.
-     * @param  {Object}   states   structure with states, screenshot and timestap. empty when no states exist
-     * @param  {Function} callback
-     * @return {undef}
-     */
-    var ShowSaveSelection = function(system, title, file, callback) {
+    // /**
+    //  * saved state selection dialog.
+    //  * @param  {Object}   states   structure with states, screenshot and timestap. empty when no states exist
+    //  * @param  {Function} callback
+    //  * @return {undef}
+    //  */
+    // var ShowSaveSelection = function(system, title, file, callback) {
 
-        if (!_Emulator) {
-            callback();
-            return;
-        }
+    //     if (!_Emulator) {
+    //         callback();
+    //         return;
+    //     }
 
-        //get saves from emaultor saves manager to show for selection
-        //will return an array for each type, empty if none
-        var saves = _Emulator.GetMostRecentSaves(3);
+    //     //get saves from emaultor saves manager to show for selection
+    //     //will return an array for each type, empty if none
+    //     var saves = _Emulator.GetMostRecentSaves(3);
 
-        //no states saved to chose from
-        if ($.isEmptyObject(saves)) {
-            callback();
-            return;
-        }
+    //     //no states saved to chose from
+    //     if ($.isEmptyObject(saves)) {
+    //         callback();
+    //         return;
+    //     }
 
-        $('#savesselectlist').empty(); //clear from last time
+    //     $('#savesselectlist').empty(); //clear from last time
 
-        //generic function for adding auto and user saves to list
-        var addToSelectionList = function(timeStamp, saveData, ribbonColor, ribbonText) {
+    //     //generic function for adding auto and user saves to list
+    //     var addToSelectionList = function(timeStamp, saveData, ribbonColor, ribbonText) {
 
-            var $image = $(BuildScreenshot(system, saveData.screenshot, 200));
+    //         var $image = $(BuildScreenshot(system, saveData.screenshot, 200));
 
-            var $li = $('<li class="zoom" data-shader=""><h3>' + saveData.time + '</h3></li>').on('click', function(e) {
+    //         var $li = $('<li class="zoom" data-shader=""><h3>' + saveData.time + '</h3></li>').on('click', function(e) {
                     
-                callback(timeStamp);
-                ShowSaveLoading(system, saveData.screenshot);
-            });
+    //             callback(timeStamp);
+    //             ShowSaveLoading(system, saveData.screenshot);
+    //         });
 
-            var $ribbonInner = $('<div class="ribbon-' + ribbonColor + ' ribbon" />').text(ribbonText);
-            var $ribbonOuter = $('<div class="ribbon-wrapper" />').append($ribbonInner);
-            var $imageWrapper = $('<div class="rel" />').append($ribbonOuter).append($image);
+    //         var $ribbonInner = $('<div class="ribbon-' + ribbonColor + ' ribbon" />').text(ribbonText);
+    //         var $ribbonOuter = $('<div class="ribbon-wrapper" />').append($ribbonInner);
+    //         var $imageWrapper = $('<div class="rel" />').append($ribbonOuter).append($image);
 
-            $li.append($imageWrapper);
-            $('#savesselectlist').append($li);
-        };
+    //         $li.append($imageWrapper);
+    //         $('#savesselectlist').append($li);
+    //     };
 
-        for (timeStamp in saves) {
-            switch (saves[timeStamp].type) {
-                case 'user':
-                addToSelectionList(timeStamp, saves[timeStamp], 'green', 'YOUR SAVE');
-                break;
-                case 'auto':
-                addToSelectionList(timeStamp, saves[timeStamp], 'orange', 'AUTO-SAVED');
-                break;
-            }
-        }
+    //     for (timeStamp in saves) {
+    //         switch (saves[timeStamp].type) {
+    //             case 'user':
+    //             addToSelectionList(timeStamp, saves[timeStamp], 'green', 'YOUR SAVE');
+    //             break;
+    //             case 'auto':
+    //             addToSelectionList(timeStamp, saves[timeStamp], 'orange', 'AUTO-SAVED');
+    //             break;
+    //         }
+    //     }
 
-        $('#loadnosaves').off().on('mouseup', function() {
-            callback(null);
-            _Dialogs.CloseDialog(); //close now
-        });
+    //     $('#loadnosaves').off().on('mouseup', function() {
+    //         callback(null);
+    //         _Dialogs.CloseDialog(); //close now
+    //     });
 
-        //show dialog
-        _Dialogs.ShowDialog('savedgameselector');
-    };
+    //     //show dialog
+    //     _Dialogs.ShowDialog('savedgameselector');
+    // };
 
     var ShowSaveLoading = function(system, screenshotData) {
 
-        var $image = $(BuildScreenshot(system, screenshotData, null, 200));
+        var $image = $(BuildScreenshot(_config, system, screenshotData, null, 200));
         $image.addClass('tada');
         $image.load(function() {
             $(this).fadeIn(200);
@@ -899,42 +910,6 @@ var cesMain = (function() {
     };
 
     /**
-     * common function to take arraybufferview of screenshot data and return a dom image. prodive width of image and we'll lookup aspect ration in config data
-     * @param {string} system the system for which this screenshot belongs. used to look up aspect ratio
-     * @param  {Array} arraybufferview
-     * @param  {number} width
-     * @return {Object}
-     */
-    var BuildScreenshot = function(system, arraybufferview, width, height) {
-
-        var screenratio = 1;
-
-        var blob = new Blob([arraybufferview], {
-            type: 'image/bmp'
-        });
-
-        //get screen ratio from config
-        if (_config.systemdetails[system] && _config.systemdetails[system].screenshotaspectratio) {
-            screenratio = parseFloat(_config.systemdetails[system].screenshotaspectratio);
-        }
-
-        var urlCreator = window.URL || window.webkitURL;
-        var imageUrl = urlCreator.createObjectURL(blob);
-        
-        if (width) {
-            var img = new Image(width, width / screenratio);        //create new image with correct ratio
-        }
-        if (height) {
-            var img = new Image(height * screenratio, height);        //create new image with correct ratio   
-        }
-
-        
-        img.src = imageUrl;
-
-        return img;
-    };
-
-    /**
      * Add or update a game in the play history area
      * @param {Object} key    unique game key
      * @param {string} system
@@ -1056,4 +1031,40 @@ cesGetBoxFront = function(config, system, title, size) {
 
     //incldes swap to blank cart onerror
     return $('<img onerror="this.src=\'' + errorsrc + '\'" src="' + src + '" />');
+};
+
+/**
+ * common function to take arraybufferview of screenshot data and return a dom image. prodive width of image and we'll lookup aspect ration in config data
+ * @param {string} system the system for which this screenshot belongs. used to look up aspect ratio
+ * @param  {Array} arraybufferview
+ * @param  {number} width
+ * @return {Object}
+ */
+var BuildScreenshot = function(config, system, arraybufferview, width, height) {
+
+    var screenratio = 1;
+
+    var blob = new Blob([arraybufferview], {
+        type: 'image/bmp'
+    });
+
+    //get screen ratio from config
+    if (config.systemdetails[system] && config.systemdetails[system].screenshotaspectratio) {
+        screenratio = parseFloat(config.systemdetails[system].screenshotaspectratio);
+    }
+
+    var urlCreator = window.URL || window.webkitURL;
+    var imageUrl = urlCreator.createObjectURL(blob);
+    
+    if (width) {
+        var img = new Image(width, width / screenratio);        //create new image with correct ratio
+    }
+    if (height) {
+        var img = new Image(height * screenratio, height);        //create new image with correct ratio   
+    }
+
+    
+    img.src = imageUrl;
+
+    return img;
 };

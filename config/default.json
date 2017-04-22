@@ -8,7 +8,7 @@
 	"flattenedboxfiles": true,
 	"flattenedromfiles": true,
 	"dropboxaccesstoken": "m62ox__hvx4AAAAAAAg-wsMqXLg0V57RxRTk-PBFM3gKS23cOjrpY5y7x6aSZMRA",
-	"maxSavesPerGame": 100,
+	"maxSavesPerGame": 60,
 	"systems": {
 		"vect": {
 			"name": "Vectrex",
