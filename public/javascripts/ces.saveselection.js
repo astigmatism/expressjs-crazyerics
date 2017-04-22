@@ -17,7 +17,7 @@ var cesSaveSelection = (function(_config, _Dialogs, _Emulator, _system, $wrapper
 
     //prepare grid
     if ($grid.hasClass('isotope')) {
-        $grid.empty().isotope('destroy');
+        $grid.empty().removeClass('one-item two-items items').isotope('destroy');
     }
 
     _grid = $grid.addClass('isotope').isotope({
