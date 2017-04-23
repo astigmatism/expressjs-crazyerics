@@ -15,35 +15,15 @@ var cesSaveSelection = (function(_config, _Dialogs, _Emulator, _system, $wrapper
         return;
     }
 
-    //prepare grid
-    if ($grid.hasClass('isotope')) {
-        $grid.empty().removeClass('one-item two-items items').isotope('destroy');
-    }
-
-    _grid = $grid.addClass('isotope').isotope({
-        itemSelector: '.grid-item'
-    });
+    $('#savesselectlist').empty(); //clear from last time
 
     var GetSaves = function(type) {
 
         var saves = _Emulator.GetMostRecentSaves(3, type);
 
-        //this is just a way to center the grid with too few items to fill it
-        switch(Object.keys(saves).length) {
-            case 1:
-            $wrapper.find('.grid').addClass('one-item');
-            break;
-            case 2:
-            $wrapper.find('.grid').addClass('two-items');
-            break;
-            default:
-            $wrapper.find('.grid').addClass('items');
-            break;
-        }
-
         for (timeStamp in saves) {
 
-            switch (saves[timeStamp].type) {
+            switch (saves[timeStamp].save.type) {
                 case 'user':
                 AddToGrid(timeStamp, saves[timeStamp], 'green', 'YOUR SAVE');
                 break;
@@ -56,22 +36,19 @@ var cesSaveSelection = (function(_config, _Dialogs, _Emulator, _system, $wrapper
 
     var AddToGrid = function(timeStamp, saveData, ribbonColor, ribbonText) {
 
-        //create the grid item
-        var $griditem = $('<div class="grid-item" />').on('click', function(e) {
+        var $image = $(BuildScreenshot(_config, _system, saveData.save.screenshot, 200));
+
+        var $li = $('<li class="zoom" data-shader=""><h3>#' + (saveData.total - saveData.i) + ' of ' + saveData.total + ': ' + saveData.save.time + '</h3></li>').on('click', function(e) {
                 
-            callback(null, timeStamp, saveData.screenshot);
+            callback(null, timeStamp, saveData.save.screenshot);
         });
 
-        var $item = $('<div class="zoom"><h3>' + saveData.time + '</h3></div>');
-        var $image = $(BuildScreenshot(_config, _system, saveData.screenshot, 200));
         var $ribbonInner = $('<div class="ribbon-' + ribbonColor + ' ribbon" />').text(ribbonText);
         var $ribbonOuter = $('<div class="ribbon-wrapper" />').append($ribbonInner);
         var $imageWrapper = $('<div class="rel" />').append($ribbonOuter).append($image);
 
-        $item.append($imageWrapper);
-        $griditem.append($item);
-        
-        _grid.isotope( 'insert', $griditem[0]);
+        $li.append($imageWrapper);
+        $('#savesselectlist').append($li);
 	};
 
     $('#loadnosaves').off().on('mouseup', function() {
@@ -88,3 +65,67 @@ var cesSaveSelection = (function(_config, _Dialogs, _Emulator, _system, $wrapper
     return this;
 
 });
+
+/**
+     * saved state selection dialog.
+     * @param  {Object}   states   structure with states, screenshot and timestap. empty when no states exist
+     * @param  {Function} callback
+     * @return {undef}
+     */
+    var ShowSaveSelection = function(system, title, file, callback) {
+
+        if (!_Emulator) {
+            callback();
+            return;
+        }
+
+        //get saves from emaultor saves manager to show for selection
+        //will return an array for each type, empty if none
+        var saves = _Emulator.GetMostRecentSaves(3);
+
+        //no states saved to chose from
+        if ($.isEmptyObject(saves)) {
+            callback();
+            return;
+        }
+
+        $('#savesselectlist').empty(); //clear from last time
+
+        //generic function for adding auto and user saves to list
+        var addToSelectionList = function(timeStamp, saveData, ribbonColor, ribbonText) {
+
+            var $image = $(BuildScreenshot(system, saveData.screenshot, 200));
+
+            var $li = $('<li class="zoom" data-shader=""><h3>' + saveData.time + '</h3></li>').on('click', function(e) {
+                    
+                callback(timeStamp);
+                ShowSaveLoading(system, saveData.screenshot);
+            });
+
+            var $ribbonInner = $('<div class="ribbon-' + ribbonColor + ' ribbon" />').text(ribbonText);
+            var $ribbonOuter = $('<div class="ribbon-wrapper" />').append($ribbonInner);
+            var $imageWrapper = $('<div class="rel" />').append($ribbonOuter).append($image);
+
+            $li.append($imageWrapper);
+            $('#savesselectlist').append($li);
+        };
+
+        for (timeStamp in saves) {
+            switch (saves[timeStamp].type) {
+                case 'user':
+                addToSelectionList(timeStamp, saves[timeStamp], 'green', 'YOUR SAVE');
+                break;
+                case 'auto':
+                addToSelectionList(timeStamp, saves[timeStamp], 'orange', 'AUTO-SAVED');
+                break;
+            }
+        }
+
+        $('#loadnosaves').off().on('mouseup', function() {
+            callback(null);
+            _Dialogs.CloseDialog(); //close now
+        });
+
+        //show dialog
+        _Dialogs.ShowDialog('savedgameselector');
+    };

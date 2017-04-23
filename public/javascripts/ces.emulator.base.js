@@ -218,11 +218,8 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
             }
             
             $(_ui.canvas).remove(); //kill all events attached (keyboard, focus, etc)
-
-            if (callback) {
-                callback();
-            }
         }
+        callback();
     };
 
     this.GiveEmulatorControlOfInput = function(giveEmulatorInput) {

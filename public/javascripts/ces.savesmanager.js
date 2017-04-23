@@ -36,11 +36,14 @@ var cesSavesManager = (function (_Compression, _gameKey, _initialSaveData) {
         result = {};
         for (var i = 0, len = _timeStamps.length; i < len && i < count; ++i) {
             
-            if (type && type == _savesData[_timeStamps[i]].type) {
-                result[_timeStamps[i]] = _savesData[_timeStamps[i]];
+            if (type && type != _savesData[_timeStamps[i]].type) {
+                continue;
             }
-            else {
-                result[_timeStamps[i]] = _savesData[_timeStamps[i]];
+
+            result[_timeStamps[i]] = {
+                save: _savesData[_timeStamps[i]],
+                i: i,
+                total: len
             }
         }
         return result;
