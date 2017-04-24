@@ -623,6 +623,8 @@ UtilitiesService.collectDataForClient = function(req, openonload, callback) {
 
     configdata['flattenedboxfiles'] = config.get('flattenedboxfiles');
 
+    configdata['maxSavesPerGame'] = config.get('maxSavesPerGame');
+
     var onFinish = function() {   
 
         

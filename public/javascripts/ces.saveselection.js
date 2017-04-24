@@ -1,6 +1,5 @@
 /**
- * Object which wraps common functions related to player preferences, data that comes form the server initially but can be changed
- * @type {Object}
+ * Unlike the other "classes", save selection is more proceedural in operation. I basically wanted to remove this functionality from main
  */
 var cesSaveSelection = (function(_config, _Dialogs, _Emulator, _system, $wrapper, callback) {
 
@@ -58,6 +57,10 @@ var cesSaveSelection = (function(_config, _Dialogs, _Emulator, _system, $wrapper
 
     //populate
     GetSaves();
+
+    if (_Emulator.AtMaximumSaves) {
+        $wrapper.find('p').removeClass(); //shows at maximum message
+    }
 
     //show dialog
     _Dialogs.ShowDialog('savedgameselector');

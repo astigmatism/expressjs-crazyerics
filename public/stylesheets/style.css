@@ -506,6 +506,10 @@ p {
 	height: 450px;
 }
 
+#savedgameselector p {
+	padding: 0px 100px;
+}
+
 #savesselectlist {
 	margin: 40px auto;
 	list-style: none;

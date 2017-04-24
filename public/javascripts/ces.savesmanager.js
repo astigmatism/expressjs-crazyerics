@@ -2,12 +2,13 @@
  * Object which wraps all functionality specific to handling game save states
  * @type {Object}
  */
-var cesSavesManager = (function (_Compression, _gameKey, _initialSaveData) {
+var cesSavesManager = (function (_config, _Compression, _gameKey, _initialSaveData) {
 
     var self = this;
     var _savesData = {};
     var _timeStamps = [];
     var _currentlyWrittenSaveData = {};
+    var _atmaximumsaves = false;
 
     this.AddSave = function(saveType, screenDataUnzipped, stateDataUnzipped, callback) {
 
@@ -47,6 +48,11 @@ var cesSavesManager = (function (_Compression, _gameKey, _initialSaveData) {
             }
         }
         return result;
+    };
+
+    this.AtMaximumSaves = function() {
+
+        return _atmaximumsaves;
     };
 
     this.GetState = function(timeStamp, callback) {
@@ -152,6 +158,11 @@ var cesSavesManager = (function (_Compression, _gameKey, _initialSaveData) {
                     AddSave(item.type, item.timeStamp, screenDataUnzipped, null);
                 }
             }
+
+            if (_initialSaveData.length >= _config.maxSavesPerGame) {
+                _atmaximumsaves = true;
+            }
+
         }
 
 

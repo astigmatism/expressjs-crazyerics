@@ -286,15 +286,22 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
         MakeAutoSave();
     }
 
+    /* exposed saves manager functionality */
+
     this.InitializeSavesManager = function(saveData, gameKey, callback) {
 
-        _SavesManager = new cesSavesManager(_Compression, gameKey, saveData);
+        _SavesManager = new cesSavesManager(_config, _Compression, gameKey, saveData);
     };
 
 
     this.GetMostRecentSaves = function(count) { 
 
         return _SavesManager.GetMostRecentSaves(count);
+    };
+
+    this.AtMaximumSaves = function() {
+
+        return _SavesManager.AtMaximumSaves();
     };
 
     //private methods
