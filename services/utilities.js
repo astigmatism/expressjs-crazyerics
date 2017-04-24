@@ -66,13 +66,15 @@ UtilitiesService.onApplicationStart = function(callback) {
 
                     //we'll cache a separate structure for each system (to avoid using the heavier all suggestions cache)
                     var suggestions = {
-                        'best': [],
-                        'foreign': [],
+                        'top': [],      //top suggestions are those that have been marked in the box datafile as the most "inviting" titles for the system (my discretion!)
+                        'best': [],     //best system suggestions will show alongside other system suggestions
+                        'foreign': [],  //remaining suggestions will be included here
                         'data': {}
                     };
 
                     //add new key for this system to all suggestions
                     suggestionsall[system] = {
+                        'top': [],
                         'best': [],
                         'data': {}
                     };
@@ -86,15 +88,9 @@ UtilitiesService.onApplicationStart = function(callback) {
                         var bestfile = data[title].best;
                         var bestrank = data[title].files[bestfile];
 
-                        var hasart = false; 
-
-                        //check for property in boxart data file
-                        if(boxartdata && boxartdata[title]) {
-                            hasart = true;
-                        }
-
-                        //in order to be suggested must have art and must need minimum rank to be preferable playing game (likely US game)
-                        if (hasart) {
+                        //in order to be suggested must have art and must need minimum rank to be preferable playing game
+                        //you can get systemSuggestionThreshold in config if needed
+                        if (boxartdata && title in boxartdata) {
 
                             //include thegamesdb rating info into suggestions cache
                             if (thegamesdb && thegamesdb[title] && thegamesdb[title].Rating) {
@@ -102,7 +98,19 @@ UtilitiesService.onApplicationStart = function(callback) {
                                 ++titlesWithRating;
                             }
 
-                            //sugestions for all result (main load)
+                            //top suggestions
+                            if (boxartdata[title].hasOwnProperty('ts')) {
+
+                                //add to all suggestions
+                                suggestionsall[system].top.push(title);
+                                suggestionsall[system].data[title] = data[title];
+
+                                //add to system suggestions
+                                suggestions.top.push(title);
+                                suggestions.data[title] = data[title];
+                            }
+                            
+                            //ok, now separate the remianing suggestions in two buckets: best and foreign (remaining)
                             if (bestrank >= systemSuggestionThreshold) {
                                 
                                 //add to all suggestions
@@ -142,7 +150,7 @@ UtilitiesService.onApplicationStart = function(callback) {
                     //cache suggestions for this system
                     FileService.setCache('suggestions.' + system, suggestions); //ok to be sync
 
-                    console.log('suggestions.' + system + ' (threshold: ' + systemSuggestionThreshold + ') total suggestions --> ' + suggestions.best.length + '. total with thegamesdb rating --> ' + titlesWithRating);
+                    console.log('suggestions.' + system + ' (threshold: ' + systemSuggestionThreshold + ') "inviting" suggestions --> ' + suggestions.top.length + '. suggestions above threshold --> ' + suggestions.best.length + '. suggestions below threshhold --> ' + suggestions.foreign.length + '. total with thegamesdb rating --> ' + titlesWithRating);
 
                     nextsystem();
                 });

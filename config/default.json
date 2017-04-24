@@ -325,7 +325,8 @@
 			"emuextention": "2017-03-27",
 			"emuscript": "stella_libretro.js",
 			"recommendedshaders": [],
-			"screenshotaspectratio": 1.2
+			"screenshotaspectratio": 1.2,
+			"suggestionThreshold": 250
 		},
 		"ngpx": {
 			"name": "Neo Geo Pocket",
