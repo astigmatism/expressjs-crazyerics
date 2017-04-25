@@ -1,9 +1,10 @@
 var express = require('express');
-var UtilitiesService = require('../services/utilities.js');
 var router = express.Router();
 var config = require('config');
 var fs = require('fs');
 var SaveService = require('../services/saveservice.js');
+var UtilitiesService = require('../services/utilities.js');
+var SearchService = require('../services/search.js');
 
 router.get('/', function(req, res, next) {
 
@@ -26,7 +27,7 @@ router.get('/search/:system/:query', function(req, res, next) {
     var system = req.params.system;
     var term = req.params.query || '';
 
-    UtilitiesService.search(system, term, null, function(err, result) {
+    SearchService.search(system, term, null, function(err, result) {
         if (err) {
             return res.json(err);
         }
