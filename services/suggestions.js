@@ -9,6 +9,70 @@ var UtilitiesService = require('./utilities.js');
 SuggestionsService = function() {
 };
 
+/*
+recipe : {
+    systems: [nes, snes, gen],  //null indicates all systems
+    proportion: [40, 20, 40],   //percentage of system representation in total. null will use proportion of total of boxes for this system vs other systems
+    set: [0, 0, 0],             //enum: see below
+    count: 100,                 //the number of results to return
+}
+
+set:
+0: use the "top suggestions" set only
+1: use result from the "above system threshold" only. this usually means the boxart is us (not j or e)
+2: use results from both above and below the system threshold. basically all boxart avaiable
+3: use results from below the system threshold only. strange, but possible :)
+
+*/
+
+SuggestionsService.Get = function(recipe, callback) {
+
+    //firstly, determine which cache to pull. we have suggestions for systems, and a separate cache for all suggestions 
+    //(because we dont want to pull cache over and over for all systems)
+    PullCache(recipe, function(err, caches) {
+
+
+    });
+
+};
+
+SuggestionsService.PullCache = function(recipe, callback) {
+
+    var caches = {};
+
+    if (recipe.hasOwnProperty('systems') && recipe.systems !== null) {
+
+        //pull cache for each system
+        async.each(recipe.systems, function(system, nextsystem) {
+
+            FileService.getCache('suggestions.' + system, function(err, cache) {
+                if (err) {
+                    return nextsystem(err);
+                }
+                caches[system] = cache;
+
+                nextsystem();
+            });
+
+        }, function(err) {
+            if (err) {
+                return callback(err);
+            }
+            callback(null, caches);
+        });
+    }
+    else {
+
+        FileService.getCache('suggestions.' + system, function(err, cache) {
+            if (err) {
+                return callback(err);
+            }
+            caches.all = cache;
+            callback(null, caches);
+        });
+    }
+};
+
 /**
  * Getting suggestions for all system involves a custom routine which uses the cache we built on the start of the app which contains
  * a json object of all suggestable games for all systems. It is pretty heavyweight but better than openning each system suggestions
