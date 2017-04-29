@@ -29,9 +29,13 @@ SuggestionsService.Get = function(recipe, callback) {
 
     //firstly, determine which cache to pull. we have suggestions for systems, and a separate cache for all suggestions 
     //(because we dont want to pull cache over and over for all systems)
-    PullCache(recipe, function(err, caches) {
+    SuggestionsService.PullCache(recipe, function(err, caches) {
 
+        //at this point, understand which sets we are to pull from
+        SuggestionsService.GetSets(recipe, caches, function(err, sets) {
 
+            callback(null, sets);
+        });
     });
 
 };
@@ -71,6 +75,30 @@ SuggestionsService.PullCache = function(recipe, callback) {
             callback(null, caches);
         });
     }
+};
+
+SuggestionsService.GetSets = function(recipe, caches, callback) {
+
+    var set = recipe.set || 2;
+    var sets = {};
+
+    async.each(caches, function(system, nextsystem) {
+
+        switch (set) {
+            case 0: //top only
+                sets.system = system.top;
+            break;
+
+        }
+
+        nextsystem();
+
+    }, function(err) {
+        if (err) {
+            return callback(err);
+        }
+        callback(null, sets);
+    });
 };
 
 /**

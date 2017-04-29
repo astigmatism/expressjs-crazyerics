@@ -46,4 +46,21 @@ router.get('/:system/:items', function(req, res, next) {
     });
 });
 
+router.get('/', function(req, res, next) {
+
+    //build recipe
+    var recipe = {
+        systems: []
+    };
+
+    if (req.query.systems) {
+        recipe.systems = (req.query.systems).split(',');
+    }
+
+    SuggestionsService.Get(recipe, function(err, result) {
+
+        res.json(result);
+    });
+});
+
 module.exports = router;
