@@ -10,94 +10,170 @@ SuggestionsService = function() {
 };
 
 /*
-recipe : {
-    systems: [nes, snes, gen],  //null indicates all systems
-    proportion: [40, 20, 40],   //percentage of system representation in total. null will use proportion of total of boxes for this system vs other systems
-    set: [0, 0, 0],             //enum: see below
-    count: 100,                 //the number of results to return
+recipe: {
+    systems: {
+        nes: {
+            set: 0,
+            proportion: 20
+        }
+    },
+    count: 100
 }
-
-set:
-0: use the "top suggestions" set only
-1: use result from the "above system threshold" only. this usually means the boxart is us (not j or e)
-2: use results from both above and below the system threshold. basically all boxart avaiable
-3: use results from below the system threshold only. strange, but possible :)
-
 */
-
 SuggestionsService.Get = function(recipe, callback) {
 
-    //firstly, determine which cache to pull. we have suggestions for systems, and a separate cache for all suggestions 
-    //(because we dont want to pull cache over and over for all systems)
-    SuggestionsService.PullCache(recipe, function(err, caches) {
+    var result = [];
+    var systems = config.get('systems');
 
-        //at this point, understand which sets we are to pull from
-        SuggestionsService.GetSets(recipe, caches, function(err, sets) {
+    SuggestionsService.PullCaches(recipe, function(err, caches) {
+        if (err) {
+            return callback(err);
+        }
 
-            callback(null, sets);
-        });
-    });
+        //loop over systems
+        async.forEachOf(recipe.systems, function(details, system, nextsystem) {
 
-};
+            //for each system, take from defined set the proportion of the total count
+            //the resulting set will be titles only, reach into the cache data for details
+            var set = null;
 
-SuggestionsService.PullCache = function(recipe, callback) {
+            //if system is "all"
+            //sorry this is complicated. the all structure differes from the systems because titles can be the same between systems
+            //as a result, we have to consider systems and titles in the cache
+            if (system == 'all') {
 
-    var caches = {};
+                var allCache = caches[system];
+                var countForAll = recipe.count * (parseInt(details.proportion, 10) / 100); //the number of entries for "all"
 
-    if (recipe.hasOwnProperty('systems') && recipe.systems !== null) {
+                //for each system in the all cache
+                async.each(Object.keys(allCache), function(_system, _nextsystem) {
 
-        //pull cache for each system
-        async.each(recipe.systems, function(system, nextsystem) {
+                    if (_system === 'data') {
+                        return _nextsystem();
+                    }
 
-            FileService.getCache('suggestions.' + system, function(err, cache) {
-                if (err) {
-                    return nextsystem(err);
+                    //the ratio of suggestable titles of this system to all titles suggestable from all systems inside the given set
+                    var ratio;
+
+                    switch (details.set) {
+                        case 0: 
+                        set = allCache[_system].top;
+                        ratio = Math.ceil(set.length / allCache.data.topSuggestionCount);
+                        break;
+                        case 1:
+                        set = allCache[_system].above;
+                        ratio = Math.ceil(set.length / allCache.data.aboveSuggestionCount);
+                        break;
+                        case 2: 
+                        set = allCache[_system].above.concat(allCache[_system].below);
+                        ratio = Math.ceil(set.length / (allCache.data.aboveSuggestionCount + allCache.data.belowSuggestionCount));
+                        break;
+                        case 3:
+                        set = allCache[_system].below;
+                        ratio = Math.ceil(set.length / allCache.data.belowSuggestionCount);
+                        break;
+                    }
+
+                    //how many of the items to suggest overall should be from this system?
+                    var tosuggest = (ratio * countForAll);
+
+                    //shuffle the set to pull random results
+                    set = UtilitiesService.shuffle(set);
+
+                    for (var i = 0, len = set.length; i < len && i < tosuggest; ++i) {
+                        result.push({
+                            system: _system,
+                            title: set[i],
+                            file: allCache[_system].data[set[i]].best, //the best file is the playable one
+                            rating: parseFloat(allCache[_system].data[set[i]].thegamesdbrating) || 0
+                        });
+                    }
+
+                    _nextsystem();
+
+                }, function(err) {
+                    if (err) {
+                        return nextsystem(err);
+                    }
+                    nextsystem();
+                });
+                    
+            }
+
+            //system is not "all"
+            else {
+
+                switch (details.set) {
+                    case 0:
+                    set = caches[system].top;
+                    break;
+                    case 1:
+                    set = caches[system].above;
+                    break;
+                    case 2: 
+                    set = caches[system].above.concat(caches[system].below);
+                    break;
+                    case 3:
+                    set = caches[system].below;
+                    break;
                 }
-                caches[system] = cache;
+
+                //shuffle the set to pull random results
+                set = UtilitiesService.shuffle(set);
+
+                //to know how many to pull, use proportion of total count needed in response
+                var limit = recipe.count * (parseInt(details.proportion, 10) / 100);
+
+                for (var i = 0, len = set.length; i < len && i < limit; ++i) {
+                    result.push({
+                        system: system,
+                        title: set[i],
+                        file: caches[system].data[set[i]].best, //the best file is the playable one
+                        rating: parseFloat(caches[system].data[set[i]].thegamesdbrating) || 0
+                    });
+                }
 
                 nextsystem();
-            });
+            }
 
         }, function(err) {
             if (err) {
                 return callback(err);
             }
-            callback(null, caches);
+
+            //randomize (otherwise all system games are grouped together)
+            result = UtilitiesService.shuffle(result);
+
+            //retain original amount (possible to go over for all the all recipe)
+            result = result.slice(0, recipe.count);
+
+            callback(null, result);
         });
-    }
-    else {
+
+    });
+};
+
+SuggestionsService.PullCaches = function(recipe, callback) {
+
+    var caches = {};
+
+    //pull cache for each system
+    async.forEachOf(recipe.systems, function(details, system, nextsystem) {
 
         FileService.getCache('suggestions.' + system, function(err, cache) {
             if (err) {
-                return callback(err);
+                return nextsystem(err);
             }
-            caches.all = cache;
-            callback(null, caches);
+            caches[system] = cache;
+
+            nextsystem();
         });
-    }
-};
-
-SuggestionsService.GetSets = function(recipe, caches, callback) {
-
-    var set = recipe.set || 2;
-    var sets = {};
-
-    async.each(caches, function(system, nextsystem) {
-
-        switch (set) {
-            case 0: //top only
-                sets.system = system.top;
-            break;
-
-        }
-
-        nextsystem();
 
     }, function(err) {
         if (err) {
             return callback(err);
         }
-        callback(null, sets);
+        callback(null, caches);
     });
 };
 

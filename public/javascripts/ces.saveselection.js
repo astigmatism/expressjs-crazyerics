@@ -58,7 +58,7 @@ var cesSaveSelection = (function(_config, _Dialogs, _Emulator, _system, $wrapper
     //populate
     GetSaves();
 
-    if (_Emulator.AtMaximumSaves) {
+    if (_Emulator.AtMaximumSaves()) {
         $wrapper.find('p').removeClass(); //shows at maximum message
     }
 

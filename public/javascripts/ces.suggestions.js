@@ -8,12 +8,12 @@ var cesSuggestions = (function(config, _Compression, PlayGame, $wrapper) {
     var self = this;
     var _grid = null;
     var _BOXSIZE = 120;
-    var _currentUrl = null;
+    var _lastRecipe = null;
     var _currentGameLinks = [];
     var _loading = false;
     var _allowMore = false;
 
-    this.Load = function(url, allowMore, callback) {
+    this.Load = function(recipe, allowMore, callback) {
 
         _allowMore = allowMore === true || false;
 
@@ -21,7 +21,7 @@ var cesSuggestions = (function(config, _Compression, PlayGame, $wrapper) {
             return;
         }
 
-        Build(url, true, function() {
+        Build(recipe, true, function() {
 
             if (callback) {
                 callback();
@@ -31,11 +31,11 @@ var cesSuggestions = (function(config, _Compression, PlayGame, $wrapper) {
 
     this.LoadMore = function(callback) {
 
-        if (!_currentUrl || _loading || !_allowMore) {
+        if (!_lastRecipe || _loading || !_allowMore) {
             return;
         }
 
-        Build(_currentUrl, false, function() {
+        Build(_lastRecipe, false, function() {
 
             if (callback) {
                 callback();
@@ -43,9 +43,9 @@ var cesSuggestions = (function(config, _Compression, PlayGame, $wrapper) {
         });
     };
 
-    var Build = function(url, clear, callback) {
+    var Build = function(recipe, clear, callback) {
 
-        _currentUrl = url;
+        _lastRecipe = recipe;
         _loading = true;
 
         //remove all current gamelinks
@@ -59,9 +59,14 @@ var cesSuggestions = (function(config, _Compression, PlayGame, $wrapper) {
             _currentGameLinks = [];
         }
 
-        $.getJSON(url, function(response) {
+        var compressedRecipe = _Compression.Zip.json(recipe);
 
-            response = _Compression.Out.json(response);
+        $.post('/suggest', {
+            'recipe': compressedRecipe
+
+        }, function(response) {
+
+           response = _Compression.Out.json(response);
 
             for (var i = 0; i < response.length; ++i) {
                 
@@ -91,8 +96,7 @@ var cesSuggestions = (function(config, _Compression, PlayGame, $wrapper) {
 
             _currentGameLinks.push(gamelink);
 
-            _loading = false;
-
+            _loading = false; 
         });
     }
 

@@ -31,7 +31,9 @@ UtilitiesService.onApplicationStart = function(callback) {
     var suggestionsall = {
         'data': {
             'alltitlecount': 0,
-            'allsuggestioncount': 0
+            'topSuggestionCount': 0,
+            'aboveSuggestionCount': 0,
+            'belowSuggestionCount': 0
         }
     }; 
     
@@ -66,16 +68,17 @@ UtilitiesService.onApplicationStart = function(callback) {
 
                     //we'll cache a separate structure for each system (to avoid using the heavier all suggestions cache)
                     var suggestions = {
-                        'top': [],      //top suggestions are those that have been marked in the box datafile as the most "inviting" titles for the system (my discretion!)
-                        'best': [],     //best system suggestions will show alongside other system suggestions
-                        'foreign': [],  //remaining suggestions will be included here
+                        'top': [],          //top suggestions are those that have been marked in the box datafile as the most "inviting" titles for the system (my discretion!)
+                        'above': [],        //above suggestions threshold defined in config
+                        'below': [],        //remaining box art below the defined threshold
                         'data': {}
                     };
 
                     //add new key for this system to all suggestions
                     suggestionsall[system] = {
                         'top': [],
-                        'best': [],
+                        'above': [],
+                        'below': [],
                         'data': {}
                     };
 
@@ -105,6 +108,9 @@ UtilitiesService.onApplicationStart = function(callback) {
                                 suggestionsall[system].top.push(title);
                                 suggestionsall[system].data[title] = data[title];
 
+                                //increase counter
+                                ++suggestionsall.data.topSuggestionCount;
+
                                 //add to system suggestions
                                 suggestions.top.push(title);
                                 suggestions.data[title] = data[title];
@@ -114,14 +120,14 @@ UtilitiesService.onApplicationStart = function(callback) {
                             if (bestrank >= systemSuggestionThreshold) {
                                 
                                 //add to all suggestions
-                                suggestionsall[system].best.push(title);
+                                suggestionsall[system].above.push(title);
                                 suggestionsall[system].data[title] = data[title];   
 
                                 //increase counter
-                                ++suggestionsall.data.allsuggestioncount;
+                                ++suggestionsall.data.aboveSuggestionCount;
 
                                 //add to system suggestions
-                                suggestions.best.push(title);
+                                suggestions.above.push(title);
                                 suggestions.data[title] = data[title];
 
                             } else {
@@ -129,8 +135,13 @@ UtilitiesService.onApplicationStart = function(callback) {
                                 //foreign suggestion (has art but doesn't meet the suggestion threshold for system)
                                 
                                 //add to system suggestions
-                                suggestions.foreign.push(title);
+                                suggestions.below.push(title);
                                 suggestions.data[title] = data[title];
+
+                                //all suggestions not cached dont care
+                                
+                                //increase counter
+                                ++suggestionsall.data.belowSuggestionCount;
                             }
                         }
 
@@ -150,7 +161,7 @@ UtilitiesService.onApplicationStart = function(callback) {
                     //cache suggestions for this system
                     FileService.setCache('suggestions.' + system, suggestions); //ok to be sync
 
-                    console.log('suggestions.' + system + ' (threshold: ' + systemSuggestionThreshold + ') "inviting" suggestions --> ' + suggestions.top.length + '. suggestions above threshold --> ' + suggestions.best.length + '. suggestions below threshhold --> ' + suggestions.foreign.length + '. total with thegamesdb rating --> ' + titlesWithRating);
+                    console.log('suggestions.' + system + ' (threshold: ' + systemSuggestionThreshold + ') "inviting" suggestions --> ' + suggestions.top.length + '. suggestions above threshold --> ' + suggestions.above.length + '. suggestions below threshhold --> ' + suggestions.below.length + '. total with thegamesdb rating --> ' + titlesWithRating);
 
                     nextsystem();
                 });

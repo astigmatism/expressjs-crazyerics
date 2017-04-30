@@ -229,10 +229,21 @@ var cesMain = (function() {
 
         _Suggestions = new cesSuggestions(_config, _Compression, PlayGame, $('#suggestionsgrid'));
 
+        var recipe = {
+            systems: {
+                nes: {
+                    proportion: 100,
+                    set: 0
+                }
+            },
+            count: 100
+        };
         //begin by showing all console suggestions
-        _Suggestions.Load('/suggest/all/' + _defaultSuggestions, true, function() {
+        _Suggestions.Load(recipe, true, function() {
             toolTips();
         });
+
+        
 
         //incoming params to open game now?
         var openonload = _PlayerData.Get('openonload') || {};
