@@ -114,7 +114,16 @@ var cesMain = (function() {
             onChange: function() {
                 var system = $(this).val();
 
-                _Suggestions.Load('/suggest/' + system + '/' + _defaultSuggestions, true, function() {
+                var recipe = {
+                    systems: {},
+                    count: 100
+                };
+                recipe.systems[system] = {
+                    proportion: 100,
+                    set: (system === 'all') ? 0 : 1
+                };
+
+                _Suggestions.Load(recipe, true, function() {
                     toolTips();
                 });
 
@@ -229,17 +238,16 @@ var cesMain = (function() {
 
         _Suggestions = new cesSuggestions(_config, _Compression, PlayGame, $('#suggestionsgrid'));
 
-        var recipe = {
+        //begin by showing all console suggestions
+        _Suggestions.Load({
             systems: {
-                nes: {
+                all: {
                     proportion: 100,
                     set: 0
                 }
             },
             count: 100
-        };
-        //begin by showing all console suggestions
-        _Suggestions.Load(recipe, true, function() {
+        }, true, function() {
             toolTips();
         });
 
