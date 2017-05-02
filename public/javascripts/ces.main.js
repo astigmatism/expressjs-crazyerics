@@ -985,7 +985,7 @@ cesGetBoxFront = function(config, system, title, size) {
     _Compression = null;
 
     //incldes swap to blank cart onerror
-    return $('<img onerror="this.src=\'' + errorsrc + '\'" src="' + src + '" />');
+    return $('<img width="' + size + '" onerror="this.src=\'' + errorsrc + '\'" src="' + src + '" />');
 };
 
 /**

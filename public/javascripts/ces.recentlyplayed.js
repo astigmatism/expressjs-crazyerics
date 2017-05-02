@@ -150,6 +150,7 @@ var cesRecentlyPlayed = (function(config, _Compression, _PlayGame, $wrapper, _in
     var Constructor = (function() {
 
 		_grid = $wrapper.isotope({
+            layoutMode: 'masonry',
             itemSelector: '.grid-item',
             getSortData: {
                 lastPlayed: function(item) {
