@@ -354,9 +354,9 @@
 		"nds": {
 			"name": "Nintendo DS",
 			"shortname": "Nintendo DS",
-			"live": false,
-			"boxcdnversion": "2.0.0",
-			"romcdnversion": "2.0.0",
+			"live": true,
+			"boxcdnversion": "2.0.1",
+			"romcdnversion": "2.0.1",
 			"emuextention": "2017-03-27",
 			"emuscript": "desmume_libretro.js",
 			"recommendedshaders": [],
