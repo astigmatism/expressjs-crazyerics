@@ -232,7 +232,7 @@
 			"boxcdnversion": "2.0.4",
 			"romcdnversion": "2.0.4",
 			"emuextention": "2017-03-27",
-			"emuscript": "mupen64plus_libretro.js",
+			"emuscript": "parallel_n64_libretro.js",
 			"screenshotaspectratio": 1.142857143,
 			"retroarch": {
 				"video_aspect_ratio": 1.142857143,
@@ -318,7 +318,7 @@
 		"a2600": {
 			"name": "Atari 2600",
 			"shortname": "Atari 2600",
-			"live": false,
+			"live": true,
 			"collection": "Good2600 1.0.0",
 			"boxcdnversion": "2.0.1",
 			"romcdnversion": "2.0.1",

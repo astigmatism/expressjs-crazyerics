@@ -49,7 +49,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
         
         } catch (e) {
             if (callback) {
-                callback(e);
+                return callback(e);
             }
         }
 
