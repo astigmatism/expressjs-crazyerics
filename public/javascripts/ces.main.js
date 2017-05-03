@@ -722,14 +722,23 @@ var cesMain = (function() {
         $('#gameloadingimage').empty().addClass('centered').append(box);
 
         //show tips on loading
+        var randomizedTips = shuffle(_tips);
+        var tipIndex = -1;
         var tipInterval = setInterval(function() {
             $('#gameloadingname').fadeOut(500);
             $('#tip').fadeOut(500, function() {
-                var tip = _tips[Math.floor(Math.random() * _tips.length)];
+                
+                ++tipIndex;
+                if (tipIndex >= randomizedTips.length) {
+                    tipIndex = 0;
+                }
+
+                var tip = randomizedTips[tipIndex];
 
                 if (!$('#gameloading').is(':animated')) {
                     $('#tip').empty().append('Tip: ' + tip).fadeIn(500);
                 }
+
             });
         }, _tipsCycleRate); //show tip for this long
 
@@ -1022,4 +1031,9 @@ var BuildScreenshot = function(config, system, arraybufferview, width, height) {
     img.src = imageUrl;
 
     return img;
+};
+
+var shuffle = function(o) {
+    for (var j, x, i = o.length; i; j = Math.floor(Math.random() * i), x = o[--i], o[i] = o[j], o[j] = x);
+    return o;
 };
