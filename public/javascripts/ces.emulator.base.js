@@ -455,6 +455,8 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
         switch (system) {
             case 'segacd':
             break;
+            case '32x':
+            break;
             default:
                 //system not handled, bail
                 deffered.resolve();

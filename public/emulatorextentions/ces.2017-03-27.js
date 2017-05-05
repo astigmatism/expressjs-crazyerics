@@ -14,7 +14,7 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _system, _title, _fi
     var _fileWriteTimeout = {};
     var _fileReadTimeout = {};
     var _fileTimerDelay = 100;       //the amount of time we allow to pass in which we assume a file is no longer being written
-    var _startToMenu = true;
+    var _startToMenu = false;
 
     // public/protected members (on prototytpe)
 
@@ -298,17 +298,16 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _system, _title, _fi
                 this.arguments = ['-v', '--menu'];
             }
 
-            //emulator support, will be null if none
+            //emulator support, all files must go into system dir (BIOS files at least, what i'm using this for)
+            this.FS_createFolder('/', 'system', true, true);
             if (compressedSupprtData) {
-                var supportFiles = _Compression.Unzip.json(compressedSupprtData);
-                if (supportFiles) {
-                    for (var supportFile in supportFiles) {
-                        content = _Compression.Unzip.bytearray(supportFiles[supportFile]);
-                        try {
-                            this.FS_createDataFile('/', supportFile, content, true, true);
-                        } catch (e) {
-                            //an error on file write.
-                        }
+                for (var supportFile in compressedSupprtData) {
+                    var content = _Compression.Unzip.bytearray(compressedSupprtData[supportFile]);
+                    var filename = _Compression.Unzip.string(supportFile);
+                    try {
+                        this.FS_createDataFile('/system', filename, content, true, true);
+                    } catch (e) {
+                        //an error on file write.
                     }
                 }
             }

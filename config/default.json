@@ -146,13 +146,13 @@
 		"32x": {
 			"name": "Sega 32x",
 			"shortname": "Sega 32x",
-			"live": true,
+			"live": false,
 			"boxcdnversion": "2.0.1",
 			"romcdnversion": "2.0.1",
 			"emuextention": "2017-03-27",
 			"collection": "GoodGen 3.21",
 			"screenshotaspectratio": 1.333333333333333,
-			"emuscript": "genesis_plus_gx_libretro.js"
+			"emuscript": "picodrive_libretro.js"
 		},
 		"gen": {
 			"name": "Sega Genesis / Mega Drive",
@@ -163,7 +163,7 @@
 			"emuextention": "2017-03-27",
 			"collection": "GoodGen 3.21",
 			"screenshotaspectratio": 1.333333333333333,
-			"emuscript": "genesis_plus_gx_libretro.js",
+			"emuscript": "picodrive_libretro.js",
 			"recommendedshaders": [
 				{
 					"title": "Vintage Television",
@@ -333,8 +333,8 @@
 			"shortname": "Atari 2600",
 			"live": true,
 			"collection": "Good2600 1.0.0",
-			"boxcdnversion": "2.0.1",
-			"romcdnversion": "2.0.1",
+			"boxcdnversion": "2.0.4",
+			"romcdnversion": "2.0.2",
 			"emuextention": "2017-03-27",
 			"emuscript": "stella_libretro.js",
 			"recommendedshaders": [],
@@ -382,7 +382,7 @@
 		"foreignMixPerc": 0
 	},
 	"retroarch": {
-		"system_directory": "/",
+		"system_directory": "/system",
 		"input_menu_toggle":  "f1",
 		"savestate_directory": "/states",
 		"video_message_pos_y": 0.05,
