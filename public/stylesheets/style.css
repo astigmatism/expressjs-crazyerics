@@ -185,6 +185,14 @@ p {
 	border-radius: 3px;	
 }
 
+.boxlabel-32x {
+	width: 72px;
+	height: 67px;
+	top: 5px;
+	left: 24px;
+	border-radius: 3px;	
+}
+
 .boxlabel-gg {
 	width: 92px;
 	height: 65px;

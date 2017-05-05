@@ -32,7 +32,8 @@
 			"emuextention": "2017-03-27",
 			"emuscript": "prosystem_libretro.js",
 			"recommendedshaders": [],
-			"screenshotaspectratio": 1.714
+			"screenshotaspectratio": 1.714,
+			"suggestionThreshold": 180
 		},
 		"gb": {
 			"name": "Nintendo Game Boy",
@@ -142,13 +143,25 @@
 				]
 			}
 		},
+		"32x": {
+			"name": "Sega 32x",
+			"shortname": "Sega 32x",
+			"live": true,
+			"boxcdnversion": "2.0.1",
+			"romcdnversion": "2.0.1",
+			"emuextention": "2017-03-27",
+			"collection": "GoodGen 3.21",
+			"screenshotaspectratio": 1.333333333333333,
+			"emuscript": "genesis_plus_gx_libretro.js"
+		},
 		"gen": {
 			"name": "Sega Genesis / Mega Drive",
 			"shortname": "Sega Genesis",
 			"live": true,
-			"boxcdnversion": "2.0.2",
+			"boxcdnversion": "2.0.3",
 			"romcdnversion": "2.0.1",
 			"emuextention": "2017-03-27",
+			"collection": "GoodGen 3.21",
 			"screenshotaspectratio": 1.333333333333333,
 			"emuscript": "genesis_plus_gx_libretro.js",
 			"recommendedshaders": [
