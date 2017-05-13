@@ -76,7 +76,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
      * @param {string} shader   a shader selection or pre-defined
      * @param {Object} deffered when complete
      */
-    this.Load = function(module, shader, deffered) {
+    this.Load = function(module, filesize, shader, deffered) {
 
         var emulatorLoadComplete = $.Deferred();
         var supportLoadComplete = $.Deferred();
@@ -87,7 +87,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
 
         LoadEmulatorScript(_system, module, emulatorLoadComplete);
         LoadSupportFiles(_system, supportLoadComplete);
-        LoadGame(gameLoadComplete);
+        LoadGame(filesize, gameLoadComplete);
         LoadShader(shader, shaderLoadComplete);
 
         $.when(emulatorLoadComplete, supportLoadComplete, gameLoadComplete, shaderLoadComplete).done(function(emulator, support, game, shader) {
@@ -488,53 +488,51 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
      * @param  {Object} deffered
      * @return {undef}
      */
-    var LoadGame = function(deffered) {
-
+    var LoadGame = function(filesize, deffered) {
+        
+        var filename = _Compression.Zip.string(_title + _file);
         var location = _config.rompath + '/' + _system + '/' + _config.systemdetails[_system].romcdnversion + '/';
-        var flattened = _config.flattenedromfiles;
 
-        //if rom struture is flattened, this means that all rom files have been converted to single json files
-        if (flattened) {
-
-            var filename = _Compression.Zip.string(_title + _file);
-            //location += '/' + system + '/a.json'; //encode twice: once for the trip, the second because the files are saved that way on the CDN
-            location += encodeURIComponent(encodeURIComponent(filename)) + '.json'; //encode twice: once for the trip, the second because the files are saved that way on the CDN
-        } else {
-            location += _title + '/' + _file;
-        }
-
-        /**
-         * This jsonp response handling is specific for return gamedata, we'll decompress it later
-         * @param  {Array} response  compressed file segments
-         * @return {undef}
-         */
-        a = function(response) {
-            deffered.resolve(null, response);
-        };
-
-        /**
-         * set the global jsonpDelegate
-         * @param  {string} response
-         * @return {undefined}
-         */
-        jsonpDelegate = function(response) {
-
-            var inflated;
-            try {
-                var decompressed = _Compression.Unzip.string(response);
-                inflated = pako.inflate(decompressed); //inflate compressed file contents (pako deflated to string in file on CDN)
-            } catch (e) {
-                deffered.resolve(e);
-                return;
-            }
-            deffered.resolve(null, inflated);
-        };
+        //encode twice: once for the trip, the second because the files are saved that way on the CDN
+        location += encodeURIComponent(encodeURIComponent(filename)) + '.json';
 
         //very important that this is a jsonp call - works around xdomain call to google drive
         $.ajax({
             url: location,
             type: 'GET',
-            dataType: 'jsonp'
+            crossDomain: true,
+            dataType: 'json',
+            cache: false,
+            xhr: function() {
+                var xhr = new window.XMLHttpRequest();
+                xhr.upload.addEventListener('progress', function(evt) {
+                    if (evt.lengthComputable) {
+                        var percentComplete = evt.loaded / evt.total;
+                        //Do something with upload progress here
+                        console.log('downloading: ' + percentComplete);
+                    }
+                }, false);
+
+                xhr.addEventListener('progress', function(evt) {
+                    if (evt.lengthComputable) {
+                        var percentComplete = evt.loaded / evt.total;
+                        //Do something with download progress
+                        console.log('downloading: ' + percentComplete);
+                    }
+                }, false);
+
+                return xhr;
+            },
+            success: function(response, status, jqXHR) {
+
+                deffered.resolve(null, response);
+            },
+            complete: function(jqXHR, status) {
+                console.log(jqXHR);
+            },
+            error: function(jqXHR, status, error) {
+                console.log(jqXHR);
+            }
         });
     };
 
@@ -631,6 +629,6 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
  * @return {undef}
  */
 var jsonpDelegate;
-var a;
+var cesRm; //game rom data
 var b;
-var c;
+var c; //support files for emulator (bios, etc)

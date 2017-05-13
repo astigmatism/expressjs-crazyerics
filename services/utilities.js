@@ -57,113 +57,119 @@ UtilitiesService.onApplicationStart = function(callback) {
                 if (err) {
                     console.log('Could not find thegamesdb file for ' + system + '.');
                 }
+
+                FileService.getFile('/data/' + system + '_cdndata.json', function(err, cdndata) {
+                    if (err) {
+                        console.log('Could not find cdndata file for ' + system + '.');
+                    }
             
 
-                //let's try opening the boxart data file now too
-                FileService.getFile('/data/' + system + '_boxart.json', function(err, boxartdata) {
-                    if (err) {
-                        console.log('Could not find boxart file for ' + system + '. No suggests can be made without boxart');
-                        //if error, console log only, we can still build cache
-                    }
+                    //let's try opening the boxart data file now too
+                    FileService.getFile('/data/' + system + '_boxart.json', function(err, boxartdata) {
+                        if (err) {
+                            console.log('Could not find boxart file for ' + system + '. No suggests can be made without boxart');
+                            //if error, console log only, we can still build cache
+                        }
 
-                    //we'll cache a separate structure for each system (to avoid using the heavier all suggestions cache)
-                    var suggestions = {
-                        'top': [],          //top suggestions are those that have been marked in the box datafile as the most "inviting" titles for the system (my discretion!)
-                        'above': [],        //above suggestions threshold defined in config
-                        'below': [],        //remaining box art below the defined threshold
-                        'data': {}
-                    };
+                        //we'll cache a separate structure for each system (to avoid using the heavier all suggestions cache)
+                        var suggestions = {
+                            'top': [],          //top suggestions are those that have been marked in the box datafile as the most "inviting" titles for the system (my discretion!)
+                            'above': [],        //above suggestions threshold defined in config
+                            'below': [],        //remaining box art below the defined threshold
+                            'data': {}
+                        };
 
-                    //add new key for this system to all suggestions
-                    suggestionsall[system] = {
-                        'top': [],
-                        'above': [],
-                        'below': [],
-                        'data': {}
-                    };
+                        //add new key for this system to all suggestions
+                        suggestionsall[system] = {
+                            'top': [],
+                            'above': [],
+                            'below': [],
+                            'data': {}
+                        };
 
-                    var systemSuggestionThreshold = config.has('systems.' + system + '.suggestionThreshold') ? config.get('systems.' + system + '.suggestionThreshold') : config.get('search').suggestionThreshold;
-                    var titlesWithRating = 0;
+                        var systemSuggestionThreshold = config.has('systems.' + system + '.suggestionThreshold') ? config.get('systems.' + system + '.suggestionThreshold') : config.get('search').suggestionThreshold;
+                        var titlesWithRating = 0;
 
-                    //ok, let's build the all.json file with the data from each file
-                    for (var title in data) {
+                        //ok, let's build the all.json file with the data from each file
+                        for (var title in data) {
 
-                        var bestfile = data[title].best;
-                        var bestrank = data[title].files[bestfile];
+                            var bestfile = data[title].best;
+                            var bestrank = data[title].files[bestfile];
 
-                        //in order to be suggested must have art and must need minimum rank to be preferable playing game
-                        //you can get systemSuggestionThreshold in config if needed
-                        if (boxartdata && title in boxartdata) {
+                            //in order to be suggested must have art and must need minimum rank to be preferable playing game
+                            //you can get systemSuggestionThreshold in config if needed
+                            if (boxartdata && title in boxartdata) {
 
-                            //include thegamesdb rating info into suggestions cache
-                            if (thegamesdb && thegamesdb[title] && thegamesdb[title].Rating) {
-                                data[title].thegamesdbrating = thegamesdb[title].Rating;
-                                ++titlesWithRating;
+                                //include thegamesdb rating info into suggestions cache
+                                if (thegamesdb && thegamesdb[title] && thegamesdb[title].Rating) {
+                                    data[title].thegamesdbrating = thegamesdb[title].Rating;
+                                    ++titlesWithRating;
+                                }
+
+                                //top suggestions. these titles can also exist in "best" and "foriegn" so be sure not to mix them
+                                if (boxartdata[title].hasOwnProperty('ts')) {
+
+                                    //add to all suggestions
+                                    suggestionsall[system].top.push(title);
+                                    suggestionsall[system].data[title] = data[title];
+
+                                    //increase counter
+                                    ++suggestionsall.data.topSuggestionCount;
+
+                                    //add to system suggestions
+                                    suggestions.top.push(title);
+                                    suggestions.data[title] = data[title];
+                                }
+                                
+                                //ok, now separate the remianing boxart titles between above the threshold and below it
+                                if (bestrank >= systemSuggestionThreshold) {
+                                    
+                                    //add to all suggestions
+                                    suggestionsall[system].above.push(title);
+                                    suggestionsall[system].data[title] = data[title];   
+
+                                    //increase counter
+                                    ++suggestionsall.data.aboveSuggestionCount;
+
+                                    //add to system suggestions
+                                    suggestions.above.push(title);
+                                    suggestions.data[title] = data[title];
+
+                                } else {
+                                    
+                                    //foreign suggestion (has art but doesn't meet the suggestion threshold for system)
+                                    
+                                    //add to system suggestions
+                                    suggestions.below.push(title);
+                                    suggestions.data[title] = data[title];
+
+                                    //all suggestions not cached dont care
+                                    
+                                    //increase counter
+                                    ++suggestionsall.data.belowSuggestionCount;
+                                }
                             }
 
-                            //top suggestions. these titles can also exist in "best" and "foriegn" so be sure not to mix them
-                            if (boxartdata[title].hasOwnProperty('ts')) {
-
-                                //add to all suggestions
-                                suggestionsall[system].top.push(title);
-                                suggestionsall[system].data[title] = data[title];
-
-                                //increase counter
-                                ++suggestionsall.data.topSuggestionCount;
-
-                                //add to system suggestions
-                                suggestions.top.push(title);
-                                suggestions.data[title] = data[title];
+                            //if the rank of the best playable file for the title is above the threshold for part of all-console search
+                            if (bestrank >= config.get('search').searchAllThreshold) {
+                                search[title + '.' + system] = {
+                                    system: system,
+                                    file: bestfile,
+                                    rank: bestrank
+                                };
                             }
                             
-                            //ok, now separate the remianing boxart titles between above the threshold and below it
-                            if (bestrank >= systemSuggestionThreshold) {
-                                
-                                //add to all suggestions
-                                suggestionsall[system].above.push(title);
-                                suggestionsall[system].data[title] = data[title];   
-
-                                //increase counter
-                                ++suggestionsall.data.aboveSuggestionCount;
-
-                                //add to system suggestions
-                                suggestions.above.push(title);
-                                suggestions.data[title] = data[title];
-
-                            } else {
-                                
-                                //foreign suggestion (has art but doesn't meet the suggestion threshold for system)
-                                
-                                //add to system suggestions
-                                suggestions.below.push(title);
-                                suggestions.data[title] = data[title];
-
-                                //all suggestions not cached dont care
-                                
-                                //increase counter
-                                ++suggestionsall.data.belowSuggestionCount;
-                            }
+                            //increase counter
+                            ++suggestionsall.data.alltitlecount;
                         }
 
-                        //if the rank of the best playable file for the title is above the threshold for part of all-console search
-                        if (bestrank >= config.get('search').searchAllThreshold) {
-                            search[title + '.' + system] = {
-                                system: system,
-                                file: bestfile,
-                                rank: bestrank
-                            };
-                        }
-                        
-                        //increase counter
-                        ++suggestionsall.data.alltitlecount;
-                    }
+                        //cache suggestions for this system
+                        FileService.setCache('suggestions.' + system, suggestions); //ok to be sync
 
-                    //cache suggestions for this system
-                    FileService.setCache('suggestions.' + system, suggestions); //ok to be sync
+                        console.log('suggestions.' + system + ' (threshold: ' + systemSuggestionThreshold + ') "inviting" suggestions --> ' + suggestions.top.length + '. suggestions above threshold --> ' + suggestions.above.length + '. suggestions below threshhold --> ' + suggestions.below.length + '. total with thegamesdb rating --> ' + titlesWithRating);
 
-                    console.log('suggestions.' + system + ' (threshold: ' + systemSuggestionThreshold + ') "inviting" suggestions --> ' + suggestions.top.length + '. suggestions above threshold --> ' + suggestions.above.length + '. suggestions below threshhold --> ' + suggestions.below.length + '. total with thegamesdb rating --> ' + titlesWithRating);
-
-                    nextsystem();
+                        nextsystem();
+                    });
                 });
             });
         });
@@ -207,7 +213,8 @@ UtilitiesService.findGame = function(system, title, file, callback) {
             file: null,
             files: null,
             boxart: null,
-            info: null
+            info: null,
+            size: null
         };
 
         //open data file for details
@@ -238,6 +245,7 @@ UtilitiesService.findGame = function(system, title, file, callback) {
                     //is there info?
                     FileService.getFile('/data/' + system + '_thegamesdb.json', function(err, thegamesdb) {
                         if (err) {
+                            console.log(err);
                             //no need to trap here
                         } else {
 
@@ -246,9 +254,21 @@ UtilitiesService.findGame = function(system, title, file, callback) {
                             }
                         }
 
-                        FileService.setCache(system + title + file, data);
+                        //get filesize so we have calc download progress
+                        FileService.getFile('/data/' + system + '_cdndata.json', function(err, cdndata) {
+                            if (err) {
+                                //no need to trap here
+                                console.log(err);
+                            } else {
 
-                        return callback(null, data);
+                                if (cdndata[file] && cdndata[file].size) {
+                                    data.size = cdndata[file].size;
+                                }
+                            }
+                            FileService.setCache(system + title + file, data);
+
+                            return callback(null, data);
+                        });
                     });
                 });
 
@@ -313,16 +333,11 @@ UtilitiesService.collectDataForClient = function(req, openonload, callback) {
     //shaders location
     configdata['shaderpath'] = config.get('shaderpath');
 
-    //are rom dirtree structures flattened? (use gamekey as file name)
-    configdata['flattenedromfiles'] = config.get('flattenedromfiles');
-
     //asset location
     configdata['assetpath'] = config.get('assetpath');
 
     //box art location
     configdata['boxpath'] = config.get('boxpath');
-
-    configdata['flattenedboxfiles'] = config.get('flattenedboxfiles');
 
     configdata['maxSavesPerGame'] = config.get('maxSavesPerGame');
 

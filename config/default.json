@@ -5,8 +5,6 @@
 	"rompath":"https://dl.dropboxusercontent.com/u/1433808/crazyerics/roms",
 	"emuextentionspath": "emulatorextentions/",
 	"emupath": "/emulators",
-	"flattenedboxfiles": true,
-	"flattenedromfiles": true,
 	"dropboxaccesstoken": "m62ox__hvx4AAAAAAAg-wsMqXLg0V57RxRTk-PBFM3gKS23cOjrpY5y7x6aSZMRA",
 	"maxSavesPerGame": 60,
 	"systems": {
@@ -154,6 +152,16 @@
 			"screenshotaspectratio": 1.333333333333333,
 			"emuscript": "picodrive_libretro.js"
 		},
+		"segacd": {
+			"name": "Sega CD",
+			"shortname": "Sega CD",
+			"live": true,
+			"boxcdnversion": "2.0.2",
+			"romcdnversion": "2.1.0",
+			"emuextention": "2017-03-27",
+			"screenshotaspectratio": 1.333333333333333,
+			"emuscript": "genesis_plus_gx_libretro.js"
+		},
 		"gen": {
 			"name": "Sega Genesis / Mega Drive",
 			"shortname": "Sega Genesis",
@@ -163,7 +171,7 @@
 			"emuextention": "2017-03-27",
 			"collection": "GoodGen 3.21",
 			"screenshotaspectratio": 1.333333333333333,
-			"emuscript": "picodrive_libretro.js",
+			"emuscript": "genesis_plus_gx_libretro.js",
 			"recommendedshaders": [
 				{
 					"title": "Vintage Television",
@@ -187,7 +195,7 @@
 			"shortname": "Sega Master System",
 			"live": true,
 			"boxcdnversion": "2.0.4",
-			"romcdnversion": "2.0.0",
+			"romcdnversion": "2.1.5",
 			"emuextention": "2017-03-27",
 			"emuscript": "genesis_plus_gx_libretro.js",
 			"screenshotaspectratio": 1.333333333333333,
