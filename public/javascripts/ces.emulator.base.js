@@ -494,7 +494,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
         var location = _config.rompath + '/' + _system + '/' + _config.systemdetails[_system].romcdnversion + '/';
 
         //encode twice: once for the trip, the second because the files are saved that way on the CDN
-        location += encodeURIComponent(encodeURIComponent(filename)) + '.json';
+        location += encodeURIComponent(encodeURIComponent(filename));
 
         //very important that this is a jsonp call - works around xdomain call to google drive
         $.ajax({
@@ -505,19 +505,19 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
             cache: false,
             xhr: function() {
                 var xhr = new window.XMLHttpRequest();
-                xhr.upload.addEventListener('progress', function(evt) {
-                    if (evt.lengthComputable) {
-                        var percentComplete = evt.loaded / evt.total;
+                xhr.upload.addEventListener('progress', function(event) {
+                    if (event.loaded) {
+                        //var percentComplete = event.loaded / event.total;
                         //Do something with upload progress here
-                        console.log('downloading: ' + percentComplete);
+                        console.log('downloading: ' + event.loaded);
                     }
                 }, false);
 
-                xhr.addEventListener('progress', function(evt) {
-                    if (evt.lengthComputable) {
-                        var percentComplete = evt.loaded / evt.total;
+                xhr.addEventListener('progress', function(event) {
+                    if (event.loaded) {
+                        //var percentComplete = event.loaded / event.total;
                         //Do something with download progress
-                        console.log('downloading: ' + percentComplete);
+                        console.log('downloading: ' + event.loaded);
                     }
                 }, false);
 

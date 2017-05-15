@@ -242,27 +242,28 @@ UtilitiesService.findGame = function(system, title, file, callback) {
                         }
                     }
 
-                    //is there info?
-                    FileService.getFile('/data/' + system + '_thegamesdb.json', function(err, thegamesdb) {
+                    //get filesize so we have calc download progress
+                    FileService.getFile('/data/' + system + '_cdndata.json', function(err, cdndata) {
                         if (err) {
-                            console.log(err);
                             //no need to trap here
+                            console.log(err);
                         } else {
 
-                            if (thegamesdb[title]) {
-                                data.info = thegamesdb[title];
+                            if (cdndata[file] && cdndata[file].size) {
+                                data.size = cdndata[file].size;
                             }
                         }
 
-                        //get filesize so we have calc download progress
-                        FileService.getFile('/data/' + system + '_cdndata.json', function(err, cdndata) {
+                        
+                        //is there info?
+                        FileService.getFile('/data/' + system + '_thegamesdb.json', function(err, thegamesdb) {
                             if (err) {
-                                //no need to trap here
                                 console.log(err);
+                                //no need to trap here
                             } else {
 
-                                if (cdndata[file] && cdndata[file].size) {
-                                    data.size = cdndata[file].size;
+                                if (thegamesdb[title]) {
+                                    data.info = thegamesdb[title];
                                 }
                             }
                             FileService.setCache(system + title + file, data);

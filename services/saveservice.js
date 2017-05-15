@@ -1,7 +1,6 @@
 var fs = require('fs');
 var async = require('async');
 var config = require('config');
-var maxSavesPerGame = parseInt(config.get('maxSavesPerGame'), 10);
 var SavesModel = require('../models/saves');
 // var Dropbox = require('dropbox');
 // var dbx = new Dropbox({ 
@@ -29,6 +28,7 @@ SaveService = function() {
 SaveService.NewSave = function(sessionId, gameKey, timeStamp, screenData, stateData, type, callback) {
 
     var deleteSaveTimeStamp = null;
+    var maxSavesPerGame = parseInt(config.get('maxSavesPerGame'), 10);
 
     // Create an instance of model SomeModel
     var saveInstance = new SavesModel({ 
