@@ -496,7 +496,8 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
         //encode twice: once for the trip, the second because the files are saved that way on the CDN
         location += encodeURIComponent(encodeURIComponent(filename));
 
-        //very important that this is a jsonp call - works around xdomain call to google drive
+        //converted from jsonp to straight up json. Seems to work. Going this route allows me to add
+        //an event listener to progress for a download progress bar
         $.ajax({
             url: location,
             type: 'GET',
@@ -507,31 +508,28 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
                 var xhr = new window.XMLHttpRequest();
                 xhr.upload.addEventListener('progress', function(event) {
                     if (event.loaded) {
-                        //var percentComplete = event.loaded / event.total;
+                        var percentComplete = event.loaded / filesize;
                         //Do something with upload progress here
-                        console.log('downloading: ' + event.loaded);
+                        console.log('downloading: ' + percentComplete);
                     }
                 }, false);
 
                 xhr.addEventListener('progress', function(event) {
                     if (event.loaded) {
-                        //var percentComplete = event.loaded / event.total;
-                        //Do something with download progress
-                        console.log('downloading: ' + event.loaded);
+                        var percentComplete = event.loaded / filesize;
+                        //Do something with upload progress here
+                        console.log('downloading: ' + percentComplete);
                     }
                 }, false);
 
                 return xhr;
             },
             success: function(response, status, jqXHR) {
-
                 deffered.resolve(null, response);
             },
-            complete: function(jqXHR, status) {
-                console.log(jqXHR);
-            },
             error: function(jqXHR, status, error) {
-                console.log(jqXHR);
+                _PubSub.Publish('error', ['Game Retrieval Error:', jqXHR.status]);
+                //console.log(jqXHR);
             }
         });
     };

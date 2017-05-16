@@ -58,7 +58,7 @@ UtilitiesService.onApplicationStart = function(callback) {
                     console.log('Could not find thegamesdb file for ' + system + '.');
                 }
 
-                FileService.getFile('/data/' + system + '_cdndata.json', function(err, cdndata) {
+                FileService.getFile('/data/' + system + '_filedata', function(err, cdndata) {
                     if (err) {
                         console.log('Could not find cdndata file for ' + system + '.');
                     }
@@ -243,14 +243,15 @@ UtilitiesService.findGame = function(system, title, file, callback) {
                     }
 
                     //get filesize so we have calc download progress
-                    FileService.getFile('/data/' + system + '_cdndata.json', function(err, cdndata) {
+                    FileService.getFile('/data/' + system + '_filedata', function(err, cdndata) {
                         if (err) {
                             //no need to trap here
                             console.log(err);
                         } else {
 
-                            if (cdndata[file] && cdndata[file].size) {
-                                data.size = cdndata[file].size;
+                            var compressedName = UtilitiesService.compress.string(file);
+                            if (cdndata[compressedName] && cdndata[compressedName].s) {
+                                data.size = cdndata[compressedName].s;
                             }
                         }
 

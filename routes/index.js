@@ -115,7 +115,8 @@ router.post('/load/game', function(req, res, next) {
                 var result = {
                     saves: saveDocs,
                     files: details.files, //rom files
-                    info: details.info //thegamesdb data
+                    info: details.info, //thegamesdb data
+                    size: details.size //file size data
                 };
 
                 res.json(UtilitiesService.compress.json(result));
