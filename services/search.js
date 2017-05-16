@@ -28,7 +28,7 @@ SearchService.search = function(systemfilter, term, maximum, callback) {
     var rank;
     var words = term.split(' '); //split all search terms
 
-    FileService.getFile('/data/' + systemfilter + '.json', function(err, data) {
+    FileService.getFile('/data/' + systemfilter + '_master', function(err, data) {
         if (err) {
             return callback(err);
         }
@@ -48,8 +48,8 @@ SearchService.search = function(systemfilter, term, maximum, callback) {
             
             } else {
                 system = systemfilter;
-                file = data[title].best;
-                rank = data[title].files[file];
+                file = data[title].b;
+                rank = data[title].f[file];
             }
 
             /**

@@ -46,26 +46,26 @@ UtilitiesService.onApplicationStart = function(callback) {
         }
 
         //ok, lets open the data file
-        FileService.getFile('/data/' + system + '.json', function(err, data) {
+        FileService.getFile('/data/' + system + '_master', function(err, data) {
             if (err) {
                 console.log('Could not find data file for ' + system + ' even though they are defined in config');
                 return nextsystem();
             }
 
             //let's cache files in this section
-            FileService.getFile('/data/' + system + '_thegamesdb.json', function(err, thegamesdb) {
+            FileService.getFile('/data/' + system + '_thegamesdb', function(err, thegamesdb) {
                 if (err) {
                     console.log('Could not find thegamesdb file for ' + system + '.');
                 }
 
-                FileService.getFile('/data/' + system + '_cdndata.json', function(err, cdndata) {
+                FileService.getFile('/data/' + system + '_filedata', function(err, filedata) {
                     if (err) {
-                        console.log('Could not find cdndata file for ' + system + '.');
+                        console.log('Could not find filedata file for ' + system + '.');
                     }
             
 
                     //let's try opening the boxart data file now too
-                    FileService.getFile('/data/' + system + '_boxart.json', function(err, boxartdata) {
+                    FileService.getFile('/data/' + system + '_boxart', function(err, boxartdata) {
                         if (err) {
                             console.log('Could not find boxart file for ' + system + '. No suggests can be made without boxart');
                             //if error, console log only, we can still build cache
@@ -93,8 +93,8 @@ UtilitiesService.onApplicationStart = function(callback) {
                         //ok, let's build the all.json file with the data from each file
                         for (var title in data) {
 
-                            var bestfile = data[title].best;
-                            var bestrank = data[title].files[bestfile];
+                            var bestfile = data[title].b;
+                            var bestrank = data[title].f[bestfile];
 
                             //in order to be suggested must have art and must need minimum rank to be preferable playing game
                             //you can get systemSuggestionThreshold in config if needed
@@ -107,7 +107,7 @@ UtilitiesService.onApplicationStart = function(callback) {
                                 }
 
                                 //top suggestions. these titles can also exist in "best" and "foriegn" so be sure not to mix them
-                                if (boxartdata[title].hasOwnProperty('ts')) {
+                                if (boxartdata[title].hasOwnProperty('t')) {
 
                                     //add to all suggestions
                                     suggestionsall[system].top.push(title);
@@ -218,21 +218,21 @@ UtilitiesService.findGame = function(system, title, file, callback) {
         };
 
         //open data file for details
-        FileService.getFile('/data/' + system + '.json', function(err, games) {
+        FileService.getFile('/data/' + system + '_master', function(err, masterFile) {
             if (err) {
                 return callback(err);
             }
 
             //if title found in datafile.. we can find data anywhere since all data is constructed from the original datafile!
-            if (games[title] && games[title].files[file]) {
+            if (masterFile[title] && masterFile[title].f[file]) {
 
                 data.system = system;
                 data.title = title;
                 data.file = file;
-                data.files = games[title].files;
+                data.files = masterFile[title].f;
 
                 //is there box art too?
-                FileService.getFile('/data/' + system + '_boxart.json', function(err, boxartgames) {
+                FileService.getFile('/data/' + system + '_boxart', function(err, boxartgames) {
                     if (err) {
                         //no need to trap here
                     } else {
@@ -243,20 +243,22 @@ UtilitiesService.findGame = function(system, title, file, callback) {
                     }
 
                     //get filesize so we have calc download progress
-                    FileService.getFile('/data/' + system + '_cdndata.json', function(err, cdndata) {
+                    FileService.getFile('/data/' + system + '_filedata', function(err, filedata) {
                         if (err) {
                             //no need to trap here
                             console.log(err);
                         } else {
 
-                            if (cdndata[file] && cdndata[file].size) {
-                                data.size = cdndata[file].size;
+                            var compressedFileName = UtilitiesService.compress.string(file);
+
+                            if (filedata[compressedFileName] && filedata[compressedFileName].s) {
+                                data.size = filedata[compressedFileName].s;
                             }
                         }
 
                         
                         //is there info?
-                        FileService.getFile('/data/' + system + '_thegamesdb.json', function(err, thegamesdb) {
+                        FileService.getFile('/data/' + system + '_thegamesdb', function(err, thegamesdb) {
                             if (err) {
                                 console.log(err);
                                 //no need to trap here
@@ -274,7 +276,7 @@ UtilitiesService.findGame = function(system, title, file, callback) {
                 });
 
             } else {
-                return callback(title + ' not found for ' + system + ' or ' + file + ' not found in ' + title);
+                return callback('title: "' + title + '" not found for ' + system + ' or file: "' + file + '" not found in title folder: "' + title + '"');
             }
         });
 
