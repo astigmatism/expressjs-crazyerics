@@ -251,7 +251,10 @@ var cesMain = (function() {
             toolTips();
         });
 
-        
+        //pubsub for any error
+        _PubSub.Subscribe('error', self, function(message, error) {
+            ShowErrorDialog(message, error);
+        });
 
         //incoming params to open game now?
         var openonload = _PlayerData.Get('openonload') || {};
@@ -438,7 +441,9 @@ var cesMain = (function() {
                                     _Emulator.WriteSaveData(selectedSaveTimeStamp, function(stateToLoad) { //if save not set, bails on null
 
                                         //begin game, callback is function which handles expections for any emulator error
-                                        _Emulator.BeginGame(OnEmulatorException);
+                                        _Emulator.BeginGame(function(e) {
+                                            _PubSub.Publish('error', 'There was error with the emulator:', e);
+                                        });
 
                                         //before going any further, we can correctly assume that once the config
                                         //is written, the file system is ready for us to read from it
@@ -546,13 +551,14 @@ var cesMain = (function() {
         });
     };
 
-    var OnEmulatorException = function(e) {
+    var ShowErrorDialog = function(message, e) {
 
         CleanUpEmulator(function() {
 
             _preventLoadingGame = false; //in case it failed during start
+            _RecentlyPlayed.RemoveCurrentGameLoading();
 
-            $('#emulatorexceptiondetails').text(e);
+            $('#emulatorexceptiondetails').text(message + '\r\n' + e);
             console.error(e);
 
             _Dialogs.ShowDialog('emulatorexception');
