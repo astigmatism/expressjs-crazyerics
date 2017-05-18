@@ -595,6 +595,20 @@ p {
 	bottom: 100px;
 }
 
+#loadingprogressbarwrapper {
+	position: absolute;
+	bottom: 200px;
+	left: 50%;
+	margin: 0;
+	text-align: center;
+	display: inline-block;
+}
+
+#loadingprogressbar {
+  	width: 400px;
+  	height: 8px;
+}
+
 /* emulator exception dialog */
 
 #emulatorexception p {
