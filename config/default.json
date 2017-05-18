@@ -118,7 +118,7 @@
 			"shortname": "Super Nintendo",
 			"live": true,
 			"boxcdnversion": "2.0.3",
-			"romcdnversion": "2.1.1",
+			"romcdnversion": "2.1.2",
 			"collection": "GoodSNES 3.23",
 			"emuextention": "2017-03-27",
 			"emuscript": "snes9x2010_libretro.js",

@@ -399,7 +399,7 @@ var cesMain = (function() {
                         var gameDetails = _Compression.Out.json(compressedGameDetails);
                         var saves = gameDetails.saves;
                         var files = gameDetails.files;
-                        var info = gameDetails.info;
+                        var info = JSON.parse(gameDetails.info);
                         var filesize = gameDetails.size;
 
                         //begin loading all content. I know it seems like some of these (game, emulator, etc) could load while the user
