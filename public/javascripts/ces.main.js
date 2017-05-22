@@ -15,6 +15,7 @@ var cesMain = (function() {
         'Take a screenshot with the T key. Missed that moment? Rewind with R and capture again!',
         'Screenshots are deleted when you leave or refresh the page. Download your favorites to keep them'
     ];
+    var _bar = null;
     var _tipsCycleRate = 3000;
     var _preventLoadingGame = false;
     var _preventGamePause = false; //condition for blur event of emulator, sometimes we don't want it to pause when we're giving it back focus
@@ -34,6 +35,7 @@ var cesMain = (function() {
     var _RecentlyPlayed = null;
     var _Suggestions = null;
     var _SaveSelection = null;
+    var _ProgressBar = null;
 
     // public members
     
@@ -57,6 +59,8 @@ var cesMain = (function() {
             'saveloading': $('#saveloading'),
             'emulatorcleanup': $('#emulatorcleanup')
         });
+
+        _ProgressBar = new cesProgressBar(loadingprogressbar);
 
         //unpack client data
         var clientdata = _Compression.Out.json(c20); //this name is only used for obfiscation
@@ -183,36 +187,6 @@ var cesMain = (function() {
              */
             onSelect: function(e, term, item) {
                 PlayGame(item.data('system'), item.data('title'), item.data('file'));
-            }
-        });
-
-        //progress bar
-        var bar = new ProgressBar.Line(loadingprogressbar, {
-            strokeWidth: 4,
-            easing: 'easeInOut',
-            duration: 1400,
-            color: '#FFEA82',
-            trailColor: '#eee',
-            trailWidth: 1,
-            svgStyle: {width: '100%', height: '100%'},
-            text: {
-                style: {
-                // Text color.
-                // Default: same as stroke color (options.color)
-                color: '#999',
-                position: 'absolute',
-                right: '0',
-                top: '30px',
-                padding: 0,
-                margin: 0,
-                transform: null
-                },
-                autoStyleContainer: false
-            },
-            from: {color: '#FFEA82'},
-            to: {color: '#ED6A5A'},
-            step: (state, bar) => {
-                bar.setText(Math.round(bar.value() * 100) + ' %');
             }
         });
 
@@ -412,6 +386,7 @@ var cesMain = (function() {
                 _preventLoadingGame = true; //lock loading after shader select
                 var gameLoadingStart = Date.now();
 
+                _ProgressBar.Reset(); //before loading dialog, reset progress bar from previous
 
                 //game load dialog show
                 ShowGameLoading(system, title, box, function(tipInterval) {
@@ -429,13 +404,20 @@ var cesMain = (function() {
                         var gameDetails = _Compression.Out.json(compressedGameDetails);
                         var saves = gameDetails.saves;
                         var files = gameDetails.files;
-                        var info = JSON.parse(gameDetails.info);
+                        var info = {};
+                        try {
+                            info = JSON.parse(gameDetails.info);
+                        } catch (e) {
+                            //meh
+                        }
                         var filesize = gameDetails.size;
+
+                        _ProgressBar.Animate(0.5);
 
                         //begin loading all content. I know it seems like some of these (game, emulator, etc) could load while the user
                         //is viewing the shader select, but I found that when treated as background tasks, it interfere with the performance
                         //of the shader selection ui. I think its best to wait until the loading animation is up to perform all of these
-                        _Emulator.Load(_Emulator.createModule(), filesize, shaderselection.shader, emulatorLoadComplete);
+                        _Emulator.Load(_Emulator.createModule(), _ProgressBar, filesize, shaderselection.shader, emulatorLoadComplete);
 
                         //when all deffered calls are ready
                         $.when(emulatorLoadComplete).done(function(emulatorLoaded) {
@@ -467,6 +449,8 @@ var cesMain = (function() {
                                 //lets ensure a minimum time has passed (see private vars)
                                 setTimeout(function() {
 
+                                    _ProgressBar.Animate(1); //finish progress bar
+
                                     // load state? bails if not set
                                     _Emulator.WriteSaveData(selectedSaveTimeStamp, function(stateToLoad) { //if save not set, bails on null
 
@@ -482,8 +466,6 @@ var cesMain = (function() {
                                             //load state? bails if null.. if valid, will show a new save loading dialog
                                             //and will load state. callback occurs after state has loaded
                                             LoadEmulatorState(system, stateToLoad, function() {
-
-                                                return;
 
                                                 //close all dialogs (save loading or game loading), game begins!
                                                 _Dialogs.CloseDialog(false, function() {

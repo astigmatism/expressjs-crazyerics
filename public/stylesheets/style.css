@@ -582,7 +582,7 @@ p {
 
 #gameloadingname {
 	position: absolute;
-	bottom: 100px;
+	bottom: 20px;
 	text-align: center;
 	width: 100%;
 }
@@ -592,7 +592,7 @@ p {
 	text-align: center;
 	width: 100%;
 	position: absolute;
-	bottom: 100px;
+	bottom: 20px;
 }
 
 #loadingprogressbarwrapper {
@@ -605,8 +605,12 @@ p {
 }
 
 #loadingprogressbar {
-  	width: 400px;
-  	height: 8px;
+
+	position: absolute;
+	bottom: 130px;
+	left: 326px;
+	width: 150px;
+  	height: 10px;
 }
 
 /* emulator exception dialog */

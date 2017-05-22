@@ -76,7 +76,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
      * @param {string} shader   a shader selection or pre-defined
      * @param {Object} deffered when complete
      */
-    this.Load = function(module, filesize, shader, deffered) {
+    this.Load = function(module, _ProgressBar, filesize, shader, deffered) {
 
         var emulatorLoadComplete = $.Deferred();
         var supportLoadComplete = $.Deferred();
@@ -85,9 +85,10 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
 
         _isLoading = true;
 
+        //of all these tasks, because they are concurrant, the progress bar will only follow the game loading progress
         LoadEmulatorScript(_system, module, emulatorLoadComplete);
         LoadSupportFiles(_system, supportLoadComplete);
-        LoadGame(filesize, gameLoadComplete);
+        LoadGame(_ProgressBar, filesize, gameLoadComplete);
         LoadShader(shader, shaderLoadComplete);
 
         $.when(emulatorLoadComplete, supportLoadComplete, gameLoadComplete, shaderLoadComplete).done(function(emulator, support, game, shader) {
@@ -488,7 +489,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
      * @param  {Object} deffered
      * @return {undef}
      */
-    var LoadGame = function(filesize, deffered) {
+    var LoadGame = function(_ProgressBar, filesize, deffered) {
         
         var filename = _Compression.Zip.string(_title + _file);
         var location = _config.rompath + '/' + _system + '/' + _config.systemdetails[_system].romcdnversion + '/';
@@ -509,16 +510,24 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
                 xhr.upload.addEventListener('progress', function(event) {
                     if (event.loaded) {
                         var percentComplete = event.loaded / filesize;
-                        //Do something with upload progress here
-                        console.log('downloading: ' + percentComplete);
+                        console.log(percentComplete);
+                        //force the progress to never reach 1 (so i can do this later)
+                        if (percentComplete > 0.98) {
+                            percentComplete = 0.98;
+                        }
+                        _ProgressBar.Animate(percentComplete);
                     }
                 }, false);
 
                 xhr.addEventListener('progress', function(event) {
                     if (event.loaded) {
                         var percentComplete = event.loaded / filesize;
-                        //Do something with upload progress here
-                        console.log('downloading: ' + percentComplete);
+                        console.log(percentComplete);
+                        //force the progress to never reach 1 (so i can do this later)
+                        if (percentComplete > 0.98) {
+                            percentComplete = 0.98;
+                        }
+                        _ProgressBar.Animate(percentComplete);
                     }
                 }, false);
 
