@@ -181,7 +181,7 @@ UtilitiesService.onApplicationStart = function(callback) {
 
         FileService.wholescaleSetCache({
             'suggestions.all': suggestionsall,
-            '/data/all.json': search
+            '/data/all_master': search
         }, 0, function(err) {
             if (err) {
                 return callback(err);

@@ -36,6 +36,7 @@ var cesMain = (function() {
     var _Suggestions = null;
     var _SaveSelection = null;
     var _ProgressBar = null;
+    var _Notifications = null;
 
     // public members
     
@@ -61,6 +62,8 @@ var cesMain = (function() {
         });
 
         _ProgressBar = new cesProgressBar(loadingprogressbar);
+
+        _Notifications = new cesNotifications($('#notificationwrapper'));
 
         //unpack client data
         var clientdata = _Compression.Out.json(c20); //this name is only used for obfiscation
@@ -258,6 +261,11 @@ var cesMain = (function() {
         //pubsub for any error
         _PubSub.Subscribe('error', self, function(message, error) {
             ShowErrorDialog(message, error);
+        });
+
+        //pubsub for notifications
+        _PubSub.Subscribe('notification', self, function(message, hold) {
+            _Notifications.Show(message, hold);
         });
 
         //incoming params to open game now?
