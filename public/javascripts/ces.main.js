@@ -264,9 +264,15 @@ var cesMain = (function() {
         });
 
         //pubsub for notifications
-        _PubSub.Subscribe('notification', self, function(message, hold) {
-            _Notifications.Show(message, hold);
+        _PubSub.Subscribe('notification', self, function(message, priority, hold) {
+            _Notifications.Enqueue(message, priority, hold);
         });
+
+        _PubSub.Subscribe('notificationClose', self, function() {
+            _Notifications.Hide();
+        });
+
+
 
         //incoming params to open game now?
         var openonload = _PlayerData.Get('openonload') || {};
@@ -340,6 +346,9 @@ var cesMain = (function() {
 
                 //close any sliders
                 _Sliders.Closeall();
+
+                //close any notifications
+                _Notifications.Reset();
 
                 //create new canvas (canvas must exist before call to get emulator (expects to find it right away))
                 $('#emulatorcanvas').append('<canvas tabindex="0" id="emulator" oncontextmenu="event.preventDefault()"></canvas>');

@@ -325,7 +325,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
         _creatingNewSave = true;
 
         //show the notification
-        _PubSub.Publish('notification', ['Saving...', true]);
+        _PubSub.Publish('notification', ['Saving...', 3, true]);
 
         //before state save, perform a screen capture
         var removeScreenshotSubscription = _PubSub.SubscribeOnce('screenshotWritten', self, function(filename, contents, screenDataUnzipped, system, title) {
@@ -344,6 +344,9 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
 
                         _PubSub.Publish('saveready', [saveType, screenDataUnzipped, stateDataUnzipped]);
                     }
+
+                    //close the "saving" notification
+                    _PubSub.Publish('notificationClose');
 
                     _creatingNewSave = false;
 
