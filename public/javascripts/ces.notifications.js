@@ -11,6 +11,7 @@ var cesNotifications = (function($wrapper) {
     var _isShowing = false;
     var _transitionDuration = 500; //a magic number, check with css transition
     var _notificationQueue = [];
+    var _currentlyShowing = null;
     
     var _notification = (function(message, priority, hold) {
 
@@ -28,22 +29,34 @@ var cesNotifications = (function($wrapper) {
         //create notification
         var note = new _notification(message, priority, hold);
 
-        //check if something is showing
+        _notificationQueue.push(note);
 
-        //if priority higher, show now
-
-        //if priority lower, keep in queue until current is complete
+        //TODO: decide how to handle priority (if needed)
+        //insert into queue
 
         //if nothing showing, show now
-        this.Show(note);
+        this.ShowNext();
 
     };
 
-    this.Show = function(note) {
+    this.ShowNext = function() {
         
-        _isShowing = true;
-        $message.text(note.message);
-        $wrapper.removeClass('closed');
+        if (_notificationQueue.length > 0)
+        {
+            _isShowing = true;
+            _currentlyShowing = _notificationQueue.shift();
+
+            //update dom
+            $message.text(_currentlyShowing.message);
+            $wrapper.removeClass('closed');
+
+            //auto hide if not hold
+            if (!_currentlyShowing.hold) {
+                setTimeout(function() {
+                    self.Hide();
+                }, _autoHideTime);
+            }
+        }
     };
 
     this.Hide = function() {
@@ -54,6 +67,8 @@ var cesNotifications = (function($wrapper) {
         setTimeout(function() {
 
             _isShowing = false;
+
+            self.ShowNext(); //move to next in queue
 
         }, _transitionDuration);
     };
@@ -66,5 +81,4 @@ var cesNotifications = (function($wrapper) {
     };
 
     return this;
-
 });
