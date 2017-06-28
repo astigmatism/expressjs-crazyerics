@@ -63,7 +63,7 @@ var cesMain = (function() {
 
         _ProgressBar = new cesProgressBar(loadingprogressbar);
 
-        _Notifications = new cesNotifications($('#notificationwrapper'));
+        _Notifications = new cesNotifications(_config, _Compression, $('#notificationwrapper'));
 
         //unpack client data
         var clientdata = _Compression.Out.json(c20); //this name is only used for obfiscation
@@ -271,8 +271,6 @@ var cesMain = (function() {
         _PubSub.Subscribe('notificationClose', self, function() {
             _Notifications.Hide();
         });
-
-
 
         //incoming params to open game now?
         var openonload = _PlayerData.Get('openonload') || {};

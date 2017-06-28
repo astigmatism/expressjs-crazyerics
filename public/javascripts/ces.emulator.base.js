@@ -132,10 +132,17 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
         if (_Module && !_isPaused) {
             self.GiveEmulatorControlOfInput(false);
             
-            //when game is paused, file saving will trigger as complete although it might only be partial,
-            //remove the subs to fix this issue
-            _PubSub.Unsubscribe('screenshotWritten');
-            _PubSub.Unsubscribe('stateWritten');
+            //when game is paused during file save, file saving will trigger as complete although it might only be partial
+            //these subs are subscribe once, so lets remove them
+            if (_creatingNewSave) {
+                _PubSub.Unsubscribe('screenshotWritten');
+                _PubSub.Unsubscribe('stateWritten');
+                
+                //notification of save failure
+                _PubSub.Publish('notification', ['Save Cancelled By Pause', 1, false, false]);
+
+                _creatingNewSave = false;
+            }
 
             _Module.pauseMainLoop();
             _isPaused = true;

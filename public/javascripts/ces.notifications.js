@@ -2,41 +2,64 @@
  * Object which wraps common functions related to player preferences, data that comes form the server initially but can be changed
  * @type {Object}
  */
-var cesNotifications = (function($wrapper) {
+var cesNotifications = (function(_config, _Compression, $wrapper) {
 
     //private members
     var self = this;
-    var _minimumTimeToShow = 1500; //in ms
     var $message = $wrapper.find('p');
+    var $icon = $wrapper.find('div.spinner');
     var _isShowing = false;
     var _transitionDuration = 500; //a magic number, check with css transition
     var _notificationQueue = [];
-    var _currentlyShowing = null;
-    var _currentShowingTimer = null;
+    var _minimumTimeToShow = 1500; //in ms
+    var _minimumTimeTimeout = null; //holds a setTimeout
+    var _currentlyShowing = null; //holds a note instance
+    var _currentShowingTimeStamp = null; //holds a date instance of when note began showing
     
-    var _notification = (function(message, priority, hold) {
+    /*
+    Priority:
+    1 - immediately drop all queued notifications and show
+    2 - move to front of queue, allowing current to finish first
+    3 - normal prior
+    */
+
+    var _notification = (function(message, priority, hold, icon) {
 
         this.message = message || ''; //the message to show
-        this.priority = priority || 5; //1-5. 1 being most important
+        this.priority = priority || 3; //1-3. 1 being most important
         this.hold = hold || false; //true holds message until clear is published
+        this.icon = icon || true; //to show spinner or not, default yes
     });
 
     //public members
 
     //public methods
     
-    this.Enqueue = function(message, priority, hold) {
+    this.Enqueue = function(message, priority, hold, icon) {
 
         //create notification
-        var note = new _notification(message, priority, hold);
+        var note = new _notification(message, priority, hold, icon);
 
-        _notificationQueue.push(note);
-
-        //TODO: decide how to handle priority (if needed)
-        //insert into queue
+        switch (priority)
+        {
+            case 3:
+                _notificationQueue.push(note);
+                break;
+            case 2:
+                _notificationQueue.unshift(note); //insert at front
+                break;
+            case 1:
+                //stop everything!
+                self.Reset();
+                _notificationQueue.push(note);
+                break;
+        }
 
         //if nothing showing, show now
-        this.ShowNext();
+        if (!_currentlyShowing)
+        {
+            this.ShowNext();
+        }
 
     };
 
@@ -50,6 +73,7 @@ var cesNotifications = (function($wrapper) {
             //update dom
             $message.text(_currentlyShowing.message);
             $wrapper.removeClass('closed');
+            $icon.css('display', _currentlyShowing.icon ? 'block' : 'none');
 
             //auto hide if not hold
             if (!_currentlyShowing.hold) {
@@ -58,16 +82,17 @@ var cesNotifications = (function($wrapper) {
                 }, _autoHideTime);
             }
 
-            _currentShowingTimer = Date.now();
+            _currentShowingTimeStamp = Date.now();
         }
     };
 
     this.Hide = function() {
         
         //sanity check
-        if (_currentShowingTimer && _currentlyShowing)
+        if (_currentShowingTimeStamp && _currentlyShowing)
         {
-            var timeShown = Date.now() - _currentShowingTimer;
+            var timeShown = Date.now() - _currentShowingTimeStamp;
+            _currentShowingTimeStamp = null;
 
             var onMinimumTimeShown = function() {
 
@@ -84,7 +109,7 @@ var cesNotifications = (function($wrapper) {
             }
 
             if (timeShown < _minimumTimeToShow) {
-                setTimeout(function() {
+                _minimumTimeTimeout = setTimeout(function() {
                     onMinimumTimeShown();
                 }, _minimumTimeToShow - timeShown);
             }
@@ -99,6 +124,13 @@ var cesNotifications = (function($wrapper) {
         _notificationQueue = [];
         $wrapper.addClass('closed');
         _isShowing = false;
+        _currentShowingTimeStamp = null;
+        _currentlyShowing = null;
+        
+        if (_minimumTimeTimeout) {
+            clearTimeout(_minimumTimeTimeout);
+        }
+        _minimumTimeTimeout = null;
     };
 
     return this;
