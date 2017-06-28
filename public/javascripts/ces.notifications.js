@@ -6,12 +6,13 @@ var cesNotifications = (function($wrapper) {
 
     //private members
     var self = this;
-    var _autoHideTime = 2000; //in ms
+    var _minimumTimeToShow = 1500; //in ms
     var $message = $wrapper.find('p');
     var _isShowing = false;
     var _transitionDuration = 500; //a magic number, check with css transition
     var _notificationQueue = [];
     var _currentlyShowing = null;
+    var _currentShowingTimer = null;
     
     var _notification = (function(message, priority, hold) {
 
@@ -56,21 +57,41 @@ var cesNotifications = (function($wrapper) {
                     self.Hide();
                 }, _autoHideTime);
             }
+
+            _currentShowingTimer = Date.now();
         }
     };
 
     this.Hide = function() {
         
-        $wrapper.addClass('closed');
-        
-        //when css animation is complete
-        setTimeout(function() {
+        //sanity check
+        if (_currentShowingTimer && _currentlyShowing)
+        {
+            var timeShown = Date.now() - _currentShowingTimer;
 
-            _isShowing = false;
+            var onMinimumTimeShown = function() {
 
-            self.ShowNext(); //move to next in queue
+                $wrapper.addClass('closed');
+                
+                //when css animation is complete
+                setTimeout(function() {
 
-        }, _transitionDuration);
+                    _isShowing = false;
+
+                    self.ShowNext(); //move to next in queue
+
+                }, _transitionDuration);
+            }
+
+            if (timeShown < _minimumTimeToShow) {
+                setTimeout(function() {
+                    onMinimumTimeShown();
+                }, _minimumTimeToShow - timeShown);
+            }
+            else {
+                onMinimumTimeShown();
+            }
+        }
     };
 
     this.Reset = function() {

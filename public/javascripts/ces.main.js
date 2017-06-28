@@ -576,6 +576,7 @@ var cesMain = (function() {
             });
         }, true); //sub once exclusive flag
 
+        //start here
         _Emulator._InputHelper.Keypress('mute', function() {
 
             _Emulator._InputHelper.Keypress('loadstate');
