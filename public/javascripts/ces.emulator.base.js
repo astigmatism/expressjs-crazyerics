@@ -350,7 +350,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
             }
 
             _isLoadingState = true;
-            _PubSub.Publish('notification', ['Loading Last Save...', 3, true, true]);
+            _PubSub.Publish('notification', ['Loading Last Save...', 3, true, true, 'stateRead']);
             proceed(true);
         });
 
@@ -365,9 +365,6 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
 
         //sanity check
         if (_isLoadingState) {
-            
-            //close loading note
-            _PubSub.Publish('notificationClose');
             _isLoadingState = false;
         }
     };
@@ -391,10 +388,10 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
 
         //show the notification
         if (saveType === 'user') {
-            _PubSub.Publish('notification', ['Saving Progress...', 3, true, true]);
+            _PubSub.Publish('notification', ['Saving Progress...', 3, true, true, 'saveready']);
         }
         else if (saveType === 'auto') {
-            _PubSub.Publish('notification', ['Auto Saving Progress...', 3, true, true]);
+            _PubSub.Publish('notification', ['Auto Saving Progress...', 3, true, true, 'saveready']);
         }
 
         //before state save, perform a screen capture
@@ -412,11 +409,9 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
                     //ok, to publish a new save is ready, we require screen and state data
                     if (stateDataUnzipped && screenDataUnzipped) {
 
+                        //will also close the notification
                         _PubSub.Publish('saveready', [saveType, screenDataUnzipped, stateDataUnzipped]);
                     }
-
-                    //close the "saving" notification
-                    _PubSub.Publish('notificationClose');
 
                     _isSavingState = false;
 

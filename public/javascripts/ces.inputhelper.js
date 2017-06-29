@@ -25,7 +25,8 @@ var cesInputHelper = (function(_Emulator, _ui) {
         'loadstate': 52,        //4
         'mute': 77,             //m
         'screenshot': 84,       //t
-        'pause': 80             //p
+        'pause': 80,            //p
+        'reverse': 82           //r
     };
 
     var _keysWhichHaveFunctionalityInTheBrowserWeWantToPrevent = {

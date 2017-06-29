@@ -63,7 +63,7 @@ var cesMain = (function() {
 
         _ProgressBar = new cesProgressBar(loadingprogressbar);
 
-        _Notifications = new cesNotifications(_config, _Compression, $('#notificationwrapper'));
+        _Notifications = new cesNotifications(_config, _Compression, _PubSub, $('#notificationwrapper'));
 
         //unpack client data
         var clientdata = _Compression.Out.json(c20); //this name is only used for obfiscation
@@ -264,12 +264,8 @@ var cesMain = (function() {
         });
 
         //pubsub for notifications
-        _PubSub.Subscribe('notification', self, function(message, priority, hold, icon) {
-            _Notifications.Enqueue(message, priority, hold, icon);
-        });
-
-        _PubSub.Subscribe('notificationClose', self, function() {
-            _Notifications.Hide();
+        _PubSub.Subscribe('notification', self, function(message, priority, hold, icon, topic) {
+            _Notifications.Enqueue(message, priority, hold, icon, topic);
         });
 
         //incoming params to open game now?
