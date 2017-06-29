@@ -124,6 +124,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
 
     this.PauseGame = function() {
         if (_Module && !_isPaused) {
+            
             self.GiveEmulatorControlOfInput(false);
             
             //if making a save during pause
@@ -147,6 +148,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
 
     this.ResumeGame = function() {
         if (_Module && _isPaused) {
+
             self.GiveEmulatorControlOfInput(true);
             _Module.resumeMainLoop();
             _isPaused = false;
@@ -357,6 +359,17 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
         self._InputHelper.RegisterOperationHandler('mute', function(event, proceed, args) {
             _isMuted = !_isMuted;
             _PubSub.Publish('notification', [(_isMuted ? 'Audio Muted' : 'Audio Unmuted')]);
+            proceed(true);
+        });
+
+        self._InputHelper.RegisterOperationHandler('pause', function(event, proceed, args) {
+            _isPaused = !_isPaused;
+            if (_isPaused) {
+                _PubSub.Publish('notification', ['Game Paused', 3, true, false, 'emulatorunpause']);
+            }
+            else {
+                _PubSub.Publish('emulatorunpause');
+            }
             proceed(true);
         });
     };
