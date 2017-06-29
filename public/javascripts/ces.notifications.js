@@ -8,7 +8,6 @@ var cesNotifications = (function(_config, _Compression, $wrapper) {
     var self = this;
     var $message = $wrapper.find('p');
     var $icon = $wrapper.find('div.spinner');
-    var _isShowing = false;
     var _transitionDuration = 500; //a magic number, check with css transition
     var _notificationQueue = [];
     var _minimumTimeToShow = 1500; //in ms
@@ -28,7 +27,7 @@ var cesNotifications = (function(_config, _Compression, $wrapper) {
         this.message = message || ''; //the message to show
         this.priority = priority || 3; //1-3. 1 being most important
         this.hold = hold || false; //true holds message until clear is published
-        this.icon = icon || true; //to show spinner or not, default yes
+        this.icon = icon || false; //to show spinner or not, default yes
     });
 
     //public members
@@ -40,7 +39,7 @@ var cesNotifications = (function(_config, _Compression, $wrapper) {
         //create notification
         var note = new _notification(message, priority, hold, icon);
 
-        switch (priority)
+        switch (note.priority)
         {
             case 3:
                 _notificationQueue.push(note);
@@ -67,19 +66,23 @@ var cesNotifications = (function(_config, _Compression, $wrapper) {
         
         if (_notificationQueue.length > 0)
         {
-            _isShowing = true;
             _currentlyShowing = _notificationQueue.shift();
 
             //update dom
             $message.text(_currentlyShowing.message);
             $wrapper.removeClass('closed');
-            $icon.css('display', _currentlyShowing.icon ? 'block' : 'none');
+            
+            if (_currentlyShowing.icon) {
+                $icon.show();
+            } else {
+                $icon.hide();
+            }
 
             //auto hide if not hold
             if (!_currentlyShowing.hold) {
-                setTimeout(function() {
+                _minimumTimeTimeout = setTimeout(function() {
                     self.Hide();
-                }, _autoHideTime);
+                }, _minimumTimeToShow);
             }
 
             _currentShowingTimeStamp = Date.now();
@@ -101,8 +104,7 @@ var cesNotifications = (function(_config, _Compression, $wrapper) {
                 //when css animation is complete
                 setTimeout(function() {
 
-                    _isShowing = false;
-
+                    _currentlyShowing = false;
                     self.ShowNext(); //move to next in queue
 
                 }, _transitionDuration);
@@ -123,7 +125,6 @@ var cesNotifications = (function(_config, _Compression, $wrapper) {
 
         _notificationQueue = [];
         $wrapper.addClass('closed');
-        _isShowing = false;
         _currentShowingTimeStamp = null;
         _currentlyShowing = null;
         

@@ -13,9 +13,12 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
     var self = this;
     var _isLoading = false;
     var _isPaused = false;
+    var _isMuted = false;
+    var _isSavingState = false;
+    var _isLoadingState = false;
+
     var _displayDurationShow = 1000;
     var _displayDurationHide = 500;
-    var _creatingNewSave = false;
     var _timeToWaitForScreenshot = 2000; //hopefully never take more than 2 sec
     var _timeToWaitForSaveState = 30000; //hopefully never more than 30 sec
 
@@ -34,6 +37,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
     $(document).ready(function() {
 
         self._InputHelper = new cesInputHelper(self, _ui);
+
     });
 
     // public methods
@@ -54,17 +58,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
         }
 
         //attach operation handlers
-        this._InputHelper.RegisterOperationHandler('statesave', function(event, proceed, args) {
-
-            saveType = 'user';
-
-            //the savetype can come in on args (auto)
-            if (args && args.length && args[0]) {
-                saveType = args[0];
-            }
-
-            CreateNewSave(saveType, proceed);
-        });
+        AttachOperationHandlers();
 
         //pub subs
         _PubSub.Subscribe('saveready', self, OnNewSaveSubscription);
@@ -132,17 +126,19 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
         if (_Module && !_isPaused) {
             self.GiveEmulatorControlOfInput(false);
             
-            //when game is paused during file save, file saving will trigger as complete although it might only be partial
-            //these subs are subscribe once, so lets remove them
-            if (_creatingNewSave) {
-                _PubSub.Unsubscribe('screenshotWritten');
-                _PubSub.Unsubscribe('stateWritten');
+            //if making a save during pause
+            if (_isSavingState) {
                 
-                //notification of save failure
-                _PubSub.Publish('notification', ['Save Cancelled By Pause', 1, false, false]);
-
-                _creatingNewSave = false;
+                //mute these subscriptions
+                _PubSub.Mute('screenshotWritten');
+                _PubSub.Mute('stateWritten');
+                
+                //notification of save pause
+                _PubSub.Publish('notification', ['Saving Paused', 1, true, false]);
             }
+
+            //finally mute any notes
+             _PubSub.Mute('notification');
 
             _Module.pauseMainLoop();
             _isPaused = true;
@@ -154,6 +150,18 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
             self.GiveEmulatorControlOfInput(true);
             _Module.resumeMainLoop();
             _isPaused = false;
+
+            _PubSub.Unmute('notification');
+
+            //if saving was in progress, unmute
+            if (_isSavingState) {
+                
+                _PubSub.Unmute('screenshotWritten');
+                _PubSub.Unmute('stateWritten');
+
+                //again show saving note, 1 priority replaces "paused" doesnt matter if auto or not really
+                _PubSub.Publish('notification', ['Saving Progress...', 1, true, true]); //1 priority intentional
+            }
         }
     };
 
@@ -284,6 +292,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
         if (statematch) {
 
             _PubSub.Publish('stateRead', [filename, contents]);
+            OnStateLoaded();
             return;
         }
     };
@@ -314,6 +323,55 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
 
     //private methods
 
+    var AttachOperationHandlers = function() {
+
+        self._InputHelper.RegisterOperationHandler('statesave', function(event, proceed, args) {
+
+            if (_isSavingState || _isLoadingState) {
+                proceed(false);
+                return;
+            }
+
+            saveType = 'user';
+
+            //the savetype can come in on args (auto)
+            if (args && args.length && args[0]) {
+                saveType = args[0];
+            }
+
+            CreateNewSave(saveType, proceed);
+        });
+
+        self._InputHelper.RegisterOperationHandler('loadstate', function(event, proceed, args) {
+            
+            if (_isLoadingState || _isSavingState) {
+                proceed(false);
+                return;
+            }
+
+            _isLoadingState = true;
+            _PubSub.Publish('notification', ['Loading Last Save...', 3, true, true]);
+            proceed(true);
+        });
+
+        self._InputHelper.RegisterOperationHandler('mute', function(event, proceed, args) {
+            _isMuted = !_isMuted;
+            _PubSub.Publish('notification', [(_isMuted ? 'Audio Muted' : 'Audio Unmuted')]);
+            proceed(true);
+        });
+    };
+
+    var OnStateLoaded = function() {
+
+        //sanity check
+        if (_isLoadingState) {
+            
+            //close loading note
+            _PubSub.Publish('notificationClose');
+            _isLoadingState = false;
+        }
+    };
+
     var MakeAutoSave = function() {
 
         if (self._InputHelper) {
@@ -324,19 +382,19 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
     var CreateNewSave = function(saveType, proceedCallback) {
 
         //bail if already working
-        if (_creatingNewSave) {
+        if (_isSavingState) {
             proceedCallback(false);
             return;
         }
 
-        _creatingNewSave = true;
+        _isSavingState = true;
 
         //show the notification
         if (saveType === 'user') {
-            _PubSub.Publish('notification', ['Saving...', 3, true]);
+            _PubSub.Publish('notification', ['Saving Progress...', 3, true, true]);
         }
         else if (saveType === 'auto') {
-            _PubSub.Publish('notification', ['Auto Saving...', 3, true]);
+            _PubSub.Publish('notification', ['Auto Saving Progress...', 3, true, true]);
         }
 
         //before state save, perform a screen capture
@@ -360,7 +418,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
                     //close the "saving" notification
                     _PubSub.Publish('notificationClose');
 
-                    _creatingNewSave = false;
+                    _isSavingState = false;
 
                 }, true); //SubscribeOnce exclusive flag
 
@@ -368,7 +426,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
                 var saveStateTimeout = setTimeout(function() {
 
                     removeStateSubscription();
-                    _creatingNewSave = false;
+                    _isSavingState = false;
 
                 }, _timeToWaitForSaveState);
 
@@ -385,7 +443,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
         var screenshotTimeout = setTimeout(function() {
             
             removeScreenshotSubscription();
-            _creatingNewSave = false;
+            _isSavingState = false;
 
         }, _timeToWaitForScreenshot);
 

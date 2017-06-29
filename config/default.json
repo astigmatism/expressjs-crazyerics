@@ -393,7 +393,7 @@
 		"system_directory": "/system",
 		"input_menu_toggle":  "f1",
 		"savestate_directory": "/states",
-		"video_message_pos_y": -100,
+		"video_message_pos_y": 0,
 		"video_shader_enable": true,
 		"input_shader_next": "rightbracket",
 		"input_shader_prev": "leftbracket",

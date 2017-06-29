@@ -32,7 +32,7 @@ var cesProgressBar = (function(_wrapper) {
             strokeWidth: 4,
             easing: 'easeInOut',
             duration: 1400,
-            color: '#33ba2e',
+            color: '#00B7FF',
             trailColor: '#eee',
             trailWidth: 1,
             svgStyle: {width: '100%', height: '100%'}

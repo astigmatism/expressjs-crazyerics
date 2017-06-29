@@ -264,8 +264,8 @@ var cesMain = (function() {
         });
 
         //pubsub for notifications
-        _PubSub.Subscribe('notification', self, function(message, priority, hold) {
-            _Notifications.Enqueue(message, priority, hold);
+        _PubSub.Subscribe('notification', self, function(message, priority, hold, icon) {
+            _Notifications.Enqueue(message, priority, hold, icon);
         });
 
         _PubSub.Subscribe('notificationClose', self, function() {
@@ -566,8 +566,10 @@ var cesMain = (function() {
                     callback();
 
                     //unpause and unmute
-                    _Emulator._InputHelper.Keypress('pause', function() {
-                        _Emulator._InputHelper.Keypress('mute');
+                    _Emulator._InputHelper.Keypress('mute', function() {
+                        _Emulator._InputHelper.Keypress('pause', function() {
+                            _PubSub.Unmute('notification');
+                        });
                     });
 
                 }, _minimumSaveLoadingTime);
@@ -575,6 +577,7 @@ var cesMain = (function() {
         }, true); //sub once exclusive flag
 
         //start here
+        _PubSub.Mute('notification'); //mute notifications during load
         _Emulator._InputHelper.Keypress('mute', function() {
 
             _Emulator._InputHelper.Keypress('loadstate');

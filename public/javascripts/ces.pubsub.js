@@ -8,6 +8,7 @@ var cesPubSub = (function() {
     var self = this;
     var _topics = {};
     var _muted = {};
+    var _debug = true; //when true, console logging
     
     //public members
 
@@ -15,6 +16,10 @@ var cesPubSub = (function() {
 
         if (!_topics.hasOwnProperty(topic)) {
             return;
+        }
+
+        if (_debug) {
+            console.log('PUBLISH: ' + topic, args);
         }
 
         var itemsToDelete = [];
