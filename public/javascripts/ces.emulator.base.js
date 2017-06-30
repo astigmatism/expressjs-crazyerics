@@ -12,7 +12,8 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
     // private members
     var self = this;
     var _isLoading = false;
-    var _isPaused = false;
+    var _isPaused = false; //flag for the screen overlay pause
+    var _isEmulatorPaused = false; //flag for emulator pause (with user input)
     var _isMuted = false;
     var _isSavingState = false;
     var _isLoadingState = false;
@@ -363,8 +364,8 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
         });
 
         self._InputHelper.RegisterOperationHandler('pause', function(event, proceed, args) {
-            _isPaused = !_isPaused;
-            if (_isPaused) {
+            _isEmulatorPaused = !_isEmulatorPaused;
+            if (_isEmulatorPaused) {
                 _PubSub.Publish('notification', ['Game Paused', 3, true, false, 'emulatorunpause']);
             }
             else {
