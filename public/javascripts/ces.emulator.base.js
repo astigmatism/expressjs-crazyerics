@@ -345,6 +345,11 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
             CreateNewSave(saveType, proceed);
         });
 
+        self._InputHelper.RegisterOperationHandler('screenshot', function(event, proceed, args) {
+            _PubSub.Publish('notification', ['Saving Screenshot...', 3, true, true, 'screenshotWritten']);
+            proceed(true);
+        });
+
         self._InputHelper.RegisterOperationHandler('loadstate', function(event, proceed, args) {
             
             if (_isLoadingState || _isSavingState) {
@@ -366,9 +371,11 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
         self._InputHelper.RegisterOperationHandler('pause', function(event, proceed, args) {
             _isEmulatorPaused = !_isEmulatorPaused;
             if (_isEmulatorPaused) {
+                self._InputHelper.SuspendIdleTimer(true);
                 _PubSub.Publish('notification', ['Game Paused', 3, true, false, 'emulatorunpause']);
             }
             else {
+                self._InputHelper.SuspendIdleTimer(false);
                 _PubSub.Publish('emulatorunpause');
             }
             proceed(true);

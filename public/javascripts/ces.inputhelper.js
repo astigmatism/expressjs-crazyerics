@@ -101,6 +101,15 @@ var cesInputHelper = (function(_Emulator, _ui) {
         return eventHandler;
     };
 
+    this.SuspendIdleTimer = function(suspend) {
+
+        if (suspend) {
+            UpdateIdleKeyInterval(true); //stop interval
+            return;
+        }
+        UpdateIdleKeyInterval(false); //begin interval
+    };
+
     this.OverrideEmulatorKeyupHandler = function(eventHandler) {
 
         if (!eventHandler.hasOwnProperty('target')) {
@@ -173,14 +182,14 @@ var cesInputHelper = (function(_Emulator, _ui) {
 
     var UpdateIdleKeyInterval = function(terminate) {
 
-        if (terminate) {
-            clearInterval(_idleKeyCheckInterval);
-            _idleKeyCheckInterval = null;
-            return;
-        }
-
+        //either terminate or not, clear
         clearInterval(_idleKeyCheckInterval); //just in case, we cant have it running before we start another!
         _idleKeyCheckInterval = null;
+
+        //do no more
+        if (terminate) {
+            return;
+        }
 
         _idleKeyCheckInterval = setInterval(function() {
 
