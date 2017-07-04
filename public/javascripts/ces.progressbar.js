@@ -18,6 +18,15 @@ var cesProgressBar = (function(_wrapper) {
         _currentComplete = percentage;
     };
 
+    this.Set = function(percentage) {
+
+        if (percentage < _currentComplete) {
+            return;
+        }
+        _bar.set(percentage);
+        _currentComplete = percentage;
+    };
+
     this.Reset = function() {
         _bar.set(0);
         _currentComplete = 0;

@@ -346,7 +346,11 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
         });
 
         self._InputHelper.RegisterOperationHandler('screenshot', function(event, proceed, args) {
-            _PubSub.Publish('notification', ['Saving Screenshot...', 3, true, true, 'screenshotWritten']);
+            
+            //dont show the screenshot note when making a save state=
+            if (!_isSavingState) {
+                _PubSub.Publish('notification', ['Saving Screenshot...', 3, true, true, 'screenshotWritten']);
+            }
             proceed(true);
         });
 
@@ -607,7 +611,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
                         if (percentComplete > 0.98) {
                             percentComplete = 0.98;
                         }
-                        _ProgressBar.Animate(percentComplete);
+                        _ProgressBar.Set(percentComplete);
                     }
                 }, false);
 
@@ -619,7 +623,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
                         if (percentComplete > 0.98) {
                             percentComplete = 0.98;
                         }
-                        _ProgressBar.Animate(percentComplete);
+                        _ProgressBar.Set(percentComplete);
                     }
                 }, false);
 

@@ -423,7 +423,7 @@ var cesMain = (function() {
                         }
                         var filesize = gameDetails.size;
 
-                        _ProgressBar.Animate(0.5);
+                        _ProgressBar.Animate(0.01);
 
                         //begin loading all content. I know it seems like some of these (game, emulator, etc) could load while the user
                         //is viewing the shader select, but I found that when treated as background tasks, it interfere with the performance
