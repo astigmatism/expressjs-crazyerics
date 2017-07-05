@@ -86,7 +86,7 @@ var cesInputHelper = (function(_Emulator, _ui) {
                     
         eventHandler.handlerFunc = function(event, args) {
 
-            //sometimes I want to influence behaviors before I begin
+            //sometimes I want to influence behaviors of keystokes before the emulator
             OnBeforeEmulatorKeydown(event, function(proceed) {
 
                 //perform original handler function
@@ -231,15 +231,26 @@ var cesInputHelper = (function(_Emulator, _ui) {
 
         if (keycode in _operationHandlers) {
             _operationHandlers[keycode](event, function(result) {
+                
+                //a true result will allow the input to each the emulator, false stops it here
                 proceedToEmulatorCallback(result);
+
+                //if true, we want to record the input as happened
+                if (result) {
+                    _lastInputTime = new Date();
+                    _lastInputKeyCode = keycode;
+                }
+
             }, args);
-            return;
         }
+        //no operation handlers, normal keypress
+        else {
 
-        proceedToEmulatorCallback(true);
+            proceedToEmulatorCallback(true);
 
-        _lastInputTime = new Date();
-        _lastInputKeyCode = keycode;
+            _lastInputTime = new Date();
+            _lastInputKeyCode = keycode;
+        }
     }
 
     /**

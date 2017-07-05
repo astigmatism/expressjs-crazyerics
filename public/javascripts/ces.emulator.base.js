@@ -384,6 +384,11 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
             }
             proceed(true);
         });
+
+        // self._InputHelper.RegisterOperationHandler('reverse', function(event, proceed, args) {
+        //     _PubSub.Publish('notification', ['Reversing', 3, false, true]);
+        //     proceed(true);
+        // });
     };
 
     var OnStateLoaded = function() {
@@ -611,7 +616,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
                         if (percentComplete > 0.98) {
                             percentComplete = 0.98;
                         }
-                        _ProgressBar.Set(percentComplete);
+                        _ProgressBar.Animate(percentComplete);
                     }
                 }, false);
 
@@ -623,7 +628,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
                         if (percentComplete > 0.98) {
                             percentComplete = 0.98;
                         }
-                        _ProgressBar.Set(percentComplete);
+                        _ProgressBar.Animate(percentComplete);
                     }
                 }, false);
 

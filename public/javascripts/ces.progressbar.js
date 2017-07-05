@@ -14,6 +14,7 @@ var cesProgressBar = (function(_wrapper) {
             return;
         }
 
+        _bar.set(_currentComplete); //a percentage to start from since .Animate cannot keep up sometimes
         _bar.animate(percentage);
         _currentComplete = percentage;
     };
