@@ -17,6 +17,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
     var _isMuted = false;
     var _isSavingState = false;
     var _isLoadingState = false;
+    var _hasStateToLoad = false; //flag for whether it is possible to load state
 
     var _displayDurationShow = 1000;
     var _displayDurationHide = 500;
@@ -113,6 +114,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
 
                 _Module.cesWriteFile('/states', statefilename, stateData, function() {
 
+                    _hasStateToLoad = true;
                     callback(true); //true indicating there is a state to load now
                 });
             });
@@ -328,7 +330,9 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
 
     var AttachOperationHandlers = function() {
 
-        self._InputHelper.RegisterOperationHandler('statesave', function(event, proceed, args) {
+        //save 
+
+        self._InputHelper.RegisterKeydownOperationHandler('statesave', function(event, proceed, args) {
 
             if (_isSavingState || _isLoadingState) {
                 proceed(false);
@@ -345,34 +349,49 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
             CreateNewSave(saveType, proceed);
         });
 
-        self._InputHelper.RegisterOperationHandler('screenshot', function(event, proceed, args) {
+        //screen
+
+        self._InputHelper.RegisterKeydownOperationHandler('screenshot', function(event, proceed, args) {
             
             //dont show the screenshot note when making a save state=
             if (!_isSavingState) {
-                _PubSub.Publish('notification', ['Saving Screenshot...', 3, true, true, 'screenshotWritten']);
+                _PubSub.Publish('notification', ['Saving Screenshot', 3, true, true, 'screenshotWritten']);
             }
             proceed(true);
         });
 
-        self._InputHelper.RegisterOperationHandler('loadstate', function(event, proceed, args) {
+        //load
+
+        self._InputHelper.RegisterKeydownOperationHandler('loadstate', function(event, proceed, args) {
             
             if (_isLoadingState || _isSavingState) {
                 proceed(false);
                 return;
             }
 
-            _isLoadingState = true;
-            _PubSub.Publish('notification', ['Loading Last Save...', 3, true, true, 'stateRead']);
-            proceed(true);
+            //check if we've written a state file to load
+            if (_hasStateToLoad) {
+                _isLoadingState = true;
+                _PubSub.Publish('notification', ['Loading Previous Saved Progress...', 3, true, true, 'stateRead']);
+                proceed(true);
+            }
+            else {
+                _PubSub.Publish('notification', ['No Saved Progress to Load', 3, false, false]);
+                proceed(false);
+            }
         });
 
-        self._InputHelper.RegisterOperationHandler('mute', function(event, proceed, args) {
+        //mute
+
+        self._InputHelper.RegisterKeydownOperationHandler('mute', function(event, proceed, args) {
             _isMuted = !_isMuted;
-            _PubSub.Publish('notification', [(_isMuted ? 'Audio Muted' : 'Audio Unmuted')]);
+            _PubSub.Publish('notification', [(_isMuted ? 'Game Audio Muted' : 'Game Audio Unmuted')]);
             proceed(true);
         });
 
-        self._InputHelper.RegisterOperationHandler('pause', function(event, proceed, args) {
+        //pause
+
+        self._InputHelper.RegisterKeydownOperationHandler('pause', function(event, proceed, args) {
             _isEmulatorPaused = !_isEmulatorPaused;
             if (_isEmulatorPaused) {
                 self._InputHelper.SuspendIdleTimer(true);
@@ -385,16 +404,46 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
             proceed(true);
         });
 
-        // self._InputHelper.RegisterOperationHandler('reverse', function(event, proceed, args) {
-        //     _PubSub.Publish('notification', ['Reversing', 3, false, true]);
-        //     proceed(true);
-        // });
+        //reset
+
+        self._InputHelper.RegisterKeydownOperationHandler('reset', function(event, proceed, args) {
+            _PubSub.Publish('notification', ['Game Reset', 3, false, false]);
+            proceed(true);
+        });
+
+        //condensing the simple keydown and keyup operations
+        var DownUpHandlers = function(operation, message, topic) {
+
+            self._InputHelper.RegisterKeydownOperationHandler(operation, function(event, proceed, args) {
+                _PubSub.Publish('notification', [message, 3, true, true, topic]);
+                _PubSub.Mute('notification'); //since the user is holding a key, prevent this note from showing again while down
+                proceed(true);
+            });
+
+            self._InputHelper.RegisterKeyupOperationHandler(operation, function(event, proceed, args) {
+                _PubSub.Unmute('notification');
+                _PubSub.Publish(topic);
+                proceed(true);
+            });
+        }
+
+        //reverse
+        DownUpHandlers('reverse', 'Reversing', 'emulatorreverse');
+
+        //slow motion
+        DownUpHandlers('slowmotion', 'Slow Motion Active', 'emulatorslowmotion');
+
+        //fast forward
+        DownUpHandlers('fastforward', 'Fast Forwarding', 'emulatorfastforward');
     };
 
     var OnStateLoaded = function() {
-
+        
         //sanity check
         if (_isLoadingState) {
+        
+            _PubSub.Publish('notification', ['Load Complete', 3, false, false]);
+        
             _isLoadingState = false;
         }
     };
@@ -444,6 +493,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
                     }
 
                     _isSavingState = false;
+                    _hasStateToLoad = true;
 
                 }, true); //SubscribeOnce exclusive flag
 
@@ -481,7 +531,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
 
         _SavesManager.AddSave(saveType, screenDataUnzipped, stateDataUnzipped, function() {
 
-            //nothing yet
+            _PubSub.Publish('notification', ['Save Complete', 3, false, false]);
         });
     };
 

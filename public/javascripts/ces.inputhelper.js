@@ -11,7 +11,8 @@ var cesInputHelper = (function(_Emulator, _ui) {
     var _originalEmulatorKeyupHandlerFunctions = {}; //the separated original work functions attached to the keyup handlers
     var _modifiedEmulatorKeyupHandlers = {};
 
-    var _operationHandlers = {}; // { keycode: function}
+    var _keydownOperationHandlers = {}; // { keycode: function}
+    var _keyupOperationHandlers = {};
 
     var _idleKeyCheckInterval = null;
     var _idleKeyCheckDuration = 5000; //how often to check when the last key was pressed
@@ -26,7 +27,10 @@ var cesInputHelper = (function(_Emulator, _ui) {
         'mute': 77,             //m
         'screenshot': 84,       //t
         'pause': 80,            //p
-        'reverse': 82           //r
+        'reverse': 82,          //r
+        'slowmotion': 69,       //e
+        'fastforward': 32,      //space
+        'reset': 72             //h
     };
 
     var _keysWhichHaveFunctionalityInTheBrowserWeWantToPrevent = {
@@ -125,29 +129,60 @@ var cesInputHelper = (function(_Emulator, _ui) {
 
         _originalEmulatorKeyupHandlerFunctions[target] = eventHandler.handlerFunc;
 
+        eventHandler.handlerFunc = function(event, args) {
+
+            //sometimes I want to influence behaviors of keyups before the emulator
+            OnBeforeEmulatorKeyup(event, function(proceed) {
+
+                //perform original handler function
+                if (proceed) {
+                    _originalEmulatorKeyupHandlerFunctions[target](event);
+                }
+            }, args);
+        };
+
         //although no modifications to the handler were performed
         _modifiedEmulatorKeyupHandlers[target] = eventHandler;
 
         return eventHandler;
     };
 
-    this.RegisterOperationHandler = function(operation, handler) {
+    this.RegisterKeydownOperationHandler = function(operation, handler) {
 
         if (!_operationMap.hasOwnProperty(operation)) {
             return;
         }
 
         var keycode = _operationMap[operation];
-        _operationHandlers[keycode] = handler;
+        _keydownOperationHandlers[keycode] = handler;
     };
 
-    this.UnregisterHandler = function(operation) {
+    this.RegisterKeyupOperationHandler = function(operation, handler) {
+
+        if (!_operationMap.hasOwnProperty(operation)) {
+            return;
+        }
+
+        var keycode = _operationMap[operation];
+        _keyupOperationHandlers[keycode] = handler;
+    };
+
+    this.UnregisterKeydownHandler = function(operation) {
 
         if (!_operationMap.hasOwnProperty(operation)) {
             return;
         }
         var keycode = _operationMap[operation];
-        delete _operationHandlers[keycode];
+        delete _keydownOperationHandlers[keycode];
+    };
+
+    this.UnregisterKeyupHandler = function(operation) {
+
+        if (!_operationMap.hasOwnProperty(operation)) {
+            return;
+        }
+        var keycode = _operationMap[operation];
+        delete _keyupOperationHandlers[keycode];
     };
 
     this.Keypress = function(operation, callback, args) {
@@ -229,8 +264,8 @@ var cesInputHelper = (function(_Emulator, _ui) {
 
         var keycode = event.keyCode;
 
-        if (keycode in _operationHandlers) {
-            _operationHandlers[keycode](event, function(result) {
+        if (keycode in _keydownOperationHandlers) {
+            _keydownOperationHandlers[keycode](event, function(result) {
                 
                 //a true result will allow the input to each the emulator, false stops it here
                 proceedToEmulatorCallback(result);
@@ -243,7 +278,7 @@ var cesInputHelper = (function(_Emulator, _ui) {
 
             }, args);
         }
-        //no operation handlers, normal keypress
+        //no operation handlers, normal keydown
         else {
 
             proceedToEmulatorCallback(true);
@@ -252,6 +287,23 @@ var cesInputHelper = (function(_Emulator, _ui) {
             _lastInputKeyCode = keycode;
         }
     }
+
+    var OnBeforeEmulatorKeyup = function(event, proceedToEmulatorCallback, args) {
+
+        var keycode = event.keyCode;
+
+        if (keycode in _keyupOperationHandlers) {
+            _keyupOperationHandlers[keycode](event, function(result) {
+                
+                //a true result will allow the input to each the emulator, false stops it here
+                proceedToEmulatorCallback(result);
+            }, args);
+        }
+        //no operation handlers, normal keyup
+        else {
+            proceedToEmulatorCallback(true);
+        }
+    };
 
     /**
      * Given a keycode, simulate a keypress by generating a keydown and keyup event and pass them through the handlers destined for the emulator (but first pass through here ;)
