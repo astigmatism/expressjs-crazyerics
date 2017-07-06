@@ -444,7 +444,7 @@ var cesMain = (function() {
                             _preventLoadingGame = false; //during save select, allow other games to load
 
                             //are there saves to load? Let's show a dialog to chose from, if not - will go straight to start
-                            _SaveSelection = new cesSaveSelection(_config, _Dialogs, _Emulator, system, $('#savedgameselector'), function(err, selectedSaveTimeStamp, selectedSavescreenshot) {
+                            _SaveSelection = new cesSaveSelection(_config, _Dialogs, _Emulator, _ProgressBar, system, $('#savedgameselector'), function(err, selectedSaveTimeStamp, selectedSavescreenshot) {
                                 
                                 if (selectedSaveTimeStamp) {
                                     ShowSaveLoading(system, selectedSavescreenshot);

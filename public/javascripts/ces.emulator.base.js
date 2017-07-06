@@ -165,7 +165,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
                 _PubSub.Unmute('stateWritten');
 
                 //again show saving note, 1 priority replaces "paused" doesnt matter if auto or not really
-                _PubSub.Publish('notification', ['Saving Progress...', 1, true, true]); //1 priority intentional
+                _PubSub.Publish('notification', ['Saving Game Progress...', 1, true, true, 'saveready']); //1 priority intentional
             }
         }
     };
@@ -355,7 +355,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
             
             //dont show the screenshot note when making a save state=
             if (!_isSavingState) {
-                _PubSub.Publish('notification', ['Saving Screenshot', 3, true, true, 'screenshotWritten']);
+                _PubSub.Publish('notification', ['Saving Game Screenshot', 3, true, true, 'screenshotWritten']);
             }
             proceed(true);
         });
@@ -372,11 +372,11 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
             //check if we've written a state file to load
             if (_hasStateToLoad) {
                 _isLoadingState = true;
-                _PubSub.Publish('notification', ['Loading Previous Saved Progress...', 3, true, true, 'stateRead']);
+                _PubSub.Publish('notification', ['Loading Previous Saved Game Progress...', 3, true, true, 'stateRead']);
                 proceed(true);
             }
             else {
-                _PubSub.Publish('notification', ['No Saved Progress to Load', 3, false, false]);
+                _PubSub.Publish('notification', ['No Saved Game Progress to Load', 3, false, false]);
                 proceed(false);
             }
         });
@@ -427,7 +427,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
         }
 
         //reverse
-        DownUpHandlers('reverse', 'Reversing', 'emulatorreverse');
+        DownUpHandlers('reverse', 'Rewinding', 'emulatorreverse');
 
         //slow motion
         DownUpHandlers('slowmotion', 'Slow Motion Active', 'emulatorslowmotion');
@@ -466,10 +466,10 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
 
         //show the notification
         if (saveType === 'user') {
-            _PubSub.Publish('notification', ['Saving Progress...', 3, true, true, 'saveready']);
+            _PubSub.Publish('notification', ['Saving Game Progress...', 3, true, true, 'saveready']);
         }
         else if (saveType === 'auto') {
-            _PubSub.Publish('notification', ['Auto Saving Progress...', 3, true, true, 'saveready']);
+            _PubSub.Publish('notification', ['Auto Saving Game Progress...', 3, true, true, 'saveready']);
         }
 
         //before state save, perform a screen capture
@@ -576,6 +576,70 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
         //the path is made of three sections, 1) cdn or local 2) the extention name is the folder where they are stored 3) the file itself
         var scriptPath = _config.emupath + '/' + _config.systemdetails[system].emuextention + '/' + _config.systemdetails[system].emuscript;
 
+        //got close, but couldn't get this to work. would get: Uncaught TypeError: Cannot read property 'Int8Array' of undefined
+        //because the script text wasn't evaluated properly. I think it might have something to do with asm?? 
+        //Keep trying!
+
+        // $.ajax({
+        //     url: scriptPath,
+        //     type: 'GET',
+        //     crossDomain: true,
+        //     //dataType: 'script',
+        //     cache: false,
+        //     xhr: function() {
+        //         var xhr = new window.XMLHttpRequest();
+        //         xhr.upload.addEventListener('progress', function(event) {
+        //             if (event.loaded) {
+        //                 //var percentComplete = event.loaded / filesize;
+        //                 console.log('emulator: ' + event.loaded + ' ' + event.total);
+        //                 //force the progress to never reach 1 (so i can do this later)
+        //                 // if (percentComplete > 0.98) {
+        //                 //     percentComplete = 0.98;
+        //                 // }
+        //                 //_ProgressBar.Animate(percentComplete);
+        //             }
+        //         }, false);
+
+        //         xhr.addEventListener('progress', function(event) {
+        //             if (event.loaded) {
+        //                 //var percentComplete = event.loaded / filesize;
+        //                 console.log('emulator: ' + event.loaded + ' ' + event.total);
+        //                 //force the progress to never reach 1 (so i can do this later)
+        //                 // if (percentComplete > 0.98) {
+        //                 //     percentComplete = 0.98;
+        //                 // }
+        //                 //_ProgressBar.Animate(percentComplete);
+        //             }
+        //         }, false);
+
+        //         return xhr;
+        //     },
+        //     success: function(response, status, jqXHR) {
+                
+        //         var s = document.createElement('script');
+        //         s.type = 'text/javascript';
+        //         s.async = true;
+        //         s.src = scriptPath;
+        //         s.innerHTML = response;
+        //         // or: s[s.innerText!=undefined?'innerText':'textContent'] = e.responseText
+
+        //         s.addEventListener('load', function() {
+        //             var emulatorScriptInstance = new cesRetroArchEmulator(response);
+        //             deffered.resolve(null, module, emulatorScriptInstance);
+        //         });
+
+        //         document.documentElement.appendChild(s);
+
+        //         // var emulatorScriptInstance = new cesRetroArchEmulator(response);
+        //         // s = null;
+        //         // deffered.resolve(null, module, emulatorScriptInstance);
+        //     },
+        //     error: function(jqXHR, status, error) {
+        //         _PubSub.Publish('error', ['Emulator Retrieval Error:', jqXHR.status]);
+        //         deffered.resolve(exception);
+        //     }
+        // });
+
         $.getScript(scriptPath)
             .done(function(script, textStatus) {
 
@@ -660,7 +724,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
                 xhr.upload.addEventListener('progress', function(event) {
                     if (event.loaded) {
                         var percentComplete = event.loaded / filesize;
-                        console.log(percentComplete);
+                        console.log(percentComplete + '/' + event.total);
                         //force the progress to never reach 1 (so i can do this later)
                         if (percentComplete > 0.98) {
                             percentComplete = 0.98;
@@ -672,7 +736,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
                 xhr.addEventListener('progress', function(event) {
                     if (event.loaded) {
                         var percentComplete = event.loaded / filesize;
-                        console.log(percentComplete);
+                        console.log(percentComplete + '/' + event.total);
                         //force the progress to never reach 1 (so i can do this later)
                         if (percentComplete > 0.98) {
                             percentComplete = 0.98;
