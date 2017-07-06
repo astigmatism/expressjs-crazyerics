@@ -14,12 +14,11 @@ var cesInputHelper = (function(_Emulator, _ui) {
     var _keydownOperationHandlers = {}; // { keycode: function}
     var _keyupOperationHandlers = {};
 
-    var _idleKeyCheckInterval = null;
-    var _idleKeyCheckDuration = 5000; //how often to check when the last key was pressed
-    var _idleKeyDuration = 5000; //the amount of time to required to be idle to fire the OnIdleKeys functionality
-    
-    var _lastInputTime = null;
+    //auto save
+    var _idleKeyTimeout = null;
+    var _idleKeyDuration = 6000; //the amount of time to required to be idle to fire the OnIdleKeys functionality when checked
     var _lastInputKeyCode = null;
+    var _disableAutoSave = false;
 
     var _operationMap = {
         'statesave': 49,        //1
@@ -105,13 +104,21 @@ var cesInputHelper = (function(_Emulator, _ui) {
         return eventHandler;
     };
 
-    this.SuspendIdleTimer = function(suspend) {
+    this.DisableAutoSave = function(disable) {
 
-        if (suspend) {
-            UpdateIdleKeyInterval(true); //stop interval
-            return;
+        self.CancelIdleTimeout();
+        _disableAutoSave = disable;
+    };
+
+    this.SetIdleTimeoutDuration = function(duration) {
+        _idleKeyDuration = duration;
+    };
+
+    this.CancelIdleTimeout = function() {
+
+        if (_idleKeyTimeout) {
+            clearTimeout(_idleKeyTimeout);
         }
-        UpdateIdleKeyInterval(false); //begin interval
     };
 
     this.OverrideEmulatorKeyupHandler = function(eventHandler) {
@@ -206,52 +213,12 @@ var cesInputHelper = (function(_Emulator, _ui) {
             }
             $(window).on('keydown', keyboardListener); //using jQuerys on and off here worked :P
 
-            UpdateIdleKeyInterval(false); //begin idle key interval
-
         } else {
             
-             UpdateIdleKeyInterval(true); //stop interval
+            self.CancelIdleTimeout(); //in case its running
             $(window).off('keydown');
         }
     }
-
-    var UpdateIdleKeyInterval = function(terminate) {
-
-        //either terminate or not, clear
-        clearInterval(_idleKeyCheckInterval); //just in case, we cant have it running before we start another!
-        _idleKeyCheckInterval = null;
-
-        //do no more
-        if (terminate) {
-            return;
-        }
-
-        _idleKeyCheckInterval = setInterval(function() {
-
-            if (_lastInputTime && _lastInputKeyCode) {
-
-                var now = new Date();
-
-                //if current time is greater than the last time input was taken plus the minimum amount of waiting for idle
-                //also if last keycode is not loadstate or savestate
-                if (now.getTime() > (_lastInputTime.getTime() + _idleKeyDuration)) {
-
-                    //with that check out of the way, now a heavier one. We have to invalidate the opertational keys
-                    var operationalKeyUsed = false;
-                    for (operation in _operationMap) {
-                        if (_lastInputKeyCode == _operationMap[operation]) {
-                            operationalKeyUsed = true;
-                            break;
-                        }
-                    }
-
-                    if (!operationalKeyUsed) {
-                        _Emulator.OnInputIdle();
-                    }
-                }
-            }
-        }, _idleKeyCheckDuration);
-    };
 
     /**
      * This is the function we override the emulator handler with. Its resulting callback will pass a boolean to indictae if the original functionality should proceed
@@ -272,8 +239,8 @@ var cesInputHelper = (function(_Emulator, _ui) {
 
                 //if true, we want to record the input as happened
                 if (result) {
-                    _lastInputTime = new Date();
                     _lastInputKeyCode = keycode;
+                    ResetIdleTimeout();
                 }
 
             }, args);
@@ -283,10 +250,37 @@ var cesInputHelper = (function(_Emulator, _ui) {
 
             proceedToEmulatorCallback(true);
 
-            _lastInputTime = new Date();
             _lastInputKeyCode = keycode;
+            ResetIdleTimeout();
         }
     }
+
+    var ResetIdleTimeout = function() {
+
+        //bail early is disabled
+        if (_disableAutoSave) {
+            return;
+        }
+
+        self.CancelIdleTimeout(); //clear the current
+
+        _idleKeyTimeout = setTimeout(function() {
+
+            //catch if an operational input was last used
+            var operationalKeyUsed = false;
+            for (operation in _operationMap) {
+                if (_lastInputKeyCode == _operationMap[operation]) {
+                    operationalKeyUsed = true;
+                    break;
+                }
+            }
+
+            if (!operationalKeyUsed) {
+                _Emulator.OnInputIdle();
+            }
+
+        }, _idleKeyDuration);
+    };
 
     var OnBeforeEmulatorKeyup = function(event, proceedToEmulatorCallback, args) {
 

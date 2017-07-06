@@ -412,6 +412,7 @@
 		"input_toggle_fullscreen": "f",
 		"input_hold_fast_forward": "space",
 		"input_player1_select": "shift",
+		"input_cheat_toggle": "u",
 		"video_vsync": false,
 		"audio_latency": 96,
 		"video_font_size": 32,

@@ -33,7 +33,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
     this._InputHelper = null;
 
     //protected
-    this.loadedSaveData = null; //this is a space I use for indictaing a state file was written during load
+    //this.loadedSaveData = null; //this is a space I use for indictaing a state file was written during load
 
     //wait for document as this is an external script
     $(document).ready(function() {
