@@ -394,11 +394,10 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
         self._InputHelper.RegisterKeydownOperationHandler('pause', function(event, proceed, args) {
             _isEmulatorPaused = !_isEmulatorPaused;
             if (_isEmulatorPaused) {
-                self._InputHelper.SuspendIdleTimer(true);
+                self._InputHelper.CancelIdleTimeout();
                 _PubSub.Publish('notification', ['Game Paused', 3, true, false, 'emulatorunpause']);
             }
             else {
-                self._InputHelper.SuspendIdleTimer(false);
                 _PubSub.Publish('emulatorunpause');
             }
             proceed(true);
