@@ -14,7 +14,7 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _system, _title, _fi
     var _fileWriteTimeout = {};
     var _fileReadTimeout = {};
     var _fileTimerDelay = 100;       //the amount of time we allow to pass in which we assume a file is no longer being written
-    var _startToMenu = false;
+    var _startToMenu = true;
 
     // public/protected members (on prototytpe)
 
@@ -293,7 +293,7 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _system, _title, _fi
 
             //set the start file
             if (!_startToMenu) {
-                this.arguments = ['-v', '-f', '/games/' + _file];
+                this.arguments = ['-v', '-f', '/games/Sonic the Hedgehog CD (US) - Track 01.cue'] //+ _file];
             } else {
                 this.arguments = ['-v', '--menu'];
             }

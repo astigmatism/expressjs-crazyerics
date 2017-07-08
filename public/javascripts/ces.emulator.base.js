@@ -666,16 +666,10 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
 
         var location = _config.assetpath + '/emulatorsupport/' + system + '.json';
 
-        //i know this is a weird construct, but it defaults on systems without support
-        switch (system) {
-            case 'segacd':
-            break;
-            case '32x':
-            break;
-            default:
-                //system not handled, bail
-                deffered.resolve();
-                return;
+        if (!_config.systemdetails[system].supportfiles) {
+            //system not handled, bail
+            deffered.resolve();
+            return;
         }
 
         /**
