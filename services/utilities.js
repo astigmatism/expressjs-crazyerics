@@ -312,7 +312,8 @@ UtilitiesService.collectDataForClient = function(req, openonload, callback) {
                 'emuextention': systems[system].emuextention,
                 'emuscript': systems[system].emuscript,
                 'retroarch': systems[system].retroarch,
-                'screenshotaspectratio': systems[system].screenshotaspectratio
+                'screenshotaspectratio': systems[system].screenshotaspectratio,
+                'supportfiles': systems[system].supportfiles
             };
 
             //optional

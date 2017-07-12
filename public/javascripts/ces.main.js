@@ -339,7 +339,7 @@ var cesMain = (function() {
             _Dialogs.CloseDialog(null, function() {
 
                 //close any sliders
-                _Sliders.Closeall();
+                //_Sliders.Closeall();
 
                 //close any notifications
                 _Notifications.Reset();

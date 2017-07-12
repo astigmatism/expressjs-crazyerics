@@ -261,9 +261,21 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _system, _title, _fi
 
             this.FS_createFolder('/', 'games', true, true);
 
+            var fileToLoad = _file;
+
             //games are stored compressed in json. due to javascript string length limits, these can be broken up into several segments for larger files.
             //the compressedGameFiles object contains data for all files and their segments
             for (var gameFile in compressedGameData) {
+
+                //not all properties are game files exactly, I also store stuff there, special case these:
+
+                //the file to load (like cue files)
+                if (gameFile === '_b') {
+                    fileToLoad = _Compression.Unzip.string(compressedGameData[gameFile]);
+                    continue;
+                }
+
+                //end special case
 
                 var filename = _Compression.Unzip.string(gameFile);
                 var compressedGame = compressedGameData[gameFile];
@@ -293,7 +305,7 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _system, _title, _fi
 
             //set the start file
             if (!_startToMenu) {
-                this.arguments = ['-v', '-f', '/games/' + _file];
+                this.arguments = ['-v', '-f', '/games/' + fileToLoad];
             } else {
                 this.arguments = ['-v', '--menu'];
             }
