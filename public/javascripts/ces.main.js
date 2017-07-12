@@ -467,7 +467,8 @@ var cesMain = (function() {
 
                                         //begin game, callback is function which handles expections for any emulator error
                                         _Emulator.BeginGame(function(e) {
-                                            _PubSub.Publish('error', 'There was error with the emulator:', e);
+                                            clearInterval(tipInterval);
+                                            _PubSub.Publish('error', ['There was error with the emulator:', e]);
                                         });
 
                                         //before going any further, we can correctly assume that once the config

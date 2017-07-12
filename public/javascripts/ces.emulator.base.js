@@ -83,17 +83,21 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
 
         //of all these tasks, because they are concurrant, the progress bar will only follow the game loading progress
         LoadEmulatorScript(_system, module, emulatorLoadComplete);
-        LoadSupportFiles(_system, supportLoadComplete);
-        LoadGame(_ProgressBar, filesize, gameLoadComplete);
-        LoadShader(shader, shaderLoadComplete);
 
-        $.when(emulatorLoadComplete, supportLoadComplete, gameLoadComplete, shaderLoadComplete).done(function(emulator, support, game, shader) {
+        $.when(emulatorLoadComplete).done(function(emulator) {
 
-            _isLoading = false;
+            LoadSupportFiles(_system, supportLoadComplete);
+            LoadGame(_ProgressBar, filesize, gameLoadComplete);
+            LoadShader(shader, shaderLoadComplete);
 
-            OnEmulatorLoadComplete(emulator, support, game, shader);
+            $.when(supportLoadComplete, gameLoadComplete, shaderLoadComplete).done(function(support, game, shader) {
 
-            deffered.resolve(true);
+                _isLoading = false;
+
+                OnEmulatorLoadComplete(emulator, support, game, shader);
+
+                deffered.resolve(true);
+            });
         });
     };
 
@@ -647,10 +651,10 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
                 //emulators instances. The module class is passed in for its own extention
                 var emulatorScriptInstance = new cesRetroArchEmulator(module);
 
-                deffered.resolve(null, module, emulatorScriptInstance);
+                deffered.resolve([null, module, emulatorScriptInstance]);
             })
             .fail(function(jqxhr, settings, exception ) {
-                deffered.resolve(exception);
+                deffered.resolve([exception]);
         });
     };
 

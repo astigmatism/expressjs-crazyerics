@@ -4,7 +4,7 @@
 	"boxpath":"https://dl.dropboxusercontent.com/u/1433808/crazyerics/boxes",
 	"rompath":"https://dl.dropboxusercontent.com/u/1433808/crazyerics/roms",
 	"emuextentionspath": "emulatorextentions/",
-	"emupath": "/emulators",
+	"emupath": "https://dl.dropboxusercontent.com/u/1433808/crazyerics/emulators",
 	"dropboxaccesstoken": "m62ox__hvx4AAAAAAAg-wsMqXLg0V57RxRTk-PBFM3gKS23cOjrpY5y7x6aSZMRA",
 	"maxSavesPerGame": 60,
 	"systems": {
@@ -203,7 +203,7 @@
 		"sms": {
 			"name": "Sega Master System / SG-1000 / SC-3000 / Mark III",
 			"shortname": "Sega Master System",
-			"live": false,
+			"live": true,
 			"supportfiles": false,
 			"boxcdnversion": "2.0.4",
 			"romcdnversion": "GoodSms-3.20",
@@ -231,14 +231,11 @@
 		"gg": {
 			"name": "Sega Game Gear",
 			"shortname": "Sega Game Gear",
-			"live": false,
+			"live": true,
 			"collection": "GoodGG 3.20",
 			"boxcdnversion": "06.02.2017",
-			"romcdnversion": "GgTest",
+			"romcdnversion": "GoodGG-3.20",
 			"supportfiles": false,
-			"collection": "GoodGG 3.20",
-			"boxcdnversion": "06.02.2017",
-			"romcdnversion": "GgTest250",
 			"emuextention": "2017-03-27",
 			"emuscript": "genesis_plus_gx_libretro.js",
 			"screenshotaspectratio": 1.11,
@@ -417,7 +414,7 @@
 		"system_directory": "/system",
 		"input_menu_toggle":  "f1",
 		"savestate_directory": "/states",
-		"video_message_pos_y": -100,
+		"video_message_pos_y": -100, 			/* retroarch emulator messages, negative value is off-screen */
 		"video_shader_enable": true,
 		"input_shader_next": "rightbracket",
 		"input_shader_prev": "leftbracket",
@@ -445,11 +442,9 @@
 		"input_frame_advance": "nul",
 		"video_force_aspect": true,
 		"video_hard_sync": false,
-		"video_aspect_ratio": -1,
-		"video_scale": 3,
+		"video_scale": 5, 						/* at 5, games show perfect pixels */
 		"video_refresh_rate": 59.940060,
 		"video_fullscreen": false,
-		"video_force_aspect": true,
 		"video_windowed_fullscreen": false
 	},
 	"shaders": [
