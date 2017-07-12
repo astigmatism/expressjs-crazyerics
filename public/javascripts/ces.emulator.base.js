@@ -718,7 +718,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
                 xhr.upload.addEventListener('progress', function(event) {
                     if (event.loaded) {
                         var percentComplete = event.loaded / filesize;
-                        console.log(percentComplete + '/' + event.total);
+                        console.log(percentComplete + '% ' + event.loaded + '/' + filesize);
                         //force the progress to never reach 1 (so i can do this later)
                         if (percentComplete > 0.98) {
                             percentComplete = 0.98;
@@ -730,7 +730,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
                 xhr.addEventListener('progress', function(event) {
                     if (event.loaded) {
                         var percentComplete = event.loaded / filesize;
-                        console.log(percentComplete + '/' + event.total);
+                        console.log(percentComplete + '% ' + event.loaded + '/' + filesize);
                         //force the progress to never reach 1 (so i can do this later)
                         if (percentComplete > 0.98) {
                             percentComplete = 0.98;

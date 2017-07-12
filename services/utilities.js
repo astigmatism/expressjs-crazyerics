@@ -249,7 +249,9 @@ UtilitiesService.findGame = function(system, title, file, callback) {
                             console.log(err);
                         } else {
 
-                            var compressedFileName = UtilitiesService.compress.string(file);
+                            //the compressed file name matches the cdnready (or file uploaded to dropbox) filename
+                            var compressedFileName = UtilitiesService.compress.string(title + file);
+                            var compressedFileName = encodeURIComponent(compressedFileName);
 
                             if (filedata[compressedFileName] && filedata[compressedFileName].s) {
                                 data.size = filedata[compressedFileName].s;

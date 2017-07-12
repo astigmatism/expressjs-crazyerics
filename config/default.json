@@ -41,7 +41,7 @@
 			"live": true,
 			"supportfiles": false,
 			"boxcdnversion": "2.0.5",
-			"romcdnversion": "GoodGbx3.14",
+			"romcdnversion": "GoodGbx-3.14",
 			"collection": "GoodGBx 3.14",
 			"emuextention": "2017-03-27",
 			"emuscript": "gambatte_libretro.js",
