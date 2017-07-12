@@ -165,7 +165,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
                 _PubSub.Unmute('stateWritten');
 
                 //again show saving note, 1 priority replaces "paused" doesnt matter if auto or not really
-                _PubSub.Publish('notification', ['Saving Game Progress...', 1, true, true, 'saveready']); //1 priority intentional
+                _PubSub.Publish('notification', ['Saving Game Progress...', 1, true, true]); //1 priority intentional
             }
         }
     };
@@ -372,7 +372,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
             //check if we've written a state file to load
             if (_hasStateToLoad) {
                 _isLoadingState = true;
-                _PubSub.Publish('notification', ['Loading Previous Saved Game Progress...', 3, true, true, 'stateRead']);
+                _PubSub.Publish('notification', ['Loading Previous Saved Game Progress...', 3, true, true]);
                 proceed(true);
             }
             else {
@@ -441,7 +441,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
         //sanity check
         if (_isLoadingState) {
         
-            _PubSub.Publish('notification', ['Load Complete', 3, false, false]);
+            _PubSub.Publish('notification', ['Load Complete', 1, false, false]);
         
             _isLoadingState = false;
         }
@@ -466,10 +466,10 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
 
         //show the notification
         if (saveType === 'user') {
-            _PubSub.Publish('notification', ['Saving Game Progress...', 3, true, true, 'saveready']);
+            _PubSub.Publish('notification', ['Saving Game Progress...', 3, true, true]);
         }
         else if (saveType === 'auto') {
-            _PubSub.Publish('notification', ['Auto Saving Game Progress...', 3, true, true, 'saveready']);
+            _PubSub.Publish('notification', ['Auto Saving Game Progress...', 3, true, true]);
         }
 
         //before state save, perform a screen capture
@@ -530,7 +530,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
 
         _SavesManager.AddSave(saveType, screenDataUnzipped, stateDataUnzipped, function() {
 
-            _PubSub.Publish('notification', ['Save Complete', 3, false, false]);
+            _PubSub.Publish('notification', ['Save Complete', 1, false, false]);
         });
     };
 

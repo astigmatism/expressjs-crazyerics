@@ -16,7 +16,7 @@ var cesInputHelper = (function(_Emulator, _ui) {
 
     //auto save
     var _idleKeyTimeout = null;
-    var _idleKeyDuration = 6000; //the amount of time to required to be idle to fire the OnIdleKeys functionality when checked
+    var _idleKeyDuration = 10000; //the amount of time to required to be idle to fire the OnIdleKeys functionality when checked
     var _lastInputKeyCode = null;
     var _disableAutoSave = false;
 
