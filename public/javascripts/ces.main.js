@@ -423,8 +423,6 @@ var cesMain = (function() {
                         }
                         var filesize = gameDetails.size;
 
-                        _ProgressBar.Animate(0.01);
-
                         //begin loading all content. I know it seems like some of these (game, emulator, etc) could load while the user
                         //is viewing the shader select, but I found that when treated as background tasks, it interfere with the performance
                         //of the shader selection ui. I think its best to wait until the loading animation is up to perform all of these
@@ -459,8 +457,6 @@ var cesMain = (function() {
                                 //set an artificial timeout based on the amount of time the loading screen was up
                                 //lets ensure a minimum time has passed (see private vars)
                                 setTimeout(function() {
-
-                                    _ProgressBar.Animate(1); //finish progress bar
 
                                     // load state? bails if not set
                                     _Emulator.WriteSaveData(selectedSaveTimeStamp, function(stateToLoad) { //if save not set, bails on null

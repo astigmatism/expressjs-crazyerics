@@ -81,14 +81,19 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
 
         _isLoading = true;
 
+        //setup progress bar
+        var emulatorFileSize = _config.systemdetails[_system].emusize;
+        _ProgressBar.AddBucket('emulator', emulatorFileSize);
+        _ProgressBar.AddBucket('game', filesize);
+
         //of all these tasks, because they are concurrant, the progress bar will only follow the game loading progress
-        LoadEmulatorScript(_system, module, emulatorLoadComplete);
+        LoadEmulatorScript(_ProgressBar, _system, module, emulatorFileSize, emulatorLoadComplete);
 
         $.when(emulatorLoadComplete).done(function(emulator) {
 
-            LoadSupportFiles(_system, supportLoadComplete);
+            LoadSupportFiles(_ProgressBar, _system, supportLoadComplete);
             LoadGame(_ProgressBar, filesize, gameLoadComplete);
-            LoadShader(shader, shaderLoadComplete);
+            LoadShader(_ProgressBar, shader, shaderLoadComplete);
 
             $.when(supportLoadComplete, gameLoadComplete, shaderLoadComplete).done(function(support, game, shader) {
 
@@ -575,87 +580,30 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
      * @param  {Object} deffered
      * @return {undef}
      */
-    var LoadEmulatorScript = function(system, module, deffered) {
+    var LoadEmulatorScript = function(_ProgressBar, system, module, filesize, deffered) {
 
         //the path is made of three sections, 1) cdn or local 2) the extention name is the folder where they are stored 3) the file itself
         var scriptPath = _config.emupath + '/' + _config.systemdetails[system].emuextention + '/' + _config.systemdetails[system].emuscript;
 
-        //got close, but couldn't get this to work. would get: Uncaught TypeError: Cannot read property 'Int8Array' of undefined
-        //because the script text wasn't evaluated properly. I think it might have something to do with asm?? 
-        //Keep trying!
-
-        // $.ajax({
-        //     url: scriptPath,
-        //     type: 'GET',
-        //     crossDomain: true,
-        //     //dataType: 'script',
-        //     cache: false,
-        //     xhr: function() {
-        //         var xhr = new window.XMLHttpRequest();
-        //         xhr.upload.addEventListener('progress', function(event) {
-        //             if (event.loaded) {
-        //                 //var percentComplete = event.loaded / filesize;
-        //                 console.log('emulator: ' + event.loaded + ' ' + event.total);
-        //                 //force the progress to never reach 1 (so i can do this later)
-        //                 // if (percentComplete > 0.98) {
-        //                 //     percentComplete = 0.98;
-        //                 // }
-        //                 //_ProgressBar.Animate(percentComplete);
-        //             }
-        //         }, false);
-
-        //         xhr.addEventListener('progress', function(event) {
-        //             if (event.loaded) {
-        //                 //var percentComplete = event.loaded / filesize;
-        //                 console.log('emulator: ' + event.loaded + ' ' + event.total);
-        //                 //force the progress to never reach 1 (so i can do this later)
-        //                 // if (percentComplete > 0.98) {
-        //                 //     percentComplete = 0.98;
-        //                 // }
-        //                 //_ProgressBar.Animate(percentComplete);
-        //             }
-        //         }, false);
-
-        //         return xhr;
-        //     },
-        //     success: function(response, status, jqXHR) {
+        LoadResource(scriptPath,
+            //onProgress Update
+            function(loaded) {
+                _ProgressBar.Update('emulator', loaded);
+            },
+            //onSuccess
+            function(response, status, jqXHR) {
                 
-        //         var s = document.createElement('script');
-        //         s.type = 'text/javascript';
-        //         s.async = true;
-        //         s.src = scriptPath;
-        //         s.innerHTML = response;
-        //         // or: s[s.innerText!=undefined?'innerText':'textContent'] = e.responseText
-
-        //         s.addEventListener('load', function() {
-        //             var emulatorScriptInstance = new cesRetroArchEmulator(response);
-        //             deffered.resolve(null, module, emulatorScriptInstance);
-        //         });
-
-        //         document.documentElement.appendChild(s);
-
-        //         // var emulatorScriptInstance = new cesRetroArchEmulator(response);
-        //         // s = null;
-        //         // deffered.resolve(null, module, emulatorScriptInstance);
-        //     },
-        //     error: function(jqXHR, status, error) {
-        //         _PubSub.Publish('error', ['Emulator Retrieval Error:', jqXHR.status]);
-        //         deffered.resolve(exception);
-        //     }
-        // });
-
-        $.getScript(scriptPath)
-            .done(function(script, textStatus) {
-
-                //I have all the retroarch emulators in a closure to help separate the globals they use from other
-                //emulators instances. The module class is passed in for its own extention
+                _ProgressBar.Update('emulator', filesize);
+                //evaluate the response text and place it in the global scope
+                $.globalEval(response); 
                 var emulatorScriptInstance = new cesRetroArchEmulator(module);
-
                 deffered.resolve([null, module, emulatorScriptInstance]);
-            })
-            .fail(function(jqxhr, settings, exception ) {
-                deffered.resolve([exception]);
-        });
+            },
+            //onFailure
+            function(jqXHR, status, error) {
+                _PubSub.Publish('error', ['Emulator Retrieval Error:', jqXHR.status]);
+            }
+        );
     };
 
     /**
@@ -666,9 +614,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
      * @param  {Object} deffered
      * @return {undef}
      */
-    var LoadSupportFiles = function(system, deffered) {
-
-        var location = _config.assetpath + '/emulatorsupport/' + system + '.json';
+    var LoadSupportFiles = function(_ProgressBar, system, deffered) {
 
         if (!_config.systemdetails[system].supportfiles) {
             //system not handled, bail
@@ -676,21 +622,29 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
             return;
         }
 
-        /**
-         * This jsonp response handler is specific for returning compressed emulator support files
-         * @param  {strin} response compressed string
-         * @return {undef}
-         */
-        c = function(response) {
-            deffered.resolve(null, response);
-        };
+        //support location also includes a folder which must match the emulator version
+        var location = _config.emusupportfilespath + '/' + _config.systemdetails[system].emuextention + '/' + system;
 
-        //very important that this is a jsonp call - works around xdomain call to google drive
-        $.ajax({
-            url: location,
-            type: 'GET',
-            dataType: 'jsonp'
-        });
+        LoadResource(location,
+            //onProgress Update
+            function(loaded) {
+                console.log('support files progress: ' + loaded);
+            },
+            //onSuccess
+            function(response, status, jqXHR) {
+                try {
+                    response = JSON.parse(response);
+                } catch (e) {
+                    _PubSub.Publish('error', ['Support Files Parse Error:', e]);
+                    return;
+                }
+                deffered.resolve(null, response);
+            },
+            //onFailure
+            function(jqXHR, status, error) {
+                _PubSub.Publish('error', ['Support Files Retrieval Error:', jqXHR.status]);
+            }
+        );
     };
 
     /**
@@ -711,48 +665,27 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
 
         //converted from jsonp to straight up json. Seems to work. Going this route allows me to add
         //an event listener to progress for a download progress bar
-        $.ajax({
-            url: location,
-            type: 'GET',
-            crossDomain: true,
-            dataType: 'json',
-            cache: false,
-            xhr: function() {
-                var xhr = new window.XMLHttpRequest();
-                xhr.upload.addEventListener('progress', function(event) {
-                    if (event.loaded) {
-                        var percentComplete = event.loaded / filesize;
-                        console.log(percentComplete + '% ' + event.loaded + '/' + filesize);
-                        //force the progress to never reach 1 (so i can do this later)
-                        if (percentComplete > 0.98) {
-                            percentComplete = 0.98;
-                        }
-                        _ProgressBar.Animate(percentComplete);
-                    }
-                }, false);
-
-                xhr.addEventListener('progress', function(event) {
-                    if (event.loaded) {
-                        var percentComplete = event.loaded / filesize;
-                        console.log(percentComplete + '% ' + event.loaded + '/' + filesize);
-                        //force the progress to never reach 1 (so i can do this later)
-                        if (percentComplete > 0.98) {
-                            percentComplete = 0.98;
-                        }
-                        _ProgressBar.Animate(percentComplete);
-                    }
-                }, false);
-
-                return xhr;
+        LoadResource(location,
+            //onProgress Update
+            function(loaded) {
+                _ProgressBar.Update('game', loaded);
             },
-            success: function(response, status, jqXHR) {
+            //onSuccess
+            function(response, status, jqXHR) {
+                _ProgressBar.Update('game', filesize);
+                try {
+                    response = JSON.parse(response);
+                } catch (e) {
+                    _PubSub.Publish('error', ['Game Parse Error:', e]);
+                    return;
+                }
                 deffered.resolve(null, response);
             },
-            error: function(jqXHR, status, error) {
+            //onFailure
+            function(jqXHR, status, error) {
                 _PubSub.Publish('error', ['Game Retrieval Error:', jqXHR.status]);
-                //console.log(jqXHR);
             }
-        });
+        );
     };
 
     /**
@@ -761,7 +694,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
      * @param  {Object} deffered
      * @return {undefined}
      */
-    var LoadShader = function(name, deffered) {
+    var LoadShader = function(_ProgressBar, name, deffered) {
 
         var location = _config.assetpath + '/shaders';
 
@@ -789,54 +722,35 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
             dataType: 'jsonp'
         });
     };
+    
+    //a common function for retirving anything dynamically
+    var LoadResource = function(location, onProgressUpdate, onSuccess, onFailure) {
 
-    /**
-     * asychonous iteration helper
-     * @param  {number}   iterations
-     * @param  {Function}   func
-     * @param  {Function} callback
-     * @return {Object}
-     */
-    var AsyncLoop = function(iterations, func, callback) {
-        var index = 0;
-        var done = false;
-        var loop = {
-            /**
-             * [next description]
-             * @return {Function} [description]
-             */
-            next: function() {
-                if (done) {
-                    return;
-                }
+        $.ajax({
+            url: location,
+            type: 'GET',
+            crossDomain: true,
+            dataType: 'text',
+            cache: false,
+            xhr: function() {
+                var xhr = new window.XMLHttpRequest();
+                xhr.upload.addEventListener('progress', function(event) {
+                    if (event.loaded) {
+                        onProgressUpdate(event.loaded);
+                    }
+                }, false);
 
-                if (index < iterations) {
-                    index++;
-                    func(loop);
+                xhr.addEventListener('progress', function(event) {
+                    if (event.loaded) {
+                        onProgressUpdate(event.loaded);
+                    }
+                }, false);
 
-                } else {
-                    done = true;
-                    callback();
-                }
+                return xhr;
             },
-            /**
-             * [iteration description]
-             * @return {number}
-             */
-            iteration: function() {
-                return index - 1;
-            },
-            /**
-             * [break description]
-             * @return {undef}
-             */
-            break: function() {
-                done = true;
-                callback();
-            }
-        };
-        loop.next();
-        return loop;
+            success: onSuccess,
+            error: onFailure
+        });
     };
 
     return this;
@@ -848,6 +762,5 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
  * @return {undef}
  */
 var jsonpDelegate;
-var cesRm; //game rom data
 var b;
 var c; //support files for emulator (bios, etc)

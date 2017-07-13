@@ -313,6 +313,7 @@ UtilitiesService.collectDataForClient = function(req, openonload, callback) {
                 'romcdnversion': systems[system].romcdnversion,
                 'emuextention': systems[system].emuextention,
                 'emuscript': systems[system].emuscript,
+                'emusize': systems[system].emusize,
                 'retroarch': systems[system].retroarch,
                 'screenshotaspectratio': systems[system].screenshotaspectratio,
                 'supportfiles': systems[system].supportfiles
@@ -335,6 +336,9 @@ UtilitiesService.collectDataForClient = function(req, openonload, callback) {
 
     //emulator extensions scripts location
     configdata['emuextentionspath'] = config.get('emuextentionspath');
+
+    //emulator support files location
+    configdata['emusupportfilespath'] = config.get('supportpath');
 
     //shaders location
     configdata['shaderpath'] = config.get('shaderpath');

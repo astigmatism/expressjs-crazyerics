@@ -22,7 +22,7 @@ router.get('/emulatorprep', function(req, res, next) {
     
     var writeMemFileToDestination = true;
     
-    var assetPath = '/emulators/' + EMULATOR_VERSION + '/';
+    var emulatorAssetLocation = 'https://dl.dropboxusercontent.com/u/1433808/crazyerics/emulators/' + EMULATOR_VERSION + '/'; //'/emulators/' + EMULATOR_VERSION + '/';
     var destinationPath = __dirname + '/../public/emulators/' + EMULATOR_VERSION;
 
     //open source folder
@@ -83,7 +83,7 @@ router.get('/emulatorprep', function(req, res, next) {
                         //set the memory file location
                         re = /memoryInitializer="(.*\.mem)"/;
                         console.log('memory file location found ---> ' + re.test(content));
-                        content = content.replace(re, 'memoryInitializer="' + assetPath + '$1"');
+                        content = content.replace(re, 'memoryInitializer="' + emulatorAssetLocation + '$1"');
 
                         //getting window and document returns canvas
                         // re = /return document;/
@@ -180,7 +180,13 @@ router.get('/emulatorprep', function(req, res, next) {
                                 return nextemulatorfile(err);
                             }
 
-                            nextemulatorfile();
+                            //get resulting filesize
+                            fs.stat(destinationPath + '/' + emulatorfile, (err, stat) => {
+
+                                console.log('file size: ' + stats.size);
+
+                                nextemulatorfile();
+                            });
                         }); 
                     });
                 });
