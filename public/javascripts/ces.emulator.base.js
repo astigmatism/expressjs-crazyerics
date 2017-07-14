@@ -239,6 +239,14 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
             } catch (e) {
 
             }
+
+            //we need to manually clear up the audio context
+            if (_Module.RA && _Module.RA.context && _Module.RA.context.close) {
+                 _Module.RA.context.close().then(function() {
+                    //no need
+                });
+            }
+
             _Module = null;
 
             if (_EmulatorInstance) {
@@ -251,6 +259,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
             
             $(_ui.canvas).remove(); //kill all events attached (keyboard, focus, etc)
         }
+
         callback();
     };
 

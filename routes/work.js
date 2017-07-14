@@ -149,6 +149,11 @@ router.get('/emulatorprep', function(req, res, next) {
                         console.log('found place to attach fs  ---> ' + re.test(content));
                         content = content.replace(re, 'Module.FS=FS;$1');
 
+                        //get ra for audio context
+                        re = /(RA.context=new ac;)/;
+                        console.log('found place to attach ra  ---> ' + re.test(content));
+                        content = content.replace(re, '$1Module.RA=RA;');
+
                         //trap file writes
                         re = /(return ret\}\),varargs)/;
                         console.log('found place to intercept emulator writing files  ---> ' + re.test(content));
