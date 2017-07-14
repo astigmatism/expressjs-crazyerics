@@ -297,6 +297,18 @@
 			"recommendedshaders": [],
 			"screenshotaspectratio": 1.142857142857143
 		},
+		"psx": {
+			"name": "Sony PlayStation",
+			"shortname": "PlayStation",
+			"live": true,
+			"supportfilesize": 1185249,
+			"boxcdnversion": "2.0.0",
+			"romcdnversion": "test",
+			"emuextention": "2017-03-27",
+			"emuscript": "mednafen_psx_libretro.js",
+			"recommendedshaders": [],
+			"screenshotaspectratio": 1.33
+		},
 		"segacd": {
 			"name": "Sega CD",
 			"shortname": "Sega CD",
