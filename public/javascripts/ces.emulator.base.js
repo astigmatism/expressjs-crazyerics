@@ -72,7 +72,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
      * @param {string} shader   a shader selection or pre-defined
      * @param {Object} deffered when complete
      */
-    this.Load = function(module, _ProgressBar, filesize, shader, deffered) {
+    this.Load = function(module, _ProgressBar, filesize, shader, shaderFileSize, supportFileSize, deffered) {
 
         var emulatorLoadComplete = $.Deferred();
         var supportLoadComplete = $.Deferred();
@@ -85,15 +85,17 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
         var emulatorFileSize = _config.systemdetails[_system].emusize;
         _ProgressBar.AddBucket('emulator', emulatorFileSize);
         _ProgressBar.AddBucket('game', filesize);
+        _ProgressBar.AddBucket('shader', shaderFileSize); //will be 0 if no shader to load, not effecting the progress bar
+        _ProgressBar.AddBucket('support', supportFileSize); //will be 0 if no support
 
         //of all these tasks, because they are concurrant, the progress bar will only follow the game loading progress
         LoadEmulatorScript(_ProgressBar, _system, module, emulatorFileSize, emulatorLoadComplete);
 
         $.when(emulatorLoadComplete).done(function(emulator) {
 
-            LoadSupportFiles(_ProgressBar, _system, supportLoadComplete);
+            LoadSupportFiles(_ProgressBar, _system, supportFileSize, supportLoadComplete);
             LoadGame(_ProgressBar, filesize, gameLoadComplete);
-            LoadShader(_ProgressBar, shader, shaderLoadComplete);
+            LoadShader(_ProgressBar, shader, shaderFileSize, shaderLoadComplete);
 
             $.when(supportLoadComplete, gameLoadComplete, shaderLoadComplete).done(function(support, game, shader) {
 
@@ -614,9 +616,10 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
      * @param  {Object} deffered
      * @return {undef}
      */
-    var LoadSupportFiles = function(_ProgressBar, system, deffered) {
+    var LoadSupportFiles = function(_ProgressBar, system, supportFileSize, deffered) {
 
-        if (!_config.systemdetails[system].supportfiles) {
+        //rely entirely on the filesize from the config to inform us if we are to seek support files
+        if (supportFileSize === 0) {
             //system not handled, bail
             deffered.resolve();
             return;
@@ -628,7 +631,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
         LoadResource(location,
             //onProgress Update
             function(loaded) {
-                console.log('support files progress: ' + loaded);
+                _ProgressBar.Update('support', loaded);
             },
             //onSuccess
             function(response, status, jqXHR) {
@@ -694,33 +697,36 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
      * @param  {Object} deffered
      * @return {undefined}
      */
-    var LoadShader = function(_ProgressBar, name, deffered) {
+    var LoadShader = function(_ProgressBar, name, shaderFileSize, deffered) {
 
-        var location = _config.assetpath + '/shaders';
-
-        if (name) {
-            location += '/' + name + '.json';
-        } else {
-            //no shader to load, resolve deffered
+        //if no shader selected or unknown filesize (shouls always be in the config), bail
+        if (name === "" || shaderFileSize === 0) {
             deffered.resolve();
             return;
         }
 
-        /**
-         * This jsonp handler is specific for shader details
-         * @param  {string} response
-         * @return {undef}
-         */
-        b = function(response) {
-            deffered.resolve(null, response);
-        };
+        var location = _config.shaderpath + '/' + name
 
-        //very important that this is a jsonp call - works around xdomain call to google drive
-        $.ajax({
-            url: location,
-            type: 'GET',
-            dataType: 'jsonp'
-        });
+        LoadResource(location,
+            //onProgress Update
+            function(loaded) {
+                _ProgressBar.Update('shader', loaded);
+            },
+            //onSuccess
+            function(response, status, jqXHR) {
+                try {
+                    response = JSON.parse(response);
+                } catch (e) {
+                    _PubSub.Publish('error', ['Shader Parse Error:', e]);
+                    return;
+                }
+                deffered.resolve(null, response);
+            },
+            //onFailure
+            function(jqXHR, status, error) {
+                _PubSub.Publish('error', ['Shader Retrieval Error:', jqXHR.status]);
+            }
+        );
     };
     
     //a common function for retirving anything dynamically
@@ -755,12 +761,3 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
 
     return this;
 });
-
-/**
- * globally defined jsonp deletegate. runs when jsonp is fetched. common scheme is to define a handler for calling jsonp
- * @param  {Object} response
- * @return {undef}
- */
-var jsonpDelegate;
-var b;
-var c; //support files for emulator (bios, etc)

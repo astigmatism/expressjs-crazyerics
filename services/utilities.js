@@ -293,6 +293,7 @@ UtilitiesService.collectDataForClient = function(req, openonload, callback) {
 
     //system details
     var systems = config.get('systems');
+    var emulators = config.get('emulators');
 
     configdata['systemdetails'] = {};
 
@@ -313,10 +314,10 @@ UtilitiesService.collectDataForClient = function(req, openonload, callback) {
                 'romcdnversion': systems[system].romcdnversion,
                 'emuextention': systems[system].emuextention,
                 'emuscript': systems[system].emuscript,
-                'emusize': systems[system].emusize,
+                'emusize': emulators[systems[system].emuscript].s, //the emu script is the key into this config
                 'retroarch': systems[system].retroarch,
                 'screenshotaspectratio': systems[system].screenshotaspectratio,
-                'supportfiles': systems[system].supportfiles
+                'supportfilesize': systems[system].supportfilesize
             };
 
             //optional

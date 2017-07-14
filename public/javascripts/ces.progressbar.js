@@ -20,7 +20,10 @@ var cesProgressBar = (function(_wrapper) {
         if (!_buckets.hasOwnProperty(name)) {
             return;
         }
+
         _buckets[name].progress = amount;
+
+        console.log('Progress ' + name + ': ' + amount + '/' + _buckets[name].total);
         Compute();
     };
 
@@ -38,7 +41,7 @@ var cesProgressBar = (function(_wrapper) {
         _bar = new ProgressBar.Line(_wrapper, {
             strokeWidth: 4,
             easing: 'easeInOut',
-            duration: 1400,
+            duration: 100,
             color: '#00B7FF',
             trailColor: '#eee',
             trailWidth: 1,
@@ -60,10 +63,7 @@ var cesProgressBar = (function(_wrapper) {
 
         var percentage = (totalProgress / totalSize);
 
-        console.log(percentage);
-
-        _bar.set(_currentComplete); //a percentage to start from since .Animate cannot keep up sometimes
-        //_bar.animate(percentage);
+        _bar.animate(percentage);
         _currentComplete = percentage;
     };
 

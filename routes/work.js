@@ -25,6 +25,8 @@ router.get('/emulatorprep', function(req, res, next) {
     var emulatorAssetLocation = 'https://dl.dropboxusercontent.com/u/1433808/crazyerics/emulators/' + EMULATOR_VERSION + '/'; //'/emulators/' + EMULATOR_VERSION + '/';
     var destinationPath = __dirname + '/../public/emulators/' + EMULATOR_VERSION;
 
+    var manifest = {};
+
     //open source folder
     fs.readdir(SOURE_PATH, function(err, emulatorfiles) {
         if (err) {
@@ -183,6 +185,9 @@ router.get('/emulatorprep', function(req, res, next) {
                             //get resulting filesize
                             fs.stat(destinationPath + '/' + emulatorfile, (err, stat) => {
 
+                                manifest[emulatorfile] = {};
+                                manifest[emulatorfile].s = stat.size;
+
                                 console.log('file size: ' + stats.size);
 
                                 nextemulatorfile();
@@ -196,6 +201,10 @@ router.get('/emulatorprep', function(req, res, next) {
                 if (err) {
                     return res.json(err);
                 }
+
+                console.log('copy this into config:');
+                console.log(manifest);
+
                 return res.json();
             });
         });

@@ -415,6 +415,8 @@ var cesMain = (function() {
                         var gameDetails = _Compression.Out.json(compressedGameDetails);
                         var saves = gameDetails.saves;
                         var files = gameDetails.files;
+                        var shaderFileSize = gameDetails.shaderFileSize; //will be 0 if no shader to load
+                        var supportFileSize = _config.systemdetails[system].supportfilesize; //will be 0 for systems without support
                         var info = {};
                         try {
                             info = JSON.parse(gameDetails.info);
@@ -423,10 +425,12 @@ var cesMain = (function() {
                         }
                         var filesize = gameDetails.size;
 
+                        _ProgressBar.AddBucket('done', filesize * 0.05); //this represents the final work I need to do before the game starts (prevents bar from showing 1 until totally done)
+
                         //begin loading all content. I know it seems like some of these (game, emulator, etc) could load while the user
                         //is viewing the shader select, but I found that when treated as background tasks, it interfere with the performance
                         //of the shader selection ui. I think its best to wait until the loading animation is up to perform all of these
-                        _Emulator.Load(_Emulator.createModule(), _ProgressBar, filesize, shaderselection.shader, emulatorLoadComplete);
+                        _Emulator.Load(_Emulator.createModule(), _ProgressBar, filesize, shaderselection.shader, shaderFileSize, supportFileSize, emulatorLoadComplete);
 
                         //when all deffered calls are ready
                         $.when(emulatorLoadComplete).done(function(emulatorLoaded) {
@@ -442,7 +446,7 @@ var cesMain = (function() {
                             _preventLoadingGame = false; //during save select, allow other games to load
 
                             //are there saves to load? Let's show a dialog to chose from, if not - will go straight to start
-                            _SaveSelection = new cesSaveSelection(_config, _Dialogs, _Emulator, _ProgressBar, system, $('#savedgameselector'), function(err, selectedSaveTimeStamp, selectedSavescreenshot) {
+                            _SaveSelection = new cesSaveSelection(_config, _Dialogs, _Emulator, system, $('#savedgameselector'), function(err, selectedSaveTimeStamp, selectedSavescreenshot) {
                                 
                                 if (selectedSaveTimeStamp) {
                                     ShowSaveLoading(system, selectedSavescreenshot);
@@ -457,6 +461,8 @@ var cesMain = (function() {
                                 //set an artificial timeout based on the amount of time the loading screen was up
                                 //lets ensure a minimum time has passed (see private vars)
                                 setTimeout(function() {
+
+                                    _ProgressBar.Update('done', 1); //complete the progress bar here
 
                                     // load state? bails if not set
                                     _Emulator.WriteSaveData(selectedSaveTimeStamp, function(stateToLoad) { //if save not set, bails on null

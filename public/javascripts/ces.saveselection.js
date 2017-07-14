@@ -1,7 +1,7 @@
 /**
  * Unlike the other "classes", save selection is more proceedural in operation. I basically wanted to remove this functionality from main
  */
-var cesSaveSelection = (function(_config, _Dialogs, _Emulator, _ProgressBar, _system, $wrapper, callback) {
+var cesSaveSelection = (function(_config, _Dialogs, _Emulator, _system, $wrapper, callback) {
 
     //private members
     var self = this;
@@ -13,8 +13,6 @@ var cesSaveSelection = (function(_config, _Dialogs, _Emulator, _ProgressBar, _sy
         callback('There are no recent saves to display');
         return;
     }
-
-    _ProgressBar.Animate(1); //finish progress bar now
 
     $('#savesselectlist').empty(); //clear from last time
 

@@ -265,42 +265,41 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _system, _title, _fi
 
             //games are stored compressed in json. due to javascript string length limits, these can be broken up into several segments for larger files.
             //the compressedGameFiles object contains data for all files and their segments
-            for (var gameFile in compressedGameData) {
+            if (compressedGameData.hasOwnProperty('b')) {
+                fileToLoad = _Compression.Unzip.string(compressedGameData.b);
+            }
+            
+            //the f property are files
+            if (compressedGameData.hasOwnProperty('f')) {
+                for (var gameFile in compressedGameData.f) {
 
-                //not all properties are game files exactly, I also store stuff there, special case these:
+                    //end special case
 
-                //the file to load (like cue files)
-                if (gameFile === '_b') {
-                    fileToLoad = _Compression.Unzip.string(compressedGameData[gameFile]);
-                    continue;
+                    var filename = _Compression.Unzip.string(gameFile);
+                    var compressedGame = compressedGameData.f[gameFile];
+                    var views = [];
+                    var bufferLength = 0;
+
+                    //begin by decopressing all compressed file segments
+                    for (i = 0; i < compressedGame.length; ++i) {
+                        var decompressed = _Compression.Unzip.string(compressedGame[i]);
+                        var view = pako.inflate(decompressed); //inflate compressed file contents (Uint8Array)
+                        bufferLength += view.length;
+                        views[i] = view;
+                    }
+
+                    //let's combine all file segments now by writing a new uint8array
+                    var gamedata = new Uint8Array(bufferLength);
+                    var bufferPosition = 0;
+
+                    for (i = 0; i < views.length; ++i) {
+                        gamedata.set(new Uint8Array(views[i]), bufferPosition);
+                        bufferPosition += views[i].length;
+                    }
+
+                    //write uncompressed game data to emu file system
+                    this.FS_createDataFile('/games', filename, gamedata, true, true);
                 }
-
-                //end special case
-
-                var filename = _Compression.Unzip.string(gameFile);
-                var compressedGame = compressedGameData[gameFile];
-                var views = [];
-                var bufferLength = 0;
-
-                //begin by decopressing all compressed file segments
-                for (i = 0; i < compressedGame.length; ++i) {
-                    var decompressed = _Compression.Unzip.string(compressedGame[i]);
-                    var view = pako.inflate(decompressed); //inflate compressed file contents (Uint8Array)
-                    bufferLength += view.length;
-                    views[i] = view;
-                }
-
-                //let's combine all file segments now by writing a new uint8array
-                var gamedata = new Uint8Array(bufferLength);
-                var bufferPosition = 0;
-
-                for (i = 0; i < views.length; ++i) {
-                    gamedata.set(new Uint8Array(views[i]), bufferPosition);
-                    bufferPosition += views[i].length;
-                }
-
-                //write uncompressed game data to emu file system
-                this.FS_createDataFile('/games', filename, gamedata, true, true);
             }
 
             //set the start file
@@ -312,9 +311,9 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _system, _title, _fi
 
             //emulator support, all files must go into system dir (BIOS files at least, what i'm using this for)
             this.FS_createFolder('/', 'system', true, true);
-            if (compressedSupprtData) {
-                for (var supportFile in compressedSupprtData) {
-                    var content = _Compression.Unzip.bytearray(compressedSupprtData[supportFile]);
+            if (compressedSupprtData && compressedSupprtData.f) {
+                for (var supportFile in compressedSupprtData.f) {
+                    var content = _Compression.Unzip.bytearray(compressedSupprtData.f[supportFile]);
                     var filename = _Compression.Unzip.string(supportFile);
                     try {
                         this.FS_createDataFile('/system', filename, content, true, true);
@@ -329,24 +328,22 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _system, _title, _fi
             var shaderPresetToLoad = null;
 
             //shader files, will be null if none used
-            if (compressedShaderData) {
-                var shaderFiles = _Compression.Unzip.json(compressedShaderData); //decompress shader files to json object of file names and data
+            if (compressedShaderData && compressedShaderData.hasOwnProperty('f')) {
+                for (var shaderFile in compressedShaderData.f) {
 
-                //if in coming shader parameter is an object, then it has shader files defined.
-                if (shaderFiles) {
+                    var filename = _Compression.Unzip.string(shaderFile);
+                    var content = _Compression.Unzip.bytearray(compressedShaderData.f[shaderFile]);
 
-                    for (var shaderfile in shaderFiles) {
-                        content = _Compression.Unzip.bytearray(shaderFiles[shaderfile]);
-                        try {
-                            this.FS_createDataFile('/shaders', shaderfile, content, true, true);
-                        } catch (e) {
-                            //an error on file write.
-                        }
+                    //write to emaultor
+                    try {
+                        this.FS_createDataFile('/shaders', filename, content, true, true);
+                    } catch (e) {
+                        //an error on file write.
+                    }
 
-                        //is file preset? if so, save to define in config for auto load
-                        if (shaderfile.match(/\.glslp$/g)) {
-                            shaderPresetToLoad = shaderfile;
-                        }
+                    //is file a glslp shader preset? if so, save to define in config for auto load
+                    if (filename.match(/\.glslp$/g)) {
+                        shaderPresetToLoad = filename;
                     }
                 }
             }

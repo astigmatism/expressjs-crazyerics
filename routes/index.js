@@ -72,6 +72,7 @@ router.post('/load/game', function(req, res, next) {
     var savePreference = req.body.savePreference; //should we save this shader selection for all games of this system?
     var game = UtilitiesService.decompress.json(key); //extract values
     var saves = {};
+    var shaderFileSize = 0;
 
     savePreference = (savePreference === 'true') ? true : false; //boolean correction
 
@@ -99,6 +100,11 @@ router.post('/load/game', function(req, res, next) {
             req.session.shaders[game.system] = shader;
         }
 
+        //if a shader was selected, return its filesize for the progress bar
+        if (shader) {
+            shaderFileSize = config.shaders[shader].s;
+        }
+
         //get saves used by this game
         SaveService.GetSavesForClient(req.sessionID, key, function(err, saveDocs) {
             if (err) {
@@ -116,7 +122,8 @@ router.post('/load/game', function(req, res, next) {
                     saves: saveDocs,
                     files: details.files, //rom files
                     info: details.info, //thegamesdb data
-                    size: details.size //file size data
+                    size: details.size, //file size data
+                    shaderFileSize: shaderFileSize //will be 0 if no shader to load
                 };
 
                 res.json(UtilitiesService.compress.json(result));
