@@ -88,23 +88,18 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
         _ProgressBar.AddBucket('shader', shaderFileSize); //will be 0 if no shader to load, not effecting the progress bar
         _ProgressBar.AddBucket('support', supportFileSize); //will be 0 if no support
 
-        //of all these tasks, because they are concurrant, the progress bar will only follow the game loading progress
         LoadEmulatorScript(_ProgressBar, _system, module, emulatorFileSize, emulatorLoadComplete);
+        LoadSupportFiles(_ProgressBar, _system, supportFileSize, supportLoadComplete);
+        LoadGame(_ProgressBar, filesize, gameLoadComplete);
+        LoadShader(_ProgressBar, shader, shaderFileSize, shaderLoadComplete);
 
-        $.when(emulatorLoadComplete).done(function(emulator) {
+        $.when(emulatorLoadComplete, supportLoadComplete, gameLoadComplete, shaderLoadComplete).done(function(emulator, support, game, shader) {
 
-            LoadSupportFiles(_ProgressBar, _system, supportFileSize, supportLoadComplete);
-            LoadGame(_ProgressBar, filesize, gameLoadComplete);
-            LoadShader(_ProgressBar, shader, shaderFileSize, shaderLoadComplete);
+            _isLoading = false;
 
-            $.when(supportLoadComplete, gameLoadComplete, shaderLoadComplete).done(function(support, game, shader) {
+            OnEmulatorLoadComplete(emulator, support, game, shader);
 
-                _isLoading = false;
-
-                OnEmulatorLoadComplete(emulator, support, game, shader);
-
-                deffered.resolve(true);
-            });
+            deffered.resolve(true);
         });
     };
 
@@ -608,7 +603,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
                 //evaluate the response text and place it in the global scope
                 $.globalEval(response); 
                 var emulatorScriptInstance = new cesRetroArchEmulator(module);
-                deffered.resolve([null, module, emulatorScriptInstance]);
+                deffered.resolve(null, module, emulatorScriptInstance);
             },
             //onFailure
             function(jqXHR, status, error) {
