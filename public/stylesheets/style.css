@@ -266,6 +266,14 @@ p {
 	border-radius: 1px;
 }
 
+.boxlabel-psx {
+	width: 95px;
+	height: 45px;
+	top: 10px;
+	left: 15px;
+	border-radius: 1px;
+}
+
 .boxlabel-a7800 {
 	width: 102px;
 	height: 138px;
