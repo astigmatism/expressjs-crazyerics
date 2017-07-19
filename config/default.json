@@ -24,11 +24,11 @@
 		"a2600": {
 			"name": "Atari 2600",
 			"shortname": "Atari 2600",
-			"live": false,
+			"live": true,
 			"supportfilesize": 0,
 			"collection": "Good2600 1.0.0",
 			"boxcdnversion": "2.0.4",
-			"romcdnversion": "Good26001.00",
+			"romcdnversion": "Good2600-1.00",
 			"emuextention": "2017-03-27",
 			"emuscript": "stella_libretro.js",
 			"recommendedshaders": [],
@@ -63,7 +63,7 @@
 		"gb": {
 			"name": "Nintendo Game Boy",
 			"shortname": "Game Boy",
-			"live": false,
+			"live": true,
 			"supportfilesize": 0,
 			"boxcdnversion": "2.0.5",
 			"romcdnversion": "GoodGbx-3.14",
@@ -92,10 +92,10 @@
 		"gba": {
 			"name": "Nintendo Game Boy Advance",
 			"shortname": "Game Boy Advance",
-			"live": false,
+			"live": true,
 			"supportfilesize": 0,
 			"boxcdnversion": "2.0.5",
-			"romcdnversion": "GoodGba3.23",
+			"romcdnversion": "GoodGba-3.23",
 			"collection": "GoodGba3.23",
 			"emuextention": "2017-03-27",
 			"emuscript": "vba_next_libretro.js",
@@ -103,7 +103,7 @@
 			"recommendedshaders": [
 				{
 					"title": "Game Boy Advance",
-					"shader": "handheld-lcd_cgwg-lcd-grid-v2-gba-color"
+					"shader": "borders-gameboy-player-gameboy-player-gba-color"
 				},
 				{
 					"title": "Smooth",
@@ -180,10 +180,10 @@
 			"name": "Atari Jaguar",
 			"shortname": "Atari Jaguar",
 			"collection":"GoodJag 2.01",
-			"live": false,
+			"live": true,
 			"supportfilesize": 0,
 			"boxcdnversion": "2.0.3",
-			"romcdnversion": "GoodJag2.01",
+			"romcdnversion": "GoodJag-2.01",
 			"emuextention": "2017-03-27",
 			"emuscript": "virtualjaguar_libretro.js",
 			"recommendedshaders": [],
@@ -192,11 +192,11 @@
 		"lynx": {
 			"name": "Atari Lynx",
 			"shortname": "Atari Lynx",
-			"live": false,
+			"live": true,
 			"supportfilesize": 0,
 			"collection":"GoodLynx 2.01",
 			"boxcdnversion": "2.0.2",
-			"romcdnversion": "GoodLynx2.01",
+			"romcdnversion": "GoodLynx-2.01",
 			"emuextention": "2017-03-27",
 			"emuscript": "handy_libretro.js",
 			"recommendedshaders": [],
@@ -205,7 +205,7 @@
 		"n64": {
 			"name": "Nintendo 64",
 			"shortname": "Nintendo 64",
-			"live": false,
+			"live": true,
 			"supportfilesize": 0,
 			"collection": "GoodN64 3.27",
 			"boxcdnversion": "2.0.4",
@@ -300,7 +300,7 @@
 		"psx": {
 			"name": "Sony PlayStation",
 			"shortname": "PlayStation",
-			"live": true,
+			"live": false,
 			"supportfilesize": 1185249,
 			"boxcdnversion": "2.0.0",
 			"romcdnversion": "test",
@@ -312,7 +312,7 @@
 		"segacd": {
 			"name": "Sega CD",
 			"shortname": "Sega CD",
-			"live": true,
+			"live": false,
 			"supportfilesize": 435277,
 			"boxcdnversion": "2.0.2",
 			"romcdnversion": "test",
@@ -393,7 +393,7 @@
 		"vect": {
 			"name": "Vectrex",
 			"shortname": "Vectrex",
-			"live": false,
+			"live": true,
 			"supportfilesize": 0,
 			"collection": "GoodVect 1.06",
 			"boxcdnversion": "2.0.4",
