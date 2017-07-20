@@ -89,17 +89,21 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
         _ProgressBar.AddBucket('support', supportFileSize); //will be 0 if no support
 
         LoadEmulatorScript(_ProgressBar, _system, module, emulatorFileSize, emulatorLoadComplete);
-        LoadSupportFiles(_ProgressBar, _system, supportFileSize, supportLoadComplete);
-        LoadGame(_ProgressBar, filesize, gameLoadComplete);
-        LoadShader(_ProgressBar, shader, shaderFileSize, shaderLoadComplete);
+        
+        $.when(emulatorLoadComplete).done(function(emulator) {
 
-        $.when(emulatorLoadComplete, supportLoadComplete, gameLoadComplete, shaderLoadComplete).done(function(emulator, support, game, shader) {
+            LoadSupportFiles(_ProgressBar, _system, supportFileSize, supportLoadComplete);
+            LoadGame(_ProgressBar, filesize, gameLoadComplete);
+            LoadShader(_ProgressBar, shader, shaderFileSize, shaderLoadComplete);
 
-            _isLoading = false;
+            $.when(emulatorLoadComplete, supportLoadComplete, gameLoadComplete, shaderLoadComplete).done(function(emulator, support, game, shader) {
 
-            OnEmulatorLoadComplete(emulator, support, game, shader);
+                _isLoading = false;
 
-            deffered.resolve(true);
+                OnEmulatorLoadComplete(emulator, support, game, shader);
+
+                deffered.resolve(true);
+            });
         });
     };
 
@@ -603,7 +607,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
                 //evaluate the response text and place it in the global scope
                 $.globalEval(response); 
                 var emulatorScriptInstance = new cesRetroArchEmulator(module);
-                deffered.resolve(null, module, emulatorScriptInstance);
+                deffered.resolve([null, module, emulatorScriptInstance]);
             },
             //onFailure
             function(jqXHR, status, error) {
