@@ -191,100 +191,6 @@ UtilitiesService.onApplicationStart = function(callback) {
     });
 };
 
-//this function returns all details given a system and a title. must be exact matches to datafile!
-//also returns hasboxart flag and any info (ripped from thegamesdb)
-UtilitiesService.findGame = function(system, title, file, callback) {
-
-    //I found it faster to save all the results in a cache rather than load all the caches to create the result.
-    //went from 120ms response to about 30ms
-    FileService.getCache(system + title + file, function(err, data) {
-        if (err) {
-            return callback(err);
-        }
-
-        //if already returned, use cache
-        if (data) {
-            return callback(null, data);
-        }
-
-        var data = {
-            system: null,
-            title: null,
-            file: null,
-            files: null,
-            boxart: null,
-            info: null,
-            size: null
-        };
-
-        //open data file for details
-        FileService.getFile('/data/' + system + '_master', function(err, masterFile) {
-            if (err) {
-                return callback(err);
-            }
-
-            //if title found in datafile.. we can find data anywhere since all data is constructed from the original datafile!
-            if (masterFile[title] && masterFile[title].f[file]) {
-
-                data.system = system;
-                data.title = title;
-                data.file = file;
-                data.files = masterFile[title].f;
-
-                //is there box art too?
-                FileService.getFile('/data/' + system + '_boxart', function(err, boxartgames) {
-                    if (err) {
-                        //no need to trap here
-                    } else {
-
-                        if (boxartgames[title]) {
-                            data.boxart = boxartgames[title];
-                        }
-                    }
-
-                    //get filesize so we have calc download progress
-                    FileService.getFile('/data/' + system + '_filedata', function(err, filedata) {
-                        if (err) {
-                            //no need to trap here
-                            console.log(err);
-                        } else {
-
-                            //the compressed file name matches the cdnready (or file uploaded to dropbox) filename
-                            var compressedFileName = UtilitiesService.compress.string(title + file);
-                            var compressedFileName = encodeURIComponent(compressedFileName);
-
-                            if (filedata[compressedFileName] && filedata[compressedFileName].s) {
-                                data.size = filedata[compressedFileName].s;
-                            }
-                        }
-
-                        
-                        //is there info?
-                        FileService.getFile('/data/' + system + '_thegamesdb', function(err, thegamesdb) {
-                            if (err) {
-                                console.log(err);
-                                //no need to trap here
-                            } else {
-
-                                if (thegamesdb[title]) {
-                                    data.info = thegamesdb[title];
-                                }
-                            }
-                            FileService.setCache(system + title + file, data);
-
-                            return callback(null, data);
-                        });
-                    });
-                });
-
-            } else {
-                return callback('title: "' + title + '" not found for ' + system + ' or file: "' + file + '" not found in title folder: "' + title + '"');
-            }
-        });
-
-    });
-};
-
 UtilitiesService.collectDataForClient = function(req, openonload, callback) {
 
     var playerdata = {};
@@ -302,7 +208,6 @@ UtilitiesService.collectDataForClient = function(req, openonload, callback) {
         
         //if system is "live" (ready to show for production)
         if (systems[system].live) {
-
 
             //a white list of config settings available to client:
 

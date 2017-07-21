@@ -470,7 +470,7 @@ var cesMain = (function() {
                                         //begin game, callback is function which handles expections for any emulator error
                                         _Emulator.BeginGame(function(e) {
                                             clearInterval(tipInterval);
-                                            _PubSub.Publish('error', ['There was error with the emulator:', e]);
+                                            _PubSub.Publish('error', ['There was an error with the emulator:', e]);
                                         });
 
                                         //before going any further, we can correctly assume that once the config
@@ -512,7 +512,7 @@ var cesMain = (function() {
                                                             });
 
                                                         //reveal emulator
-                                                        _Emulator.Show(); //also input is given to canvas in this step
+                                                        _Emulator.Show(); //control is game is given at this step
 
                                                         $('#emulator').focus(); //give focus (also calls resume game, I took care of the oddities :P)
 

@@ -18,6 +18,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
     var _isSavingState = false;
     var _isLoadingState = false;
     var _hasStateToLoad = false; //flag for whether it is possible to load state
+    var _gameBeganPlaying = false;
 
     var _displayDurationShow = 1000;
     var _displayDurationHide = 500;
@@ -59,9 +60,6 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
             }
         }
 
-        //attach operation handlers
-        AttachOperationHandlers();
-
         //pub subs
         _PubSub.Subscribe('saveready', self, OnNewSaveSubscription);
     };
@@ -89,21 +87,17 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
         _ProgressBar.AddBucket('support', supportFileSize); //will be 0 if no support
 
         LoadEmulatorScript(_ProgressBar, _system, module, emulatorFileSize, emulatorLoadComplete);
-        
-        $.when(emulatorLoadComplete).done(function(emulator) {
+        LoadSupportFiles(_ProgressBar, _system, supportFileSize, supportLoadComplete);
+        LoadGame(_ProgressBar, filesize, gameLoadComplete);
+        LoadShader(_ProgressBar, shader, shaderFileSize, shaderLoadComplete);
 
-            LoadSupportFiles(_ProgressBar, _system, supportFileSize, supportLoadComplete);
-            LoadGame(_ProgressBar, filesize, gameLoadComplete);
-            LoadShader(_ProgressBar, shader, shaderFileSize, shaderLoadComplete);
+        $.when(emulatorLoadComplete, supportLoadComplete, gameLoadComplete, shaderLoadComplete).done(function(emulator, support, game, shader) {
 
-            $.when(emulatorLoadComplete, supportLoadComplete, gameLoadComplete, shaderLoadComplete).done(function(emulator, support, game, shader) {
+            _isLoading = false;
 
-                _isLoading = false;
+            OnEmulatorLoadComplete(emulator, support, game, shader);
 
-                OnEmulatorLoadComplete(emulator, support, game, shader);
-
-                deffered.resolve(true);
-            });
+            deffered.resolve(true);
         });
     };
 
@@ -187,6 +181,11 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
         $(_ui.wrapper).fadeIn(_displayDurationShow, function() {
 
             self.GiveEmulatorControlOfInput(true);
+
+            //attach operation handlers
+            AttachOperationHandlers();
+
+            _gameBeganPlaying = Date.now();
 
             if (callback) {
                 callback();
@@ -607,7 +606,12 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
                 //evaluate the response text and place it in the global scope
                 $.globalEval(response); 
                 var emulatorScriptInstance = new cesRetroArchEmulator(module);
-                deffered.resolve([null, module, emulatorScriptInstance]);
+                
+                console.log('emulator done');
+
+                setTimeout(function() {
+                    deffered.resolve(null, module, emulatorScriptInstance);
+                }, 5000);
             },
             //onFailure
             function(jqXHR, status, error) {
@@ -690,6 +694,8 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
                     _PubSub.Publish('error', ['Game Parse Error:', e]);
                     return;
                 }
+
+                console.log('game done');
                 deffered.resolve(null, response);
             },
             //onFailure

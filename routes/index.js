@@ -3,6 +3,7 @@ var router = express.Router();
 var config = require('config');
 var fs = require('fs');
 var SaveService = require('../services/saveservice.js');
+var GameService = require('../services/gameservice.js');
 var UtilitiesService = require('../services/utilities.js');
 var SearchService = require('../services/search.js');
 
@@ -76,60 +77,70 @@ router.post('/load/game', function(req, res, next) {
 
     savePreference = (savePreference === 'true') ? true : false; //boolean correction
 
-    if (req.session) {
-        
-        //create games and history objects if not in session memory
-        req.session.games = req.session.games ? req.session.games : {};
-        req.session.games.history = req.session.games.history ? req.session.games.history : {};
+    //ensure a record of this game exists
+    GameService.PlayRequest(key, function(err, details) {
+        if (err) {
+            return res.json(err);
+        }
 
-        //this is override the same key (game) with more recent data
-        if (key in req.session.games.history) {
+        //GameService.IncrementPlayCount(key); //no callback necessary
+            
+        if (req.session) {
 
-        } else {
-            req.session.games.history[key] = {
-                system: game.system,
-                title: game.title,
-                file: game.file
+            //create games and history objects if not in session memory
+            req.session.games = req.session.games ? req.session.games : {};
+            req.session.games.history = req.session.games.history ? req.session.games.history : {};
+
+            //this is override the same key (game) with more recent data
+            if (key in req.session.games.history) {
+
+            } else {
+                req.session.games.history[key] = {
+                    system: game.system,
+                    title: game.title,
+                    file: game.file
+                }
             }
-        }
-        req.session.games.history[key].played = Date.now();
+            req.session.games.history[key].played = Date.now();
 
-        //did the user check the box for using this shader for all future system games?
-        if (savePreference) {
-            req.session.shaders = req.session.shaders ? req.session.shaders : {};
-            req.session.shaders[game.system] = shader;
-        }
-
-        //if a shader was selected, return its filesize for the progress bar
-        if (shader) {
-            shaderFileSize = config.shaders[shader].s;
-        }
-
-        //get saves used by this game
-        SaveService.GetSavesForClient(req.sessionID, key, function(err, saveDocs) {
-            if (err) {
-                //there's really nothing I can do at this point, simply return a null set of saves
-                saveDocs = {};
+            //did the user check the box for using this shader for all future system games?
+            if (savePreference) {
+                req.session.shaders = req.session.shaders ? req.session.shaders : {};
+                req.session.shaders[game.system] = shader;
             }
 
-            //also return the game files used by this title (for selecting a different file to load)
-            UtilitiesService.findGame(game.system, game.title, game.file, function(err, details) {
+            //if a shader was selected, return its filesize for the progress bar
+            if (shader) {
+                shaderFileSize = config.shaders[shader].s;
+            }
+
+            //get saves used by this game
+            SaveService.GetSavesForClient(req.sessionID, key, function(err, saveDocs) {
                 if (err) {
-                    return res.json(err);
+                    //there's really nothing I can do at this point, simply return a null set of saves
+                    saveDocs = {};
                 }
 
-                var result = {
-                    saves: saveDocs,
-                    files: details.files, //rom files
-                    info: details.info, //thegamesdb data
-                    size: details.size, //file size data
-                    shaderFileSize: shaderFileSize //will be 0 if no shader to load
-                };
+                //also return the game files used by this title (for selecting a different file to load)
+                UtilitiesService.findGame(game.system, game.title, game.file, function(err, details) {
+                    if (err) {
+                        return res.json(err);
+                    }
 
-                res.json(UtilitiesService.compress.json(result));
+                    var result = {
+                        saves: saveDocs,
+                        files: details.files, //rom files
+                        info: details.info, //thegamesdb data
+                        size: details.size, //file size data
+                        shaderFileSize: shaderFileSize //will be 0 if no shader to load
+                    };
+
+                    res.json(UtilitiesService.compress.json(result));
+                });
             });
-        });
-    }
+        }
+
+    });
 });
 
 //a simple rest endpoint used for testing returning of game data. please comment out

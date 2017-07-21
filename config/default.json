@@ -71,7 +71,7 @@
 			"emuextention": "2017-03-27",
 			"emuscript": "gambatte_libretro.js",
 			"screenshotaspectratio": 1.11,
-			"recommendedshaders": [ 
+			"recommendedshaders": [
 				{
 					"title": "Game Boy Advance",
 					"shader": "handheld-lcd_cgwg-lcd-grid-v2-gba-color"
