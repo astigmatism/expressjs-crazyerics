@@ -18,11 +18,19 @@ GameService.PlayRequest = function(gameKey, callback) {
         if (err) {
             return callback(err);
         }
+        
+        GameService.IncrementPlayCount(game.system, game.title, game.file, (err) => {
+            if (err) {
+                return callback(err);
+            }
 
-        GameService.IncrementPlayCount(game.system, game.title, game.file);
-
-        //get details
-
+            GameService.GetGameDetails(game.system, game.title, game.file, (err, details) => {
+                if (err) {
+                    return callback(err);
+                }
+                callback(null, details);
+            });
+        });
     });
 
 
@@ -46,26 +54,47 @@ GameService.Exist = function(system, title, file, callback) {
     });
 };
 
-GameService.IncrementPlayCount = function(system, title, file) {
+GameService.IncrementPlayCount = function(system, title, file, callback) {
 
-    GamesModel.findOneAndUpdate({ 
+    //get record to check for existance of file first
+    GamesModel.findOne({ 
         system: system,
         title: title
-    }, function(err, result) {
+    }, {}, function(err, result) {
+
+        var files = result._doc.files;
         
-        //sometimes filenames are weird characters
+        //files have dots in their name and mongo cannot store that
         var cFile = UtilitiesService.compress.string(file);
 
-        if (!result.files.hasOwnProperty(cFile)) {
-            console.log('could not find file entry');
+        if (!files.hasOwnProperty(cFile)) {
+            files[cFile] = {
+                lastPlayed: Date.now(),
+                playCount: 0
+            }
         }
+
+        files[cFile].lastPlayed = Date.now();
+        files[cFile].playCount += 1;
+
+        GamesModel.findOneAndUpdate({
+            system: system,
+            title: title
+        },{
+            files: files
+        }, function(err, result) {
+            if (err) {
+                return callback(err);
+            }
+            callback(null, result);
+        });
 
     });
 };
 
 //this function returns all details given a system and a title. must be exact matches to datafile!
 //also returns hasboxart flag and any info (ripped from thegamesdb)
-GameService.findGame = function(system, title, file, callback) {
+GameService.GetGameDetails = function(system, title, file, callback) {
 
     //I found it faster to save all the results in a cache rather than load all the caches to create the result.
     //went from 120ms response to about 30ms

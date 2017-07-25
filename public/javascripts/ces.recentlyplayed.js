@@ -14,7 +14,7 @@ var cesRecentlyPlayed = (function(config, _Compression, _PlayGame, $wrapper, _in
         
         sortAscending = sortAscending === true || false;
 
-        //ensure data is up to date
+        //ensure data is up to date5
         _grid.isotope('updateSortData').isotope();
 
         _grid.isotope({ 
