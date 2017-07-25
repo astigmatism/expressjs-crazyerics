@@ -82,8 +82,6 @@ router.post('/load/game', function(req, res, next) {
         if (err) {
             return res.json(err);
         }
-
-        //GameService.IncrementPlayCount(key); //no callback necessary
             
         if (req.session) {
 
@@ -121,22 +119,15 @@ router.post('/load/game', function(req, res, next) {
                     saveDocs = {};
                 }
 
-                //also return the game files used by this title (for selecting a different file to load)
-                UtilitiesService.findGame(game.system, game.title, game.file, function(err, details) {
-                    if (err) {
-                        return res.json(err);
-                    }
+                var result = {
+                    saves: saveDocs,
+                    files: details.files, //rom files
+                    info: details.info, //thegamesdb data
+                    size: details.size, //file size data
+                    shaderFileSize: shaderFileSize //will be 0 if no shader to load
+                };
 
-                    var result = {
-                        saves: saveDocs,
-                        files: details.files, //rom files
-                        info: details.info, //thegamesdb data
-                        size: details.size, //file size data
-                        shaderFileSize: shaderFileSize //will be 0 if no shader to load
-                    };
-
-                    res.json(UtilitiesService.compress.json(result));
-                });
+                res.json(UtilitiesService.compress.json(result));
             });
         }
 
