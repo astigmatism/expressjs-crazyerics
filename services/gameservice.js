@@ -19,7 +19,7 @@ GameService.PlayRequest = function(gameKey, callback) {
             return callback(err);
         }
 
-        GameService.IncrementPlayCount(system, title, file);
+        GameService.IncrementPlayCount(game.system, game.title, game.file);
 
         //get details
 
@@ -34,7 +34,7 @@ GameService.Exist = function(system, title, file, callback) {
     GamesModel.findOneAndUpdate({
         system: system,
         title: title 
-    }, gameInstance, { 
+    }, {}, { 
         upsert: true, 
         new: true, 
         setDefaultsOnInsert: true 

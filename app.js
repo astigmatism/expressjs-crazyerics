@@ -18,6 +18,7 @@ var routes = require('./routes/index');
 var states = require('./routes/states');
 var suggest = require('./routes/suggest');
 var work = require('./routes/work');
+var games = require('./routes/games');
 
 var app = express();
 
@@ -52,6 +53,7 @@ app.use(session({
 app.use('/', routes);
 app.use('/states', states);
 app.use('/suggest', suggest);
+app.use('/games', games);
 
 if (app.get('env') === 'development') {
     app.use('/work', work);

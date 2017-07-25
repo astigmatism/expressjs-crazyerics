@@ -902,7 +902,7 @@ var cesMain = (function() {
 
         //call returns not only states but misc game details. I tried to make this
         //part of the LoadGame call but the formatting for the compressed game got weird
-        $.post('/load/game', {
+        $.post('/games/load', {
             'key': encodeURIComponent(key),
             'shader': options.shader,
             'savePreference': options.savePreference
