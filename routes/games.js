@@ -36,7 +36,7 @@ router.post('/load', function(req, res, next) {
     //ensure a record of this game exists
     GameService.PlayRequest(key, function(err, details) {
         if (err) {
-            return res.json(err);
+            res.status(500).send(err);
         }
             
         if (req.session) {
@@ -76,7 +76,7 @@ router.post('/load', function(req, res, next) {
                 }
 
                 //also return the game files used by this title (for selecting a different file to load)
-                UtilitiesService.findGame(game.system, game.title, game.file, function(err, details) {
+                GameService.GetGameDetails(game.system, game.title, game.file, function(err, details) {
                     if (err) {
                         return res.json(err);
                     }
@@ -89,7 +89,7 @@ router.post('/load', function(req, res, next) {
                         shaderFileSize: shaderFileSize //will be 0 if no shader to load
                     };
 
-                    res.json(null, UtilitiesService.compress.json(result));
+                    res.json(UtilitiesService.compress.json(result));
                 });
             });
         }
