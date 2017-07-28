@@ -11,7 +11,7 @@ var collectionsSchema = new Schema({
 
 // the schema is useless so far
 // we need to create a model using it
-var Save = mongoose.model('Save', savesSchema);
+var Collection = mongoose.model('Collection', collectionsSchema);
 
 // make this available to our users in our Node applications
-module.exports = Save;
+module.exports = Collection;

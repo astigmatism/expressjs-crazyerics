@@ -10,6 +10,7 @@ var favicon = require('serve-favicon');
 var mongoose = require('mongoose');
 var session = require('express-session');
 var UtilitiesService = require('./services/utilities');
+var UsersService = require('./services/users');
 var MongoStore = require('connect-mongo')(session);
 
 mongoose.connect('mongodb://localhost/crazyerics');
@@ -37,6 +38,15 @@ app.use(express.static(path.join(__dirname, 'workspace')));
 
 app.use(favicon(__dirname + '/public/favicon.ico'));
 
+//set up sessions
+
+var mongoStore = new MongoStore({
+    mongooseConnection: mongoose.connection
+});
+mongoStore.on('create', function(sessionId) {
+    UsersService.OnSessionCreation(sessionId);
+});
+
 app.use(session({
     secret: 'ill have what im having',
     cookie: {
@@ -45,9 +55,7 @@ app.use(session({
     saveUninitialized: true, //this saves uninitiallized sessions making it so that simply visiting the site resets expiration
     resave: true, //Forces the session to be saved back to the session store, even if the session was never modified during the request.
     rolling: true, //Force a session identifier cookie to be set on every response. 
-    store: new MongoStore({
-        mongooseConnection: mongoose.connection
-    })
+    store: mongoStore
 }));
 
 app.use('/', routes);
@@ -65,7 +73,6 @@ app.use(function(req, res, next) {
     err.status = 404;
     next(err);
 });
-
 
 //run on app start
 UtilitiesService.onApplicationStart(function() {
