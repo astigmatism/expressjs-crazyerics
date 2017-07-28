@@ -1,3 +1,5 @@
+//the linking table for sessions mapping to users
+
 var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 
