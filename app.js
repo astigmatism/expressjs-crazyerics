@@ -46,6 +46,9 @@ var mongoStore = new MongoStore({
 mongoStore.on('create', function(sessionId) {
     UsersService.OnSessionCreation(sessionId);
 });
+mongoStore.on('update', function(sessionId) {
+    UsersService.OnSessionUpdate(sessionId);
+});
 
 app.use(session({
     secret: 'ill have what im having',

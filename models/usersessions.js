@@ -3,8 +3,9 @@ var Schema = mongoose.Schema;
 
 
 var userSessionsSchema = new Schema({
-    userid: String,
-    sessionid: String
+    userId: String,
+    sessionId: String,
+    lastActivity: { type: Date, default: Date.now }
 });
 
 // the schema is useless so far

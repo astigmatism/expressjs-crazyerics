@@ -6,7 +6,11 @@ var gamesSchema = new Schema({
 	key: String,
 	system: String,
 	title: String,
-    files: {type: Object, default: {}}
+    files: [{
+		name: String,
+		lastPlayed: { type: Date, default: Date.now },
+		playCount: { type: Number, default: 0 }
+	}]
 });
 
 // the schema is useless so far

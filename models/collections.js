@@ -3,10 +3,14 @@ var Schema = mongoose.Schema;
 
 
 var collectionsSchema = new Schema({
-	sessionId: String,
-	dateCreated: Number,
-    gameKeys: Array,
-    title: String
+	userId: String,
+	created: { type: Date, default: Date.now },
+    title: String,
+    games: [{
+        key: String,
+        lastPlayed: { type: Date, default: Date.now },
+        played: {type: Number, default: 0 }
+    }]
 });
 
 // the schema is useless so far

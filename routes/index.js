@@ -2,8 +2,8 @@ var express = require('express');
 var router = express.Router();
 var config = require('config');
 var fs = require('fs');
-var SaveService = require('../services/saveservice.js');
-var GameService = require('../services/gameservice.js');
+var SaveService = require('../services/saves.js');
+var GameService = require('../services/games.js');
 var UtilitiesService = require('../services/utilities.js');
 var SearchService = require('../services/search.js');
 
