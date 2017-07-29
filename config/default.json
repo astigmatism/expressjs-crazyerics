@@ -8,6 +8,15 @@
 	"supportpath": "https://dl.dropboxusercontent.com/u/1433808/crazyerics/support",
 	"dropboxaccesstoken": "m62ox__hvx4AAAAAAAg-wsMqXLg0V57RxRTk-PBFM3gKS23cOjrpY5y7x6aSZMRA",
 	"maxSavesPerGame": 60,
+	"db": {
+		"postgre": {
+			"host": "localhost",
+			"user": "crazyerics",
+			"max": 20,
+			"idleTimeoutMillis": 30000,
+			"connectionTimeoutMillis": 2000
+		}
+	},
 	"systems": {
 		"32x": {
 			"name": "Sega 32x",

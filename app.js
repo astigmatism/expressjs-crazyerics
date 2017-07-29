@@ -7,13 +7,15 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var favicon = require('serve-favicon');
-var mongoose = require('mongoose');
+//var mongoose = require('mongoose');
+var pg = require('pg');
 var session = require('express-session');
+var pgSession = require('connect-pg-simple')(session);
 var UtilitiesService = require('./services/utilities');
 var UsersService = require('./services/users');
-var MongoStore = require('connect-mongo')(session);
+//var MongoStore = require('connect-mongo')(session);
 
-mongoose.connect('mongodb://localhost/crazyerics');
+//mongoose.connect('mongodb://localhost/crazyerics');
 
 var routes = require('./routes/index');
 var states = require('./routes/states');
@@ -39,14 +41,14 @@ app.use(express.static(path.join(__dirname, 'workspace')));
 app.use(favicon(__dirname + '/public/favicon.ico'));
 
 //set up sessions
-
-var mongoStore = new MongoStore({
-    mongooseConnection: mongoose.connection
-});
-mongoStore.on('create', function(sessionId) {
+var pgStore = new pgSession({
+    pool : new pg.Pool(config.get('db.postgre')),
+    tableName : 'sessions'
+})
+pgStore.on('create', function(sessionId) {
     UsersService.OnSessionCreation(sessionId);
 });
-mongoStore.on('update', function(sessionId) {
+pgStore.on('update', function(sessionId) {
     UsersService.OnSessionUpdate(sessionId);
 });
 
@@ -58,7 +60,7 @@ app.use(session({
     saveUninitialized: true, //this saves uninitiallized sessions making it so that simply visiting the site resets expiration
     resave: true, //Forces the session to be saved back to the session store, even if the session was never modified during the request.
     rolling: true, //Force a session identifier cookie to be set on every response. 
-    store: mongoStore
+    store: pgStore
 }));
 
 app.use('/', routes);
