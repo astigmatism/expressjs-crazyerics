@@ -42,13 +42,9 @@ GameService.Exist = function(system, title, file, callback) {
     GamesModel.findOneAndUpdate({
         system: system,
         title: title
-    }, {
-        files: {
-            name: UtilitiesService.compress.string(file) //files have dots in their name and mongo cannot store that
-        }
-    }, { 
+    }, {}, { 
         upsert: true, 
-        new: true, 
+        new: true,
         setDefaultsOnInsert: true 
     }, (err, result) => {
         if (err) {
@@ -60,83 +56,57 @@ GameService.Exist = function(system, title, file, callback) {
 
 GameService.IncrementPlayCount = function(system, title, file, callback) {
 
-    GamesModel.findOneAndUpdate({
-        'system': system,
-        'title': title,
-        'files.name':  UtilitiesService.compress.string(file),
-    }, {
-        files: { '$.lastPlayed': Date.now() },
-        $inc: {
-            files: { '$.playCount': 1 }
-        }
-    }, (err, result) => {
-        if (err) {
-            return callback(err);
-        }
-        callback(null, result);
-    });
-
-    // GamesModel.findOne({
+    // GamesModel.findOneAndUpdate({
     //     'system': system,
     //     'title': title,
-    //     'files.name':  UtilitiesService.compress.string(file)
-    // })
-    // .exec((err, result) => {
-
-    //     if (result.files.length > 0) {
-    //         result.files[0].lastPlayed = Date.now();
-    //         result.files[0].playCount += 1;
+    //     'files.name':  UtilitiesService.compress.string(file),
+    // }, {
+    //     files: { '$.lastPlayed': Date.now() },
+    //     $inc: {
+    //         files: { '$.playCount': 1 }
     //     }
-    // });
-
-    // GamesModel.findOneAndUpdate({
-    //     system: system,
-    //     title: title 
-    // }, {}, { 
-    //     upsert: true, 
-    //     new: true, 
-    //     setDefaultsOnInsert: true 
-    // }, function(err, result) {
+    // }, (err, result) => {
     //     if (err) {
     //         return callback(err);
     //     }
     //     callback(null, result);
     // });
 
-    //get record to check for existance of file first
-    // GamesModel.findOne({ 
-    //     system: system,
-    //     title: title
-    // }, {}, function(err, result) {
-
-    //     var files = result._doc.files;
+    //in the end it was just easier to get the document and then save it back
+    GamesModel.findOne({
+        'system': system,
+        'title': title,
+    })
+    .exec((err, result) => {
         
-    //     //files have dots in their name and mongo cannot store that
-    //     var cFile = UtilitiesService.compress.string(file);
+        //files have dots in their name and mongo cannot store that
+        var cFile = UtilitiesService.compress.string(file);
 
-    //     if (!files.hasOwnProperty(cFile)) {
-    //         files[cFile] = {
-    //             lastPlayed: Date.now(),
-    //             playCount: 0
-    //         }
-    //     }
+        if (!result.files.hasOwnProperty(cFile)) {
+            result.files[cFile] = {
+                lastPlayed: Date.now(),
+                playCount: 0
+            }
+        }
 
-    //     files[cFile].lastPlayed = Date.now();
-    //     files[cFile].playCount += 1;
+        result.files[cFile].lastPlayed = Date.now();
+        result.files[cFile].playCount += 1;
 
-    //     GamesModel.findOneAndUpdate({
-    //         system: system,
-    //         title: title
-    //     },{
-    //         files: files
-    //     }, function(err, result) {
-    //         if (err) {
-    //             return callback(err);
-    //         }
-    //         callback(null, result);
-    //     });
+        if (result.files.length > 0) {
+            result.files[0].lastPlayed = Date.now();
+            result.files[0].playCount += 1;
 
-    // });
+            result.save((err, result) => {
+                if (err) {
+                    return callback(err);
+                }
+                callback(null, result);
+            });
+        }
+        else {
+            return callback('GameService.IncrementPlayCount: Result not formatted correcty.', result)
+        }
+    });
 };
 
 //this function returns all details given a system and a title. must be exact matches to datafile!
