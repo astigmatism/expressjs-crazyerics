@@ -5,7 +5,11 @@ var Schema = mongoose.Schema;
 var usersSchema = new Schema({
     username: String,
     email: String,
-    created: { type: Date, default: Date.now }
+    created: { type: Date, default: Date.now },
+    sessions: [{ 
+        id: String,
+        lastActivity: { type: Date, default: Date.now }
+    }]
 });
 
 // the schema is useless so far

@@ -3,7 +3,6 @@ var Schema = mongoose.Schema;
 
 
 var gamesSchema = new Schema({
-	key: String,
 	system: String,
 	title: String,
     files: [{
