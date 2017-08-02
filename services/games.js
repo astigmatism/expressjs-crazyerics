@@ -1,6 +1,5 @@
 var async = require('async');
 var config = require('config');
-var GamesModel = require('../models/games');
 var FileService = require('../services/fileservice.js');
 var UtilitiesService = require('../services/utilities.js');
 //mongoose: http://mongoosejs.com/docs/api.html
@@ -14,24 +13,26 @@ GameService.PlayRequest = function(gameKey, callback) {
     //break this down into meaningful values ;)
     var game = UtilitiesService.decompress.json(gameKey);
 
-    GameService.Exist(game.system, game.title, game.file, (err, result) => {
+     GameService.GetGameDetails(game.system, game.title, game.file, (err, details) => {
         if (err) {
             return callback(err);
         }
-        
-        GameService.IncrementPlayCount(game.system, game.title, game.file, (err) => {
-            if (err) {
-                return callback(err);
-            }
-
-            GameService.GetGameDetails(game.system, game.title, game.file, (err, details) => {
-                if (err) {
-                    return callback(err);
-                }
-                callback(null, details);
-            });
-        });
+        callback(null, details);
     });
+
+    // GameService.Exist(game.system, game.title, game.file, (err, result) => {
+    //     if (err) {
+    //         return callback(err);
+    //     }
+        
+    //     GameService.IncrementPlayCount(game.system, game.title, game.file, (err) => {
+    //         if (err) {
+    //             return callback(err);
+    //         }
+
+           
+    //     });
+    // });
 
 
 };

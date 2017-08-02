@@ -44,29 +44,27 @@ app.use(favicon(__dirname + '/public/favicon.ico'));
 var pgStore = new pgSession({
     pool : new pg.Pool(config.get('db.postgre')),
     tableName : 'sessions'
-})
-pgStore.on('create', function(sessionId) {
-    UsersService.OnSessionCreation(sessionId);
-});
-pgStore.on('update', function(sessionId) {
-    UsersService.OnSessionUpdate(sessionId);
 });
 
-app.use(session({
+var _session = session({
     secret: 'ill have what im having',
     cookie: {
-        maxAge: 1209600000 //two weeks
+        maxAge: 30 * 24 * 60 * 60 * 1000 //30 days
     },
     saveUninitialized: true, //this saves uninitiallized sessions making it so that simply visiting the site resets expiration
     resave: true, //Forces the session to be saved back to the session store, even if the session was never modified during the request.
     rolling: true, //Force a session identifier cookie to be set on every response. 
     store: pgStore
-}));
+});
+
+app.use(_session);
+app.use(UsersService.CacheUserDetails); //user details middleware
 
 app.use('/', routes);
 app.use('/states', states);
 app.use('/suggest', suggest);
 app.use('/games', games);
+
 
 if (app.get('env') === 'development') {
     app.use('/work', work);
