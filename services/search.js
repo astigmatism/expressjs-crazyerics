@@ -1,7 +1,7 @@
 var fs = require('fs');
 var async = require('async');
 var config = require('config');
-var FileService = require('./fileservice.js');
+var FileService = require('./files.js');
 
 /**
  * Constructor

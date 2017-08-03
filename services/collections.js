@@ -1,8 +1,6 @@
 var fs = require('fs');
 var async = require('async');
 var config = require('config');
-var CollectionsModel = require('../models/collections');
-var UserSessionsModel = require('../models/usersessions');
 
 /**
  * Constructor

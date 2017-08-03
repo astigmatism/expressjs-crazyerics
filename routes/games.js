@@ -11,7 +11,7 @@ var UtilitiesService = require('../services/utilities.js');
 router.post('/load', function(req, res, next) {
 
     var key = null;
-    var game = null;
+    var game = null; //will be { system: , title: , file: }
     var shader = req.body.shader; //if we are to load a shader definition with this game, it was passed here
     var savePreference = req.body.savePreference; //should we save this shader selection for all games of this system?
     var saves = {};
