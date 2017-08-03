@@ -3,7 +3,7 @@ var router = express.Router();
 var config = require('config');
 var fs = require('fs');
 var beautify = require('js-beautify');
-var FileService = require('../services/fileservice.js');
+var FileService = require('../services/files.js');
 var async = require('async');
 
 router.get('/', function(req, res, next) {

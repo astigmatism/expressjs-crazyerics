@@ -6,7 +6,7 @@ var pako = require('pako');
 var btoa = require('btoa');
 var atob = require('atob');
 var merge = require('merge');
-var FileService = require('../services/fileservice.js');
+var FileService = require('../services/files.js');
 
 /**
  * UtilitiesService Constructor

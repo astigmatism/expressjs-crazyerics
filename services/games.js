@@ -1,6 +1,6 @@
 var async = require('async');
 var config = require('config');
-var FileService = require('../services/fileservice.js');
+var FileService = require('../services/files.js');
 var UtilitiesService = require('../services/utilities.js');
 //mongoose: http://mongoosejs.com/docs/api.html
 
