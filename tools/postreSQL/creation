@@ -34,6 +34,7 @@ CREATE TABLE "sessions" (
 WITH (OIDS=FALSE);
 ALTER TABLE "sessions" ADD CONSTRAINT "session_pkey" PRIMARY KEY ("sid") NOT DEFERRABLE INITIALLY IMMEDIATE;
 ALTER TABLE "sessions" OWNER to crazyerics;
+GRANT ALL ON TABLE public.sessions TO crazyerics;
 
 ----------------------------------
 
@@ -56,7 +57,10 @@ TABLESPACE pg_default;
 ALTER TABLE public.users
     OWNER to postgres;
 ALTER TABLE public.users
-    ADD COLUMN created date;
+    ADD COLUMN created timestamp(10) without time zone;
+
+GRANT ALL ON TABLE public.users TO crazyerics;
+GRANT ALL ON SEQUENCE public.users_userid_seq TO crazyerics;
 
 ----------------------------------
 
@@ -82,5 +86,7 @@ WITH (
 
 ALTER TABLE public.users_sessions
     OWNER to postgres;
+
+GRANT ALL ON TABLE public.users_sessions TO crazyerics;
 
 ----------------------------------

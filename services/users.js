@@ -1,8 +1,13 @@
 var fs = require('fs');
 var async = require('async');
 var config = require('config');
-var UtilitiesService = require('./utilities.js');
+var UsersSQL = require('../db/users.js');
 var NodeCache = require('node-cache');
+
+const nodecache = new NodeCache({
+    stdTTL: 60 * 60 * 24 * 30,      //30 days
+    checkperiod: 60 * 60            //1 hour 
+});
 
 /**
  * Constructor
@@ -10,59 +15,55 @@ var NodeCache = require('node-cache');
 UsersService = function() {
 };
 
-//middleware to attach user details to request
-UsersService.CacheUserDetails = function(req, res, next) {
-
+//middleware to attach user details to request (see app.js)
+UsersService.GetUserFromCache = function(req, res, next) {
+    
     if (req.session) {
-        console.log('Cache User middleware! sessionId: ' + req.session.id);
+        
+        var sessionId = req.session.id;
+        var cacheKey = 'sessionId.' + sessionId;
+        
+        //check if cache has user before db
+        nodecache.get(cacheKey, (err, userCache) => {
+            if (err) {
+                return next(err);
+            }
+
+            if (userCache) {
+                req.user = userCache;
+                next();
+            }
+            //didn't get user cache, check the data layer now
+            else {
+
+                UsersSQL.GetUserWithSessionID(sessionId, (err, user) => {
+                    if (err) {
+                        return next(err);
+                    }
+
+                    //if user returned, cache it. if undef, probably because its being inserted, np
+                    if (user) {
+                        nodecache.set(cacheKey, user);
+                        req.user = user;
+                    }
+                    next();
+                });
+            }
+        });
     }
     else {
-        console.log('session not on request object');
+        next();
     }
-
-    next();
 };
 
-//when a session is created, a user is created
+//since this func is called from an event emit from the pg-connect-simple-crazyerics middleware, there is no callback
 UsersService.OnSessionCreation = function(sessionId) {
 
-    console.log('UsersService.OnSessionCreation');
-    // var userInstance = new UsersModel({
-    //     sessions: {
-    //         id: sessionId
-    //     }
-    // });
-
-    // userInstance.save((err, result) => {
-    //     if (err) {
-    //         return console.log('Error in UsersService.OnSessionCreation', err);
-    //     }
-    // });
+    UsersSQL.CreateNewUser(sessionId, (err) => {
+        if (err) {
+            console.log('Error on create new user:', err);
+        }
+    });         
 };
-
-//from the event listener on mongo-store "update"
-UsersService.OnSessionUpdate = function(sessionId) {
-
-    console.log('UsersService.OnSessionUpdate');
-    // UsersModel.findOne({ 'sessions.id': sessionId })
-    // .update({ 'sessions.$.lastActivity': Date.now() })
-    // .exec((err, result) => {
-    //     if (err) {
-    //         return console.log('Error in UsersService.OnSessionUpdate', err);
-    //     }
-    // });
-};
-
-UsersService.GetBySessionID = function(sessionId, callback) {
-
-    // UsersModel.findOne({ 'sessions.id': sessionId })
-    // .exec((err, result) => {
-    //     if (err) {
-    //         return callback(err);
-    //     }
-    //     return callback(null, result);
-    // });
-};
-
 
 module.exports = UsersService;

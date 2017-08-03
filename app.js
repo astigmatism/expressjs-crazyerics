@@ -10,7 +10,7 @@ var favicon = require('serve-favicon');
 //var mongoose = require('mongoose');
 var pg = require('pg');
 var session = require('express-session');
-var pgSession = require('connect-pg-simple')(session);
+var pgSession = require('connect-pg-simple-crazyerics')(session);
 var UtilitiesService = require('./services/utilities');
 var UsersService = require('./services/users');
 //var MongoStore = require('connect-mongo')(session);
@@ -45,6 +45,9 @@ var pgStore = new pgSession({
     pool : new pg.Pool(config.get('db.postgre')),
     tableName : 'sessions'
 });
+pgStore.on('create', function(sessionId) {
+    UsersService.OnSessionCreation(sessionId);
+});
 
 var _session = session({
     secret: 'ill have what im having',
@@ -58,7 +61,7 @@ var _session = session({
 });
 
 app.use(_session);
-app.use(UsersService.CacheUserDetails); //user details middleware
+app.use(UsersService.GetUserFromCache); //user details middleware
 
 app.use('/', routes);
 app.use('/states', states);
