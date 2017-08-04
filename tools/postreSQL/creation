@@ -90,3 +90,84 @@ ALTER TABLE public.users_sessions
 GRANT ALL ON TABLE public.users_sessions TO crazyerics;
 
 ----------------------------------
+
+CREATE TABLE public.systems
+(
+    system_id character(10) NOT NULL,
+    name character varying(80) NOT NULL,
+    created timestamp(10) without time zone NOT NULL,
+    CONSTRAINT pk_system_id PRIMARY KEY (system_id)
+)
+WITH (
+    OIDS = FALSE
+);
+
+ALTER TABLE public.systems
+    OWNER to postgres;
+
+GRANT ALL ON TABLE public.systems TO crazyerics;
+
+----------------------------------
+
+CREATE TABLE public.titles
+(
+    title_id serial NOT NULL,
+    system_id character(10) NOT NULL,
+    name character text NOT NULL,
+    created timestamp(10) without time zone NOT NULL,
+    CONSTRAINT pk_title_id PRIMARY KEY (title_id),
+    CONSTRAINT fk_system_id FOREIGN KEY (system_id)
+        REFERENCES public.systems (system_id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE CASCADE
+)
+WITH (
+    OIDS = FALSE
+);
+
+ALTER TABLE public.titles
+    OWNER to postgres;
+
+GRANT ALL ON TABLE public.titles TO crazyerics;
+
+GRANT ALL ON SEQUENCE public.titles_title_id_seq TO crazyerics;
+
+ALTER TABLE public.titles
+    ALTER COLUMN created SET DEFAULT CURRENT_TIMESTAMP;
+
+----------------------------------
+
+CREATE TABLE public.files
+(
+    file_id serial NOT NULL,
+    title_id integer NOT NULL,
+    name text NOT NULL,
+    play_count integer NOT NULL,
+    last_played timestamp(10) without time zone,
+    CONSTRAINT pk_file_id PRIMARY KEY (file_id),
+    CONSTRAINT fk_title_id FOREIGN KEY (title_id)
+        REFERENCES public.titles (title_id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE CASCADE
+)
+WITH (
+    OIDS = FALSE
+);
+
+ALTER TABLE public.files
+    OWNER to postgres;
+
+GRANT ALL ON TABLE public.files TO crazyerics;
+
+GRANT ALL ON SEQUENCE public.files_file_id_seq TO crazyerics;
+
+ALTER TABLE public.files
+    ALTER COLUMN play_count SET DEFAULT 0;
+
+ALTER TABLE public.files
+    ADD COLUMN created timestamp(10) without time zone NOT NULL;
+
+ALTER TABLE public.files
+    ALTER COLUMN created SET DEFAULT CURRENT_TIMESTAMP;
+
+----------------------------------

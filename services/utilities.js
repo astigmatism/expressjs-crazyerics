@@ -7,6 +7,7 @@ var btoa = require('btoa');
 var atob = require('atob');
 var merge = require('merge');
 var FileService = require('../services/files.js');
+var SystemsSQL = require('../db/systems.js');
 
 /**
  * UtilitiesService Constructor
@@ -167,8 +168,15 @@ UtilitiesService.onApplicationStart = function(callback) {
                         FileService.setCache('suggestions.' + system, suggestions); //ok to be sync
 
                         console.log('suggestions.' + system + ' (threshold: ' + systemSuggestionThreshold + ') "inviting" suggestions --> ' + suggestions.top.length + '. suggestions above threshold --> ' + suggestions.above.length + '. suggestions below threshhold --> ' + suggestions.below.length + '. total with thegamesdb rating --> ' + titlesWithRating);
-
-                        nextsystem();
+                        
+                        //best place for sql table insert check
+                        //note: I realize I could begin doing a title, even file insert check here, but I'd rather leave that operation to a client play request
+                        SystemsSQL.Exists(system, config.get('systems.' + system + '.name'), (err) => {
+                            if (err) {
+                                return nextsystem(err);
+                            }
+                            nextsystem();
+                        });
                     });
                 });
             });

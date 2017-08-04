@@ -2,7 +2,8 @@ var async = require('async');
 var config = require('config');
 var FileService = require('../services/files.js');
 var UtilitiesService = require('../services/utilities.js');
-//mongoose: http://mongoosejs.com/docs/api.html
+var TitlesSQL = require('../db/titles.js');
+var FilesSQL = require('../db/files.js');
 
 GameService = function() {
 };
@@ -10,14 +11,22 @@ GameService = function() {
 //a play request is initiated, update game tables, return game details...
 GameService.PlayRequest = function(gameKey, callback) {
 
+    //ensure the 
+
     //break this down into meaningful values ;)
     var game = UtilitiesService.decompress.json(gameKey);
 
-     GameService.GetGameDetails(game.system, game.title, game.file, (err, details) => {
+    GameService.Exists(game.system, game.title, game.file, (err, tileId, fileId) => {
         if (err) {
             return callback(err);
         }
-        callback(null, details);
+
+        GameService.GetGameDetails(game.system, game.title, game.file, (err, details) => {
+            if (err) {
+                return callback(err);
+            }
+            callback(null, details);
+        });
     });
 
     // GameService.Exist(game.system, game.title, game.file, (err, result) => {
@@ -37,21 +46,20 @@ GameService.PlayRequest = function(gameKey, callback) {
 
 };
 
-//ensures the creation of an entry in the game table. there's no need to create it until a user interacts with a game
-GameService.Exist = function(system, title, file, callback) {
+//ensures the creation of an entry in the title table. there's no need to create it until a user interacts with a game
+GameService.Exists = function(system, title, file, callback) {
 
-    GamesModel.findOneAndUpdate({
-        system: system,
-        title: title
-    }, {}, { 
-        upsert: true, 
-        new: true,
-        setDefaultsOnInsert: true 
-    }, (err, result) => {
+    TitlesSQL.Exists(system, title, (err, titleId) => {
         if (err) {
             return callback(err);
         }
-        callback(null, result);
+
+        FilesSQL.Exists(titleId, file, (err, fileId) => {
+            if (err) {
+                return callback(err);
+            }
+            callback(null, titleId, fileId);
+        });
     });
 };
 
