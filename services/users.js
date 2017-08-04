@@ -56,7 +56,8 @@ UsersService.GetUserFromCache = function(req, res, next) {
     }
 };
 
-//since this func is called from an event emit from the pg-connect-simple-crazyerics middleware, there is no callback
+//called from connect-pg-simple-crazyerics ---->
+
 UsersService.OnSessionCreation = function(sessionId) {
 
     UsersSQL.CreateNewUser(sessionId, (err) => {
@@ -65,5 +66,15 @@ UsersService.OnSessionCreation = function(sessionId) {
         }
     });         
 };
+
+UsersService.OnSessionPrune = function() {
+    UsersSQL.RemoveUsersWithoutSessions(err => {
+        if (err) {
+            console.log('Error removing users without sessions:', err);
+        }
+    });
+};
+
+// called from connect-pg-simple-crazyerics <----
 
 module.exports = UsersService;

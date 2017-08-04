@@ -39,4 +39,14 @@ UsersSQL.GetUserWithSessionID = function(sessionId, callback) {
     });
 };
 
+UsersSQL.RemoveUsersWithoutSessions = function(callback) {
+
+    pool.query('DELETE FROM users WHERE user_id NOT IN (SELECT user_id FROM users_sessions)', [], (err, result) => {
+        if (err) {
+            return callback(err);
+        }
+        return callback();
+    });
+};
+
 module.exports = UsersSQL;

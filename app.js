@@ -45,9 +45,6 @@ var pgStore = new pgSession({
     pool : new pg.Pool(config.get('db.postgre')),
     tableName : 'sessions'
 });
-pgStore.on('create', function(sessionId) {
-    UsersService.OnSessionCreation(sessionId);
-});
 
 var _session = session({
     secret: 'ill have what im having',

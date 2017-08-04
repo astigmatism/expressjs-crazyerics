@@ -37,6 +37,7 @@ Since all emulator scripts are generated from emscripten, we can batch process t
 various notes
 __________________
 
+- heavy modified connect-pg-simple to reference UserService. Called node_module conect-pg-simple-crazyerics as a result. A copy is in tools
 - using pako as a method to compress all strings, json and uintarrays
 - gulp produces 3 files in ./public/build: build.js (all compressed js file contents), a source map file and style.min.css (all compressed css file contents). The layout.jade on your production box references these files instead of the source content.
 - in creating icons, unpack the "350-MAI2013.zip" file and then "PSD_and_EPS.zip". Open the eps file in photoshop with a width of 1000. Select the icon, open a new image with it, resize to 32x32px. Invert colors, then max out contract and brightness.
