@@ -201,7 +201,7 @@ UtilitiesService.onApplicationStart = function(callback) {
 
 UtilitiesService.collectDataForClient = function(req, openonload, callback) {
 
-    var playerdata = {};
+    var playerpreferences = {};
     var configdata = {};
     
 
@@ -267,25 +267,12 @@ UtilitiesService.collectDataForClient = function(req, openonload, callback) {
 
     var onFinish = function() {   
 
-        
-        playerdata.playhistory = {};
-        playerdata.shaders = {};
-
-        if (req.session) {
-
-            //play history from session
-            if (req.session.games && req.session.games.history) {
-                playerdata.playhistory = req.session.games.history;
-            }
-
-            //shaders from session
-            if (req.session.shaders) {
-                playerdata.shaders = req.session.shaders;
-            }
+        if (req.user && req.user.preferences) {
+            playerpreferences = req.user.preferences;
         }
 
         var result = {
-            playerdata: playerdata,
+            playerpreferences: playerpreferences,
             configdata: configdata
         };
 

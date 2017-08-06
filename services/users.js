@@ -2,12 +2,6 @@ var fs = require('fs');
 var async = require('async');
 var config = require('config');
 var UsersSQL = require('../db/users.js');
-var NodeCache = require('node-cache');
-
-const nodecache = new NodeCache({
-    stdTTL: 60 * 60 * 24 * 30,      //30 days
-    checkperiod: 60 * 60            //1 hour 
-});
 
 /**
  * Constructor
@@ -21,39 +15,42 @@ UsersService.GetUserFromCache = function(req, res, next) {
     if (req.session) {
         
         var sessionId = req.session.id;
-        var cacheKey = 'sessionId.' + sessionId;
         
-        //check if cache has user before db
-        nodecache.get(cacheKey, (err, userCache) => {
+        //cached at data layer
+        UsersSQL.GetUserWithSessionID(sessionId, (err, user) => {
             if (err) {
                 return next(err);
             }
 
-            if (userCache) {
-                req.user = userCache;
-                next();
-            }
-            //didn't get user cache, check the data layer now
-            else {
+            if (user) {
+                
+                //format values from db
+                try {
+                    user.preferences = JSON.parse(user.preferences);
+                }
+                catch (e) {
 
-                UsersSQL.GetUserWithSessionID(sessionId, (err, user) => {
-                    if (err) {
-                        return next(err);
-                    }
-
-                    //if user returned, cache it. if undef, probably because its being inserted, np
-                    if (user) {
-                        nodecache.set(cacheKey, user);
-                        req.user = user;
-                    }
-                    next();
-                });
+                }
+                
+                req.user = user;
             }
+            next();
+            
         });
     }
     else {
         next();
     }
+};
+
+UsersService.UpdatePlayerPreferences = function(sessionId, userId, data, callback) {
+
+    UsersSQL.UpdatePlayerPreferences(sessionId, userId, data, (err, updateResult) => {
+        if (err) {
+            return callback(err);
+        }
+        callback(null, updateResult);
+    });
 };
 
 //called from connect-pg-simple-crazyerics ---->

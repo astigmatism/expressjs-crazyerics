@@ -27,7 +27,7 @@ var cesMain = (function() {
     // instances/libraries
     var _Compression = null;
     var _PubSub = null;
-    var _PlayerData = null;
+    var _PlayerPreferences = null;
     var _Sliders = null;
     var _SavesManager = null;
     var _Emulator = null;
@@ -76,12 +76,12 @@ var cesMain = (function() {
         //setup const instances
 
         //unpack playerdata
-        _PlayerData = new cesPlayerData(_Compression, clientdata.playerdata); //player data is user specific, can be dynmic
+        _PlayerPreferences = new cesPlayerPreferences(_Compression, clientdata.playerpreferences); //player data is user specific, can be dynmic
 
-        _RecentlyPlayed = new cesRecentlyPlayed(_config, _Compression, PlayGame, $('#recentlyplayedgrid'), _PlayerData.GetPlayHistory(), _PlayerData.RemoveFromPlayHistory);
+        _RecentlyPlayed = new cesRecentlyPlayed(_config, _Compression, PlayGame, $('#recentlyplayedgrid'), null, null);
 
         //show welcome dialog
-        if ($.isEmptyObject(_PlayerData.playHistory)) {
+        if ($.isEmptyObject(_PlayerPreferences.playHistory)) { //TODO fix this
             _Dialogs.ShowDialog('welcomefirst', 200);
         } else {
             _Dialogs.ShowDialog('welcomeback', 200);
@@ -269,7 +269,7 @@ var cesMain = (function() {
         });
 
         //incoming params to open game now?
-        var openonload = _PlayerData.Get('openonload') || {};
+        var openonload = _PlayerPreferences.Get('openonload') || {};
         if ('system' in openonload && 'title' in openonload && 'file' in openonload) {
             PlayGame(openonload.system, openonload.title, openonload.file);
         }
@@ -402,11 +402,15 @@ var cesMain = (function() {
                 //game load dialog show
                 ShowGameLoading(system, title, box, function(tipInterval) {
 
+                    var optionsToSendToServer = {
+                        _: shaderselection.shader,  //name of shader file
+                    };
+                    if (shaderselection.preferences) {
+                        optionsToSendToServer.__ = _Compression.In.json(shaderselection.preferences);   //player preferences to save back
+                    }
+
                     //this call is a POST. Unlike the others, it is destined for the mongo instance (MY DOMAIN not a cdn). we send user preference data to the server in addition to getting game details.
-                    SavePreferencesAndGetPlayerGameDetails(key, system, title, file, { 
-                        'savePreference': shaderselection.savePreference, 
-                        'shader': shaderselection.shader 
-                    }, savePreferencesAndGetPlayerGameDetailsComplete);
+                    SavePreferencesAndGetPlayerGameDetails(key, system, title, file, optionsToSendToServer, savePreferencesAndGetPlayerGameDetailsComplete);
 
                     //run to my domain first to get details about the game before we retrieve it
                     $.when(savePreferencesAndGetPlayerGameDetailsComplete).done(function(compressedGameDetails) {
@@ -666,18 +670,17 @@ var cesMain = (function() {
         //bail early: check if shader already defined for this system (an override value passed in)
         if (typeof preselectedShader !== 'undefined') {
             callback({
-                'shader': preselectedShader,
-                'savePreference': false
+                'shader': preselectedShader
             });
             return;
         }
 
         //bail early: check if user checked to use a shader for this system everytime
-        var userpreference = _PlayerData.GetShader(system);
-        if (userpreference) {
+        //if they saved "No Processing" its an empty string
+        var userpreference = _PlayerPreferences.GetShader(system);
+        if (userpreference || userpreference == "") {
             callback({
-                'shader': userpreference,
-                'savePreference': false
+                'shader': userpreference
             });
             return;
         }
@@ -715,19 +718,20 @@ var cesMain = (function() {
         var onFinish = function(shader) {
             $('#systemshaderseletorwrapper').addClass('close');
             
+            var playerPreferencesToSave = {};
             var saveselection = false;
 
             //get result of checkbox
-            if ($('#systemshaderseletorwrapper input').prop('checked')) {
+            if ($('#shaderselectcheckbox').is(':checked')) {
                 saveselection = true;
-                _PlayerData.SetShader(system, shader); //set this is player data now (refresh pulls session data)
+                playerPreferencesToSave = _PlayerPreferences.SetShader(system, shader); //returns entire pref structure to save back
             }
 
             setTimeout(function() {
                 $('#systemshaderseletorwrapper').hide();
                 callback({
                     'shader': shader,
-                    'savePreference': saveselection
+                    'preferences': playerPreferencesToSave
                 });
             }, 250);
         };
@@ -902,11 +906,7 @@ var cesMain = (function() {
 
         //call returns not only states but misc game details. I tried to make this
         //part of the LoadGame call but the formatting for the compressed game got weird
-        $.post('/games/load', {
-            'key': encodeURIComponent(key),
-            'shader': options.shader,
-            'savePreference': options.savePreference
-        }, function(data) {
+        $.post('/games/load?gk=' + encodeURIComponent(key), options, function(data) {
 
             //add to play history
             AddOrUpdatePlayHistory(key, system, title, file);
@@ -925,11 +925,11 @@ var cesMain = (function() {
      */
     var AddOrUpdatePlayHistory = function(key, system, title, file, lastPlayed, callback) {
         
-        var response = _PlayerData.AddOrUpdatePlayHistory(key, system, title, file, lastPlayed); //will add or update an existing game
+        // var response = _PlayerPreferences.AddOrUpdatePlayHistory(key, system, title, file, lastPlayed); //will add or update an existing game
 
-        _RecentlyPlayed.Add(key, response.data, response.isnew, _PlayerData.RemoveFromPlayHistory, function() {
-            toolTips();
-        });
+        // _RecentlyPlayed.Add(key, response.data, response.isnew, _PlayerPreferences.RemoveFromPlayHistory, function() {
+        //     toolTips();
+        // });
     };
 
     /**

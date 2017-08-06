@@ -9,6 +9,9 @@ var SearchService = require('../services/search.js');
 
 router.get('/', function(req, res, next) {
 
+    //req.user will not be available here for instances where a new session (and new user) are inserted because they happen asynconously
+    //never attempt to use req.user in this route!
+
     //get general client config data
     UtilitiesService.collectDataForClient(req, null, function(err, clientdata) {
         if (err) {

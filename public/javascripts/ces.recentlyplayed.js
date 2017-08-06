@@ -122,24 +122,24 @@ var cesRecentlyPlayed = (function(config, _Compression, _PlayGame, $wrapper, _in
         //immediately remove from grid (i used to wait for response but why right?)
         _grid.isotope('remove', griditem).isotope('layout');
 
-        $.ajax({
-            url: '/states/delete?gk=' + encodeURIComponent(gameKey),
-            type: 'DELETE',
-            /**
-             * on successful state deletion
-             * @return {undef}
-             */
-            complete: function() {
+        // $.ajax({
+        //     url: '/saves/delete?gk=' + encodeURIComponent(gameKey),
+        //     type: 'DELETE',
+        //     /**
+        //      * on successful state deletion
+        //      * @return {undef}
+        //      */
+        //     complete: function() {
                 
-                //clear mem
-                gamelink = null;
+        //         //clear mem
+        //         gamelink = null;
 
-                //callback the function to remove from player data
-                if (_OnRemoveHandler) {
-                    _OnRemoveHandler(gameKey); //passed in, will remove from player data at main level 
-                }
-            }
-        });
+        //         //callback the function to remove from player data
+        //         if (_OnRemoveHandler) {
+        //             _OnRemoveHandler(gameKey); //passed in, will remove from player data at main level 
+        //         }
+        //     }
+        // });
     };
 
     

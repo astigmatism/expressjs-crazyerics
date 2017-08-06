@@ -60,7 +60,11 @@ ALTER TABLE public.users
     ADD COLUMN created timestamp(10) without time zone;
 
 GRANT ALL ON TABLE public.users TO crazyerics;
+
 GRANT ALL ON SEQUENCE public.users_userid_seq TO crazyerics;
+
+ALTER TABLE public.users
+    ADD COLUMN preferences text;
 
 ----------------------------------
 
@@ -93,9 +97,9 @@ GRANT ALL ON TABLE public.users_sessions TO crazyerics;
 
 CREATE TABLE public.systems
 (
-    system_id character(10) NOT NULL,
+    system_id character varying(10) NOT NULL,
     name character varying(80) NOT NULL,
-    created timestamp(10) without time zone NOT NULL,
+    created timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT pk_system_id PRIMARY KEY (system_id)
 )
 WITH (
@@ -112,7 +116,7 @@ GRANT ALL ON TABLE public.systems TO crazyerics;
 CREATE TABLE public.titles
 (
     title_id serial NOT NULL,
-    system_id character(10) NOT NULL,
+    system_id character varying(10) NOT NULL,
     name character text NOT NULL,
     created timestamp(10) without time zone NOT NULL,
     CONSTRAINT pk_title_id PRIMARY KEY (title_id),
@@ -134,6 +138,9 @@ GRANT ALL ON SEQUENCE public.titles_title_id_seq TO crazyerics;
 
 ALTER TABLE public.titles
     ALTER COLUMN created SET DEFAULT CURRENT_TIMESTAMP;
+
+ALTER TABLE public.titles
+    ALTER COLUMN system_id TYPE character varying (10);
 
 ----------------------------------
 
@@ -169,5 +176,58 @@ ALTER TABLE public.files
 
 ALTER TABLE public.files
     ALTER COLUMN created SET DEFAULT CURRENT_TIMESTAMP;
+
+----------------------------------
+
+CREATE TABLE public.saves
+(
+    save_id serial NOT NULL,
+    title_id integer NOT NULL,
+    file_id integer NOT NULL,
+    user_id integer NOT NULL,
+    created timestamp(10) without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    type character(10) NOT NULL,
+    screenshot text,
+    save text NOT NULL,
+    public boolean NOT NULL DEFAULT false,
+    comment text,
+    CONSTRAINT pk_save_id PRIMARY KEY (save_id),
+    CONSTRAINT fk_title_id FOREIGN KEY (title_id)
+        REFERENCES public.titles (title_id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION,
+    CONSTRAINT fk_file_id FOREIGN KEY (file_id)
+        REFERENCES public.files (file_id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE CASCADE,
+    CONSTRAINT fk_user_id FOREIGN KEY (user_id)
+        REFERENCES public.users (user_id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE CASCADE
+)
+WITH (
+    OIDS = FALSE
+);
+
+ALTER TABLE public.saves
+    OWNER to postgres;
+
+GRANT ALL ON TABLE public.saves TO crazyerics;
+
+GRANT ALL ON SEQUENCE public.saves_save_id_seq TO crazyerics;
+
+ALTER TABLE public.saves DROP CONSTRAINT fk_title_id;
+
+ALTER TABLE public.saves
+    ADD CONSTRAINT fk_title_id FOREIGN KEY (title_id)
+    REFERENCES public.titles (title_id) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE CASCADE;
+
+ALTER TABLE public.saves
+    ALTER COLUMN type TYPE character varying (10);
+
+ALTER TABLE public.saves
+    ADD COLUMN client_timestamp bigint NOT NULL;
 
 ----------------------------------

@@ -339,9 +339,9 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
         return _SavesManager.GetMostRecentSaves(count);
     };
 
-    this.AtMaximumSaves = function() {
+    this.MaximumSavesCheck = function() {
 
-        return _SavesManager.AtMaximumSaves();
+        return _SavesManager.MaximumSavesCheck();
     };
 
     //private methods

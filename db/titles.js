@@ -1,6 +1,11 @@
 var config = require('config');
-const { Pool } = require('pg');
-const pool = new Pool(config.get('db.postgre'));
+const pool = require('./pool.js');
+var NodeCache = require('node-cache');
+
+const nodecache = new NodeCache({
+    stdTTL: 0,          //unlimited, hold until I delete it
+    checkperiod: 0      //no check
+});
 
 /**
  * Constructor
@@ -8,40 +13,90 @@ const pool = new Pool(config.get('db.postgre'));
 TitlesSQL = function() {
 };
 
-//a function which runs on app start which ensures records exist for all systems, will grow db as systems added
-TitlesSQL.Exists = function(systemId, name, callback) {
+TitlesSQL.GetTitle = function(systemId, name, callback) {
 
-    //would love to get this working.
-    //https://stackoverflow.com/questions/23573815/postgres-insert-if-not-exists-otherwise-return-the-row
-    //inserts if not exist otherwise selects. just can't get it to return the title_id value I need
-    // var query =
-    // 'WITH d(s, n) AS ( VALUES ($1, $2)),' +
-    // 'n AS (SELECT title_id, name FROM titles, d WHERE name=n),' + 
-    // 'i AS (INSERT INTO titles (system_id, name)' + 
-    // '        SELECT s,n FROM d WHERE n NOT IN (SELECT name FROM n))' +
-    // 'SELECT title_id FROM titles WHERE name IN (SELECT name FROM n)'
-    // ;
-    
-    //warning: try not to use suq queres in general. a race condition could exist because of the gap in transactions
-    //ok here since I control the table in app and this only runs on start
-    pool.query('INSERT INTO titles (system_id, name) SELECT $1,$2 WHERE NOT EXISTS (SELECT name FROM titles WHERE name = $2) RETURNING title_id', [systemId, name], (err, titlesInsertResult) => {
+    var cacheKey = TitlesSQL.MakeCacheKey(systemId, name);
+
+    //to avoid a select lookup, check cache first
+    nodecache.get(cacheKey, (err, titleCache) => {
         if (err) {
             return callback(err);
         }
 
-        //the insert will return the title_id 
-        if (titlesInsertResult.rows.length > 0) {
-            callback(null, titlesInsertResult.rows[0].title_id);
+        if (titleCache) {
+            return callback(null, titleCache);
         }
-        //if it didn't then the record already exists, get it
-        else {
-            pool.query('SELECT title_id FROM titles WHERE system_id=$1 AND name=$2', [systemId, name], (err, titlesSelectResult) => {
-                if (err) {
-                    return callback(err);
-                }
-                callback(null, titlesSelectResult.rows[0].title_id);
-            });
+
+        //note: due to the frequency at which I might want to lookup titles, I moved the "where not exists" check to AFTER the select attempt
+
+        //select entry either just added or already existed
+        pool.query('SELECT * FROM titles WHERE system_id=$1 AND name=$2', [systemId, name], (err, titlesSelectResult) => {
+            if (err) {
+                return callback(err);
+            }
+
+            //on compete for select or insert
+            var onRecordRetrieval = function(titleRecord) {
+
+                TitlesSQL.SetCache(cacheKey, titleRecord, (err, success) => {
+                    if (err) {
+                        return callback(err);
+                    }
+                    callback(null, titleRecord);
+                });
+            };
+
+            //insert check
+            if (titlesSelectResult.rows.length == 0) {
+                
+                TitlesSQL.NewTitle(systemId, name, (err, titleRecord) => {
+                    if (err) {
+                        return callback(err);
+                    }
+                    onRecordRetrieval(titleRecord);
+                });
+            }
+            else {
+                onRecordRetrieval(titlesSelectResult.rows[0]);
+            }
+        });
+    });
+};
+
+TitlesSQL.MakeCacheKey = function(systemId, name) {
+    return systemId + '.' + name;
+};
+
+TitlesSQL.SetCache = function(key, titleRecord, callback) {
+    nodecache.set(key, titleRecord, (err, success) => {
+        if (err) {
+            return callback(err);
         }
+        callback(null, success);
+    });
+};
+
+TitlesSQL.ExpireCache = function(systemId, name, callback) {
+    
+    var cacheKey = TitlesSQL.MakeCacheKey(systemId, name);
+    
+    nodecache.del(cacheKey, (err, success) => {
+        if (err) {
+            return callback(err);
+        }
+        callback();
+    });
+};
+
+TitlesSQL.NewTitle = function(systemId, name, callback) {
+
+    //warning: try not to use suq queres in general. a race condition could exist because of the gap in transactions
+    //ok here since I control the table in app and this only runs on start
+    pool.query('INSERT INTO titles (system_id, name) VALUES ($1,$2) RETURNING *', [systemId, name], (err, titlesInsertResult) => {
+        if (err) {
+            return callback(err);
+        }
+        callback(null, titlesInsertResult.rows[0]);
     });
 };
 

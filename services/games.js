@@ -16,106 +16,54 @@ GameService.PlayRequest = function(gameKey, callback) {
     //break this down into meaningful values ;)
     var game = UtilitiesService.decompress.json(gameKey);
 
-    GameService.Exists(game.system, game.title, game.file, (err, tileId, fileId) => {
+    //ensures title and file exist in backend
+    GameService.Exists(game.system, game.title, game.file, (err, titleRecord, fileRecord) => {
         if (err) {
             return callback(err);
         }
 
-        GameService.GetGameDetails(game.system, game.title, game.file, (err, details) => {
+        //update files table
+        GameService.PlayFile(fileRecord.file_id, (err, fileUpdateRecord) => {
             if (err) {
                 return callback(err);
             }
-            callback(null, details);
+
+            //get details from file system (cached). data from romsort project
+            GameService.GetGameDetails(game.system, game.title, game.file, (err, details) => {
+                if (err) {
+                    return callback(err);
+                }
+                callback(null, titleRecord, fileRecord, details);
+            });
         });
     });
-
-    // GameService.Exist(game.system, game.title, game.file, (err, result) => {
-    //     if (err) {
-    //         return callback(err);
-    //     }
-        
-    //     GameService.IncrementPlayCount(game.system, game.title, game.file, (err) => {
-    //         if (err) {
-    //             return callback(err);
-    //         }
-
-           
-    //     });
-    // });
-
 
 };
 
 //ensures the creation of an entry in the title table. there's no need to create it until a user interacts with a game
 GameService.Exists = function(system, title, file, callback) {
 
-    TitlesSQL.Exists(system, title, (err, titleId) => {
+    TitlesSQL.GetTitle(system, title, (err, titleRecord) => {
         if (err) {
             return callback(err);
         }
 
-        FilesSQL.Exists(titleId, file, (err, fileId) => {
+        FilesSQL.GetFile(titleRecord.title_id, file, (err, fileRecord) => {
             if (err) {
                 return callback(err);
             }
-            callback(null, titleId, fileId);
+            callback(null, titleRecord, fileRecord);
         });
     });
 };
 
-GameService.IncrementPlayCount = function(system, title, file, callback) {
-
-    // GamesModel.findOneAndUpdate({
-    //     'system': system,
-    //     'title': title,
-    //     'files.name':  UtilitiesService.compress.string(file),
-    // }, {
-    //     files: { '$.lastPlayed': Date.now() },
-    //     $inc: {
-    //         files: { '$.playCount': 1 }
-    //     }
-    // }, (err, result) => {
-    //     if (err) {
-    //         return callback(err);
-    //     }
-    //     callback(null, result);
-    // });
-
-    //in the end it was just easier to get the document and then save it back
-    GamesModel.findOne({
-        'system': system,
-        'title': title,
+GameService.PlayFile = function(fileId, callback) {
+    FilesSQL.PlayFile(fileId, (err, fileUpdateResult) => {
+        if (err) {
+            return callback(err);
+        }
+        callback(null, fileUpdateResult);
     })
-    .exec((err, result) => {
-        
-        //files have dots in their name and mongo cannot store that
-        var cFile = UtilitiesService.compress.string(file);
-
-        if (!result.files.hasOwnProperty(cFile)) {
-            result.files[cFile] = {
-                lastPlayed: Date.now(),
-                playCount: 0
-            }
-        }
-
-        result.files[cFile].lastPlayed = Date.now();
-        result.files[cFile].playCount += 1;
-
-        if (result.files.length > 0) {
-            result.files[0].lastPlayed = Date.now();
-            result.files[0].playCount += 1;
-
-            result.save((err, result) => {
-                if (err) {
-                    return callback(err);
-                }
-                callback(null, result);
-            });
-        }
-        else {
-            return callback('GameService.IncrementPlayCount: Result not formatted correcty.', result)
-        }
-    });
 };
 
 //this function returns all details given a system and a title. must be exact matches to datafile!

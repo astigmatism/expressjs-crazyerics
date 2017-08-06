@@ -6,24 +6,23 @@ var cesSavesManager = (function (_config, _Compression, _gameKey, _initialSaveDa
 
     var self = this;
     var _savesData = {};
-    var _timeStamps = [];
+    var _timestamps = [];
     var _currentlyWrittenSaveData = {};
-    var _atmaximumsaves = false;
 
     this.AddSave = function(saveType, screenDataUnzipped, stateDataUnzipped, callback) {
 
         AddSaveToServer(saveType, screenDataUnzipped, stateDataUnzipped, function (data) {
             
             //data coming back is formatted to help
-            if (data && data.ts) {
+            if (data && data._) {
 
-                //the server controls the maximum number of saves. if over the max, it will return the timeStamp to delete (usually the oldest save)
-                if (data.ds) {
-                    delete _savesData[data.ds];
+                //the server controls the maximum number of saves. if over the max, it will return the timestamp to delete (usually the oldest save)
+                if (data.__) {
+                    delete _savesData[parseInt(data.__, 10)];
                 }
 
                 //add save to local store, only do it after successful server response
-                AddSave(saveType, data.ts, screenDataUnzipped, stateDataUnzipped);
+                AddSave(saveType, data._.timestamp, screenDataUnzipped, stateDataUnzipped);
             }
 
             if (callback) {
@@ -35,14 +34,14 @@ var cesSavesManager = (function (_config, _Compression, _gameKey, _initialSaveDa
     this.GetMostRecentSaves = function(count, type) {
 
         result = {};
-        for (var i = 0, len = _timeStamps.length; i < len && i < count; ++i) {
+        for (var i = 0, len = _timestamps.length; i < len && i < count; ++i) {
             
-            if (type && type != _savesData[_timeStamps[i]].type) {
+            if (type && type != _savesData[_timestamps[i]].type) {
                 continue;
             }
 
-            result[_timeStamps[i]] = {
-                save: _savesData[_timeStamps[i]],
+            result[_timestamps[i]] = {
+                save: _savesData[_timestamps[i]],
                 i: i,
                 total: len
             }
@@ -50,26 +49,33 @@ var cesSavesManager = (function (_config, _Compression, _gameKey, _initialSaveDa
         return result;
     };
 
-    this.AtMaximumSaves = function() {
+    //returns the state of how close we are to maximum saves for this game. returned as string or null
+    this.MaximumSavesCheck = function() {
 
-        return _atmaximumsaves;
+        if (_timestamps.length >= _config.maxSavesPerGame) {
+            return 'max';
+        }
+        if (_timestamps.length >= (_config.maxSavesPerGame - (_config.maxSavesPerGame * 0.2))) {
+            return 'near';
+        }
+        return null;
     };
 
-    this.GetState = function(timeStamp, callback) {
+    this.GetState = function(timestamp, callback) {
 
         //two possibilities here, we either have the state data already or we need to go and get it
-        if (!_savesData.hasOwnProperty(timeStamp)) {
-            callback('The property ' + timeStamp + ' does not exist in client-stored save data');
+        if (!_savesData.hasOwnProperty(timestamp)) {
+            callback('The property ' + timestamp + ' does not exist in client-stored save data');
             return;
         }
 
-        if (_savesData[timeStamp].state) {
-            callback(null, _savesData[timeStamp].state);
+        if (_savesData[timestamp].state) {
+            callback(null, _savesData[timestamp].state);
             return;
         }
         //don't have it! go and get it
         $.ajax({
-            url: '/states?gk=' + encodeURIComponent(_gameKey) + '&timeStamp=' + timeStamp,
+            url: '/saves?_=' + timestamp, //we'll attach userid to the lookup for extra security
             contentType: 'text/plain',
             type: 'GET'
         })
@@ -84,33 +90,30 @@ var cesSavesManager = (function (_config, _Compression, _gameKey, _initialSaveDa
                 var stateDataUnzipped = _Compression.Unzip.bytearray(data.state);
 
                 //now that we have it, append it to the existing local data
-                _savesData[timeStamp].state = stateDataUnzipped;
+                _savesData[timestamp].state = stateDataUnzipped;
 
                 callback(null, stateDataUnzipped);
             }
         });
     };  
 
-    //on incoming data, state will be null since we don't need to store all states initially.
-    //as saves are added here (or we retirve state data), state data will be included
-    var AddSave = function(type, timeStamp, screenDataUnzipped, stateDataUnzipped) {
+    var AddSave = function(type, timestamp, screenDataUnzipped, stateDataUnzipped) {
 
-        timeStamp = parseInt(timeStamp, 10); //convert to int for this function
-        //var time = $.format.date(timeStamp, 'ddd MM-dd-yyyy h:mma'); //using the jquery dateFormat plugin
-        var time = $.format.date(timeStamp, 'MMM D h:mm:ss a'); //using the jquery dateFormat plugin
+        timestamp = parseInt(timestamp, 10);
+        var time = $.format.date(timestamp, 'MMM D h:mm:ss a'); //using the jquery dateFormat plugin
 
-        _savesData[timeStamp] = {
+        _savesData[timestamp] = {
             screenshot: screenDataUnzipped,
             state: stateDataUnzipped,
             time: time,
-            timeStamp: timeStamp,
+            timestamp: timestamp,
             type: type
         };
 
-        _timeStamps.push(timeStamp); //store timestamps separately for sorting
+        _timestamps.push(timestamp); //store timestamps separately for sorting
 
         //newest to oldest
-        _timeStamps.sort(function(a, b) {
+        _timestamps.sort(function(a, b) {
           return b - a;
         });
     };
@@ -126,21 +129,19 @@ var cesSavesManager = (function (_config, _Compression, _gameKey, _initialSaveDa
         var data = _Compression.Zip.json({
             'state': stateDataZipped,
             'screenshot': screenDataZipped,
-            'type': type
+            'type': type,
+            'timestamp': Date.now() //now because this is the moment the player (with timezone) understands when they saved
         });
 
         $.ajax({
-            url: '/states/save?gk=' + encodeURIComponent(_gameKey),
+            url: '/saves?gk=' + encodeURIComponent(_gameKey),
             data: data,
             processData: false,
             contentType: 'text/plain',
             type: 'POST'
         })
         .done(function(data) {
-
-            if (callback) {
-                callback(data);
-            }
+            callback(data); //formatted as json from server
         });
     };
 
@@ -151,18 +152,14 @@ var cesSavesManager = (function (_config, _Compression, _gameKey, _initialSaveDa
             for (var i = 0, len = _initialSaveData.length; i < len; ++i) {
                 var item = _initialSaveData[i];
                 
-                if (item.type && item.screen && item.timeStamp) {
+                //sanity check for all expected initial save properties
+                if (item.type && item.screenshot && item.timestamp) {
 
-                    var screenDataUnzipped  = _Compression.Unzip.bytearray(item.screen);
+                    var screenDataUnzipped  = _Compression.Unzip.bytearray(item.screenshot);
 
-                    AddSave(item.type, item.timeStamp, screenDataUnzipped, null);
+                    AddSave(item.type, item.timestamp, screenDataUnzipped, null);
                 }
             }
-
-            if (_initialSaveData.length >= _config.maxSavesPerGame) {
-                _atmaximumsaves = true;
-            }
-
         }
 
 

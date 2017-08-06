@@ -23,14 +23,15 @@ block content
                 div#systemshaderseletor
                     h2 How do you want your game to appear?
                     ul#shaderselectlist
-                    input(type="checkbox") 
+                    input#shaderselectcheckbox(type="checkbox") 
                     label Save this choice for all future #[span] games. You can reset this later.
             div(class="dialogwrapper")
                 div#savedgameselector
                     h2 Load recent saved progress?
                     ul#savesselectlist
                     h3#loadnosaves(class="zoom") No
-                    p(class="hide") * You have reached the maximum number of saves allowed for this game. New saves will now replace the oldest saves.
+                    p(class="hide max") * You have reached the maximum number of saves allowed for this game. New saves will now replace the oldest saves.
+                    p(class="hide near") * You are nearing the maximum number of saves allowed for this game. Delete some later to avoid new saves replacing the oldest saves. Unless that doesn't bother you.
             div(class="dialogwrapper")
                 div#gameloading
                     h2 Now Loading

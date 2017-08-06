@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
 var config = require('config');
+var UserService = require('../services/users.js');
 var SaveService = require('../services/saves.js');
 var GameService = require('../services/games.js');
 var CollectionService = require('../services/collections.js');
@@ -10,88 +11,87 @@ var UtilitiesService = require('../services/utilities.js');
 //let it know a game was loaded and respond with states
 router.post('/load', function(req, res, next) {
 
-    var key = null;
+    var key = decodeURIComponent(req.query.gk);
     var game = null; //will be { system: , title: , file: }
-    var shader = req.body.shader; //if we are to load a shader definition with this game, it was passed here
-    var savePreference = req.body.savePreference; //should we save this shader selection for all games of this system?
-    var saves = {};
+    var shader = req.body._;        //name of shader file to load
+    var preferences = req.body.__;  //payload of user preferences to save back
     var shaderFileSize = 0;
 
     //sanitize expected values
-    if (req.body.key) {
-        try {
-            key = decodeURIComponent(req.body.key); //key has been uriencoded, compressed and base64 encoded
-            game = UtilitiesService.decompress.json(key); //extract values
-        }
-        catch (e) {
-            return res.json('The server failed to parse the key: ' + key + '. Is it in a valid format?');
+    try {
+        game = UtilitiesService.decompress.json(key); //extract values
+        
+        if (preferences) {
+            preferences =  UtilitiesService.decompress.json(preferences);
         }
     }
-    else {
-        return res.json('The server was expecting a key value in POST data.');
+    catch (e) {
+        return res.json('The server failed to parse required post data or query strings.');
     }
 
-    //boolean correction
-    savePreference = (savePreference === 'true') ? true : false;
+    //shader payload
 
     //ensure a record of this game exists
-    GameService.PlayRequest(key, function(err, details) {
+    GameService.PlayRequest(key, function(err, titleRecord, fileRecord, details) {
         if (err) {
-            res.status(500).send(err);
+            return res.status(500).send(err);
         }
             
-        if (req.session) {
+        if (req.user && req.session) {
 
-            CollectionService.UpdateCollection(req.sessionID, 'Recently Played', key, (err, result) => {
+            //CollectionService.UpdateCollection(req.sessionID, 'Recently Played', key, (err, result) => {
 
                 //create games and history objects if not in session memory
-                req.session.games = req.session.games ? req.session.games : {};
-                req.session.games.history = req.session.games.history ? req.session.games.history : {};
+                // req.session.games = req.session.games ? req.session.games : {};
+                // req.session.games.history = req.session.games.history ? req.session.games.history : {};
 
                 //this is override the same key (game) with more recent data
-                if (key in req.session.games.history) {
+                //if (key in req.session.games.history) {
 
-                } else {
-                    req.session.games.history[key] = {
-                        system: game.system,
-                        title: game.title,
-                        file: game.file
-                    }
-                }
-                req.session.games.history[key].played = Date.now();
+                // } else {
+                //     req.session.games.history[key] = {
+                //         system: game.system,
+                //         title: game.title,
+                //         file: game.file
+                //     }
+                // }
+                // req.session.games.history[key].played = Date.now();
 
                 //did the user check the box for using this shader for all future system games?
-                if (savePreference) {
-                    req.session.shaders = req.session.shaders ? req.session.shaders : {};
-                    req.session.shaders[game.system] = shader;
+                // if (savePreference) {
+                //     req.session.shaders = req.session.shaders ? req.session.shaders : {};
+                //     req.session.shaders[game.system] = shader;
+                // }
+
+            //if a shader was selected, return its filesize for the progress bar
+            if (shader) {
+                shaderFileSize = config.shaders.hasOwnProperty(shader) ? config.shaders[shader].s : 0;
+            }
+
+            //get saves used by this game
+            SaveService.GetSavesForClient(req.user.user_id, fileRecord.file_id, function(err, savesForClientResults) {
+                if (err) {
+                    return res.status(500).send(err);
                 }
 
-                //if a shader was selected, return its filesize for the progress bar
-                if (shader) {
-                    shaderFileSize = config.shaders[shader].s;
-                }
-
-                //get saves used by this game
-                SaveService.GetSavesForClient(req.sessionID, key, function(err, saveDocs) {
+                //also return the game files used by this title (for selecting a different file to load)
+                GameService.GetGameDetails(game.system, game.title, game.file, function(err, details) {
                     if (err) {
-                        //there's really nothing I can do at this point, simply return a null set of saves
-                        saveDocs = {};
+                        return res.json(err);
                     }
 
-                    //also return the game files used by this title (for selecting a different file to load)
-                    GameService.GetGameDetails(game.system, game.title, game.file, function(err, details) {
+                    var result = {
+                        saves: savesForClientResults,
+                        files: details.files, //rom files
+                        info: details.info, //thegamesdb data
+                        size: details.size, //file size data
+                        shaderFileSize: shaderFileSize //will be 0 if no shader to load
+                    };
+
+                    UserService.UpdatePlayerPreferences(req.session.id, req.user.user_id, preferences, (err, updateResult) => {
                         if (err) {
-                            return res.json(err);
+                            return callback(err);
                         }
-
-                        var result = {
-                            saves: saveDocs,
-                            files: details.files, //rom files
-                            info: details.info, //thegamesdb data
-                            size: details.size, //file size data
-                            shaderFileSize: shaderFileSize //will be 0 if no shader to load
-                        };
-
                         res.json(UtilitiesService.compress.json(result));
                     });
                 });

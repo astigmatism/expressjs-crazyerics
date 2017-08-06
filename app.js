@@ -11,6 +11,7 @@ var favicon = require('serve-favicon');
 var pg = require('pg');
 var session = require('express-session');
 var pgSession = require('connect-pg-simple-crazyerics')(session);
+const pool = require('./db/pool.js');
 var UtilitiesService = require('./services/utilities');
 var UsersService = require('./services/users');
 //var MongoStore = require('connect-mongo')(session);
@@ -18,7 +19,7 @@ var UsersService = require('./services/users');
 //mongoose.connect('mongodb://localhost/crazyerics');
 
 var routes = require('./routes/index');
-var states = require('./routes/states');
+var saves = require('./routes/saves');
 var suggest = require('./routes/suggest');
 var work = require('./routes/work');
 var games = require('./routes/games');
@@ -42,8 +43,9 @@ app.use(favicon(__dirname + '/public/favicon.ico'));
 
 //set up sessions
 var pgStore = new pgSession({
-    pool : new pg.Pool(config.get('db.postgre')),
-    tableName : 'sessions'
+    pool : pool,
+    tableName : 'sessions',
+    pruneSessionInterval: 60 * 13 //every 13 minutes (random but whatever)
 });
 
 var _session = session({
@@ -61,7 +63,7 @@ app.use(_session);
 app.use(UsersService.GetUserFromCache); //user details middleware
 
 app.use('/', routes);
-app.use('/states', states);
+app.use('/saves', saves);
 app.use('/suggest', suggest);
 app.use('/games', games);
 
