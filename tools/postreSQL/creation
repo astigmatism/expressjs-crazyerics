@@ -231,3 +231,59 @@ ALTER TABLE public.saves
     ADD COLUMN client_timestamp bigint NOT NULL;
 
 ----------------------------------
+
+CREATE TABLE public.collections
+(
+    collection_id serial NOT NULL,
+    user_id integer NOT NULL,
+    created timestamp(10) without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    name character varying(80) NOT NULL,
+    comment text,
+    public boolean NOT NULL DEFAULT false,
+    CONSTRAINT pk_collection_id PRIMARY KEY (collection_id),
+    CONSTRAINT fk_user_id FOREIGN KEY (user_id)
+        REFERENCES public.users (user_id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE CASCADE
+)
+WITH (
+    OIDS = FALSE
+);
+
+ALTER TABLE public.collections
+    OWNER to postgres;
+
+GRANT ALL ON TABLE public.collections TO crazyerics;
+
+GRANT ALL ON SEQUENCE public.collections_collection_id_seq TO crazyerics;
+
+----------------------------------
+
+CREATE TABLE public.collections_games
+(
+    collection_id integer NOT NULL,
+    title_id integer NOT NULL,
+    active_file integer NOT NULL,
+    created timestamp(10) without time zone DEFAULT CURRENT_TIMESTAMP,
+    play_count integer NOT NULL DEFAULT 0,
+    last_played timestamp(10) without time zone,
+    CONSTRAINT pk_collections_games PRIMARY KEY (collection_id, title_id),
+    CONSTRAINT fk_title_id FOREIGN KEY (title_id)
+        REFERENCES public.titles (title_id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE CASCADE,
+    CONSTRAINT fk_file_id FOREIGN KEY (active_file)
+        REFERENCES public.files (file_id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE CASCADE
+)
+WITH (
+    OIDS = FALSE
+);
+
+ALTER TABLE public.collections_games
+    OWNER to postgres;
+
+GRANT ALL ON TABLE public.collections_games TO crazyerics;
+
+----------------------------------
