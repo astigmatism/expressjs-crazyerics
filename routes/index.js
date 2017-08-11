@@ -13,7 +13,7 @@ router.get('/', function(req, res, next) {
     //never attempt to use req.user in this route!
 
     //get general client config data
-    ApplicationService.ApplicationEntry(req, null, function(err, clientdata) {
+    ApplicationService.ApplicationEntry(req, function(err, clientdata) {
         if (err) {
             return res.json(err);
         }

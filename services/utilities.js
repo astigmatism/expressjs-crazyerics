@@ -1,15 +1,9 @@
+'use strict';
 const pako = require('pako');
 const btoa = require('btoa');
 const atob = require('atob');
 
-
-module.exports = function() {
-
-    //private members
-
-    //public members
-
-    //public methods
+module.exports = new (function() {
 
     this.Compress = this.In = {
         bytearray: function(uint8array) {
@@ -53,4 +47,4 @@ module.exports = function() {
             return inflate;
         }
     };
-};
+})();

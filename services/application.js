@@ -1,113 +1,20 @@
+'use strict';
 const fs = require('fs');
 const async = require('async');
 const config = require('config');
 const FileService = require('./files');
 const SystemsSQL = require('../db/systems');
+const UtilitiesService = require('./utilities');
 
 module.exports = new (function() {
 
-    //private members
+    this.ApplicationEntry = function(req, callback) {
 
-    //public members
-
-    //public methods
-
-    this.ApplicationEntry = function(req, openonload, callback) {
-
-        var playerdata = {};
-        var configdata = {};
-        
-        //config data --------------->
-        
-        var systems = config.get('systems');
-        var emulators = config.get('emulators');
-
-        configdata['systemdetails'] = {};
-
-        //system specific configs
-        for (system in systems) {
-            
-            //if system is "live" (ready to show for production)
-            if (systems[system].live) {
-
-                //a white list of config settings available to client:
-
-                //required
-                configdata.systemdetails[system] = {
-                    'name': systems[system].name,
-                    'shortname': systems[system].shortname,
-                    'boxcdnversion': systems[system].boxcdnversion,
-                    'romcdnversion': systems[system].romcdnversion,
-                    'emuextention': systems[system].emuextention,
-                    'emuscript': systems[system].emuscript,
-                    'emusize': emulators[systems[system].emuscript].s, //the emu script is the key into this config
-                    'retroarch': systems[system].retroarch,
-                    'screenshotaspectratio': systems[system].screenshotaspectratio,
-                    'supportfilesize': systems[system].supportfilesize
-                };
-
-                //optional
-                configdata.systemdetails[system]['recommendedshaders'] = systems[system].recommendedshaders || [];
-                configdata.systemdetails[system]['autocapture'] = systems[system].autocapture || {};
-            }
-        }
-
-        //default retroarch configuration
-        configdata['retroarch'] = config.get('retroarch');
-
-        //roms location
-        configdata['rompath'] = config.get('rompath');
-
-        //emulator scripts location
-        configdata['emupath'] = config.get('emupath');
-
-        //emulator extensions scripts location
-        configdata['emuextentionspath'] = config.get('emuextentionspath');
-
-        //emulator support files location
-        configdata['emusupportfilespath'] = config.get('supportpath');
-
-        //shaders location
-        configdata['shaderpath'] = config.get('shaderpath');
-
-        //asset location
-        configdata['assetpath'] = config.get('assetpath');
-
-        //box art location
-        configdata['boxpath'] = config.get('boxpath');
-
-        configdata['maxSavesPerGame'] = config.get('maxSavesPerGame');
-
-        //Player details and data --------------->
-
-        //preferences payload is stored on the request obj
-        playerdata.preferences = {};
-        if (req.user && req.user.preferences) {
-            playerdata.preferences = req.user.preferences;
-        }
-
-        var onFinish = function() {
-
-            var result = {
-                playerdata: playerdata,
-                configdata: configdata
-            };
-
-            //because this json object is going over the wire, compress (client will decompress)
-            return callback(null, UtilitiesService.compress.json(result));
+        var result = {
+            configdata: BuildConfigForEntry(),
+            playerdata: BuildPlayerDataForEntry(req)
         };
-
-        if (openonload && openonload.title && openonload.system && openonload.file) {
-            UtilitiesService.findGame(openonload.system, openonload.title, openonload.file, function(err, data) {
-                if (err) {
-                    return callback(err);
-                }
-                playerdata.openonload = data;
-                onFinish();
-            });
-        } else {
-            onFinish();
-        }
+        return callback(null, UtilitiesService.Compress.json(result));
     };
 
     /**
@@ -291,4 +198,96 @@ module.exports = new (function() {
             });
         });
     };
-})();
+
+    var BuildConfigForEntry = function() {
+        
+        var configdata = {};
+        var systems = config.get('systems');
+        var emulators = config.get('emulators');
+
+        configdata['systemdetails'] = {};
+
+        //system specific configs
+        for (system in systems) {
+            
+            //if system is "live" (ready to show for production)
+            if (systems[system].live) {
+
+                //a white list of config settings available to client:
+
+                //required
+                configdata.systemdetails[system] = {
+                    'name': systems[system].name,
+                    'shortname': systems[system].shortname,
+                    'boxcdnversion': systems[system].boxcdnversion,
+                    'romcdnversion': systems[system].romcdnversion,
+                    'emuextention': systems[system].emuextention,
+                    'emuscript': systems[system].emuscript,
+                    'emusize': emulators[systems[system].emuscript].s, //the emu script is the key into this config
+                    'retroarch': systems[system].retroarch,
+                    'screenshotaspectratio': systems[system].screenshotaspectratio,
+                    'supportfilesize': systems[system].supportfilesize
+                };
+
+                //optional
+                configdata.systemdetails[system]['recommendedshaders'] = systems[system].recommendedshaders || [];
+                configdata.systemdetails[system]['autocapture'] = systems[system].autocapture || {};
+            }
+        }
+
+        //default retroarch configuration
+        configdata['retroarch'] = config.get('retroarch');
+
+        //roms location
+        configdata['rompath'] = config.get('rompath');
+
+        //emulator scripts location
+        configdata['emupath'] = config.get('emupath');
+
+        //emulator extensions scripts location
+        configdata['emuextentionspath'] = config.get('emuextentionspath');
+
+        //emulator support files location
+        configdata['emusupportfilespath'] = config.get('supportpath');
+
+        //shaders location
+        configdata['shaderpath'] = config.get('shaderpath');
+
+        //asset location
+        configdata['assetpath'] = config.get('assetpath');
+
+        //box art location
+        configdata['boxpath'] = config.get('boxpath');
+
+        configdata['maxSavesPerGame'] = config.get('maxSavesPerGame');
+
+        return configdata;
+    };
+
+    var BuildPlayerDataForEntry = function(req) {
+
+        var playerdata = {
+            preferences: {}
+        };
+
+        if (req.user && req.user.preferences) {
+            playerdata.preferences = req.user.preferences; //a direct mapping of the db record field converted to json
+        }
+
+        //if no prefered collection is/was establshed, set one (could be new user)
+        GetUserPreferedCollection(req.user.user_id, playerdata.preferences, (err, collectionName) => {
+
+        });
+    };
+
+    var GetUserPreferedCollection = function(userId, preferences, callback) {
+
+        //bail early if already attached to prefereces
+        if (preferences.hasOwnProperty('collection')) {
+            return callback(null, preferences.collection);
+        }
+
+        //if not, probably a new user
+    };
+
+});

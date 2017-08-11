@@ -1,16 +1,14 @@
-var fs = require('fs');
-var async = require('async');
-var config = require('config');
+'use strict';
+const fs = require('fs');
+const async = require('async');
+const config = require('config');
+const CollectionsSQL = require('../db/collections');
 
-/**
- * Constructor
- */
-CollectionsService = function() {
-};
+module.exports = new (function() { 
 
-CollectionsService.UpdateCollection = function(sessionId, title, gameKey, callback) {
+    //as no additional work is performed by the service, create direct mapping to data layer
+    this.GetCollectionByName = CollectionsSQL.GetCollectionByName;
+
+    this.CreateCollection = CollectionsSQL.CreateCollection;
     
-    callback(null);
-}
-
-module.exports = CollectionsService;
+})();
