@@ -1,30 +1,25 @@
-var http = require('http');
-var express = require('express');
-var config = require('config');
-var path = require('path');
-var favicon = require('serve-favicon');
-var logger = require('morgan');
-var cookieParser = require('cookie-parser');
-var bodyParser = require('body-parser');
-var favicon = require('serve-favicon');
-//var mongoose = require('mongoose');
-var pg = require('pg');
-var session = require('express-session');
-var pgSession = require('connect-pg-simple-crazyerics')(session);
+const http = require('http');
+const express = require('express');
+const config = require('config');
+const path = require('path');
+const favicon = require('serve-favicon');
+const logger = require('morgan');
+const cookieParser = require('cookie-parser');
+const bodyParser = require('body-parser');
+const pg = require('pg');
+const session = require('express-session');
+const pgSession = require('connect-pg-simple-crazyerics')(session);
 const pool = require('./db/pool.js');
-var UtilitiesService = require('./services/utilities');
-var UsersService = require('./services/users');
-//var MongoStore = require('connect-mongo')(session);
+const ApplicationService = require('./services/application');
+const UsersService = require('./services/users');
 
-//mongoose.connect('mongodb://localhost/crazyerics');
+const routes = require('./routes/index');
+const saves = require('./routes/saves');
+const suggest = require('./routes/suggest');
+const work = require('./routes/work');
+const games = require('./routes/games');
 
-var routes = require('./routes/index');
-var saves = require('./routes/saves');
-var suggest = require('./routes/suggest');
-var work = require('./routes/work');
-var games = require('./routes/games');
-
-var app = express();
+const app = express();
 
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
@@ -80,7 +75,7 @@ app.use(function(req, res, next) {
 });
 
 //run on app start
-UtilitiesService.onApplicationStart(function() {
+ApplicationService.ApplicationStart(function() {
     
 });
 

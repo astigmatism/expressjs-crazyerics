@@ -4,7 +4,7 @@ var config = require('config');
 var fs = require('fs');
 var SaveService = require('../services/saves.js');
 var GameService = require('../services/games.js');
-var UtilitiesService = require('../services/utilities.js');
+var ApplicationService = require('../services/application.js');
 var SearchService = require('../services/search.js');
 
 router.get('/', function(req, res, next) {
@@ -13,7 +13,7 @@ router.get('/', function(req, res, next) {
     //never attempt to use req.user in this route!
 
     //get general client config data
-    UtilitiesService.collectDataForClient(req, null, function(err, clientdata) {
+    ApplicationService.ApplicationEntry(req, null, function(err, clientdata) {
         if (err) {
             return res.json(err);
         }

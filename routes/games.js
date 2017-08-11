@@ -7,12 +7,11 @@ var GameService = require('../services/games.js');
 var CollectionService = require('../services/collections.js');
 var UtilitiesService = require('../services/utilities.js');
 
-//at the same time we load the game's data file (locally or CDN) we run to the server to
-//let it know a game was loaded and respond with states
+//at the same time we load the game's data file (locally or CDN) we update collections etc and return details/states
 router.post('/load', function(req, res, next) {
 
     var key = decodeURIComponent(req.query.gk);
-    var game = null; //will be { system: , title: , file: }
+    var game = null;                //will be { system: , title: , file: }
     var shader = req.body._;        //name of shader file to load
     var preferences = req.body.__;  //payload of user preferences to save back
     var shaderFileSize = 0;
@@ -28,8 +27,6 @@ router.post('/load', function(req, res, next) {
     catch (e) {
         return res.json('The server failed to parse required post data or query strings.');
     }
-
-    //shader payload
 
     //ensure a record of this game exists
     GameService.PlayRequest(key, function(err, titleRecord, fileRecord, details) {

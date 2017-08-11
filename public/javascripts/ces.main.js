@@ -32,7 +32,7 @@ var cesMain = (function() {
     var _SavesManager = null;
     var _Emulator = null;
     var _Dialogs = null;
-    var _RecentlyPlayed = null;
+    var _Collections = null;
     var _Suggestions = null;
     var _SaveSelection = null;
     var _ProgressBar = null;
@@ -73,12 +73,9 @@ var cesMain = (function() {
         //auto capture trigger. comment out to avoid build
         //self._autoCaptureHarness('n64', _config.autocapture['n64'].shaders, 7000, 1, 10000);
 
-        //setup const instances
+        _PlayerPreferences = new cesPlayerPreferences(_Compression, clientdata.playerdata.preferences); //player data is user specific, can be dynmic
 
-        //unpack playerdata
-        _PlayerPreferences = new cesPlayerPreferences(_Compression, clientdata.playerpreferences); //player data is user specific, can be dynmic
-
-        _RecentlyPlayed = new cesRecentlyPlayed(_config, _Compression, PlayGame, $('#recentlyplayedgrid'), null, null);
+        _Collections = new cesCollections(_config, _Compression, PlayGame, $('#recentlyplayedgrid'), null, null);
 
         //show welcome dialog
         if ($.isEmptyObject(_PlayerPreferences.playHistory)) { //TODO fix this
