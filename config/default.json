@@ -8,6 +8,7 @@
 	"supportpath": "https://dl.dropboxusercontent.com/u/1433808/crazyerics/support",
 	"dropboxaccesstoken": "m62ox__hvx4AAAAAAAg-wsMqXLg0V57RxRTk-PBFM3gKS23cOjrpY5y7x6aSZMRA",
 	"maxSavesPerGame": 40,
+	"defaultCollection": "Recently Played",
 	"db": {
 		"postgre": {
 			"host": "192.168.1.3",

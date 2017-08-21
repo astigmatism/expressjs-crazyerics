@@ -3,7 +3,7 @@
 const url = require('url');
 const util = require('util');
 const oneDay = 86400;
-const UserService = require('../../services/users.js');
+const UsersService = require('../../services/users.js');
 
 const currentTimestamp = function () {
   return Math.ceil(Date.now() / 1000);
@@ -224,7 +224,7 @@ module.exports = function (session) {
         self.query(query, [sess, expireTime, sid, sid], function (err) {
           if (fn) { 
             fn.apply(this, err);
-            UsersService.OnSessionCreation(sid);
+            //UsersService.OnSessionCreation(sid);
           }
         });
       } else {

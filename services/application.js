@@ -5,16 +5,27 @@ const config = require('config');
 const FileService = require('./files');
 const SystemsSQL = require('../db/systems');
 const UtilitiesService = require('./utilities');
+const UserService = require('./users');
 
 module.exports = new (function() {
 
     this.ApplicationEntry = function(req, callback) {
 
-        var result = {
-            configdata: BuildConfigForEntry(),
-            playerdata: BuildPlayerDataForEntry(req)
-        };
-        return callback(null, UtilitiesService.Compress.json(result));
+        if (req.session) {
+            
+            BuildPlayerDataForEntry(req, (err, playerData) => {
+
+                var result = {
+                    configdata: BuildConfigForEntry(),
+                    playerdata: playerData
+                };
+
+                return callback(null, UtilitiesService.Compress.json(result));
+            });
+        }
+        else {
+            return callback('session not on request object');
+        }
     };
 
     /**
@@ -208,7 +219,7 @@ module.exports = new (function() {
         configdata['systemdetails'] = {};
 
         //system specific configs
-        for (system in systems) {
+        for (var system in systems) {
             
             //if system is "live" (ready to show for production)
             if (systems[system].live) {
@@ -264,30 +275,30 @@ module.exports = new (function() {
         return configdata;
     };
 
-    var BuildPlayerDataForEntry = function(req) {
+    //try only to include absolutely necessary data for entry
+    var BuildPlayerDataForEntry = function(req, callback) {
 
         var playerdata = {
-            preferences: {}
+            activeCollection: {},
+            collections: [],        //a list of the player's collections
         };
 
-        if (req.user && req.user.preferences) {
-            playerdata.preferences = req.user.preferences; //a direct mapping of the db record field converted to json
-        }
+        //get preferred collection
+        UserService.GetPreferredCollection(req.session.id, (err, activeCollection) => {
+            if (err) {
+                return callback(err);
+            }
+            playerdata.activeCollection = activeCollection;
 
-        //if no prefered collection is/was establshed, set one (could be new user)
-        GetUserPreferedCollection(req.user.user_id, playerdata.preferences, (err, collectionName) => {
+            //get list of all collections
+            UserService.GetCollectionNames(req.session.id, (err, collections) => {
+                if (err) {
+                    return callback(err);
+                }
+                playerdata.collections = collections;
 
+                return callback(err, playerdata);
+            });
         });
     };
-
-    var GetUserPreferedCollection = function(userId, preferences, callback) {
-
-        //bail early if already attached to prefereces
-        if (preferences.hasOwnProperty('collection')) {
-            return callback(null, preferences.collection);
-        }
-
-        //if not, probably a new user
-    };
-
 });

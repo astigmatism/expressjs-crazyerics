@@ -55,7 +55,7 @@ var _session = session({
 });
 
 app.use(_session);
-app.use(UsersService.GetUserFromCache); //user details middleware
+app.use(UsersService.GetUserMiddleware); //attach user to request
 
 app.use('/', routes);
 app.use('/saves', saves);

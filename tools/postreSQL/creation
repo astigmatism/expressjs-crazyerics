@@ -259,7 +259,7 @@ GRANT ALL ON SEQUENCE public.collections_collection_id_seq TO crazyerics;
 
 ----------------------------------
 
-CREATE TABLE public.collections_games
+CREATE TABLE public.collections_titles
 (
     collection_id integer NOT NULL,
     title_id integer NOT NULL,

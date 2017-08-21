@@ -47,4 +47,41 @@ module.exports = new (function() {
             return inflate;
         }
     };
+
+    /**
+     * A nice way to merge/expand json
+     */
+    this.Assign = function (object, keys, value) {
+        keys = keys.split('.');
+        object = object || {};
+        var currentObject = object;
+        for (var i = 0, len = keys.length; i < len; ++i) {
+            if (i === len - 1) {
+                currentObject[keys[i]] = value;
+            }
+            else {
+                if (!(keys[i] in currentObject)) {
+                    currentObject[keys[i]] = {};
+                }
+                currentObject = currentObject[keys[i]];
+            }
+        }
+        return object;
+    };
+
+    this.GetNestedValue = function(object, keys) {
+        keys = keys.split('.');
+        var currentObject = object;
+        for (var i = 0, len = keys.length; i < len; ++i) {
+            if (!currentObject || !currentObject.hasOwnProperty(keys[i])) {
+                return undefined;
+            }
+            if (i === len - 1) {
+                return currentObject[keys[i]];
+            }
+            currentObject = currentObject[keys[i]];
+        }
+        return undefined;
+    }
+
 })();
