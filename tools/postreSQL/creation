@@ -63,9 +63,6 @@ GRANT ALL ON TABLE public.users TO crazyerics;
 
 GRANT ALL ON SEQUENCE public.users_userid_seq TO crazyerics;
 
-ALTER TABLE public.users
-    ADD COLUMN preferences text;
-
 ----------------------------------
 
 

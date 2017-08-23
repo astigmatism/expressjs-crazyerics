@@ -6,6 +6,7 @@ const FileService = require('./files');
 const SystemsSQL = require('../db/systems');
 const UtilitiesService = require('./utilities');
 const UserService = require('./users');
+const CollectionService = require('./collections');
 
 module.exports = new (function() {
 
@@ -279,26 +280,29 @@ module.exports = new (function() {
     var BuildPlayerDataForEntry = function(req, callback) {
 
         var playerdata = {
-            activeCollection: {},
-            collections: [],        //a list of the player's collections
+            collections: {},
+            preferences: {}
         };
 
-        //get preferred collection
-        UserService.GetPreferredCollection(req.session.id, (err, activeCollection) => {
-            if (err) {
-                return callback(err);
-            }
-            playerdata.activeCollection = activeCollection;
+        if (req.user) {
 
-            //get list of all collections
-            UserService.GetCollectionNames(req.session.id, (err, collections) => {
+            //get preferred collection
+            CollectionService.GetActiveCollection(req.user.user_id, (err, activeCollection) => {
                 if (err) {
                     return callback(err);
                 }
-                playerdata.collections = collections;
+                playerdata.collections.active = activeCollection;
 
-                return callback(err, playerdata);
+                //get list of all collections
+                CollectionService.GetCollectionNames(req.user.user_id, (err, collections) => {
+                    if (err) {
+                        return callback(err);
+                    }
+                    playerdata.collections.collections = collections;
+
+                    return callback(err, playerdata);
+                });
             });
-        });
+        }
     };
 });

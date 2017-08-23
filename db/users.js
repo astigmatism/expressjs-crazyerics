@@ -1,11 +1,14 @@
 const config = require('config');
 const pool = require('./pool.js');
 const NodeCache = require('node-cache');
+const Cache = require('../services/cache');
 
 const nodecache = new NodeCache({
     stdTTL: 60 * 60 * 24 * 30,      //30 days
     checkperiod: 60 * 60            //1 hour 
 });
+
+const UserCache = new Cache('session.$1');
 
 module.exports = new (function() {
 
@@ -36,58 +39,32 @@ module.exports = new (function() {
     };
 
     this.GetUserWithSessionID = function(sessionId, callback) {
-    
-        //get from cache first
-        var key = MakeCacheKey(sessionId);
         
-        nodecache.get(key, (err, user) => {
+        UserCache.Get([sessionId], (err, user) => {
             if (err) {
                 return callback(err);
             }
-
             if (user) {
                 return callback(null, user);
             }
-            else {
 
-                pool.query('SELECT users.* FROM users INNER JOIN users_sessions ON (users.user_id = users_sessions.user_id) WHERE users_sessions.sid = $1', [sessionId], (err, usersResult) => {
+            pool.query('SELECT users.* FROM users INNER JOIN users_sessions ON (users.user_id = users_sessions.user_id) WHERE users_sessions.sid = $1', [sessionId], (err, usersResult) => {
+                if (err) {
+                    return callback(err);
+                }
+                if (usersResult.rows.length === 0) {
+                    return callback();
+                }
+                    
+                var user = usersResult.rows[0];
+                
+                UserCache.Set([sessionId], user, (err, success) => {
                     if (err) {
                         return callback(err);
                     }
-                    
-                    //if success, cache it
-                    if (usersResult.rows.length > 0) {
-                        
-                        var user = usersResult.rows[0];
-
-                        //lets json parse necessary data
-                        try {
-                            user.preferences = JSON.parse(user.preferences);
-                            if (!user.preferences) {
-                                user.preferences = {};
-                            }
-                        }
-                        catch (e) {
-                            user.preferences = {}; //if cannot parse, assume ruined and erase all user prefereces ;)
-                        }
-                        
-                        //add flag to show where data came from (mostly for debugging purposes, you can remove this later if you want)
-                        var cacheUser = user;
-                        cacheUser.source = 'cache';
-                        user.source = 'data';
-
-                        nodecache.set(key, cacheUser, (err, success) => {
-                            if (err) {
-                                return callback(err);
-                            }
-                            return callback(null, user);
-                        });
-                    } 
-                    else {
-                        return callback(); //allow user not found, handled by service layer
-                    }
+                    return callback(null, user);
                 });
-            }
+            });
         });
     };
 
@@ -99,26 +76,4 @@ module.exports = new (function() {
             return callback();
         });
     };
-
-    this.UpdatePlayerPreferences = function(sessionId, userId, data, callback) {
-        pool.query('UPDATE users SET preferences=$1 WHERE user_id=$2 RETURNING *', [JSON.stringify(data), userId], (err, updateResult) => {
-            if (err) {
-                return callback(err);
-            }
-
-            //update cache
-
-            _self.GetUserWithSessionID(sessionId, (err, user) => {
-                if (err) {
-                    return callback(err);
-                }
-                return callback(null, user);
-            }); 
-        });
-    };
-
-    var MakeCacheKey = function(sessionId) {
-        return 'session.' + sessionId;
-    }
-
 })();

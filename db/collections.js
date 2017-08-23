@@ -2,21 +2,17 @@
 const config = require('config');
 const pool = require('./pool.js');
 const NodeCache = require('node-cache');
-
-const nodecache = new NodeCache({
-    stdTTL: 60 * 60 * 24 * 30,      //30 days
-    checkperiod: 60 * 60            //1 hour 
-});
+const Cache = require('../services/cache');
 
 module.exports = new (function() {
 
     var _self = this;
+    var _collectionsCache = new Cache('user.$1.collections');
+    var _collectionCache = new Cache('user.$1.collection.$2');
 
     this.GetCollectionNames = function (userId, callback) {
 
-        var key = MakeCollectionsKey(userId);
-
-        nodecache.get(key, (err, cache) => {
+        _collectionsCache.Get([userId], (err, cache) => {
             if (err) {
                 return callback(err);
             }
@@ -32,8 +28,7 @@ module.exports = new (function() {
 
                 var collections = result.rows;
 
-                //save to cache
-                nodecache.set(key, collections, (err, success) => {
+                _collectionsCache.Set([userId], collections, (err, success) => {
                     if (err) {
                         return callback(err);
                     }
@@ -52,11 +47,8 @@ module.exports = new (function() {
             data: {}, //from collections table
             titles: [] // from collections_games table
         };
-
-        //get from cache first
-        var key = MakeCollectionKey(userId, name);
         
-        nodecache.get(key, (err, cache) => {
+        _collectionCache.Get([userId, name], (err, cache) => {
             if (err) {
                 return callback(err);
             }
@@ -81,8 +73,7 @@ module.exports = new (function() {
 
                         collection.titles = titles;
 
-                        //save to cache
-                        nodecache.set(key, collection, (err, success) => {
+                        _collectionCache.Set([userId, name], collection, (err, success) => {
                             if (err) {
                                 return callback(err);
                             }
@@ -130,6 +121,7 @@ module.exports = new (function() {
     };
 
     var CreateCollection = function(userId, name, callback) {
+        
         pool.query('INSERT INTO collections (user_id, name) VALUES ($1, $2) RETURNING *', [userId, name], (err, result) => {
             if (err) {
                 return callback(err);
@@ -137,7 +129,13 @@ module.exports = new (function() {
             if (result.rows.length === 0) {
                 return callback();
             }
-            callback(null, result.rows[0]);
+
+            _collectionsCache.Delete([userId], (err, success) => {
+                if (err) {
+                    return callback(err);
+                }
+                callback(null, result.rows[0]);
+            });
         });
     };
 
@@ -150,15 +148,20 @@ module.exports = new (function() {
                 return callback(err);
             }
             if (result.rows.length === 0) {
-                return callback(); //use undef for fail case
+                return callback();
             }
 
-            //delete frmo cache
-            nodecache.del(key, (err, success) => {
+            //delete caches
+            _collectionsCache.Delete([userId], (err, success) => {
                 if (err) {
                     return callback(err);
                 }
-                callback(null, result.rows[0]);
+                _collectionCache.Delete([userId, name], (err, success) => {
+                    if (err) {
+                        return callback(err);
+                    }
+                    callback(null, result.rows[0]);
+                });
             });
         });
     };
@@ -169,16 +172,8 @@ module.exports = new (function() {
             if (err) {
                 return callback(err);
             }
-            callback(null, result.rows); //ensure we always return an array
+            callback(null, result.rows); //ensure we always return an array, 0 length or not
         });
     };
-
-    var MakeCollectionKey = function(userId, name) {
-        return 'user.' + userId + '.collection.' + name;
-    }
-
-    var MakeCollectionsKey = function(userId) {
-        return 'user.' + userId + '.collections';
-    }
 
 })();

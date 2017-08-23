@@ -8,10 +8,11 @@ const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const pg = require('pg');
 const session = require('express-session');
-const pgSession = require('connect-pg-simple-crazyerics')(session);
+const pgSession = require('connect-pg-simple-ces')(session);
 const pool = require('./db/pool.js');
 const ApplicationService = require('./services/application');
 const UsersService = require('./services/users');
+const PreferencesService = require('./services/preferences');
 
 const routes = require('./routes/index');
 const saves = require('./routes/saves');
@@ -56,6 +57,7 @@ var _session = session({
 
 app.use(_session);
 app.use(UsersService.GetUserMiddleware); //attach user to request
+app.use(PreferencesService.GetPreferencesMiddleware); //attach user preferences to request
 
 app.use('/', routes);
 app.use('/saves', saves);

@@ -73,13 +73,13 @@ set:
 */
 router.post('/', function(req, res, next) {
 
-    var recipe = UtilitiesService.decompress.json(req.body.recipe);
+    var recipe = UtilitiesService.Decompress.json(req.body.recipe);
 
     SuggestionsService.Get(recipe, function(err, result) {
         if (err) {
             return res.json(err);
         }
-        result = UtilitiesService.compress.json(result);
+        result = UtilitiesService.Compress.json(result);
 
         res.json(result);
     });

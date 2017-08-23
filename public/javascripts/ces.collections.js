@@ -1,7 +1,8 @@
 var cesCollections = (function(config, _Compression, _PlayGameHandler, $wrapper, _initialData, _OnRemoveHandler) {
 		
     //private members
-    var _currentCollection = _initialData.collection;
+    var _collections = _initialData.collections;
+    var _active = _initialData.active;
 
 	//public members
 
@@ -75,7 +76,7 @@ var cesCollections = (function(config, _Compression, _PlayGameHandler, $wrapper,
         //create the grid item
         var $griditem = $('<div class="grid-item" />');
 
-		var gamelink = new cesGameLink(config, system, title, file, 120, true, _PlayGame);
+		var gamelink = new cesGameLink(config, system, title, file, 120, true, _PlayGameHandler);
 
         //set the on remove function
         gamelink.OnRemoveClick(function() {
@@ -153,11 +154,11 @@ var cesCollections = (function(config, _Compression, _PlayGameHandler, $wrapper,
             }
         });
 
-        for (var game in _initialData) {
-            AddToGrid(game, _initialData[game].system, _initialData[game].title, _initialData[game].file, _initialData[game].lastPlayed); 
+        for (var game in _active.titles) {
+            //AddToGrid(game, _initialData[game].system, _initialData[game].title, _initialData[game].file, _initialData[game].lastPlayed); 
         }
 
-        self.SortBy('lastPlayed', false);
+        //self.SortBy('lastPlayed', false);
 
         OnImagesLoaded();
 

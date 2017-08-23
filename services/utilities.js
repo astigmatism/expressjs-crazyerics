@@ -5,7 +5,7 @@ const atob = require('atob');
 
 module.exports = new (function() {
 
-    this.Compress = this.In = {
+    this.Compress = this.In = this.Zip = {
         bytearray: function(uint8array) {
             var deflated = pako.deflate(uint8array, {to: 'string'});
             return btoa(deflated);
@@ -30,7 +30,7 @@ module.exports = new (function() {
         }
     };
 
-    this.Decompress = this.Out = {
+    this.Decompress = this.Out = this.Unzip = {
         bytearray: function(item) {
             var decoded = new Uint8Array(atob(item).split('').map(function(c) {return c.charCodeAt(0);}));
             return pako.inflate(decoded);

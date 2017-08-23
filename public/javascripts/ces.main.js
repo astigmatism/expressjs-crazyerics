@@ -73,9 +73,9 @@ var cesMain = (function() {
         //auto capture trigger. comment out to avoid build
         //self._autoCaptureHarness('n64', _config.autocapture['n64'].shaders, 7000, 1, 10000);
 
-        _PlayerPreferences = new cesPlayerPreferences(_Compression, clientdata.playerdata.preferences); //player data is user specific, can be dynmic
+        _PlayerPreferences = new cesPlayerPreferences(_Compression, clientdata.playerdata.preferences);
 
-        _Collections = new cesCollections(_config, _Compression, PlayGame, $('#recentlyplayedgrid'), null, null);
+        _Collections = new cesCollections(_config, _Compression, PlayGame, $('#openCollectionGrid'), clientdata.playerdata.collections, null);
 
         //show welcome dialog
         if ($.isEmptyObject(_PlayerPreferences.playHistory)) { //TODO fix this
@@ -905,28 +905,10 @@ var cesMain = (function() {
         //part of the LoadGame call but the formatting for the compressed game got weird
         $.post('/games/load?gk=' + encodeURIComponent(key), options, function(data) {
 
-            //add to play history
-            AddOrUpdatePlayHistory(key, system, title, file);
+            //TODO: add to collection using data from server
 
             deffered.resolve(data);
         });
-    };
-
-    /**
-     * Add or update a game in the play history area
-     * @param {Object} key    unique game key
-     * @param {string} system
-     * @param {string} title
-     * @param {string} file
-     * @param {Date} played     date game last played
-     */
-    var AddOrUpdatePlayHistory = function(key, system, title, file, lastPlayed, callback) {
-        
-        // var response = _PlayerPreferences.AddOrUpdatePlayHistory(key, system, title, file, lastPlayed); //will add or update an existing game
-
-        // _RecentlyPlayed.Add(key, response.data, response.isnew, _PlayerPreferences.RemoveFromPlayHistory, function() {
-        //     toolTips();
-        // });
     };
 
     /**
