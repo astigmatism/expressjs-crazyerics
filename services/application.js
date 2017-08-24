@@ -7,6 +7,7 @@ const SystemsSQL = require('../db/systems');
 const UtilitiesService = require('./utilities');
 const UserService = require('./users');
 const CollectionService = require('./collections');
+const PreferencesService = require('./preferences');
 
 module.exports = new (function() {
 
@@ -59,26 +60,26 @@ module.exports = new (function() {
             }
 
             //ok, lets open the data file
-            FileService.getFile('/data/' + system + '_master', function(err, data) {
+            FileService.Get('/data/' + system + '_master', function(err, data) {
                 if (err) {
                     console.log('Could not find masterfile for ' + system + '.');
                     return nextsystem();
                 }
 
                 //let's cache files in this section
-                FileService.getFile('/data/' + system + '_thegamesdb', function(err, thegamesdb) {
+                FileService.Get('/data/' + system + '_thegamesdb', function(err, thegamesdb) {
                     if (err) {
                         console.log('Could not find thegamesdb file for ' + system + '.');
                     }
 
-                    FileService.getFile('/data/' + system + '_filedata', function(err, filedata) {
+                    FileService.Get('/data/' + system + '_filedata', function(err, filedata) {
                         if (err) {
                             console.log('Could not find filedata file for ' + system + '.');
                         }
                 
 
                         //let's try opening the boxart data file now too
-                        FileService.getFile('/data/' + system + '_boxart', function(err, boxartdata) {
+                        FileService.Get('/data/' + system + '_boxart', function(err, boxartdata) {
                             if (err) {
                                 console.log('Could not find boxart file for ' + system + '. No suggests can be made without boxart');
                                 //if error, console log only, we can still build cache
@@ -176,10 +177,10 @@ module.exports = new (function() {
                                 ++suggestionsall.data.alltitlecount;
                             }
 
-                            //cache suggestions for this system
-                            FileService.setCache('suggestions.' + system, suggestions); //ok to be sync
+                            //cache results in file service because it has unlimited ttl
+                            FileService.Set('suggestions.' + system, suggestions); //ok to be sync
 
-                            console.log('suggestions.' + system + ' (threshold: ' + systemSuggestionThreshold + ') "inviting" suggestions --> ' + suggestions.top.length + '. suggestions above threshold --> ' + suggestions.above.length + '. suggestions below threshhold --> ' + suggestions.below.length + '. total with thegamesdb rating --> ' + titlesWithRating);
+                            //console.log('suggestions.' + system + ' (threshold: ' + systemSuggestionThreshold + ') "inviting" suggestions --> ' + suggestions.top.length + '. suggestions above threshold --> ' + suggestions.above.length + '. suggestions below threshhold --> ' + suggestions.below.length + '. total with thegamesdb rating --> ' + titlesWithRating);
                             
                             //best place for sql table insert check
                             //note: I realize I could begin doing a title, even file insert check here, but I'd rather leave that operation to a client play request
@@ -199,15 +200,11 @@ module.exports = new (function() {
                 return callback(err);
             }
 
-            FileService.wholescaleSetCache({
-                'suggestions.all': suggestionsall,
-                '/data/all_master': search
-            }, 0, function(err) {
-                if (err) {
-                    return callback(err);
-                }
-                callback();
-            });
+            //put the created-through-summing "all" results in file service (unlimited ttl)
+            FileService.Set('suggestions.all', suggestionsall);
+            FileService.Set('/data/all_master', search);
+
+            callback();
         });
     };
 
@@ -300,9 +297,17 @@ module.exports = new (function() {
                     }
                     playerdata.collections.collections = collections;
 
-                    return callback(err, playerdata);
+
+                    PreferencesService.Get(req.user.user_id, (err, cache) => {
+                        
+                        playerdata.preferences = cache;
+
+                        callback(null, playerdata);
+                    });
                 });
             });
+        } else {
+            res.error('user not on request object');
         }
     };
 });

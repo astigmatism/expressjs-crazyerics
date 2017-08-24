@@ -1,240 +1,192 @@
-var NodeCache = require('node-cache');
-var fs = require('fs');
-var type = require('type-of-is');
-var async = require('async');
+const fs = require('fs');
+const async = require('async');
+const colors = require('colors');
+const Cache = require('../services/cache');
+const NodeCache = require('node-cache');
 
-var nodecache = new NodeCache({
-    stdTTL: 100,
-    checkperiod: 120
-});
+//define custom cache for files
+const FileCache = new Cache('file.$1', new NodeCache({
+        stdTTL: 0,                      //0 = unlimited. 
+        checkperiod: 0                  //0 = no periodic check
+    })
+);
 
-/**
- * FileService Constructor
- */
-FileService = function() {
-};
+module.exports = new (function() {
 
-/**
- * Loads a file's contents given a path, will load from cache if already loaded
- * @param  {string}   path
- * @param  {Function} callback
- * @param  {boolean}  forceLoad    		when true, ignores cache and loads from source
- * @param  {number}   cacheLifetime 	when cached, optionally define how long, default is forever
- * @return {Function}
- */
-FileService.getFile = function(path, callback, forceLoad, cacheLifetime, buffer) {
+    var _self = this;
 
-    var self = this;
+    this.Get = function(path, callback, opt_forceLoad, opt_asBuffer) {
 
-    cacheLifetime    = cacheLifetime || 0; //how long should this file's content persist in cache? 0 = forever, -1 = don't put in cache at all
-    forceLoad        = forceLoad || false; //ignore cache attempt and load data from source
-    buffer           = buffer || false; //false attempts to format file contents as JSON.
+        opt_forceLoad        = opt_forceLoad || false; //ignore cache attempt and load data from source
+        opt_asBuffer         = opt_asBuffer || false; //default: to parse and return as json
 
-    //attempt to retireve file contents. cachekey is file path
-    self.getCache(path, function(err, data) {
-        if (err) {
-            return callback(err);
-        }
-
-        //if successful cache hit and we're not forcing to load data from source
-        if (data && !forceLoad) {
-            return callback(null, data);
-        }
-
-        var fullPath = __dirname + '/..' + path;
-
-        //no successful cache hit, find in file system and add to cache
-        fs.readFile(fullPath, 'utf8', function(err, content) {
+        FileCache.Get([path], (err, cache) => {
             if (err) {
                 return callback(err);
             }
-
-            //JSON parse file contents, comes in as string
-            if (!buffer) {
-                try {
-                    content = JSON.parse(content);
-                } catch (e) {
-                    return callback(e);
-                }
+            //if successful cache hit and we're not forcing to load data from source
+            if (cache && !opt_forceLoad) {
+                return callback(null, cache);
             }
-
-            self.setCache(path, content, cacheLifetime, function() {
-                return callback(null, content);
-            });
-        });
-    });
-};
-
-//writes each object property/value to cache
-FileService.wholescaleSetCache = function(object, cacheLifetime, callback) {
-
-    var self        = this;
-    cacheLifetime   = cacheLifetime || 0; //how long should this file's content persist in cache? 0 = forever, -1 = don't put in cache at all
-
-    async.forEach(Object.keys(object), function (item, nextcache){ 
-        
-        self.setCache(item, object[item], cacheLifetime, function(err, data) {
-            nextcache();
-        });
-
-    }, function(err) {
-        if (err) {
-            return callback(err);
-        }
-        callback();
-    });
-
-};
-
-FileService.getCache = function(key, callback) {
-
-    //console.log('cache request: ' + key);
-
-    nodecache.get(key, function(err, data) {
-        if (err) {
-            console.log('cache error: ' + key);
-            return callback(err);
-        }
-
-        if (data) {
-            console.log('cache hit: ' + key);
-        } else {
-            console.log('cache miss: ' + key);
-        }
-
-        callback(null, data);
-    });
-};
-
-FileService.setCache = function(key, data, cacheLifetime, callback) {
-    
-    cacheLifetime    = cacheLifetime || 0; //how long should this file's content persist in cache? 0 = forever, -1 = don't put in cache at all
-
-    nodecache.set(key, data, cacheLifetime, function() {
-        console.log('cache set: ' + key);        
-        if (callback) {
-            return callback(null, data);
-        }
-        return;
-    });
-};
-
-FileService.createFolder = function(path, overwrite, callback) {
-
-    fs.exists(path, function (exists) {
-
-        var create = function() {
-
-            fs.mkdir(path, function(err) {
+            
+            //no successful cache hit, find in file system and add to cache
+            var fullPath = __dirname + '/..' + path;
+            
+            fs.readFile(fullPath, 'utf8', function(err, content) {
                 if (err) {
                     return callback(err);
                 }
 
-                return callback(null)
-            });
-        };
+                //JSON parse file contents, comes in as string
+                if (!opt_asBuffer) {
+                    try {
+                        content = JSON.parse(content);
+                    } catch (e) {
+                        return callback(e);
+                    }
+                }
 
-        if (exists) {
-
-            if (overwrite) {
-                FileService.rmdir(path, function (err) {
+                _self.Set(path, content, (err, success) => {
                     if (err) {
                         return callback(err);
                     }
-                    create();
+                    return callback(null, content);
                 });
+            });
+        });
+    };
+
+    //sometimes we want to cache data and treat it like openning a file, so expose this
+    this.Set = function(path, data, opt_callback) {
+
+        FileCache.Set([path], data, (err, success) => {
+            if (opt_callback) {
+                if (err) {
+                    return opt_callback(err);
+                }
+                return opt_callback(null, success);
+            }
+        });
+    };
+
+    //rudimentary file system operations
+
+    this.createFolder = function(path, overwrite, callback) {
+
+        fs.exists(path, function (exists) {
+
+            var create = function() {
+
+                fs.mkdir(path, function(err) {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    return callback(null)
+                });
+            };
+
+            if (exists) {
+
+                if (overwrite) {
+                    FileService.rmdir(path, function (err) {
+                        if (err) {
+                            return callback(err);
+                        }
+                        create();
+                    });
+                } else {
+                    //exists and do not overwrite
+                    callback(null);
+                    return;
+                }
             } else {
-                //exists and do not overwrite
-                callback(null);
+                //does not exist
+                create();
+            }
+        });
+    };
+
+    this.rmdir = function(path, callback) {
+        fs.readdir(path, function(err, files) {
+            if(err) {
+                // Pass the error on to callback
+                callback(err, []);
                 return;
             }
-        } else {
-            //does not exist
-            create();
-        }
-    });
-};
-
-FileService.rmdir = function(path, callback) {
-    fs.readdir(path, function(err, files) {
-        if(err) {
-            // Pass the error on to callback
-            callback(err, []);
-            return;
-        }
-        var wait = files.length,
-            count = 0,
-            folderDone = function(err) {
-            count++;
-            // If we cleaned out all the files, continue
-            if( count >= wait || err) {
-                fs.rmdir(path,callback);
+            var wait = files.length,
+                count = 0,
+                folderDone = function(err) {
+                count++;
+                // If we cleaned out all the files, continue
+                if( count >= wait || err) {
+                    fs.rmdir(path,callback);
+                }
+            };
+            // Empty directory to bail early
+            if(!wait) {
+                folderDone();
+                return;
             }
-        };
-        // Empty directory to bail early
-        if(!wait) {
-            folderDone();
-            return;
-        }
-        
-        // Remove one or more trailing slash to keep from doubling up
-        path = path.replace(/\/+$/,"");
-        files.forEach(function(file) {
-            var curPath = path + "/" + file;
-            fs.lstat(curPath, function(err, stats) {
-                if( err ) {
-                    callback(err, []);
-                    return;
-                }
-                if( stats.isDirectory() ) {
-                    FileService.rmdir(curPath, folderDone);
-                } else {
-                    fs.unlink(curPath, folderDone);
-                }
+            
+            // Remove one or more trailing slash to keep from doubling up
+            path = path.replace(/\/+$/,"");
+            files.forEach(function(file) {
+                var curPath = path + "/" + file;
+                fs.lstat(curPath, function(err, stats) {
+                    if( err ) {
+                        callback(err, []);
+                        return;
+                    }
+                    if( stats.isDirectory() ) {
+                        FileService.rmdir(curPath, folderDone);
+                    } else {
+                        fs.unlink(curPath, folderDone);
+                    }
+                });
             });
         });
-    });
-};
+    };
 
-FileService.emptydir = function(path, callback) {
-    fs.readdir(path, function(err, files) {
-        if(err) {
-            // Pass the error on to callback
-            callback(err, []);
-            return;
-        }
-        var wait = files.length,
-            count = 0,
-            folderDone = function(err) {
-            count++;
-            // If we cleaned out all the files, continue
-            if( count >= wait || err) {
-                callback();
+    this.emptydir = function(path, callback) {
+        fs.readdir(path, function(err, files) {
+            if(err) {
+                // Pass the error on to callback
+                callback(err, []);
+                return;
             }
-        };
-        // Empty directory to bail early
-        if(!wait) {
-            folderDone();
-            return;
-        }
-        
-        // Remove one or more trailing slash to keep from doubling up
-        path = path.replace(/\/+$/,"");
-        files.forEach(function(file) {
-            var curPath = path + "/" + file;
-            fs.lstat(curPath, function(err, stats) {
-                if( err ) {
-                    callback(err, []);
-                    return;
+            var wait = files.length,
+                count = 0,
+                folderDone = function(err) {
+                count++;
+                // If we cleaned out all the files, continue
+                if( count >= wait || err) {
+                    callback();
                 }
-                if( stats.isDirectory() ) {
-                    FileService.rmdir(curPath, folderDone);
-                } else {
-                    fs.unlink(curPath, folderDone);
-                }
+            };
+            // Empty directory to bail early
+            if(!wait) {
+                folderDone();
+                return;
+            }
+            
+            // Remove one or more trailing slash to keep from doubling up
+            path = path.replace(/\/+$/,"");
+            files.forEach(function(file) {
+                var curPath = path + "/" + file;
+                fs.lstat(curPath, function(err, stats) {
+                    if( err ) {
+                        callback(err, []);
+                        return;
+                    }
+                    if( stats.isDirectory() ) {
+                        FileService.rmdir(curPath, folderDone);
+                    } else {
+                        fs.unlink(curPath, folderDone);
+                    }
+                });
             });
         });
-    });
-};
+    };
 
-module.exports = FileService;
+})();

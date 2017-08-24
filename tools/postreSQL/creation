@@ -34,7 +34,14 @@ CREATE TABLE "sessions" (
 WITH (OIDS=FALSE);
 ALTER TABLE "sessions" ADD CONSTRAINT "session_pkey" PRIMARY KEY ("sid") NOT DEFERRABLE INITIALLY IMMEDIATE;
 ALTER TABLE "sessions" OWNER to crazyerics;
+
 GRANT ALL ON TABLE public.sessions TO crazyerics;
+
+ALTER TABLE public.sessions
+    ALTER COLUMN sess DROP NOT NULL;
+
+ALTER TABLE public.sessions
+    ALTER COLUMN expire DROP NOT NULL;
 
 ----------------------------------
 

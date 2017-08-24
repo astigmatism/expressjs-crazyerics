@@ -27,7 +27,7 @@ var cesMain = (function() {
     // instances/libraries
     var _Compression = null;
     var _PubSub = null;
-    var _PlayerPreferences = null;
+    var _Preferences = null;
     var _Sliders = null;
     var _SavesManager = null;
     var _Emulator = null;
@@ -73,12 +73,12 @@ var cesMain = (function() {
         //auto capture trigger. comment out to avoid build
         //self._autoCaptureHarness('n64', _config.autocapture['n64'].shaders, 7000, 1, 10000);
 
-        _PlayerPreferences = new cesPlayerPreferences(_Compression, clientdata.playerdata.preferences);
+        _Preferences = new cesPreferences(_Compression, clientdata.playerdata.preferences);
 
         _Collections = new cesCollections(_config, _Compression, PlayGame, $('#openCollectionGrid'), clientdata.playerdata.collections, null);
 
         //show welcome dialog
-        if ($.isEmptyObject(_PlayerPreferences.playHistory)) { //TODO fix this
+        if ($.isEmptyObject(_Preferences.playHistory)) { //TODO fix this
             _Dialogs.ShowDialog('welcomefirst', 200);
         } else {
             _Dialogs.ShowDialog('welcomeback', 200);
@@ -266,10 +266,10 @@ var cesMain = (function() {
         });
 
         //incoming params to open game now?
-        var openonload = _PlayerPreferences.Get('openonload') || {};
-        if ('system' in openonload && 'title' in openonload && 'file' in openonload) {
-            PlayGame(openonload.system, openonload.title, openonload.file);
-        }
+        // var openonload = _Preferences.Get('openonload') || {};
+        // if ('system' in openonload && 'title' in openonload && 'file' in openonload) {
+        //     PlayGame(openonload.system, openonload.title, openonload.file);
+        // }
     });
 
     /* public methods */
@@ -370,7 +370,7 @@ var cesMain = (function() {
 
         var key = _Compression.In.gamekey(system, title, file); //create key for anything that might need it
         var box = cesGetBoxFront(_config, system, title, 170); //preload loading screen box
-        _RecentlyPlayed.SetCurrentGameLoading(key); //inform recently played what the current game is so that they don't attempt to delete it during load
+        //_RecentlyPlayed.SetCurrentGameLoading(key); //inform recently played what the current game is so that they don't attempt to delete it during load
 
         //which emulator to load?
         EmulatorFactory(system, title, file, key, function(err, emulator) {
@@ -400,11 +400,8 @@ var cesMain = (function() {
                 ShowGameLoading(system, title, box, function(tipInterval) {
 
                     var optionsToSendToServer = {
-                        _: shaderselection.shader,  //name of shader file
+                        shader: shaderselection.shader,  //name of shader file
                     };
-                    if (shaderselection.preferences) {
-                        optionsToSendToServer.__ = _Compression.In.json(shaderselection.preferences);   //player preferences to save back
-                    }
 
                     //this call is a POST. Unlike the others, it is destined for the mongo instance (MY DOMAIN not a cdn). we send user preference data to the server in addition to getting game details.
                     SavePreferencesAndGetPlayerGameDetails(key, system, title, file, optionsToSendToServer, savePreferencesAndGetPlayerGameDetailsComplete);
@@ -518,7 +515,7 @@ var cesMain = (function() {
                                                         $('#emulator').focus(); //give focus (also calls resume game, I took care of the oddities :P)
 
                                                         //inform instances that game is starting (for those that care)
-                                                        _RecentlyPlayed.RemoveCurrentGameLoading();
+                                                        //_RecentlyPlayed.RemoveCurrentGameLoading();
 
                                                         //with all operations complete, callback
                                                         if (callback) {
@@ -589,7 +586,7 @@ var cesMain = (function() {
         CleanUpEmulator(function() {
 
             _preventLoadingGame = false; //in case it failed during start
-            _RecentlyPlayed.RemoveCurrentGameLoading();
+            //_RecentlyPlayed.RemoveCurrentGameLoading();
 
             $('#emulatorexceptiondetails').text(message + '\r\n' + e);
             console.error(e);
@@ -674,7 +671,7 @@ var cesMain = (function() {
 
         //bail early: check if user checked to use a shader for this system everytime
         //if they saved "No Processing" its an empty string
-        var userpreference = _PlayerPreferences.GetShader(system);
+        var userpreference = _Preferences.GetShader(system);
         if (userpreference || userpreference == "") {
             callback({
                 'shader': userpreference
@@ -721,14 +718,13 @@ var cesMain = (function() {
             //get result of checkbox
             if ($('#shaderselectcheckbox').is(':checked')) {
                 saveselection = true;
-                playerPreferencesToSave = _PlayerPreferences.SetShader(system, shader); //returns entire pref structure to save back
+                _Preferences.SetShader(system, shader); //we set a flag in pref when update to go out over the next request
             }
 
             setTimeout(function() {
                 $('#systemshaderseletorwrapper').hide();
                 callback({
-                    'shader': shader,
-                    'preferences': playerPreferencesToSave
+                    'shader': shader
                 });
             }, 250);
         };
@@ -903,7 +899,7 @@ var cesMain = (function() {
 
         //call returns not only states but misc game details. I tried to make this
         //part of the LoadGame call but the formatting for the compressed game got weird
-        $.post('/games/load?gk=' + encodeURIComponent(key), options, function(data) {
+        $.post('/games/load?gk=' + encodeURIComponent(key) + '&' + _Preferences.UpdateServer(), options, function(data) {
 
             //TODO: add to collection using data from server
 

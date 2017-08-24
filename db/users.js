@@ -1,13 +1,6 @@
 const config = require('config');
 const pool = require('./pool.js');
-const NodeCache = require('node-cache');
 const Cache = require('../services/cache');
-
-const nodecache = new NodeCache({
-    stdTTL: 60 * 60 * 24 * 30,      //30 days
-    checkperiod: 60 * 60            //1 hour 
-});
-
 const UserCache = new Cache('session.$1');
 
 module.exports = new (function() {
@@ -22,20 +15,37 @@ module.exports = new (function() {
 
             var userId = usersResult.rows[0].user_id;
 
-            pool.query('INSERT INTO users_sessions (user_id, sid) VALUES ($1, $2)', [userId, sessionId], (err, usersSessionsResult) => {
+            //force insert into sessions table since I need to establish the user_session relationship
+            pool.query('INSERT INTO sessions (sid) SELECT $1 WHERE NOT EXISTS (SELECT 1 FROM sessions WHERE sid = $2)', [sessionId, sessionId], (err, sessionResult) => {
                 if (err) {
                     return callback(err);
                 }
 
-                //now populate cache with this new user
-                this.GetUserWithSessionID(sessionId, (err, user) => {
+                _self.AssociateSessionToUser(userId, sessionId, (err, userSessionResult) => {
                     if (err) {
                         return callback(err);
                     }
-                    callback(null, user);
+
+                    //now populate cache with this new user
+                    this.GetUserWithSessionID(sessionId, (err, user) => {
+                        if (err) {
+                            return callback(err);
+                        }
+                        callback(null, user);
+                    });
                 });
             });
         });
+    };
+
+    this.AssociateSessionToUser = function(userId, sessionId, callback) {
+
+        pool.query('INSERT INTO users_sessions (user_id, sid) VALUES ($1, $2)', [userId, sessionId], (err, result) => {
+            if (err) {
+                return callback(err);
+            }
+            callback(null, result);
+        });     
     };
 
     this.GetUserWithSessionID = function(sessionId, callback) {

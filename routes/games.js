@@ -1,40 +1,39 @@
-var express = require('express');
-var router = express.Router();
-var config = require('config');
-var UserService = require('../services/users.js');
-var SaveService = require('../services/saves.js');
-var GameService = require('../services/games.js');
-var CollectionService = require('../services/collections.js');
-var UtilitiesService = require('../services/utilities.js');
+const express = require('express');
+const router = express.Router();
+const config = require('config');
+const UserService = require('../services/users.js');
+const SaveService = require('../services/saves.js');
+const GameService = require('../services/games.js');
+const CollectionService = require('../services/collections.js');
+const UtilitiesService = require('../services/utilities.js');
+const PreferencesService = require('../services/preferences.js')
+
 
 //at the same time we load the game's data file (locally or CDN) we update collections etc and return details/states
 router.post('/load', function(req, res, next) {
 
     var key = decodeURIComponent(req.query.gk);
-    var game = null;                //will be { system: , title: , file: }
-    var shader = req.body._;        //name of shader file to load
-    var preferences = req.body.__;  //payload of user preferences to save back
+    var game = null;                    //will be { system: , title: , file: }
+    var shader = req.body.shader;       //name of shader file to load
     var shaderFileSize = 0;
 
     //sanitize expected values
     try {
         game = UtilitiesService.decompress.json(key); //extract values
-        
-        if (preferences) {
-            preferences =  UtilitiesService.decompress.json(preferences);
-        }
     }
     catch (e) {
-        return res.json('The server failed to parse required post data or query strings.');
+        return next('The server failed to parse required post data or query strings.');
     }
 
-    //ensure a record of this game exists
-    GameService.PlayRequest(key, function(err, titleRecord, fileRecord, details) {
-        if (err) {
-            return res.status(500).send(err);
-        }
+    if (req.user && req.session) {
+
+        //ensure a record of this game exists in the db (since I dynmically add them when consumed)
+        GameService.PlayRequest(key, function(err, titleRecord, fileRecord, details) {
+            if (err) {
+                return next(err);
+            }
             
-        if (req.user && req.session) {
+            //add to active collection
 
             //CollectionService.UpdateCollection(req.sessionID, 'Recently Played', key, (err, result) => {
 
@@ -85,20 +84,14 @@ router.post('/load', function(req, res, next) {
                         shaderFileSize: shaderFileSize //will be 0 if no shader to load
                     };
 
-                    UserService.UpdatePlayerPreferences(req.session.id, req.user.user_id, preferences, (err, updateResult) => {
-                        if (err) {
-                            return callback(err);
-                        }
-                        res.json(UtilitiesService.compress.json(result));
-                    });
+                    res.json(UtilitiesService.Compress.json(result));
                 });
             });
-        }
-        else {
-            res.status(500).send('Session not found in request');
-        }
-
-    });
+        });
+    }
+    else {
+        return next('No user or session on request');
+    }
 });
 
 router.get('/layout/controls/:system', function(req, res, next) {

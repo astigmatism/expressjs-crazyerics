@@ -12,25 +12,48 @@ const UtilitiesService = require('./utilities');
  * therefore, the authority of the data goes between the two:
  * If the server has it cached, then it overwrites the client cookie
  * When the client sends it back, its cached again
+ * 
+ * I wanted to make this feature abstract so that I could tie it into a document-based
+ * db system in the future
  */
 module.exports = new (function() {
 
     var _self = this;
     var _cache = new Cache('user.$1.preferences');
 
-    this.GetPreferencesMiddleware = function(req, res, next) {
+    this.UpdatePreferencesMiddleware = function(req, res, next) {
 
-        if (req.user) {
-            _self.Get(req.user.user_id, (err, cache) => {
-                if (err) {
-                    return next(err);
+        //do we need to invalidate the server cache and parse the client's cookie (because they made a change)
+        if (req.user && req.query.hasOwnProperty('pu') && parseInt(req.query.pu, 10) > 0) {
+
+            //if preferences cache does not have an entry for this user, take what was handed over from the client's cookie
+            //this likely happened because preferences are only cached while the applicaiton is running. That cache is cleared
+            //on a restart so client definitions are more valid
+            var clientCache = null;
+            if (req.cookies.hasOwnProperty('preferences')) {
+                try {
+                    clientCache = UtilitiesService.Decompress.json(req.cookies.preferences);
                 }
-                req.preferences = cache; //attach to request object for anything that needs it
+                catch(e) {
+                    //nothing really, clientCache remains null if we couldn't parse client
+                }
+            }
+
+            //now set the client's preferences to the server
+            if (clientCache) {
+                _cache.Set([req.user.user_id], clientCache, (err, success) => {
+                    if (err) {
+                        return next(err);
+                    }
+                    next();
+                });
+            }
+            else {
                 next();
-            });
+            }
         }
         else {
-            next('User not found on request');
+            next();
         }
     };
 
@@ -51,14 +74,16 @@ module.exports = new (function() {
                     return callback(null, cache);
                 }
             }
-            callback(null, {}); //an empty object when none found
+            else {
+                callback(); //send undef if not found
+            }
         });
     };
 
     this.Set = function(userId, key, value, callback) {
 
         //this will ensure that if not set, we'll get back an empty object to cache
-        self.Get(userId, (err, cache) => {
+        _self.Get(userId, (err, cache) => {
             if (err) {
                 return callback(err);
             }
@@ -75,7 +100,7 @@ module.exports = new (function() {
     };
 
     this.SetAsync = function(userId, key, value) {
-        self.Set(userId, key, value, (err, success) => {
+        _self.Set(userId, key, value, (err, success) => {
             //its async! we don't care!
         });
     };

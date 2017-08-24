@@ -28,31 +28,44 @@ module.exports = function(key, opt_customCache) {
                 return callback(err);
             }
             if (envelope) {
-                console.log(colors.green('cache: found -> ' + key));
-
+                
                 //for debugging - delete will show number of hits
                 envelope.hits++;
-                _self.Set(args, envelope);
 
-                return callback(null, envelope.cache);
+                console.log(('cache: get -> ' + key + ', hits: ' + envelope.hits).green);
+
+                //set again but using envelope
+                _self.Set(args, null, (err, success)=> {
+
+                    return callback(null, envelope.cache);
+                }, envelope);
             }
-            return callback();
+            else {
+                return callback();
+            }
         });
     };
 
-    this.Set = function(args, value, callback) {
+    this.Set = function(args, value, opt_callback, opt_envelope) {
         var key = MakeKey(args);
 
         var cache = new Envelope(value);
+        if (opt_envelope) {
+            cache = opt_envelope;
+        }   
 
         _cache.set(key, cache, (err, success) => {
-            if (callback) {
+            if (opt_callback) {
                 if (err) {
-                    return callback(err);
+                    return opt_callback(err);
                 }
-                callback(null, success);
+                opt_callback(null, success);
             }
-            console.log(colors.blue('cache: set   <- ' + key));
+            
+            //because a set with envelope is really and "update", don't bother showing it
+            if (!opt_envelope) {
+                console.log(colors.blue('cache: set <- ' + key));
+            }
         });
     };
 
@@ -63,20 +76,20 @@ module.exports = function(key, opt_customCache) {
             if (err) {
                 return callback(err);
             }
-            //if it existed, then we can delete it
-            if (envelope) {
-
-                console.log(colors.red('cache: del   <- ' + key + ', hits: ' + envelope.hits));
-
-                _cache.del(key, (err, success) => {
-                    if (callback) {
-                        if (err) {
-                            return callback(err);
-                        }
-                        callback(null, success);
-                    }
-                });
+            if (!envelope) {
+                return callback();
             }
+
+            console.log(colors.red('cache: del <> ' + key + ', hits: ' + envelope.hits));
+
+            _cache.del(key, (err, success) => {
+                if (callback) {
+                    if (err) {
+                        return callback(err);
+                    }
+                    callback(null, success);
+                }
+            });
         });
     };
 
