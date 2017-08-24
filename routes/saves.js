@@ -25,9 +25,9 @@ router.get('/', function(req, res, next) {
 router.post('/', function(req, res, next) {
 
     var gameKey = decodeURIComponent(req.query.gk);
-    var postdata = UtilitiesService.decompress.json(req.body); //unpack form data
+    var postdata = UtilitiesService.Decompress.json(req.body); //unpack form data
     var saveType = postdata.type; //user, auto...
-    var game = UtilitiesService.decompress.json(gameKey);
+    var game = UtilitiesService.Decompress.json(gameKey);
 
     if (req.user && game.title && game.file && saveType && postdata.hasOwnProperty('timestamp') && postdata.hasOwnProperty('state') && postdata.hasOwnProperty('screenshot')) {
 

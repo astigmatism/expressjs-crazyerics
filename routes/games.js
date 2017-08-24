@@ -19,7 +19,7 @@ router.post('/load', function(req, res, next) {
 
     //sanitize expected values
     try {
-        game = UtilitiesService.decompress.json(key); //extract values
+        game = UtilitiesService.Decompress.json(key); //extract values
     }
     catch (e) {
         return next('The server failed to parse required post data or query strings.');
@@ -34,57 +34,35 @@ router.post('/load', function(req, res, next) {
             }
             
             //add to active collection
+            CollectionService.PlayCollectionTitle(req.user.user_id, titleRecord.title_id, fileRecord.file_id, (err, result) => {
 
-            //CollectionService.UpdateCollection(req.sessionID, 'Recently Played', key, (err, result) => {
-
-                //create games and history objects if not in session memory
-                // req.session.games = req.session.games ? req.session.games : {};
-                // req.session.games.history = req.session.games.history ? req.session.games.history : {};
-
-                //this is override the same key (game) with more recent data
-                //if (key in req.session.games.history) {
-
-                // } else {
-                //     req.session.games.history[key] = {
-                //         system: game.system,
-                //         title: game.title,
-                //         file: game.file
-                //     }
-                // }
-                // req.session.games.history[key].played = Date.now();
-
-                //did the user check the box for using this shader for all future system games?
-                // if (savePreference) {
-                //     req.session.shaders = req.session.shaders ? req.session.shaders : {};
-                //     req.session.shaders[game.system] = shader;
-                // }
-
-            //if a shader was selected, return its filesize for the progress bar
-            if (shader) {
-                shaderFileSize = config.shaders.hasOwnProperty(shader) ? config.shaders[shader].s : 0;
-            }
-
-            //get saves used by this game
-            SaveService.GetSavesForClient(req.user.user_id, fileRecord.file_id, function(err, savesForClientResults) {
-                if (err) {
-                    return res.status(500).send(err);
+                //if a shader was selected, return its filesize for the progress bar
+                if (shader) {
+                    shaderFileSize = config.shaders.hasOwnProperty(shader) ? config.shaders[shader].s : 0;
                 }
 
-                //also return the game files used by this title (for selecting a different file to load)
-                GameService.GetGameDetails(game.system, game.title, game.file, function(err, details) {
+                //get saves used by this game
+                SaveService.GetSavesForClient(req.user.user_id, fileRecord.file_id, function(err, savesForClientResults) {
                     if (err) {
-                        return res.json(err);
+                        return res.status(500).send(err);
                     }
 
-                    var result = {
-                        saves: savesForClientResults,
-                        files: details.files, //rom files
-                        info: details.info, //thegamesdb data
-                        size: details.size, //file size data
-                        shaderFileSize: shaderFileSize //will be 0 if no shader to load
-                    };
+                    //also return the game files used by this title (for selecting a different file to load)
+                    GameService.GetGameDetails(game.system, game.title, game.file, function(err, details) {
+                        if (err) {
+                            return res.json(err);
+                        }
 
-                    res.json(UtilitiesService.Compress.json(result));
+                        var result = {
+                            saves: savesForClientResults,
+                            files: details.files, //rom files
+                            info: details.info, //thegamesdb data
+                            size: details.size, //file size data
+                            shaderFileSize: shaderFileSize //will be 0 if no shader to load
+                        };
+
+                        res.json(UtilitiesService.Compress.json(result));
+                    });
                 });
             });
         });

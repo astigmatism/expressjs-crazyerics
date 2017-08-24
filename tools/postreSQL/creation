@@ -290,4 +290,10 @@ ALTER TABLE public.collections_games
 
 GRANT ALL ON TABLE public.collections_games TO crazyerics;
 
+ALTER TABLE public.collections_titles
+    ALTER COLUMN last_played SET DEFAULT now();
+
+ALTER TABLE public.collections_titles
+    ALTER COLUMN play_count SET DEFAULT 1;
+
 ----------------------------------

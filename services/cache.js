@@ -4,10 +4,10 @@ const NodeCache = require('node-cache');
 const colors = require('colors');
 
 //standard cache if no custom was defined.
-//this definition is strongly designed around users, a ttl is 30 days, the same as session
+//this definition is strongly designed around users and their estimated session length (1 hour max?)
 const nodecache = new NodeCache({
-    stdTTL: 60 * 60 * 24 * 30,      //30 days
-    checkperiod: 60 * 60            //1 hour 
+    stdTTL: 60 * 60,             //1 hour
+    checkperiod: 60 * 7          //7 minutes
 });
 
 module.exports = function(key, opt_customCache) {
@@ -19,6 +19,11 @@ module.exports = function(key, opt_customCache) {
     var Envelope = (function(cache) {
         this.cache = cache;
         this.hits = 0;
+    });
+
+    //node-cache listeners
+    _cache.on('del', function(key, envelope) {
+        console.log(colors.red('cache: exp <> ' + key + ', hits: ' + envelope.hits));
     });
 
     this.Get = function(args, callback) {
@@ -100,5 +105,6 @@ module.exports = function(key, opt_customCache) {
         }
         return key;
     }
+    
 
 };

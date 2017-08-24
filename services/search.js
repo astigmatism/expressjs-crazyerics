@@ -1,5 +1,6 @@
 'use strict';
 const FileService = require('./files');
+const colors = require('colors');
 
 module.exports = new (function() {
 
@@ -29,8 +30,10 @@ module.exports = new (function() {
                 return callback(err);
             }
 
+            console.log(('serch: ' + term).magenta);
+
             //pass over all titles just once
-            for (title in data) {
+            for (var title in data) {
 
                 //var log = ''; //for debugging scores of results. please include in result
 

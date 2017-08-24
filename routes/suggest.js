@@ -12,7 +12,7 @@ router.get('/all/:items', function(req, res, next) {
         if (err) {
             return res.json(err);
         }
-        suggestions = UtilitiesService.compress.json(suggestions);
+        suggestions = UtilitiesService.Compress.json(suggestions);
         res.json(suggestions);
     });
 });
@@ -26,7 +26,7 @@ router.get('/browse/:system', function(req, res, next) {
         if (err) {
             return res.json(err);
         }
-        suggestions = UtilitiesService.compress.json(suggestions);
+        suggestions = UtilitiesService.Compress.json(suggestions);
         res.json(suggestions);
     });
 });
@@ -41,7 +41,7 @@ router.get('/:system/:items', function(req, res, next) {
         if (err) {
             return res.json(err);
         }
-        suggestions = UtilitiesService.compress.json(suggestions);
+        suggestions = UtilitiesService.Compress.json(suggestions);
         res.json(suggestions);
     });
 });

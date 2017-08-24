@@ -77,5 +77,24 @@ module.exports = new (function() {
 
         }, keyCollectionsActive);
     };
+
+    this.PlayCollectionTitle = function(userId, titleId, fileId, callback) {
+
+        _self.GetActiveCollection(userId, (err, activeCollection) => {
+            if (err) {
+                return callback(err);
+            }
+
+            var collectionId = activeCollection.data.collection_id;
+
+            //update the record
+            CollectionsSQL.PlayCollectionTitle(userId, collectionId, titleId, fileId, (err, collectionsTitlesRecord) => {
+                if (err) {
+                    return callback(err);
+                }
+                return callback(null, collectionsTitlesRecord);
+            });
+        });
+    }
     
 })();

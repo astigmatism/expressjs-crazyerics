@@ -25,22 +25,22 @@ module.exports = new (function() {
         //ensure the 
 
         //break this down into meaningful values ;)
-        var game = UtilitiesService.decompress.json(gameKey);
+        var game = UtilitiesService.Decompress.json(gameKey);
 
         //ensures title and file exist in backend
-        GameService.Exists(game.system, game.title, game.file, (err, titleRecord, fileRecord) => {
+        _self.Exists(game.system, game.title, game.file, (err, titleRecord, fileRecord) => {
             if (err) {
                 return callback(err);
             }
 
             //update files table
-            GameService.PlayFile(fileRecord.file_id, (err, fileUpdateRecord) => {
+            _self.PlayFile(fileRecord.file_id, (err, fileUpdateRecord) => {
                 if (err) {
                     return callback(err);
                 }
 
                 //get details from file system (cached). data from romsort project
-                GameService.GetGameDetails(game.system, game.title, game.file, (err, details) => {
+                _self.GetGameDetails(game.system, game.title, game.file, (err, details) => {
                     if (err) {
                         return callback(err);
                     }
@@ -136,7 +136,7 @@ module.exports = new (function() {
                             } else {
 
                                 //the compressed file name matches the cdnready (or file uploaded to dropbox) filename
-                                var compressedFileName = UtilitiesService.compress.string(title + file);
+                                var compressedFileName = UtilitiesService.Compress.string(title + file);
                                 var compressedFileName = encodeURIComponent(compressedFileName);
 
                                 if (filedata[compressedFileName] && filedata[compressedFileName].s) {

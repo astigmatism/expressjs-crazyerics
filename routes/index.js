@@ -1,11 +1,13 @@
-var express = require('express');
-var router = express.Router();
-var config = require('config');
-var fs = require('fs');
-var SaveService = require('../services/saves.js');
-var GameService = require('../services/games.js');
-var ApplicationService = require('../services/application.js');
-var SearchService = require('../services/search.js');
+'use strict';
+const express = require('express');
+const router = express.Router();
+const config = require('config');
+const fs = require('fs');
+const SaveService = require('../services/saves');
+const GameService = require('../services/games');
+const ApplicationService = require('../services/application');
+const SearchService = require('../services/search');
+const UtilitiesService = require('../services/utilities')
 
 router.get('/', function(req, res, next) {
 
@@ -35,7 +37,7 @@ router.get('/search/:system/:query', function(req, res, next) {
         if (err) {
             return next(err);
         }
-        var compressed = UtilitiesService.compress.json(result);
+        var compressed = UtilitiesService.Compress.json(result);
         res.json(compressed);
     });
 });
