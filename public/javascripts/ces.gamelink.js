@@ -1,4 +1,4 @@
-var cesGameLink = (function(config, system, title, file, size, includeRemove, opt_PlayGame) {
+var cesGameLink = (function(config, gameKey, size, includeRemove, opt_PlayGame) {
 
     //private members
     var self = this;
@@ -28,10 +28,10 @@ var cesGameLink = (function(config, system, title, file, size, includeRemove, op
         includeRemove = includeRemove || false;
 
         var $div = $('<div class="gamelink"></div>');
-        var $box = cesGetBoxFront(config, system, title, size);
+        var $box = cesGetBoxFront(config, gameKey.system, gameKey.title, size);
 
         $box.addClass('tooltip close');
-        $box.attr('title', title);
+        $box.attr('title', gameKey.title);
 
         //show box art when finished loading
         $box.load(function() {
@@ -43,7 +43,7 @@ var cesGameLink = (function(config, system, title, file, size, includeRemove, op
             .on('mouseup', function() {
 
                 if (opt_PlayGame) {
-                    opt_PlayGame(system, title, file);
+                    opt_PlayGame(gameKey);
                 }
             });
         });
@@ -54,7 +54,7 @@ var cesGameLink = (function(config, system, title, file, size, includeRemove, op
 
         //also when box load fails, in addition to showing the blank cartridge, let's create a fake label for it
         $box.error(function(e) {
-            $(this).parent().append('<div class="boxlabel boxlabel-' + system + '"><p>' + title + '</p></div>');
+            $(this).parent().append('<div class="boxlabel boxlabel-' + gameKey.system + '"><p>' + gameKey.title + '</p></div>');
         });
 
         $div.append($imagewrapper);

@@ -70,8 +70,10 @@ var cesSuggestions = (function(config, _Compression, PlayGame, $wrapper) {
 
             for (var i = 0; i < response.length; ++i) {
                 
+                var gameKey = _Compression.Decompress.gamekey(response[i].gk);
+
                 //spawn new gamelink
-                var gamelink = new cesGameLink(config, response[i].system, response[i].title, response[i].file, _BOXSIZE, false, PlayGame);
+                var gamelink = new cesGameLink(config, gameKey, _BOXSIZE, false, PlayGame);
 
                 //create the grid item and insert it
                 var $griditem = $('<div class="grid-item" />');

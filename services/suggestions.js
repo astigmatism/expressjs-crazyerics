@@ -82,11 +82,14 @@ module.exports = new (function() {
                         set = UtilitiesService.Shuffle(set);
 
                         for (var i = 0, len = set.length; i < len && i < tosuggest; ++i) {
-                            var gk = null; //GamesService.CodeKey(_system, set[i], allCache[_system].data[set[i]].b);
+                            
+                            var bestfile = allCache[_system].data[set[i]].b;
+                            var gk = allCache[_system].data[set[i]].f[bestfile].gk;
+
                             result.push({
-                                system: _system,
-                                title: set[i],
-                                file: allCache[_system].data[set[i]].b, //the best file is the playable one
+                                // system: _system,
+                                // title: set[i],
+                                // file: bestfile,
                                 gk: gk,
                                 rating: parseFloat(allCache[_system].data[set[i]].thegamesdbrating) || 0
                             });
@@ -128,11 +131,14 @@ module.exports = new (function() {
                     var limit = recipe.count * (parseInt(details.proportion, 10) / 100);
 
                     for (var i = 0, len = set.length; i < len && i < limit; ++i) {
-                        var gk = null; //GamesService.CodeKey(system, set[i], caches[system].data[set[i]].b);
+                        
+                        var bestfile = caches[system].data[set[i]].b;
+                        var gk = caches[system].data[set[i]].f[bestfile].gk; //looks crazy but matches the masterfile
+
                         result.push({
-                            system: system,
-                            title: set[i],
-                            file: caches[system].data[set[i]].b, //the best file is the playable one
+                            // system: system,
+                            // title: set[i],
+                            // file: bestfile,
                             gk: gk,
                             rating: parseFloat(caches[system].data[set[i]].thegamesdbrating) || 0
                         });

@@ -12,14 +12,14 @@ const PreferencesService = require('../services/preferences.js')
 //at the same time we load the game's data file (locally or CDN) we update collections etc and return details/states
 router.post('/load', function(req, res, next) {
 
-    var key = decodeURIComponent(req.query.gk);
-    var game = null;                    //will be { system: , title: , file: }
+    var gk = decodeURIComponent(req.query.gk);
+    var gameKey = null;                 //of type GameKey (see utilities)
     var shader = req.body.shader;       //name of shader file to load
     var shaderFileSize = 0;
 
     //sanitize expected values
     try {
-        game = UtilitiesService.Decompress.json(key); //extract values
+        gameKey = UtilitiesService.Decompress.gamekey(gk); //extract values
     }
     catch (e) {
         return next('The server failed to parse required post data or query strings.');
@@ -28,13 +28,13 @@ router.post('/load', function(req, res, next) {
     if (req.user && req.session) {
 
         //ensure a record of this game exists in the db (since I dynmically add them when consumed)
-        GameService.PlayRequest(key, function(err, titleRecord, fileRecord, details) {
+        GameService.PlayRequest(gameKey, function(err, titleRecord, fileRecord, details) {
             if (err) {
                 return next(err);
             }
             
             //add to active collection
-            CollectionService.PlayCollectionTitle(req.user.user_id, titleRecord.title_id, fileRecord.file_id, (err, result) => {
+            CollectionService.PlayCollectionTitle(req.user.user_id, gameKey.gk, titleRecord.title_id, fileRecord.file_id, (err, result) => {
 
                 //if a shader was selected, return its filesize for the progress bar
                 if (shader) {
@@ -48,7 +48,7 @@ router.post('/load', function(req, res, next) {
                     }
 
                     //also return the game files used by this title (for selecting a different file to load)
-                    GameService.GetGameDetails(game.system, game.title, game.file, function(err, details) {
+                    GameService.GetGameDetails(gameKey, function(err, details) {
                         if (err) {
                             return res.json(err);
                         }

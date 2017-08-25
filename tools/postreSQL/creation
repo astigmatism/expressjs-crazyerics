@@ -296,4 +296,7 @@ ALTER TABLE public.collections_titles
 ALTER TABLE public.collections_titles
     ALTER COLUMN play_count SET DEFAULT 1;
 
+ALTER TABLE public.collections_titles
+    ADD COLUMN game_key character text NOT NULL;
+
 ----------------------------------

@@ -5,6 +5,15 @@ const atob = require('atob');
 
 module.exports = new (function() {
 
+    var _self = this;
+
+    var GameKey = (function(system, title, file, gk) {
+		this.system = system;
+		this.title = title;
+		this.file = file;
+		this.gk = gk;			//the original compressed json of this key should it be needed again
+	});
+
     this.Compress = this.In = this.Zip = {
         bytearray: function(uint8array) {
             var deflated = pako.deflate(uint8array, {to: 'string'});
@@ -21,13 +30,9 @@ module.exports = new (function() {
             var base64 = btoa(deflate);
             return base64;
         },
-        gamekey: function(system, title, file) {
-            return this.json({
-                system: system,
-                title: title,
-                file: file
-            });
-        }
+        gamekey: function(gameKey) {
+	        return this.json([gameKey.system, gameKey.title, gameKey.file]);
+	    }
     };
 
     this.Decompress = this.Out = this.Unzip = {
@@ -45,7 +50,20 @@ module.exports = new (function() {
             var base64 = atob(item);
             var inflate = pako.inflate(base64, {to: 'string'});
             return inflate;
-        }
+        },
+        gamekey: function(gk) {
+			var gameKey;
+			try {
+				gameKey = this.json(gk);
+			} catch (e) {
+				return;
+			}
+			//must be an array of length 3 [system, title, file]
+			if (gameKey.length && gameKey.length === 3) {
+				return new GameKey(gameKey[0], gameKey[1], gameKey[2], gk);
+			}
+			return;
+		}
     };
 
     this.Shuffle = function(o) {

@@ -37,7 +37,7 @@
 		"a2600": {
 			"name": "Atari 2600",
 			"shortname": "Atari 2600",
-			"live": true,
+			"live": false,
 			"supportfilesize": 0,
 			"collection": "Good2600 1.0.0",
 			"boxcdnversion": "2.0.4",
@@ -76,7 +76,7 @@
 		"gb": {
 			"name": "Nintendo Game Boy",
 			"shortname": "Game Boy",
-			"live": true,
+			"live": false,
 			"supportfilesize": 0,
 			"boxcdnversion": "2.0.5",
 			"romcdnversion": "GoodGbx-3.14",
@@ -105,7 +105,7 @@
 		"gba": {
 			"name": "Nintendo Game Boy Advance",
 			"shortname": "Game Boy Advance",
-			"live": true,
+			"live": false,
 			"supportfilesize": 0,
 			"boxcdnversion": "2.0.5",
 			"romcdnversion": "GoodGba-3.23",
@@ -134,7 +134,7 @@
 		"gen": {
 			"name": "Sega Genesis / Mega Drive",
 			"shortname": "Sega Genesis",
-			"live": true,
+			"live": false,
 			"supportfilesize": 0,
 			"boxcdnversion": "05.21.17",
 			"romcdnversion": "GoodGen-3.14",
@@ -193,7 +193,7 @@
 			"name": "Atari Jaguar",
 			"shortname": "Atari Jaguar",
 			"collection":"GoodJag 2.01",
-			"live": true,
+			"live": false,
 			"supportfilesize": 0,
 			"boxcdnversion": "2.0.3",
 			"romcdnversion": "GoodJag-2.01",
@@ -205,7 +205,7 @@
 		"lynx": {
 			"name": "Atari Lynx",
 			"shortname": "Atari Lynx",
-			"live": true,
+			"live": false,
 			"supportfilesize": 0,
 			"collection":"GoodLynx 2.01",
 			"boxcdnversion": "2.0.2",
@@ -218,7 +218,7 @@
 		"n64": {
 			"name": "Nintendo 64",
 			"shortname": "Nintendo 64",
-			"live": true,
+			"live": false,
 			"supportfilesize": 0,
 			"collection": "GoodN64 3.27",
 			"boxcdnversion": "2.0.4",
@@ -263,7 +263,7 @@
 		"nds": {
 			"name": "Nintendo DS",
 			"shortname": "Nintendo DS",
-			"live": true,
+			"live": false,
 			"supportfilesize": 0,
 			"boxcdnversion": "2.0.1",
 			"romcdnversion": "nes6600",
@@ -275,7 +275,7 @@
 		"nes": {
 			"name": "Nintendo Entermainment System",
 			"shortname": "Nintendo",
-			"live": true,
+			"live": false,
 			"supportfilesize": 0,
 			"boxcdnversion": "2.0.2",
 			"romcdnversion": "GoodNes-3.23b",
@@ -300,7 +300,7 @@
 		"pce": {
 			"name": "NEC TurboGrafx-16",
 			"shortname": "TurboGrafx-16",
-			"live": true,
+			"live": false,
 			"supportfilesize": 0,
 			"boxcdnversion": "2.0.2",
 			"romcdnversion": "GoodPce-1.09a",
@@ -336,7 +336,7 @@
 		"sms": {
 			"name": "Sega Master System / SG-1000 / SC-3000 / Mark III",
 			"shortname": "Sega Master System",
-			"live": true,
+			"live": false,
 			"supportfilesize": 0,
 			"boxcdnversion": "2.0.4",
 			"romcdnversion": "GoodSms-3.20",
@@ -364,7 +364,7 @@
 		"snes": {
 			"name": "Super Nintendo Entermainment System",
 			"shortname": "Super Nintendo",
-			"live": true,
+			"live": false,
 			"supportfilesize": 0,
 			"boxcdnversion": "2.0.3",
 			"romcdnversion": "GoodSnes-3.23",
@@ -393,7 +393,7 @@
 		"vb": {
 			"name": "Nintendo Virtual Boy",
 			"shortname": "Virtual Boy",
-			"live": true,
+			"live": false,
 			"supportfilesize": 0,
 			"collection": "GoodVBoy 3.1415",
 			"boxcdnversion": "2.0.3",
@@ -406,7 +406,7 @@
 		"vect": {
 			"name": "Vectrex",
 			"shortname": "Vectrex",
-			"live": true,
+			"live": false,
 			"supportfilesize": 0,
 			"collection": "GoodVect 1.06",
 			"boxcdnversion": "2.0.4",

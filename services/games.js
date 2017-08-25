@@ -19,33 +19,11 @@ module.exports = new (function() {
         })
     );
 
-    //a game key is the rom's signature: a unique compressed string
-    this.CodeKey = function(system, title, file, opt_asJson) {
-        var key = {
-            system: system,
-            title: title,
-            file: file
-        };
-        if (!opt_asJson) {
-            key = UtilitiesService.Compress.json(key);
-        }
-        return key;
-    };
-
-    this.DecodeKey = function(key) {
-        return UtilitiesService.Decompress.json(key);
-    };
-
     //a play request is initiated, update game tables, return game details...
     this.PlayRequest = function(gameKey, callback) {
 
-        //ensure the 
-
-        //break this down into meaningful values ;)
-        var game = UtilitiesService.Decompress.json(gameKey);
-
         //ensures title and file exist in backend
-        _self.Exists(game.system, game.title, game.file, (err, titleRecord, fileRecord) => {
+        _self.Exists(gameKey, (err, titleRecord, fileRecord) => {
             if (err) {
                 return callback(err);
             }
@@ -57,7 +35,7 @@ module.exports = new (function() {
                 }
 
                 //get details from file system (cached). data from romsort project
-                _self.GetGameDetails(game.system, game.title, game.file, (err, details) => {
+                _self.GetGameDetails(gameKey, (err, details) => {
                     if (err) {
                         return callback(err);
                     }
@@ -68,14 +46,14 @@ module.exports = new (function() {
     };
 
     //ensures the creation of an entry in the title table. there's no need to create it until a user interacts with a game
-    this.Exists = function(system, title, file, callback) {
+    this.Exists = function(gameKey, callback) {
 
-        TitlesSQL.GetTitle(system, title, (err, titleRecord) => {
+        TitlesSQL.GetTitle(gameKey.system, gameKey.title, (err, titleRecord) => {
             if (err) {
                 return callback(err);
             }
 
-            FilesSQL.GetFile(titleRecord.title_id, file, (err, fileRecord) => {
+            FilesSQL.GetFile(titleRecord.title_id, gameKey.file, (err, fileRecord) => {
                 if (err) {
                     return callback(err);
                 }
@@ -95,12 +73,11 @@ module.exports = new (function() {
 
     //this function returns all details given a system and a title. must be exact matches to datafile!
     //also returns hasboxart flag and any info (ripped from thegamesdb)
-    this.GetGameDetails = function(system, title, file, callback) {
+    this.GetGameDetails = function(gameKey, callback) {
 
         //I found it faster to save all the results in a cache rather than load all the caches to create the result.
         //went from 120ms response to about 30ms
-        var cacheKey = system + '.' + title + '.' + file;
-        _cache.Get([cacheKey], (err, data) => {
+        _cache.Get([gameKey.gk], (err, data) => {
             if (err) {
                 return callback(err);
             }
@@ -115,45 +92,47 @@ module.exports = new (function() {
                 title: null,
                 file: null,
                 files: null,
+                gk: null,
                 boxart: null,
                 info: null,
                 size: null
             };
 
             //open data file for details
-            FileService.Get('/data/' + system + '_master', function(err, masterFile) {
+            FileService.Get('/data/' + gameKey.system + '_master', function(err, masterFile) {
                 if (err) {
                     return callback(err);
                 }
 
                 //if title found in datafile.. we can find data anywhere since all data is constructed from the original datafile!
-                if (masterFile[title] && masterFile[title].f[file]) {
+                if (masterFile[gameKey.title] && masterFile[gameKey.title].f[gameKey.file]) {
 
-                    data.system = system;
-                    data.title = title;
-                    data.file = file;
-                    data.files = masterFile[title].f;
+                    data.system = gameKey.system;
+                    data.title = gameKey.title;
+                    data.file = gameKey.file;
+                    data.gk = gameKey.gk;
+                    data.files = masterFile[gameKey.title].f;
 
                     //is there box art too?
-                    FileService.Get('/data/' + system + '_boxart', function(err, boxartgames) {
+                    FileService.Get('/data/' + gameKey.system + '_boxart', function(err, boxartgames) {
                         if (err) {
                             //no need to trap here
                         } else {
 
-                            if (boxartgames[title]) {
-                                data.boxart = boxartgames[title];
+                            if (boxartgames[gameKey.title]) {
+                                data.boxart = boxartgames[gameKey.title];
                             }
                         }
 
                         //get filesize so we have calc download progress
-                        FileService.Get('/data/' + system + '_filedata', function(err, filedata) {
+                        FileService.Get('/data/' + gameKey.system + '_filedata', function(err, filedata) {
                             if (err) {
                                 //no need to trap here
                                 console.log(err);
                             } else {
 
                                 //the compressed file name matches the cdnready (or file uploaded to dropbox) filename
-                                var compressedFileName = UtilitiesService.Compress.string(title + file);
+                                var compressedFileName = UtilitiesService.Compress.string(gameKey.title + gameKey.file);
                                 var compressedFileName = encodeURIComponent(compressedFileName);
 
                                 if (filedata[compressedFileName] && filedata[compressedFileName].s) {
@@ -163,18 +142,18 @@ module.exports = new (function() {
 
                             
                             //is there info?
-                            FileService.Get('/data/' + system + '_thegamesdb', function(err, thegamesdb) {
+                            FileService.Get('/data/' + gameKey.system + '_thegamesdb', function(err, thegamesdb) {
                                 if (err) {
                                     console.log(err);
                                     //no need to trap here
                                 } else {
 
-                                    if (thegamesdb[title]) {
-                                        data.info = thegamesdb[title];
+                                    if (thegamesdb[gameKey.title]) {
+                                        data.info = thegamesdb[gameKey.title];
                                     }
                                 }
                                 
-                                _cache.Set([cacheKey], data, (err, success) => {
+                                _cache.Set([gameKey.gk], data, (err, success) => {
                                     if (err) {
                                         return callback(err);
                                     }
@@ -185,7 +164,7 @@ module.exports = new (function() {
                     });
 
                 } else {
-                    return callback('title: "' + title + '" not found for ' + system + ' or file: "' + file + '" not found in title folder: "' + title + '"');
+                    return callback('title: "' + gameKey.title + '" not found for ' + gameKey.system + ' or file: "' + gameKey.file + '" not found in title folder: "' + gameKey.title + '"');
                 }
             });
 

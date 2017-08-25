@@ -23,6 +23,7 @@ module.exports = new (function() {
         var system;
         var file;
         var rank;
+        var gk;
         var words = term.split(' '); //split all search terms
 
         FileService.Get('/data/' + systemfilter + '_master', function(err, data) {
@@ -42,13 +43,15 @@ module.exports = new (function() {
                     system = data[title].system;
                     file = data[title].file;
                     rank = data[title].rank;
+                    gk = data[title].gk;
                     //we append the system name to the title name for unique enries (ie "Sonic the Hedgehog" exists twice and we can't use it as a key without its system name)
                     title = title.replace(new RegExp('\.' + system + '$', 'gi'),'');
                 
                 } else {
                     system = systemfilter;
                     file = data[title].b;
-                    rank = data[title].f[file];
+                    rank = data[title].f[file].rank;
+                    gk = data[title].f[file].gk;
                 }
 
                 /**
@@ -127,7 +130,7 @@ module.exports = new (function() {
                     //the decimal places in the score represent the "playability" of the title. This way, titles with (U) and [!] will rank higher than those that are hacks or have brackets
                     searchscore += (rank * 0.1); //between 9.9 and 0.0
 
-                    result.push([title, file, system, searchscore]);
+                    result.push([gk, searchscore]);
                 }
             }
 

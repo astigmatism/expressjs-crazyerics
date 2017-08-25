@@ -134,7 +134,7 @@ var cesSavesManager = (function (_config, _Compression, _gameKey, _initialSaveDa
         });
 
         $.ajax({
-            url: '/saves?gk=' + encodeURIComponent(_gameKey),
+            url: '/saves?gk=' + encodeURIComponent(_gameKey.gk),
             data: data,
             processData: false,
             contentType: 'text/plain',

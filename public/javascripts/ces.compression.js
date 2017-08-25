@@ -1,5 +1,14 @@
 var cesCompression = (function() {
-		
+	
+	var _self = this;
+
+	var GameKey = (function(system, title, file, gk) {
+		this.system = system;
+		this.title = title;
+		this.file = file;
+		this.gk = gk;			//the original compressed json of this key should it be needed again
+	});
+
 	//public methods
 
 	this.Compress = {
@@ -35,17 +44,9 @@ var cesCompression = (function() {
 	    },
 	    /**
 	     * a "gamekey" is an identifer on the server-end for system, title, file. we use it for a bunch of stuff from loading/saving states to loading games
-	     * @param  {string} system
-	     * @param  {string} title
-	     * @param  {string} file
-	     * @return {string}
 	     */
-	    gamekey: function(system, title, file) {
-	        return this.json({
-	            system: system,
-	            title: title,
-	            file: file
-	        });
+	    gamekey: function(gameKey) {
+	        //just a reminder not to call this. gameKey.gk is the answer
 	    }
 	};
 
@@ -79,7 +80,20 @@ var cesCompression = (function() {
 	        var base64 = atob(item);
 	        var inflate = pako.inflate(base64, {to: 'string'});
 	        return inflate;
-	    }
+		},
+		gamekey: function(gk) {
+			var gameKey;
+			try {
+				gameKey = this.json(gk);
+			} catch (e) {
+				return;
+			}
+			//must be an array of length 3 [system, title, file]
+			if (gameKey.length && gameKey.length === 3) {
+				return new GameKey(gameKey[0], gameKey[1], gameKey[2], gk);
+			}
+			return;
+		}
 	};
 
 	// public aliases

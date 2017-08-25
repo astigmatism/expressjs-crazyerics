@@ -165,18 +165,11 @@ var cesMain = (function() {
              */
             renderItem: function(item, search) {
 
-                /*
-                item: [
-                    game name,
-                    rom file name,
-                    system,
-                    search score
-                ]
-                 */
-                var suggestion = $('<div class="autocomplete-suggestion" data-title="' + item[0] + '" data-file="' + item[1] + '" data-system="' + item[2] + '" data-searchscore="' + item[3] + '"></div>');
-                suggestion.append(cesGetBoxFront(_config, item[2], item[0], 50));
-                suggestion.append('<div>' + item[0] + '</div>');
-                return $('<div/>').append(suggestion).html(); //because .html only returns inner content
+                var gameKey = _Compression.Decompress.gamekey(item[0]);
+                var $suggestion = $('<div class="autocomplete-suggestion" data-gk="' + gameKey.gk + '" data-searchscore="' + item[1] + '"></div>');
+                $suggestion.append(cesGetBoxFront(_config, gameKey.system, gameKey.title, 50));
+                $suggestion.append('<div>' + gameKey.title + '</div>');
+                return $('<div/>').append($suggestion).html(); //because .html only returns inner content
             },
             /**
              * on autocomplete select
@@ -186,7 +179,8 @@ var cesMain = (function() {
              * @return {undef}
              */
             onSelect: function(e, term, item) {
-                PlayGame(item.data('system'), item.data('title'), item.data('file'));
+                var gameKey = _Compression.Decompress.gamekey(item.data('gk'));
+                PlayGame(gameKey);
             }
         });
 
@@ -308,14 +302,12 @@ var cesMain = (function() {
 
     /**
      * Prepare layout etc. for running a game! cleans up current too
-     * @param  {string} system      [snes, nes, gb, gba, gen ... ]
-     * @param  {string} title       the rom game title (seen as the folder name in the file system)
-     * @param  {string} file        the rom file which to load
+     * @param  {GameKey} gameKey    required. see ces.compression for definition. members: system, title, file, gk
      * @param  {number} state       optional. restore a saved state with the slot value (0, 1, 2, etc)
      * @param  {string} shader      optional. preselected shader. if supplied, will skip the shader selection
      * @return {undef}
      */
-    var PlayGame = function (system, title, file, slot, shader, callback) {
+    var PlayGame = function (gameKey, slot, shader, callback) {
 
         //bail if attempted to load before current has finished
         if (_preventLoadingGame) {
@@ -345,7 +337,7 @@ var cesMain = (function() {
                 $('#emulatorcanvas').append('<canvas tabindex="0" id="emulator" oncontextmenu="event.preventDefault()"></canvas>');
 
                 //call bootstrap
-                RetroArchBootstrap(system, title, file, slot, shader, function() {
+                RetroArchBootstrap(gameKey, slot, shader, function() {
 
                     _preventLoadingGame = false;
 
@@ -359,21 +351,18 @@ var cesMain = (function() {
 
     /**
      * bootstrap function for loading a game with retroarch. setups animations, loading screens, and iframe for emulator. also destoryes currently running
-     * @param  {string} system      [snes, nes, gb, gba, gen ... ]
-     * @param  {string} title       the rom game title (seen as the folder name in the file system)
-     * @param  {string} file        the rom file which to load
+     * @param  {GameKey} gameKey    required. see compression for class definition. Has members system, title, file, gk
      * @param  {number} state       optional. restore a saved state with the slot value (0, 1, 2, etc)
      * @param  {string} shader      optional. preselected shader. if supplied, will skip the shader selection
      * @return {undef}
      */
-    var RetroArchBootstrap = function(system, title, file, slot, shader, callback) {
+    var RetroArchBootstrap = function(gameKey, slot, shader, callback) {
 
-        var key = _Compression.In.gamekey(system, title, file); //create key for anything that might need it
-        var box = cesGetBoxFront(_config, system, title, 170); //preload loading screen box
+        var box = cesGetBoxFront(_config, gameKey.system, gameKey.title, 170); //preload loading screen box
         //_RecentlyPlayed.SetCurrentGameLoading(key); //inform recently played what the current game is so that they don't attempt to delete it during load
 
         //which emulator to load?
-        EmulatorFactory(system, title, file, key, function(err, emulator) {
+        EmulatorFactory(gameKey, function(err, emulator) {
             if (err) {
                 //not sure how to handle this yet
                 console.error(err);
@@ -389,7 +378,7 @@ var cesMain = (function() {
             _preventLoadingGame = false; //during shader select, allow other games to load
 
             //show shader selector. returns an object with shader details
-            ShowShaderSelection(system, shader, function(shaderselection) {
+            ShowShaderSelection(gameKey.system, shader, function(shaderselection) {
 
                 _preventLoadingGame = true; //lock loading after shader select
                 var gameLoadingStart = Date.now();
@@ -397,14 +386,14 @@ var cesMain = (function() {
                 _ProgressBar.Reset(); //before loading dialog, reset progress bar from previous
 
                 //game load dialog show
-                ShowGameLoading(system, title, box, function(tipInterval) {
+                ShowGameLoading(gameKey.system, gameKey.title, box, function(tipInterval) {
 
                     var optionsToSendToServer = {
                         shader: shaderselection.shader,  //name of shader file
                     };
 
                     //this call is a POST. Unlike the others, it is destined for the mongo instance (MY DOMAIN not a cdn). we send user preference data to the server in addition to getting game details.
-                    SavePreferencesAndGetPlayerGameDetails(key, system, title, file, optionsToSendToServer, savePreferencesAndGetPlayerGameDetailsComplete);
+                    SavePreferencesAndGetPlayerGameDetails(gameKey, optionsToSendToServer, savePreferencesAndGetPlayerGameDetailsComplete);
 
                     //run to my domain first to get details about the game before we retrieve it
                     $.when(savePreferencesAndGetPlayerGameDetailsComplete).done(function(compressedGameDetails) {
@@ -414,7 +403,7 @@ var cesMain = (function() {
                         var saves = gameDetails.saves;
                         var files = gameDetails.files;
                         var shaderFileSize = gameDetails.shaderFileSize; //will be 0 if no shader to load
-                        var supportFileSize = _config.systemdetails[system].supportfilesize; //will be 0 for systems without support
+                        var supportFileSize = _config.systemdetails[gameKey.system].supportfilesize; //will be 0 for systems without support
                         var info = {};
                         try {
                             info = JSON.parse(gameDetails.info);
@@ -433,7 +422,7 @@ var cesMain = (function() {
                         //when all deffered calls are ready
                         $.when(emulatorLoadComplete).done(function(emulatorLoaded) {
 
-                            _Emulator.InitializeSavesManager(saves, key);
+                            _Emulator.InitializeSavesManager(saves, gameKey);
 
                             //date copmany
                             if (info && info.Publisher && info.ReleaseDate) {
@@ -444,7 +433,7 @@ var cesMain = (function() {
                             _preventLoadingGame = false; //during save select, allow other games to load
 
                             //are there saves to load? Let's show a dialog to chose from, if not - will go straight to start
-                            _SaveSelection = new cesSaveSelection(_config, _Dialogs, _Emulator, system, $('#savedgameselector'), function(err, selectedSaveTimeStamp, selectedSavescreenshot) {
+                            _SaveSelection = new cesSaveSelection(_config, _Dialogs, _Emulator, gameKey.system, $('#savedgameselector'), function(err, selectedSaveTimeStamp, selectedSavescreenshot) {
                                 
                                 if (selectedSaveTimeStamp) {
                                     ShowSaveLoading(system, selectedSavescreenshot);
@@ -477,7 +466,7 @@ var cesMain = (function() {
 
                                             //load state? bails if null.. if valid, will show a new save loading dialog
                                             //and will load state. callback occurs after state has loaded
-                                            LoadEmulatorState(system, stateToLoad, function() {
+                                            LoadEmulatorState(gameKey.system, stateToLoad, function() {
 
                                                 //close all dialogs (save loading or game loading), game begins!
                                                 _Dialogs.CloseDialog(false, function() {
@@ -487,7 +476,7 @@ var cesMain = (function() {
                                                     clearInterval(tipInterval);
 
                                                     //handle title and content fadein steps
-                                                    DisplayGameContext(system, title, function() {
+                                                    DisplayGameContext(gameKey, function() {
 
                                                     });
 
@@ -595,9 +584,9 @@ var cesMain = (function() {
         });
     };
 
-    var EmulatorFactory = function(system, title, file, key, callback) {
+    var EmulatorFactory = function(gameKey, callback) {
 
-        var emuExtention = _config.systemdetails[system].emuextention;
+        var emuExtention = _config.systemdetails[gameKey.system].emuextention;
         var emuExtentionFileName = 'ces.' + emuExtention + '.js';
 
         //get emulator extention file
@@ -610,9 +599,9 @@ var cesMain = (function() {
                 }
 
                 //the class extention process: on the prototype of the ext, create using the base class.
-                cesEmulator.prototype = new cesEmulatorBase(_Compression, _PubSub, _config, system, title, file, key, ui);
+                cesEmulator.prototype = new cesEmulatorBase(_Compression, _PubSub, _config, gameKey, ui);
 
-                var emulator = new cesEmulator(_Compression, _PubSub, _config, system, title, file, key);
+                var emulator = new cesEmulator(_Compression, _PubSub, _config, gameKey);
 
                 //KEEP IN MIND: this pattern is imperfect. only the resulting structure (var emulator and later _Emulator)
                 //will have access to data in both, cesEmulatorBase does not have knowledge of anything in cesEmulator
@@ -793,16 +782,16 @@ var cesMain = (function() {
      * @param  {Function} callback
      * @return {undef}
      */
-    var DisplayGameContext = function(system, title, callback) {
+    var DisplayGameContext = function(gameKey, callback) {
 
-        var box = cesGetBoxFront(_config, system, title, 170);
+        var box = cesGetBoxFront(_config, gameKey.system, gameKey.title, 170);
 
         //using old skool img because it was the only way to get proper image height
         var img = document.createElement('img');
         img.addEventListener('load', function() {
 
             $('#gamedetailsboxfront').empty().append(box);
-            $('#gametitle').empty().hide().append(title);
+            $('#gametitle').empty().hide().append(gameKey.title);
 
             // slide down background
             $('#gamedetailsboxfront img').addClass('close');
@@ -817,7 +806,7 @@ var cesMain = (function() {
 
                     //load controls
                     $('#controlsslider').empty();
-                    $.get('/layout/controls/' + system, function(result) {
+                    $.get('/layout/controls/' + gameKey.system, function(result) {
                         $('#controlsslider').append(result);
                     });
 
@@ -894,12 +883,12 @@ var cesMain = (function() {
      * @param  {Object} deffered
      * @return {undef}
      */
-    var SavePreferencesAndGetPlayerGameDetails = function(key, system, title, file, options, deffered) {
+    var SavePreferencesAndGetPlayerGameDetails = function(gameKey, options, deffered) {
 
 
         //call returns not only states but misc game details. I tried to make this
         //part of the LoadGame call but the formatting for the compressed game got weird
-        $.post('/games/load?gk=' + encodeURIComponent(key) + '&' + _Preferences.UpdateServer(), options, function(data) {
+        $.post('/games/load?gk=' + encodeURIComponent(gameKey.gk) + '&' + _Preferences.UpdateServer(), options, function(data) {
 
             //TODO: add to collection using data from server
 

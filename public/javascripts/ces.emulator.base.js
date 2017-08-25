@@ -2,12 +2,11 @@
  * Emulator class. Holds all properties and functions for managing the instance of a loaded emaultor and game
  * @param  {Object} _Compression compression library
  * @param  {Object} config       ces config
- * @param  {string} _system       gen, nes, gb, ...
- * @param  {string} _title        Super Mario Bros. 3
+ * @param  {GameKey} _gameKey    see ces.compression for class definitions. members: system, title, file, gk
  * @param  {string} file         Super Mario Bros. 3 (U)[!].nes
  * @return {undef}
  */
-var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title, _file, _key, _ui) {
+var cesEmulatorBase = (function(_Compression, _PubSub, _config, _gameKey, _ui) {
 
     // private members
     var self = this;
@@ -80,14 +79,14 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
         _isLoading = true;
 
         //setup progress bar
-        var emulatorFileSize = _config.systemdetails[_system].emusize;
+        var emulatorFileSize = _config.systemdetails[_gameKey.system].emusize;
         _ProgressBar.AddBucket('emulator', emulatorFileSize);
         _ProgressBar.AddBucket('game', filesize);
         _ProgressBar.AddBucket('shader', shaderFileSize); //will be 0 if no shader to load, not effecting the progress bar
         _ProgressBar.AddBucket('support', supportFileSize); //will be 0 if no support
 
-        LoadEmulatorScript(_ProgressBar, _system, module, emulatorFileSize, emulatorLoadComplete);
-        LoadSupportFiles(_ProgressBar, _system, supportFileSize, supportLoadComplete);
+        LoadEmulatorScript(_ProgressBar, _gameKey.system, module, emulatorFileSize, emulatorLoadComplete);
+        LoadSupportFiles(_ProgressBar, _gameKey.system, supportFileSize, supportLoadComplete);
         LoadGame(_ProgressBar, filesize, gameLoadComplete);
         LoadShader(_ProgressBar, shader, shaderFileSize, shaderLoadComplete);
 
@@ -113,7 +112,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
                 }
 
                 //determine state name
-                var filenoextension = _file.replace(new RegExp('\.[a-z0-9]{1,3}$', 'gi'), '');
+                var filenoextension = _gameKey.file.replace(new RegExp('\.[a-z0-9]{1,3}$', 'gi'), '');
                 var statefilename = '/' + filenoextension + '.state';
 
                 _Module.cesWriteFile('/states', statefilename, stateData, function() {
@@ -273,10 +272,6 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
 
     /**
      * this function is registered with the emulator when a file is written.
-     * @param  {string} key      unique game key, used to save state
-     * @param  {string} system
-     * @param  {string} _title
-     * @param  {string} file
      * @param  {string} filename the file name being saved by the emulator
      * @param  {UInt8Array} contents the contents of the file saved by the emulator
      * @return {undef}
@@ -298,7 +293,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
             //construct image into blob for use
             var screenDataUnzipped = new Uint8Array(contents);
 
-            _PubSub.Publish('screenshotWritten', [filename, contents, screenDataUnzipped, _system, _title]);
+            _PubSub.Publish('screenshotWritten', [filename, contents, screenDataUnzipped, _gameKey.system, _gameKey.title]);
             return;
         }
 
@@ -611,7 +606,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
 
                 setTimeout(function() {
                     deffered.resolve(null, module, emulatorScriptInstance);
-                }, 5000);
+                }, 5000);1
             },
             //onFailure
             function(jqXHR, status, error) {
@@ -623,7 +618,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
     /**
      * Emulator support is any additional resources required by the emulator needed for play
      * This isnt included in the LoadEmulator call because sometimes support files are needed for an emulator
-     * which can play several systems (Sega CD, support needed, Genesis, no support)
+     * which can play 1several systems (Sega CD, support needed, Genesis, no support)
      * @param  {string} system
      * @param  {Object} deffered
      * @return {undef}
@@ -665,15 +660,15 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _system, _title,
     /**
      * load rom file from whatever is defined in the config "rompath" (CDN/crossdomain or local). will come in as compressed string. after unpacked will resolve deffered. loads concurrently with emulator
      * @param  {string} system
-     * @param  {string} _title
+     * @param  {string} _gameKey.title
      * @param  {string} file
      * @param  {Object} deffered
      * @return {undef}
      */
     var LoadGame = function(_ProgressBar, filesize, deffered) {
         
-        var filename = _Compression.Zip.string(_title + _file);
-        var location = _config.rompath + '/' + _system + '/' + _config.systemdetails[_system].romcdnversion + '/';
+        var filename = _Compression.Zip.string(_gameKey.title + _gameKey.file);
+        var location = _config.rompath + '/' + _gameKey.system + '/' + _config.systemdetails[_gameKey.system].romcdnversion + '/';
 
         //encode twice: once for the trip, the second because the files are saved that way on the CDN
         location += encodeURIComponent(encodeURIComponent(filename));

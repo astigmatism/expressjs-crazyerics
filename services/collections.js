@@ -35,7 +35,14 @@ module.exports = new (function() {
                 if (err) {
                     return callback(err);
                 }
-                result.collections = collections;
+
+                //sanitize result as well, didn't see a general need to move this into its own func
+                var names = [];
+                for (var i = 0, len = collections.length; i < len; ++i) {
+                    names.push(collections[i].name);
+                }
+
+                result.collections = names;
 
                 callback(null, result);
             });
@@ -94,7 +101,22 @@ module.exports = new (function() {
     //for the client, we can't expose raw data like id's and the such
     var SanitizeCollectionForClient = function(collection) {
 
-        return collection;
+        var clientCollection = {
+            data: {
+                name: collection.data.name
+            },
+            titles: []
+        };
+
+        for (var i = 0, len = collection.titles.length; i < len; ++i) {
+            clientCollection.titles.push({
+                gk: collection.titles[i].game_key,
+                lastPlayed: collection.titles[i].last_played,
+                playCount: collection.titles[i].play_count
+            });
+        }
+
+        return clientCollection;
     };
 
     this.GetCollectionNames = CollectionsSQL.GetCollectionNames;
@@ -162,7 +184,7 @@ module.exports = new (function() {
         }, preferencesKeyForActiveCollection);
     };
 
-    this.PlayCollectionTitle = function(userId, titleId, fileId, callback) {
+    this.PlayCollectionTitle = function(userId, gk, titleId, fileId, callback) {
 
         _self.GetActiveCollection(userId, (err, activeCollection) => {
             if (err) {
@@ -172,7 +194,7 @@ module.exports = new (function() {
             var collectionId = activeCollection.data.collection_id;
 
             //update the record
-            CollectionsSQL.PlayCollectionTitle(userId, collectionId, titleId, fileId, (err, collectionsTitlesRecord) => {
+            CollectionsSQL.PlayCollectionTitle(userId, collectionId, gk, titleId, fileId, (err, collectionsTitlesRecord) => {
                 if (err) {
                     return callback(err);
                 }

@@ -108,7 +108,8 @@ module.exports = new (function() {
                             for (var title in data) {
 
                                 var bestfile = data[title].b;
-                                var bestrank = data[title].f[bestfile];
+                                var bestrank = data[title].f[bestfile].rank;
+                                var gk = data[title].f[bestfile].gk;
 
                                 //in order to be suggested must have art and must need minimum rank to be preferable playing game
                                 //you can get systemSuggestionThreshold in config if needed
@@ -169,7 +170,8 @@ module.exports = new (function() {
                                     search[title + '.' + system] = {
                                         system: system,
                                         file: bestfile,
-                                        rank: bestrank
+                                        rank: bestrank,
+                                        gk: gk
                                     };
                                 }
                                 

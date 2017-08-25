@@ -7,7 +7,7 @@
  * @param  {string} file         Super Mario Bros. 3 (U)[!].nes
  * @return {undef}
  */
-var cesEmulator = (function(_Compression, _PubSub, _config, _system, _title, _file, _key) {
+var cesEmulator = (function(_Compression, _PubSub, _config, _gameKey) {
 
     // private members
     var self = this;
@@ -261,7 +261,7 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _system, _title, _fi
 
             this.FS_createFolder('/', 'games', true, true);
 
-            var fileToLoad = _file;
+            var fileToLoad = _gameKey.file;
 
             //games are stored compressed in json. due to javascript string length limits, these can be broken up into several segments for larger files.
             //the compressedGameFiles object contains data for all files and their segments
@@ -361,9 +361,9 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _system, _title, _fi
                 var configItem;
 
                 //system specific overrides
-                if (_config.systemdetails[_system] && _config.systemdetails[_system].retroarch) {
-                    for (configItem in _config.systemdetails[_system].retroarch) {
-                        retroArchConfig[configItem] = _config.systemdetails[_system].retroarch[configItem];
+                if (_config.systemdetails[_gameKey.system] && _config.systemdetails[_gameKey.system].retroarch) {
+                    for (configItem in _config.systemdetails[_gameKey.system].retroarch) {
+                        retroArchConfig[configItem] = _config.systemdetails[_gameKey.system].retroarch[configItem];
                     }
                 }
 
