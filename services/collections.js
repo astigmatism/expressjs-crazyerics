@@ -1,36 +1,118 @@
 'use strict';
-const fs = require('fs');
-const async = require('async');
 const config = require('config');
 const CollectionsSQL = require('../db/collections');
 const PreferencesService = require('./preferences');
+const Cache = require('./cache');
 
 module.exports = new (function() { 
 
     var _self = this;
+    var _collectionCache = new Cache('user.$1.collection.$2'); //value is an array of titles in collection
 
-    this.GetCollectionByName = function(userId, name, callback, opt_createIfNotExist) {
-        
-        opt_createIfNotExist = (opt_createIfNotExist == true) ? true : false;
+    var CollectionEnvelope = (function() {
+        this.data = null;   //details about the current collection (from collections table)
+        this.titles = [];   //a list of titles for this collection (from collections_titles table with details from titles and files tables)
+    });
 
-        CollectionsSQL.GetCollectionByName(userId, name, (err, collection) => {
+    //prepare data for the cesCollections client component
+    this.ClientInitialization = function(userId, callback) {
+
+        var result = {
+            active: null,       //details about the current active collection
+            collections: []     //a list of user collections to make active
+        };
+
+        _self.GetActiveCollection(req.user.user_id, (err, activeCollection) => {
             if (err) {
                 return callback(err);
             }
-            if (collection) {
-                return callback(null, collection);
+
+            //sanitize data going to client
+            result.active = SanitizeCollectionForClient(activeCollection);
+
+            //get list of all collections
+            CollectionService.GetCollectionNames(req.user.user_id, (err, collections) => {
+                if (err) {
+                    return callback(err);
+                }
+                result.collections = collections;
+            });
+        });
+    };
+
+    this.GetCollectionByName = function(userId, name, callback, opt_createIfNoExist) {
+        
+        opt_createIfNoExist = (opt_createIfNoExist == true) ? true : false;
+        
+        _collectionCache.Get([userId, name], (err, cache) => {
+            if (err) {
+                return callback(err);
             }
-            //no exist and didn't want to create it
-            else {
-                return callback();
+
+            if (cache) {
+                return callback(null, cache);
             }
+
+            var collection = new CollectionEnvelope();
             
-        }, opt_createIfNotExist);
+            //get collection data first
+            CollectionsSQL.GetCollectionByName(userId, name, (err, data) => {
+                if (err) {
+                    return callback(err);
+                }
+                //if exists (or was created)
+                if (data) {
+                    collection.data = data;
+
+                    CollectionsSQL.GetCollectionTitles(data.collection_id, (err, titles) => {
+                        if (err) {
+                            return callback(err);
+                        }
+
+                        collection.titles = titles;
+
+                        _collectionCache.Set([userId, name], collection, (err, success) => {
+                            if (err) {
+                                return callback(err);
+                            }
+                            return callback(null, collection);
+                        });
+                    });
+                }
+                //does not exist, was not created, bail
+                else {
+                    return callback();
+                }
+
+            }, opt_createIfNoExist);
+        });
+    };
+    
+    //expecting type CollectionEnvelope
+    //for the client, we can't expose raw data like id's and the such
+    var SanitizeCollectionForClient = function(collection) {
+
+        return collection;
     };
 
     this.GetCollectionNames = CollectionsSQL.GetCollectionNames;
 
-    const keyCollectionsActive = 'collections.active';
+    this.DeleteCollectionByName = function(userId, name, callback) {
+        
+        CollectionsSQL.DeleteCollectionByName(userId, name, (err, deletedRecord) => {
+            if (err) {
+                return callback(err);
+            }
+            _collectionCache.Delete([userId, name], (err, success) => {
+                if (err) {
+                    return callback(err);
+                }
+                callback(null, deletedRecord); 
+            });
+        });
+    };
+
+    const preferencesKeyForActiveCollection = 'collections.active';
 
     this.GetActiveCollection = function(userId, callback) {
 
@@ -43,7 +125,7 @@ module.exports = new (function() {
             //assign and cache default if none is already defined (new user path)
             if (!activeCollection) {
                 activeCollection = config.get('defaultCollection');
-                PreferencesService.SetAsync(userId, keyCollectionsActive, activeCollection);
+                PreferencesService.SetAsync(userId, preferencesKeyForActiveCollection, activeCollection);
             }
 
             //get collection (will create if not exist)
@@ -54,7 +136,7 @@ module.exports = new (function() {
                 return callback(null, collection);
             }, true);
 
-        }, keyCollectionsActive);
+        }, preferencesKeyForActiveCollection);
     };
 
     this.SetActiveCollection = function(userId, collection, callback) {
@@ -68,14 +150,14 @@ module.exports = new (function() {
                 return callback();
             }
 
-            PreferencesService.Set(userId, keyCollectionsActive, collection, (err, success) => {
+            PreferencesService.Set(userId, preferencesKeyForActiveCollection, collection, (err, success) => {
                 if (err) {
                     return callback(err);
                 }
                 callback(null, success);
             });
 
-        }, keyCollectionsActive);
+        }, preferencesKeyForActiveCollection);
     };
 
     this.PlayCollectionTitle = function(userId, titleId, fileId, callback) {

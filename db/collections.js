@@ -7,7 +7,6 @@ module.exports = new (function() {
 
     var _self = this;
     var _collectionsCache = new Cache('user.$1.collections'); //value is an array of collection names for this user
-    var _collectionCache = new Cache('user.$1.collection.$2'); //value is an array of titles
 
     this.GetCollectionNames = function (userId, callback) {
 
@@ -37,58 +36,6 @@ module.exports = new (function() {
         });
     };
 
-    this.GetCollectionByName = function(userId, name, callback, opt_createIfNoExist) {
-        
-        opt_createIfNoExist = (opt_createIfNoExist == true) ? true : false;
-        
-        //expect this format
-        var collection = {
-            data: {}, //from collections table
-            titles: [] // from collections_games table
-        };
-        
-        _collectionCache.Get([userId, name], (err, cache) => {
-            if (err) {
-                return callback(err);
-            }
-
-            if (cache) {
-                return callback(null, cache);
-            }
-            
-            //get collection data first
-            GetCollectionID(userId, name, (err, data) => {
-                if (err) {
-                    return callback(err);
-                }
-                //if exists (or was created)
-                if (data) {
-                    collection.data = data;
-
-                    GetCollectionGames(data.collection_id, (err, titles) => {
-                        if (err) {
-                            return callback(err);
-                        }
-
-                        collection.titles = titles;
-
-                        _collectionCache.Set([userId, name], collection, (err, success) => {
-                            if (err) {
-                                return callback(err);
-                            }
-                            return callback(null, collection);
-                        });
-                    });
-                }
-                //does not exist, was not created, bail
-                else {
-                    return callback();
-                }
-
-            }, opt_createIfNoExist);
-        });
-    };
-
     this.PlayCollectionTitle = function(userId, collectionId, titleId, fileId, callback) {
         
         pool.query('UPDATE collections_titles SET active_file=$3, last_played=$4, play_count=play_count+1 WHERE collection_id=$1 AND title_id=$2 RETURNING *', [collectionId, titleId, fileId, new Date], (err, result) => {
@@ -111,7 +58,7 @@ module.exports = new (function() {
         });
     };
 
-    var GetCollectionID = function(userId, name, callback, opt_createIfNoExist) {
+    this.GetCollectionByName = function(userId, name, callback, opt_createIfNoExist) {
 
         pool.query('SELECT * from collections WHERE user_id=$1 AND name=$2', [userId, name], (err, result) => {
             if (err) {
@@ -173,24 +120,18 @@ module.exports = new (function() {
                 return callback();
             }
 
-            //delete caches
             _collectionsCache.Delete([userId], (err, success) => {
                 if (err) {
                     return callback(err);
                 }
-                _collectionCache.Delete([userId, name], (err, success) => {
-                    if (err) {
-                        return callback(err);
-                    }
-                    callback(null, result.rows[0]);
-                });
+                callback(null, result.rows[0]);
             });
         });
     };
 
-    var GetCollectionGames = function(collectionId, callback) {
+    var GetCollectionTitles = function(collectionId, callback) {
 
-        pool.query('SELECT * FROM collections_titles WHERE collection_id=$1', [collectionId], (err, result) => {
+        pool.query('SELECT collections_titles.*, files.name, titles.name FROM collections_titles INNER JOIN titles ON collection_titles.title_id=titles.title_id INNER JOIN files ON collection_titles.active_file=files.file_id WHERE collection_id=$1', [collectionId], (err, result) => {
             if (err) {
                 return callback(err);
             }
