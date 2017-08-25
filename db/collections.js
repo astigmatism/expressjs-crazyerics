@@ -129,9 +129,9 @@ module.exports = new (function() {
         });
     };
 
-    var GetCollectionTitles = function(collectionId, callback) {
+    this.GetCollectionTitles = function(collectionId, callback) {
 
-        pool.query('SELECT collections_titles.*, files.name, titles.name FROM collections_titles INNER JOIN titles ON collection_titles.title_id=titles.title_id INNER JOIN files ON collection_titles.active_file=files.file_id WHERE collection_id=$1', [collectionId], (err, result) => {
+        pool.query('SELECT collections_titles.*, files.name AS file_name, titles.name AS title_name FROM collections_titles INNER JOIN titles ON collections_titles.title_id=titles.title_id INNER JOIN files ON collections_titles.active_file=files.file_id WHERE collection_id=$1', [collectionId], (err, result) => {
             if (err) {
                 return callback(err);
             }

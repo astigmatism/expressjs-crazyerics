@@ -8,16 +8,33 @@ const FilesSQL = require('../db/files.js');
 const Cache = require('../services/cache');
 const NodeCache = require('node-cache');
 
-//define custom cache for files
-const GamesCache = new Cache('games.$1', new NodeCache({
-        stdTTL: 0,                      //0 = unlimited. 
-        checkperiod: 0                  //0 = no periodic check
-    })
-);
-
 module.exports = new (function() {
 
     var _self = this;
+
+    //define custom cache for files
+    var _cache = new Cache('games.$1', new NodeCache({
+            stdTTL: 0,                      //0 = unlimited. 
+            checkperiod: 0                  //0 = no periodic check
+        })
+    );
+
+    //a game key is the rom's signature: a unique compressed string
+    this.CodeKey = function(system, title, file, opt_asJson) {
+        var key = {
+            system: system,
+            title: title,
+            file: file
+        };
+        if (!opt_asJson) {
+            key = UtilitiesService.Compress.json(key);
+        }
+        return key;
+    };
+
+    this.DecodeKey = function(key) {
+        return UtilitiesService.Decompress.json(key);
+    };
 
     //a play request is initiated, update game tables, return game details...
     this.PlayRequest = function(gameKey, callback) {
@@ -83,7 +100,7 @@ module.exports = new (function() {
         //I found it faster to save all the results in a cache rather than load all the caches to create the result.
         //went from 120ms response to about 30ms
         var cacheKey = system + '.' + title + '.' + file;
-        GamesCache.Get([cacheKey], (err, data) => {
+        _cache.Get([cacheKey], (err, data) => {
             if (err) {
                 return callback(err);
             }
@@ -157,7 +174,7 @@ module.exports = new (function() {
                                     }
                                 }
                                 
-                                GamesCache.Set([cacheKey], data, (err, success) => {
+                                _cache.Set([cacheKey], data, (err, success) => {
                                     if (err) {
                                         return callback(err);
                                     }

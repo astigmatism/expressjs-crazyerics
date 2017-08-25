@@ -3,6 +3,7 @@ const async = require('async');
 const config = require('config');
 const UtilitiesService = require('./utilities');
 const FileService = require('./files');
+const GamesService = require('./games');
 
 /*
 example recipe: {
@@ -81,10 +82,12 @@ module.exports = new (function() {
                         set = UtilitiesService.Shuffle(set);
 
                         for (var i = 0, len = set.length; i < len && i < tosuggest; ++i) {
+                            var gk = null; //GamesService.CodeKey(_system, set[i], allCache[_system].data[set[i]].b);
                             result.push({
                                 system: _system,
                                 title: set[i],
                                 file: allCache[_system].data[set[i]].b, //the best file is the playable one
+                                gk: gk,
                                 rating: parseFloat(allCache[_system].data[set[i]].thegamesdbrating) || 0
                             });
                         }
@@ -125,10 +128,12 @@ module.exports = new (function() {
                     var limit = recipe.count * (parseInt(details.proportion, 10) / 100);
 
                     for (var i = 0, len = set.length; i < len && i < limit; ++i) {
+                        var gk = null; //GamesService.CodeKey(system, set[i], caches[system].data[set[i]].b);
                         result.push({
                             system: system,
                             title: set[i],
                             file: caches[system].data[set[i]].b, //the best file is the playable one
+                            gk: gk,
                             rating: parseFloat(caches[system].data[set[i]].thegamesdbrating) || 0
                         });
                     }

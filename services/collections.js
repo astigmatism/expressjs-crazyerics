@@ -22,7 +22,7 @@ module.exports = new (function() {
             collections: []     //a list of user collections to make active
         };
 
-        _self.GetActiveCollection(req.user.user_id, (err, activeCollection) => {
+        _self.GetActiveCollection(userId, (err, activeCollection) => {
             if (err) {
                 return callback(err);
             }
@@ -31,11 +31,13 @@ module.exports = new (function() {
             result.active = SanitizeCollectionForClient(activeCollection);
 
             //get list of all collections
-            CollectionService.GetCollectionNames(req.user.user_id, (err, collections) => {
+            _self.GetCollectionNames(userId, (err, collections) => {
                 if (err) {
                     return callback(err);
                 }
                 result.collections = collections;
+
+                callback(null, result);
             });
         });
     };

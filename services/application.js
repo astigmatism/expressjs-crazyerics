@@ -284,26 +284,17 @@ module.exports = new (function() {
         if (req.user) {
 
             //get preferred collection
-            CollectionService.GetActiveCollection(req.user.user_id, (err, activeCollection) => {
+            CollectionService.ClientInitialization(req.user.user_id, (err, collectionInitialization) => {
                 if (err) {
                     return callback(err);
                 }
-                playerdata.collections.active = activeCollection;
+                playerdata.collections = collectionInitialization;
 
-                //get list of all collections
-                CollectionService.GetCollectionNames(req.user.user_id, (err, collections) => {
-                    if (err) {
-                        return callback(err);
-                    }
-                    playerdata.collections.collections = collections;
-
-
-                    PreferencesService.Get(req.user.user_id, (err, cache) => {
+                PreferencesService.Get(req.user.user_id, (err, cache) => {
                         
-                        playerdata.preferences = cache;
+                    playerdata.preferences = cache;
 
-                        callback(null, playerdata);
-                    });
+                    callback(null, playerdata);
                 });
             });
         } else {
