@@ -21,6 +21,28 @@ module.exports = new (function() {
 
     var _self = this;
 
+    //get cached canned suggestions result. recipeName matches cache name and config entry
+    this.GetCanned = function(name, callback, opt_cacheSet) {
+
+        //first get total number of cached results
+        var samples = config.get('cannedRecipes.' + name + '.samples');
+        if (!samples) {
+            return callback();
+        }
+        //get a random get from cache (or if defined, a specific one)
+        var cacheSet = opt_cacheSet || Math.floor(Math.random() * (samples - 0) + 0);
+
+        FileService.Get('suggestions.canned.' + name + '.' + cacheSet, (err, cache) => {
+            if (err) {
+                return callback(err);
+            }
+            if (!cache) {
+                return callback();
+            }
+            callback(null, cache);
+        });
+    };
+
     this.Get = function(recipe, callback) {
 
         var result = [];
@@ -87,9 +109,6 @@ module.exports = new (function() {
                             var gk = allCache[_system].data[set[i]].f[bestfile].gk;
 
                             result.push({
-                                // system: _system,
-                                // title: set[i],
-                                // file: bestfile,
                                 gk: gk,
                                 rating: parseFloat(allCache[_system].data[set[i]].thegamesdbrating) || 0
                             });
@@ -187,5 +206,39 @@ module.exports = new (function() {
             callback(null, caches);
         });
     };
+    
+
+    this.CreateCanned = function(callback) {
+
+        var definitions = config.get('cannedRecipes');
+
+        async.eachOf(definitions, (definition, definitionName, nextDefinition) => {
+
+            var recipe = definition.recipe;
+            var samples = definition.samples;
+
+            async.times(samples, function(i, next) {
+                
+                _self.Get(recipe, (err, suggestions) => {
+                    if (err) {
+                        return next(err);
+                    }
+                    FileService.Set('suggestions.canned.' + definitionName + '.' + i, suggestions);
+                    next();
+                });
+            }, function(err) {
+                if (err) {
+                    return nextDefinition(err);
+                }
+
+                nextDefinition();
+            });
+        }, (err) => {
+            if (err) {
+                return callback(err);
+            }
+            callback();    
+        })
+    }
 
 })();

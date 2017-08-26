@@ -31,7 +31,8 @@ module.exports = new (function() {
             return base64;
         },
         gamekey: function(gameKey) {
-	        return this.json([gameKey.system, gameKey.title, gameKey.file]);
+            //try not to do this! gamekeys are predefined in masterfiles
+            //return this.json([gameKey.system, gameKey.title, gameKey.file]);
 	    }
     };
 

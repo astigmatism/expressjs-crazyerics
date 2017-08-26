@@ -118,18 +118,27 @@ var cesMain = (function() {
             onChange: function() {
                 var system = $(this).val();
 
-                var recipe = {
-                    systems: {},
-                    count: 100
-                };
-                recipe.systems[system] = {
-                    proportion: 100,
-                    set: (system === 'all') ? 0 : 1
-                };
+                if (system === 'all' || _config.systemdetails[system].cannedSuggestion) {
+                    _Suggestions.Load(system, true, function() {
+                        toolTips();
+                    }, true); //<-- load canned results
+                }
+                //default suggestions receipe for systems
+                else {
 
-                _Suggestions.Load(recipe, true, function() {
-                    toolTips();
-                });
+                    var recipe = {
+                        systems: {},
+                        count: 100
+                    };
+                    recipe.systems[system] = {
+                        proportion: 100,
+                        set: (system === 'all') ? 0 : 1
+                    };
+
+                    _Suggestions.Load(recipe, true, function() {
+                        toolTips();
+                    });
+                }
 
                  //show or hide the alpha bar in the suggestions panel
                 if (system === 'all') {
@@ -237,17 +246,20 @@ var cesMain = (function() {
         _Suggestions = new cesSuggestions(_config, _Compression, PlayGame, $('#suggestionsgrid'));
 
         //begin by showing all console suggestions
-        _Suggestions.Load({
-            systems: {
-                all: {
-                    proportion: 100,
-                    set: 0
-                }
-            },
-            count: 100
-        }, true, function() {
+        _Suggestions.Load('all', true, function() {
             toolTips();
-        });
+        }, true); //<-- canned
+        // _Suggestions.Load({
+        //     "systems": {
+        //         "all": {
+        //             "proportion": 100,
+        //             "set": 0
+        //         }
+        //     },
+        //     "count": 100
+        // }, true, () => {
+        //     toolTips();
+        // });
 
         //pubsub for any error
         _PubSub.Subscribe('error', self, function(message, error) {

@@ -8,6 +8,7 @@ const UtilitiesService = require('./utilities');
 const UserService = require('./users');
 const CollectionService = require('./collections');
 const PreferencesService = require('./preferences');
+const SuggestionService = require('./suggestions');
 
 module.exports = new (function() {
 
@@ -206,7 +207,13 @@ module.exports = new (function() {
             FileService.Set('suggestions.all', suggestionsall);
             FileService.Set('/data/all_master', search);
 
-            callback();
+            //i found that generating a unique suggestions (for all, system) was inefficient, so I will create canned versions instead, the player will not notice :)
+            SuggestionService.CreateCanned((err) => {
+                if (err) {
+                    return callback(err);
+                }
+                callback();
+            });
         });
     };
 
@@ -215,6 +222,7 @@ module.exports = new (function() {
         var configdata = {};
         var systems = config.get('systems');
         var emulators = config.get('emulators');
+        var canned = config.get('cannedRecipes');
 
         configdata['systemdetails'] = {};
 
@@ -237,8 +245,14 @@ module.exports = new (function() {
                     'emusize': emulators[systems[system].emuscript].s, //the emu script is the key into this config
                     'retroarch': systems[system].retroarch,
                     'screenshotaspectratio': systems[system].screenshotaspectratio,
-                    'supportfilesize': systems[system].supportfilesize
+                    'supportfilesize': systems[system].supportfilesize,
+                    'cannedSuggestion': false
                 };
+
+                //does this system have a canned receipe for suggestions?
+                if (canned[system]) {
+                    configdata.systemdetails[system].cannedSuggestion = true;
+                }
 
                 //optional
                 configdata.systemdetails[system]['recommendedshaders'] = systems[system].recommendedshaders || [];

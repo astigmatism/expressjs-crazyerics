@@ -4,47 +4,47 @@ var config = require('config');
 var UtilitiesService = require('../services/utilities.js');
 var SuggestionsService = require('../services/suggestions.js');
 
-router.get('/all/:items', function(req, res, next) {
+// router.get('/all/:items', function(req, res, next) {
 
-    var items = req.params.items;
+//     var items = req.params.items;
     
-    SuggestionsService.findSuggestionsAll(items, function(err, suggestions) {
-        if (err) {
-            return res.json(err);
-        }
-        suggestions = UtilitiesService.Compress.json(suggestions);
-        res.json(suggestions);
-    });
-});
+//     SuggestionsService.findSuggestionsAll(items, function(err, suggestions) {
+//         if (err) {
+//             return res.json(err);
+//         }
+//         suggestions = UtilitiesService.Compress.json(suggestions);
+//         res.json(suggestions);
+//     });
+// });
 
-router.get('/browse/:system', function(req, res, next) {
+// router.get('/browse/:system', function(req, res, next) {
 
-    var system = req.params.system;
-    var term = req.query.term;
+//     var system = req.params.system;
+//     var term = req.query.term;
 
-    SuggestionsService.browse(system, term, function(err, suggestions) {
-        if (err) {
-            return res.json(err);
-        }
-        suggestions = UtilitiesService.Compress.json(suggestions);
-        res.json(suggestions);
-    });
-});
+//     SuggestionsService.browse(system, term, function(err, suggestions) {
+//         if (err) {
+//             return res.json(err);
+//         }
+//         suggestions = UtilitiesService.Compress.json(suggestions);
+//         res.json(suggestions);
+//     });
+// });
 
-router.get('/:system/:items', function(req, res, next) {
+// router.get('/:system/:items', function(req, res, next) {
 
-    var system = req.params.system;
-    var items = req.params.items || 10;
-    var foreignMixPerc = config.get('search').foreignMixPerc;
+//     var system = req.params.system;
+//     var items = req.params.items || 10;
+//     var foreignMixPerc = config.get('search').foreignMixPerc;
 
-    SuggestionsService.findSuggestions(system, items, foreignMixPerc, function(err, suggestions) {
-        if (err) {
-            return res.json(err);
-        }
-        suggestions = UtilitiesService.Compress.json(suggestions);
-        res.json(suggestions);
-    });
-});
+//     SuggestionsService.findSuggestions(system, items, foreignMixPerc, function(err, suggestions) {
+//         if (err) {
+//             return res.json(err);
+//         }
+//         suggestions = UtilitiesService.Compress.json(suggestions);
+//         res.json(suggestions);
+//     });
+// });
 
 /*
 recipe : {
@@ -76,6 +76,20 @@ router.post('/', function(req, res, next) {
     var recipe = UtilitiesService.Decompress.json(req.body.recipe);
 
     SuggestionsService.Get(recipe, function(err, result) {
+        if (err) {
+            return res.json(err);
+        }
+        result = UtilitiesService.Compress.json(result);
+
+        res.json(result);
+    });
+});
+
+router.get('/', function(req, res, next) {
+
+    var cannedRecipe = decodeURIComponent(req.query.rp);
+
+    SuggestionsService.GetCanned(cannedRecipe, (err, result) => {
         if (err) {
             return res.json(err);
         }

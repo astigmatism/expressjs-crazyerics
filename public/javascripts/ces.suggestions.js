@@ -13,20 +13,35 @@ var cesSuggestions = (function(config, _Compression, PlayGame, $wrapper) {
     var _loading = false;
     var _allowMore = false;
 
-    this.Load = function(recipe, allowMore, callback) {
+    this.Load = function(recipe, allowMore, callback, opt_canned) {
 
-        _allowMore = allowMore === true || false;
+        //are we fetching a canned result?
+        opt_canned = (opt_canned == true) ? true : false;
+        _allowMore = (allowMore == true) ? true : false;
 
         if (_loading) {
             return;
         }
 
-        Build(recipe, true, function() {
+        _lastRecipe = {
+            recipe: recipe,
+            canned: opt_canned
+        };
+        _loading = true;
 
-            if (callback) {
-                callback();
-            }
-        })
+        Clear();
+        Fetch(recipe, (err, suggestions) => {
+
+            Build(suggestions, function() {
+
+                _loading = false; 
+
+                if (callback) {
+                    callback();
+                }
+            })
+
+        }, opt_canned);
     };
 
     this.LoadMore = function(callback) {
@@ -35,71 +50,86 @@ var cesSuggestions = (function(config, _Compression, PlayGame, $wrapper) {
             return;
         }
 
-        Build(_lastRecipe, false, function() {
+        Fetch(_lastRecipe.recipe, (err, suggestions) => {
 
-            if (callback) {
-                callback();
-            }
-        });
+            Build(suggestions, function() {
+
+                _loading = false;
+
+                if (callback) {
+                    callback();
+                }
+            })
+
+        }, _lastRecipe.canned);
     };
 
-    var Build = function(recipe, clear, callback) {
+    var Fetch = function(recipe, callback, opt_canned) {
 
-        _lastRecipe = recipe;
-        _loading = true;
+        //are we fetching a canned result?
+        opt_canned = (opt_canned == true) ? true : false;
 
-        //remove all current gamelinks
-        if (clear) {
-            _grid.isotope('remove', _grid.children());
+        if (opt_canned) {
 
-            //attempt to free mem
-            for (var i = 0, len = _currentGameLinks.length; i < len; i++) {
-                _currentGameLinks[i] = null;
-            }
-            _currentGameLinks = [];
+            $.get('/suggest?rp=' + recipe, function(response) {
+                response = _Compression.Out.json(response);
+                callback(null, response);
+            });
+        } 
+        else {
+            var compressedRecipe = _Compression.Zip.json(recipe);
+
+            $.post('/suggest', {
+                'recipe': compressedRecipe
+
+            }, function(response) {
+                response = _Compression.Out.json(response);
+                callback(null, response);
+            });
+        }
+    };
+
+    var Clear = function() {
+        _grid.isotope('remove', _grid.children());
+
+        //attempt to free mem
+        for (var i = 0, len = _currentGameLinks.length; i < len; i++) {
+            _currentGameLinks[i] = null;
+        }
+        _currentGameLinks = [];
+    };
+
+    var Build = function(suggestions, callback) {
+
+        for (var i = 0; i < suggestions.length; ++i) {
+            
+            var gameKey = _Compression.Decompress.gamekey(suggestions[i].gk);
+
+            //spawn new gamelink
+            var gamelink = new cesGameLink(config, gameKey, _BOXSIZE, false, PlayGame);
+
+            //create the grid item and insert it
+            var $griditem = $('<div class="grid-item" />');
+            $griditem.append(gamelink.GetDOM());
+            
+            _grid.isotope( 'insert', $griditem[0]);
         }
 
-        var compressedRecipe = _Compression.Zip.json(recipe);
-
-        $.post('/suggest', {
-            'recipe': compressedRecipe
-
-        }, function(response) {
-
-           response = _Compression.Out.json(response);
-
-            for (var i = 0; i < response.length; ++i) {
+        //functionality for when each images loads
+        _grid.find('img').imagesLoaded()
+            .progress(function(imgLoad, image) {
                 
-                var gameKey = _Compression.Decompress.gamekey(response[i].gk);
+                $(image.img).parent().removeClass('close');
+                _grid.isotope('layout');
+            })
+            .done(function() {
 
-                //spawn new gamelink
-                var gamelink = new cesGameLink(config, gameKey, _BOXSIZE, false, PlayGame);
+                if (callback) {
+                    callback();
+                }
+            });
 
-                //create the grid item and insert it
-                var $griditem = $('<div class="grid-item" />');
-                $griditem.append(gamelink.GetDOM());
-                
-                _grid.isotope( 'insert', $griditem[0]);
-            }
-
-            //functionality for when each images loads
-            _grid.find('img').imagesLoaded()
-                .progress(function(imgLoad, image) {
-                    
-                    $(image.img).parent().removeClass('close');
-                    _grid.isotope('layout');
-                })
-                .done(function() {
-
-                    if (callback) {
-                        callback();
-                    }
-                });
-
-            _currentGameLinks.push(gamelink);
-
-            _loading = false; 
-        });
+        _currentGameLinks.push(gamelink);
     }
 
     //constructor
