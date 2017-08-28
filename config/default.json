@@ -447,7 +447,7 @@
 				},
 				"count": 100
 			},
-			"samples": 20
+			"samples": 2
 		},
 		"snes": {
 			"recipe": {
@@ -459,7 +459,7 @@
 				},
 				"count": 100
 			},
-			"samples": 10
+			"samples": 2
 		},
 		"gb": {
 			"recipe": {
@@ -471,7 +471,7 @@
 				},
 				"count": 100
 			},
-			"samples": 10
+			"samples": 2
 		},
 		"gba": {
 			"recipe": {
@@ -483,7 +483,7 @@
 				},
 				"count": 100
 			},
-			"samples": 10
+			"samples": 2
 		},
 		"nes": {
 			"recipe": {
@@ -495,7 +495,7 @@
 				},
 				"count": 100
 			},
-			"samples": 10
+			"samples": 2
 		},
 		"gen": {
 			"recipe": {
@@ -507,7 +507,7 @@
 				},
 				"count": 100
 			},
-			"samples": 10
+			"samples": 2
 		}
 	},
 	"retroarch": {

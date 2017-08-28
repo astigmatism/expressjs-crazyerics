@@ -38,7 +38,8 @@ module.exports = new (function() {
 
         //put into cache all the data files
         var systems = config.get('systems');
-        var search = {};
+        var searchall = {};
+        var titlecount = 0;
         
         //when suggesting titles for all consoles we'll use this object, 
         //it's structure considers system to evenly suggest titles by system
@@ -101,6 +102,9 @@ module.exports = new (function() {
                                 'below': [],
                                 'data': {}
                             };
+
+                            //we'll cache a separate structure for search
+                            var search = [];
 
                             var systemSuggestionThreshold = config.has('systems.' + system + '.suggestionThreshold') ? config.get('systems.' + system + '.suggestionThreshold') : config.get('search').suggestionThreshold;
                             var titlesWithRating = 0;
@@ -168,20 +172,32 @@ module.exports = new (function() {
 
                                 //if the rank of the best playable file for the title is above the threshold for part of all-console search
                                 if (bestrank >= config.get('search').searchAllThreshold) {
-                                    search[title + '.' + system] = {
-                                        system: system,
-                                        file: bestfile,
-                                        rank: bestrank,
+                                    searchall[titlecount] = {
+                                        t: title,
+                                        r: bestrank,
                                         gk: gk
-                                    };
+                                    }
                                 }
                                 
                                 //increase counter
                                 ++suggestionsall.data.alltitlecount;
+
+                                //okay, while we're at it, let's build a customized search file for this system
+                                //no qualifications for system search, all titles. 
+                                //I found it fastest to iterator with for in. the property doesn't matter since we have
+                                //to iterate over all props
+                                searchall[titlecount] = {
+                                    t: title,
+                                    r: bestrank,
+                                    gk: gk
+                                }
+
+                                ++titlecount;
                             }
 
                             //cache results in file service because it has unlimited ttl
                             FileService.Set('suggestions.' + system, suggestions); //ok to be sync
+                            FileService.Set('search.' + system, search); //ok to be sync
 
                             //console.log('suggestions.' + system + ' (threshold: ' + systemSuggestionThreshold + ') "inviting" suggestions --> ' + suggestions.top.length + '. suggestions above threshold --> ' + suggestions.above.length + '. suggestions below threshhold --> ' + suggestions.below.length + '. total with thegamesdb rating --> ' + titlesWithRating);
                             
@@ -205,7 +221,7 @@ module.exports = new (function() {
 
             //put the created-through-summing "all" results in file service (unlimited ttl)
             FileService.Set('suggestions.all', suggestionsall);
-            FileService.Set('/data/all_master', search);
+            FileService.Set('search.all', searchall);
 
             //i found that generating a unique suggestions (for all, system) was inefficient, so I will create canned versions instead, the player will not notice :)
             SuggestionService.CreateCanned((err) => {

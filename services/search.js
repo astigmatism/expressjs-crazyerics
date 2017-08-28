@@ -13,46 +13,28 @@ module.exports = new (function() {
      * @param  {number} maximum number of results returned
      * @return {Array}
      */
-    this.Search = function(systemfilter, term, maximum, callback) {
+    this.Search = function(system, term, maximum, callback) {
 
         maximum = maximum || 20; //return 20 results unless otherwise stated
         term = term || '';
         term = term.replace(/\s+/g,' ').trim().replace(/[^a-zA-Z0-9\s]/gi,''); //sanitize term by trimming, removing invalid characters
         var result = [];
-        var i;
-        var system;
-        var file;
-        var rank;
-        var gk;
         var words = term.split(' '); //split all search terms
-
-        FileService.Get('/data/' + systemfilter + '_master', function(err, data) {
+        
+        FileService.Get('search.' + system, function(err, cache) {
             if (err) {
                 return callback(err);
             }
 
             console.log(('serch: ' + term).magenta);
 
-            //pass over all titles just once
-            for (var title in data) {
+            //pass over all titles just once, the object iteration with for in was faster than an array iteration
+            for (var data in cache) {
 
-                //var log = ''; //for debugging scores of results. please include in result
-
-                //edge case for "all" searches - the file is in a different format
-                if (systemfilter === 'all') {
-                    system = data[title].system;
-                    file = data[title].file;
-                    rank = data[title].rank;
-                    gk = data[title].gk;
-                    //we append the system name to the title name for unique enries (ie "Sonic the Hedgehog" exists twice and we can't use it as a key without its system name)
-                    title = title.replace(new RegExp('\.' + system + '$', 'gi'),'');
-                
-                } else {
-                    system = systemfilter;
-                    file = data[title].b;
-                    rank = data[title].f[file].rank;
-                    gk = data[title].f[file].gk;
-                }
+                //this structure is built on app start, see application.js
+                var title = cache[data].t;
+                var gk = cache[data].gk;
+                var rank = cache[data].r;
 
                 /**
                  * search scoring
@@ -65,22 +47,23 @@ module.exports = new (function() {
                 var searchscore = 0;
 
                 //pass over all search terms
-                for (i = 0; i < words.length; ++i) {
+                for (var _j = 0; _j < words.length; ++_j) {
 
+                    var _word = words[_j];
                     var titlewords = title.split(' '); //split title's terms
 
-                    var wholeterm = new RegExp('^' + words[i] + '(\\s|$)','i');        //word is a whole word at at the beginning of the result
-                    var wordinside = new RegExp('\\s' + words[i] + '(\\s|$)', 'i');     //word is a whole word someplace in the result (space or endstring after word)
-                    var beginswith = new RegExp('(^|\\s)' + words[i],'i');              //is a partial word at at the beginning of the result or one of the words within
-                    var partof     = new RegExp(words[i], 'i');                         //word is partial word anyplace in the result
+                    var wholeterm = new RegExp('^' + _word + '(\\s|$)','i');        //word is a whole word at at the beginning of the result
+                    var wordinside = new RegExp('\\s' + _word + '(\\s|$)', 'i');     //word is a whole word someplace in the result (space or endstring after word)
+                    var beginswith = new RegExp('(^|\\s)' + _word,'i');              //is a partial word at at the beginning of the result or one of the words within
+                    var partof     = new RegExp(_word, 'i');                         //word is partial word anyplace in the result
 
-                    var termdepthscore = (words.length - i) * 10; //word path score gives highest score to first term in entry (most likely what user is searching for)
+                    var termdepthscore = (words.length - _j) * 10; //word path score gives highest score to first term in entry (most likely what user is searching for)
 
                     //check each word against possible location in title and give score based on position
                     //continue at each check to prevent same word scoring mutliple times
                     if (title.match(wholeterm)) {
                         searchscore += (300 + termdepthscore); //most points awarded to first word in query
-                        //log += words[i] + '=' + (300 + termdepthscore) + ' wholeterm (' + termdepthscore + '). ';
+                        //log += _word + '=' + (300 + termdepthscore) + ' wholeterm (' + termdepthscore + '). ';
                         continue;
                     }
                     if (title.match(wordinside)) {
@@ -88,14 +71,14 @@ module.exports = new (function() {
                         var  wordinsidescore = 200;
 
                         //ok, which whole word inside title? more depth determines score
-                        for (var j = 0; j < titlewords.length; ++j) {
-                            if (words[i].toLowerCase() === titlewords[j].toLowerCase()) {
-                                wordinsidescore -= (10 * j);
+                        for (var _k = 0; _k < titlewords.length; ++_k) {
+                            if (_word.toLowerCase() === titlewords[_k].toLowerCase()) {
+                                wordinsidescore -= (10 * _k);
                             }
                         }
 
                         searchscore += (wordinsidescore + termdepthscore);
-                        //log += words[i] + '=' + (wordinsidescore + termdepthscore) + ' wordinside (' + termdepthscore + '). ';
+                        //log += _word + '=' + (wordinsidescore + termdepthscore) + ' wordinside (' + termdepthscore + '). ';
                         continue;
                     }
                     if (title.match(beginswith) && !title.match(wholeterm)) {
@@ -103,20 +86,20 @@ module.exports = new (function() {
                         var beginswithscore = 150;
 
                         //ok, which word inside title? more depth lessens score
-                        for (var j = 0; j < titlewords.length; ++j) {
-                            var match = new RegExp(words[i],'i');
-                            if (titlewords[j].match(match)) {
-                                beginswithscore -= (10 * j);
+                        for (var _k = 0; _k < titlewords.length; ++_k) {
+                            var match = new RegExp(_word,'i');
+                            if (titlewords[_k].match(match)) {
+                                beginswithscore -= (10 * _k);
                             }
                         }
 
                         searchscore += (beginswithscore + termdepthscore);
-                        //log += words[i] + '=' + (beginswithscore + termdepthscore) + ' beginswith (' + termdepthscore + '). ';
+                        //log += _word + '=' + (beginswithscore + termdepthscore) + ' beginswith (' + termdepthscore + '). ';
                         continue;
                     }
                     if (title.match(partof)) {
                         searchscore += (100 + termdepthscore);
-                        //log += words[i] + '=' + (100 + termdepthscore) + ' partof (' + termdepthscore + '). ';
+                        //log += _word + '=' + (100 + termdepthscore) + ' partof (' + termdepthscore + '). ';
                         continue;
                     }
                 }
