@@ -119,10 +119,10 @@ module.exports = new (function() {
 
             //sort according to score
             result.sort(function(a, b) {
-                if (a[3] > b[3]) {
+                if (a[1] > b[1]) {
                     return -1;
                 }
-                if (a[3] < b[3]) {
+                if (a[1] < b[1]) {
                     return 1;
                 }
                 return 0;
