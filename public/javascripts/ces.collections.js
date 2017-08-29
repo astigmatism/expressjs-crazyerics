@@ -1,8 +1,15 @@
-var cesCollections = (function(config, _Compression, _PlayGameHandler, $wrapper, _initialData, _OnRemoveHandler) {
+var cesCollections = (function(config, _Compression, _PlayGameHandler, $wrapper, _syncPackage, _OnRemoveHandler) {
 		
     //private members
-    var _collections = _initialData.collections;
-    var _active = _initialData.active;
+    var _self = this;
+    var _collections = _syncPackage.collections;
+    var _active = _syncPackage.active;
+    var _BOXSIZE = 120;
+
+    var CollectionSyncPackage = (function() {
+        this.active = null,
+        this.collections = []
+    });
 
 	//public members
 
@@ -24,24 +31,24 @@ var cesCollections = (function(config, _Compression, _PlayGameHandler, $wrapper,
 	this.Add = function (key, data, isNew, callback) {
 
         //data comes in from playerdata
-        if (data.system && data.title && data.file && data.lastPlayed) {
+        // if (data.system && data.title && data.file && data.lastPlayed) {
 
-            //is new, create a gamelink and add
-            if (isNew) {
+        //     //is new, create a gamelink and add
+        //     if (isNew) {
 
-        		AddToGrid(key, data.system, data.title, data.file, data.lastPlayed, function() {
-                    OnImagesLoaded();
-                });
-            }
-            //update detils and resort
-            else {
+        // 		AddToGrid(key, data.system, data.title, data.file, data.lastPlayed, function() {
+        //             OnImagesLoaded();
+        //         });
+        //     }
+        //     //update detils and resort
+        //     else {
                 
-                var $item = _grid.find('*[data-key="' + key + '"]');
-                $item.attr('data-lastPlayed', data.lastPlayed);
-                self.SortBy('lastPlayed', false);
-                OnImagesLoaded();
-            }
-        }
+        //         var $item = _grid.find('*[data-key="' + key + '"]');
+        //         $item.attr('data-lastPlayed', data.lastPlayed);
+        //         self.SortBy('lastPlayed', false);
+        //         OnImagesLoaded();
+        //     }
+        // }
 	};
 
     this.SetCurrentGameLoading = function(gameKey) {
@@ -71,20 +78,22 @@ var cesCollections = (function(config, _Compression, _PlayGameHandler, $wrapper,
      * @param {[type]}   slots    [description]
      * @param {Function} callback [description]
      */
-	var AddToGrid = function(key, system, title, file, lastPlayed, callback) {
+	var AddToGrid = function(gk, lastPlayed, playCount, callback) {
+
+        var gameKey = _Compression.Decompress.gamekey(gk);
 
         //create the grid item
         var $griditem = $('<div class="grid-item" />');
 
-		var gamelink = new cesGameLink(config, system, title, file, 120, true, _PlayGameHandler);
+		var gamelink = new cesGameLink(config, gameKey, _BOXSIZE, true, _PlayGameHandler);
 
         //set the on remove function
         gamelink.OnRemoveClick(function() {
-            Remove(key, gamelink, $griditem);
+            Remove(gk, gamelink, $griditem);
         });
 
         //place sorting data on grid item
-        $griditem.attr('data-key', key);
+        $griditem.attr('data-key', gk);
         $griditem.attr('data-lastPlayed', lastPlayed);
 
         $griditem.append(gamelink.GetDOM()); //add gamelink
@@ -154,11 +163,12 @@ var cesCollections = (function(config, _Compression, _PlayGameHandler, $wrapper,
             }
         });
 
-        for (var game in _active.titles) {
-            //AddToGrid(game, _initialData[game].system, _initialData[game].title, _initialData[game].file, _initialData[game].lastPlayed); 
+        for (var i = 0, len = _active.titles.length; i < len; ++i) {
+            var game = _active.titles[i];
+            AddToGrid(game.gk, game.lastPlayed, game.playCount); 
         }
 
-        //self.SortBy('lastPlayed', false);
+        _self.SortBy('lastPlayed', false);
 
         OnImagesLoaded();
 

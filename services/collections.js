@@ -14,13 +14,16 @@ module.exports = new (function() {
         this.titles = [];   //a list of titles for this collection (from collections_titles table with details from titles and files tables)
     });
 
+    //this is how the client component ces.collections will sync data between client/server
+    var CollectionSyncPackage = (function() {
+        this.active = null,
+        this.collections = []
+    });
+
     //prepare data for the cesCollections client component
     this.ClientInitialization = function(userId, callback) {
 
-        var result = {
-            active: null,       //details about the current active collection
-            collections: []     //a list of user collections to make active
-        };
+        var result = new CollectionSyncPackage();
 
         _self.GetActiveCollection(userId, (err, activeCollection) => {
             if (err) {
