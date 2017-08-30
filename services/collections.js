@@ -14,44 +14,6 @@ module.exports = new (function() {
         this.titles = [];   //a list of titles for this collection (from collections_titles table with details from titles and files tables)
     });
 
-    //this is how the client component ces.collections will sync data between client/server
-    var CollectionSyncPackage = (function() {
-        this.active = null,
-        this.collections = []
-    });
-
-    //prepare data for the cesCollections client component
-    this.ClientInitialization = function(userId, callback) {
-
-        var result = new CollectionSyncPackage();
-
-        _self.GetActiveCollection(userId, (err, activeCollection) => {
-            if (err) {
-                return callback(err);
-            }
-
-            //sanitize data going to client
-            result.active = SanitizeCollectionForClient(activeCollection);
-
-            //get list of all collections
-            _self.GetCollectionNames(userId, (err, collections) => {
-                if (err) {
-                    return callback(err);
-                }
-
-                //sanitize result as well, didn't see a general need to move this into its own func
-                var names = [];
-                for (var i = 0, len = collections.length; i < len; ++i) {
-                    names.push(collections[i].name);
-                }
-
-                result.collections = names;
-
-                callback(null, result);
-            });
-        });
-    };
-
     this.GetCollectionByName = function(userId, name, callback, opt_createIfNoExist) {
         
         opt_createIfNoExist = (opt_createIfNoExist == true) ? true : false;
@@ -98,28 +60,6 @@ module.exports = new (function() {
 
             }, opt_createIfNoExist);
         });
-    };
-    
-    //expecting type CollectionEnvelope
-    //for the client, we can't expose raw data like id's and the such
-    var SanitizeCollectionForClient = function(collection) {
-
-        var clientCollection = {
-            data: {
-                name: collection.data.name
-            },
-            titles: []
-        };
-
-        for (var i = 0, len = collection.titles.length; i < len; ++i) {
-            clientCollection.titles.push({
-                gk: collection.titles[i].game_key,
-                lastPlayed: collection.titles[i].last_played,
-                playCount: collection.titles[i].play_count
-            });
-        }
-
-        return clientCollection;
     };
 
     this.GetCollectionNames = CollectionsSQL.GetCollectionNames;
@@ -204,6 +144,69 @@ module.exports = new (function() {
                 return callback(null, collectionsTitlesRecord);
             });
         });
-    }
+    };
+
+    this.Sync = new (function() {
+
+        var __self = this;
+        this.ready = false;
+
+        var _package = (function(active, collections) {
+            this.active = active,
+            this.collections = collections;
+        });
+
+        //client had new data to update the server
+        this.Incoming = function(_package) {
+
+            
+        };
+
+        //update the client with new data
+        this.Outgoing = function(userId, callback) {
+
+
+            _self.GetActiveCollection(userId, (err, _activeCollection) => {
+                if (err) {
+                    return callback(err);
+                }
+
+                //sanitize data going to client
+                var _sanitizedCollection = {
+                    data: {
+                        name: _activeCollection.data.name
+                    },
+                    titles: []
+                };
+
+                for (var i = 0, len = _activeCollection.titles.length; i < len; ++i) {
+                    _sanitizedCollection.titles.push({
+                        gk: _activeCollection.titles[i].game_key,
+                        lastPlayed: _activeCollection.titles[i].last_played,
+                        playCount: _activeCollection.titles[i].play_count
+                    });
+                }
+
+                //get list of all collections
+                _self.GetCollectionNames(userId, (err, collections) => {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    //sanitize result as well, didn't see a general need to move this into its own func
+                    var names = [];
+                    for (var i = 0, len = collections.length; i < len; ++i) {
+                        names.push(collections[i].name);
+                    }
+
+                    var result = new _package(_sanitizedCollection, names);
+
+                    callback(null, result);
+                });
+            });
+        };
+
+        return this;
+    })();
     
 })();

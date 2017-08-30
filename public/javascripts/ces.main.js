@@ -46,7 +46,6 @@ var cesMain = (function() {
     $(document).ready(function() {
 
         //load libraries
-        _Networking = new cesNetworking();
         
         _Compression = new cesCompression();
 
@@ -71,15 +70,17 @@ var cesMain = (function() {
         //unpack client data
         var clientdata = _Compression.Out.json(c20); //this name is only used for obfiscation
 
-        _config = clientdata.configdata;
+        _config = clientdata.c;
+
+        _Networking = new cesNetworking(_config, _Compression);
 
         //auto capture trigger. comment out to avoid build
         //self._autoCaptureHarness('n64', _config.autocapture['n64'].shaders, 7000, 1, 10000);
 
-        _Preferences = new cesPreferences(_Compression, clientdata.playerdata.preferences);
+        _Preferences = new cesPreferences(_Compression, clientdata.d.p);
         _Networking.RegisterComponent('pr', _Preferences.Sync);
 
-        _Collections = new cesCollections(_config, _Compression, PlayGame, $('#openCollectionGrid'), clientdata.playerdata.collections, null);
+        _Collections = new cesCollections(_config, _Compression, PlayGame, $('#openCollectionGrid'), clientdata.d.c, null);
         _Networking.RegisterComponent('co', _Collections.Sync);
 
         //show welcome dialog
@@ -413,10 +414,8 @@ var cesMain = (function() {
                     SavePreferencesAndGetPlayerGameDetails(gameKey, optionsToSendToServer, savePreferencesAndGetPlayerGameDetailsComplete);
 
                     //run to my domain first to get details about the game before we retrieve it
-                    $.when(savePreferencesAndGetPlayerGameDetailsComplete).done(function(compressedGameDetails) {
+                    $.when(savePreferencesAndGetPlayerGameDetailsComplete).done(function(gameDetails) {
 
-                        //decompress game details here since we need state data for selection
-                        var gameDetails = _Compression.Out.json(compressedGameDetails);
                         var saves = gameDetails.saves;
                         var files = gameDetails.files;
                         var shaderFileSize = gameDetails.shaderFileSize; //will be 0 if no shader to load

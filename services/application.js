@@ -18,9 +18,10 @@ module.exports = new (function() {
             
             BuildComponentDataForEntry(req, (err, componentdata) => {
 
+                //since this footprint is going out over the wire, use less characters for names
                 var result = {
-                    configdata: BuildConfigForEntry(),
-                    componentdata: componentdata
+                    c: BuildConfigForEntry(),
+                    d: componentdata
                 };
 
                 return callback(null, UtilitiesService.Compress.json(result));
@@ -308,25 +309,26 @@ module.exports = new (function() {
     //try only to include absolutely necessary data for entry
     var BuildComponentDataForEntry = function(req, callback) {
 
-        var playerdata = {
-            collections: {},
-            preferences: {}
+        //since this footprint is going out over the wire, use less characters for names
+        var components = {
+            c: {},
+            p: {}
         };
 
         if (req.user) {
 
-            //get preferred collection
-            CollectionService.ClientInitialization(req.user.user_id, (err, collectionInitialization) => {
+            //get client data with sync
+            CollectionService.Sync.Outgoing(req.user.user_id, (err, collectionPayload) => {
                 if (err) {
                     return callback(err);
                 }
-                playerdata.collections = collectionInitialization;
+                components.c = collectionPayload;
 
-                PreferencesService.Get(req.user.user_id, (err, cache) => {
+                PreferencesService.Sync.Outgoing(req.user.user_id, (err, preferencesPayload) => {
                         
-                    playerdata.preferences = cache;
+                    components.p = preferencesPayload;
 
-                    callback(null, playerdata);
+                    callback(null, components);
                 });
             });
         } else {

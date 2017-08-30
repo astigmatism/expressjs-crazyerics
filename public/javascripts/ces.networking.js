@@ -19,7 +19,7 @@ var cesNetworking = (function(_config, _Compression) {
 
             //do any components need updating from the server?
             
-            callback(data);
+            callback(response);
         });
     };
 

@@ -37,8 +37,8 @@ router.get('/search/:system/:query', function(req, res, next) {
         if (err) {
             return next(err);
         }
-        //var compressed = UtilitiesService.Compress.json(result);
-        res.json(result);
+        var compressed = UtilitiesService.Compress.json(result);
+        res.json(compressed);
     });
 });
 

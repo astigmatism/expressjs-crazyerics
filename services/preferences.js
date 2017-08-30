@@ -105,4 +105,29 @@ module.exports = new (function() {
         });
     };
 
+    this.Sync = new (function() {
+        
+        var __self = this;
+        this.ready = false;
+
+        //client had new data to update the server
+        this.Incoming = function(preferences) {
+
+        };
+
+        //update the client with new data
+        this.Outgoing = function(userId, callback) {
+
+            _self.Get(userId, (err, cache) => {
+                if (err) {
+                    return callback(err);
+                }
+                __self.ready = false; //reset flag
+                return callback(null, cache);
+            });
+        };
+
+        return this;
+    })();
+
 })();
