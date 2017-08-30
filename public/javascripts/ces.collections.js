@@ -1,15 +1,10 @@
-var cesCollections = (function(config, _Compression, _PlayGameHandler, $wrapper, _syncPackage, _OnRemoveHandler) {
+var cesCollections = (function(config, _Compression, _PlayGameHandler, $wrapper, _initialSyncPackage, _OnRemoveHandler) {
 		
     //private members
     var _self = this;
-    var _collections = _syncPackage.collections;
-    var _active = _syncPackage.active;
+    var _collections = [];
+    var _active = {};
     var _BOXSIZE = 120;
-
-    var CollectionSyncPackage = (function() {
-        this.active = null,
-        this.collections = []
-    });
 
 	//public members
 
@@ -145,14 +140,48 @@ var cesCollections = (function(config, _Compression, _PlayGameHandler, $wrapper,
         // });
     };
 
-    
+    this.Refresh = function() {
+
+        for (var i = 0, len = _active.titles.length; i < len; ++i) {
+            var game = _active.titles[i];
+            AddToGrid(game.gk, game.lastPlayed, game.playCount); 
+        }
+
+        _self.SortBy('lastPlayed', false);
+
+        OnImagesLoaded();
+    };
+
+    //in order to sync data between server and client, this structure must exist
+    this.Sync = new (function() {
+
+        this.ready = false;
+
+        var package = (function(active, collections) {
+            this.active = active,
+            this.collections = collections;
+        });
+
+        this.Incoming = function(package) {
+
+            _active = package.active;
+            _collections = package.collections;
+        };
+
+        this.Outgoing = function() {
+            return new package(_active, _collections);
+        };
+
+        return this;
+    })();
+
     /**
      * Constructors live at the bottom so that all private functions are available
      * @param  {} function(
      */
     var Constructor = (function() {
-
-		_grid = $wrapper.isotope({
+        
+        _grid = $wrapper.isotope({
             layoutMode: 'masonry',
             itemSelector: '.grid-item',
             getSortData: {
@@ -163,16 +192,10 @@ var cesCollections = (function(config, _Compression, _PlayGameHandler, $wrapper,
             }
         });
 
-        for (var i = 0, len = _active.titles.length; i < len; ++i) {
-            var game = _active.titles[i];
-            AddToGrid(game.gk, game.lastPlayed, game.playCount); 
-        }
+        _self.Sync.Incoming(_initialSyncPackage);
+        _self.Refresh();
 
-        _self.SortBy('lastPlayed', false);
-
-        OnImagesLoaded();
-
-	})();
+    })();
 
 	return this;
 

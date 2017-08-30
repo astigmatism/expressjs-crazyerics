@@ -25,6 +25,7 @@ var cesMain = (function() {
     var _suggestionsLoading = false;
 
     // instances/libraries
+    var _Networking = null;
     var _Compression = null;
     var _PubSub = null;
     var _Preferences = null;
@@ -45,6 +46,8 @@ var cesMain = (function() {
     $(document).ready(function() {
 
         //load libraries
+        _Networking = new cesNetworking();
+        
         _Compression = new cesCompression();
 
         _PubSub = new cesPubSub();
@@ -74,8 +77,10 @@ var cesMain = (function() {
         //self._autoCaptureHarness('n64', _config.autocapture['n64'].shaders, 7000, 1, 10000);
 
         _Preferences = new cesPreferences(_Compression, clientdata.playerdata.preferences);
+        _Networking.RegisterComponent('pr', _Preferences.Sync);
 
         _Collections = new cesCollections(_config, _Compression, PlayGame, $('#openCollectionGrid'), clientdata.playerdata.collections, null);
+        _Networking.RegisterComponent('co', _Collections.Sync);
 
         //show welcome dialog
         if ($.isEmptyObject(_Preferences.playHistory)) { //TODO fix this
@@ -897,10 +902,11 @@ var cesMain = (function() {
      */
     var SavePreferencesAndGetPlayerGameDetails = function(gameKey, options, deffered) {
 
-
         //call returns not only states but misc game details. I tried to make this
         //part of the LoadGame call but the formatting for the compressed game got weird
-        $.post('/games/load?gk=' + encodeURIComponent(gameKey.gk) + '&' + _Preferences.UpdateServer(), options, function(data) {
+        var url = '/games/load?gk=' + encodeURIComponent(gameKey.gk);
+
+        _Networking.Post(url, options, function(data) {
 
             //TODO: add to collection using data from server
 

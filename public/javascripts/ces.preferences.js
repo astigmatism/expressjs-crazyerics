@@ -4,30 +4,8 @@
  */
 var cesPreferences = (function(_Compression, initialData) {
 
-    //private members
     var _self = this;
-    var _data = initialData;
-    var _updateServer = false;
-
-    //public members
-
-    //public methods
-
-    /**
-     * this function will append a query string informing the server that preferences needs to be updated using the
-     * client's cookie. Users might try and temper with this obviously easy value to change but it will only effect/hurt their
-     * own experience so I'm not worried about security on this data
-     */
-    this.UpdateServer = function() {
-        
-        var qs = 'pu='; //pu - preferences update!
-        
-        if (_updateServer) {
-            _updateServer = false;
-            return qs + '1';
-        }
-        return qs + '0';
-    }
+    var _data = {};
 
     /**
      * returns player's shader preference for the system specified
@@ -85,7 +63,8 @@ var cesPreferences = (function(_Compression, initialData) {
             } 
             currentDepth = currentDepth[pieces[i]];
         }
-        _updateServer = true;
+        
+        _self.Sync.ready = true; //flag to update server
         SetCookie();
     };
 
@@ -100,12 +79,30 @@ var cesPreferences = (function(_Compression, initialData) {
         }
     };
 
-    //exists at bottom to ensure all other private methods/members are defined
+    //in order to sync data between server and client, this structure must exist
+    this.Sync = new (function() {
+        
+        this.ready = false;
+
+        this.Incoming = function(preferences) {
+
+            _data = preferences;
+            SetCookie();
+        };
+
+        this.Outgoing = function() {
+            return _data;
+        };
+
+        return this;
+    })();
+
+    //exists at bottom to ensure all other methods/members are defined
     var Constructor = (function() {
 
         //if the server provided data, trust it implicitly.
-        if (_data) {
-            SetCookie();
+        if (initialData) {
+            _self.Sync.Incoming(initialData);
         }
 
     })();

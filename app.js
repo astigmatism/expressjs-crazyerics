@@ -12,6 +12,7 @@ const pgSession = require('connect-pg-simple-ces')(session);
 const pool = require('./db/pool.js');
 const ApplicationService = require('./services/application');
 const UsersService = require('./services/users');
+const SyncService = require('./services/sync');
 const PreferencesService = require('./services/preferences');
 
 const routes = require('./routes/index');
@@ -38,7 +39,7 @@ app.use(express.static(path.join(__dirname, 'workspace')));
 app.use(favicon(__dirname + '/public/favicon.ico'));
 
 //set up sessions
-var pgStore = new pgSession({
+var _pgStore = new pgSession({
     pool : pool,
     tableName : 'sessions',
     pruneSessionInterval: 60 * 13 //every 13 minutes (random but whatever)
@@ -52,12 +53,13 @@ var _session = session({
     saveUninitialized: true, //this saves uninitiallized sessions making it so that simply visiting the site resets expiration
     resave: true, //Forces the session to be saved back to the session store, even if the session was never modified during the request.
     rolling: true, //Force a session identifier cookie to be set on every response. 
-    store: pgStore
+    store: _pgStore
 });
 
 app.use(_session);
-app.use(UsersService.GetUserMiddleware); //attach user to request
-app.use(PreferencesService.UpdatePreferencesMiddleware); //update server cache with cookie when triggered
+app.use(SyncService.Incoming);
+app.use(UsersService.GetUserMiddleware); //attaches user to request
+//app.use(PreferencesService.UpdatePreferencesMiddleware); //update server cache with cookie when triggered
 
 app.use('/', routes);
 app.use('/saves', saves);

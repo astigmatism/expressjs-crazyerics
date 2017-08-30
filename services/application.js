@@ -16,11 +16,11 @@ module.exports = new (function() {
 
         if (req.session) {
             
-            BuildPlayerDataForEntry(req, (err, playerData) => {
+            BuildComponentDataForEntry(req, (err, componentdata) => {
 
                 var result = {
                     configdata: BuildConfigForEntry(),
-                    playerdata: playerData
+                    componentdata: componentdata
                 };
 
                 return callback(null, UtilitiesService.Compress.json(result));
@@ -306,7 +306,7 @@ module.exports = new (function() {
     };
 
     //try only to include absolutely necessary data for entry
-    var BuildPlayerDataForEntry = function(req, callback) {
+    var BuildComponentDataForEntry = function(req, callback) {
 
         var playerdata = {
             collections: {},
