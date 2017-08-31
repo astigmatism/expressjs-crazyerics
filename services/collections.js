@@ -129,6 +129,7 @@ module.exports = new (function() {
 
     this.PlayCollectionTitle = function(userId, gk, titleId, fileId, callback) {
 
+        //get collection id
         _self.GetActiveCollection(userId, (err, activeCollection) => {
             if (err) {
                 return callback(err);
@@ -136,11 +137,15 @@ module.exports = new (function() {
 
             var collectionId = activeCollection.data.collection_id;
 
-            //update the record
+            //update or inserts the record (play count, last played)
             CollectionsSQL.PlayCollectionTitle(userId, collectionId, gk, titleId, fileId, (err, collectionsTitlesRecord) => {
                 if (err) {
                     return callback(err);
                 }
+
+                //inform sync that new collection data has arrived
+                _self.Sync.ready = true;
+
                 return callback(null, collectionsTitlesRecord);
             });
         });

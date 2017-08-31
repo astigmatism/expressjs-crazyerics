@@ -2,8 +2,7 @@
 const async = require('async');
 const config = require('config');
 const UtilitiesService = require('./utilities');
-const FileService = require('./files');
-const GamesService = require('./games');
+const CollectionsService = require('./collections');
 const PreferenceService = require('./preferences');
 
 module.exports = new (function() {
@@ -14,7 +13,7 @@ module.exports = new (function() {
 
         if (req.body && req.user) {
 
-            //preferences update
+            //preferences update from client
             if (req.body.p) {
                 var clientCache;
                 try {
@@ -33,8 +32,10 @@ module.exports = new (function() {
         next();
     };
 
-    this.Outgoing = function() {
+    this.Outgoing = function(response) {
 
+        //collections update for client
+        
     };
 
 })();
