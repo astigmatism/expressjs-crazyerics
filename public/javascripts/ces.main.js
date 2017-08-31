@@ -25,7 +25,7 @@ var cesMain = (function() {
     var _suggestionsLoading = false;
 
     // instances/libraries
-    var _Networking = null;
+    var _Sync = null;
     var _Compression = null;
     var _PubSub = null;
     var _Preferences = null;
@@ -72,16 +72,16 @@ var cesMain = (function() {
 
         _config = clientdata.config;
 
-        _Networking = new cesNetworking(_config, _Compression);
+        _Sync = new cesSync(_config, _Compression);
 
         //auto capture trigger. comment out to avoid build
         //self._autoCaptureHarness('n64', _config.autocapture['n64'].shaders, 7000, 1, 10000);
 
         _Preferences = new cesPreferences(_Compression, clientdata.components.p);
-        _Networking.RegisterComponent('p', _Preferences.Sync);
+        _Sync.RegisterComponent('p', _Preferences.Sync);
 
         _Collections = new cesCollections(_config, _Compression, PlayGame, $('#openCollectionGrid'), clientdata.components.c, null);
-        _Networking.RegisterComponent('c', _Collections.Sync);
+        _Sync.RegisterComponent('c', _Collections.Sync);
 
         //show welcome dialog
         if ($.isEmptyObject(_Preferences.playHistory)) { //TODO fix this
@@ -905,7 +905,7 @@ var cesMain = (function() {
         //part of the LoadGame call but the formatting for the compressed game got weird
         var url = '/games/load?gk=' + encodeURIComponent(gameKey.gk);
 
-        _Networking.Post(url, options, function(data) {
+        _Sync.Post(url, options, function(data) {
             deffered.resolve(data);
         });
     };

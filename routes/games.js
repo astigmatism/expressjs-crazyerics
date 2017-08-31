@@ -1,12 +1,14 @@
+'use strict';
 const express = require('express');
 const router = express.Router();
 const config = require('config');
-const UserService = require('../services/users.js');
-const SaveService = require('../services/saves.js');
-const GameService = require('../services/games.js');
-const CollectionService = require('../services/collections.js');
-const UtilitiesService = require('../services/utilities.js');
-const PreferencesService = require('../services/preferences.js')
+const UserService = require('../services/users');
+const SaveService = require('../services/saves');
+const GameService = require('../services/games');
+const CollectionService = require('../services/collections');
+const UtilitiesService = require('../services/utilities');
+const PreferencesService = require('../services/preferences');
+const SyncService = require('../services/sync');
 
 
 //at the same time we load the game's data file (locally or CDN) we update collections etc and return details/states
@@ -61,7 +63,12 @@ router.post('/load', function(req, res, next) {
                             shaderFileSize: shaderFileSize //will be 0 if no shader to load
                         };
 
-                        res.json(UtilitiesService.Compress.json(result));
+                        SyncService.Outgoing(result, req.user.user_id, (err, compressedResult) => {
+                            if (err) {
+                                return res.json(err);
+                            }
+                            res.json(compressedResult);
+                        });
                     });
                 });
             });

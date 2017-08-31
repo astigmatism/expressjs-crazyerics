@@ -167,6 +167,8 @@ var cesCollections = (function(config, _Compression, _PlayGameHandler, $wrapper,
 
             _active = package.active;
             _collections = package.collections;
+
+            _self.Refresh();
         };
 
         this.Outgoing = function() {
@@ -195,7 +197,6 @@ var cesCollections = (function(config, _Compression, _PlayGameHandler, $wrapper,
         });
 
         _self.Sync.Incoming(_initialSyncPackage);
-        _self.Refresh();
 
     })();
 
