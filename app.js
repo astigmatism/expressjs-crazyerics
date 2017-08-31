@@ -57,9 +57,8 @@ var _session = session({
 });
 
 app.use(_session);
-app.use(SyncService.Incoming);
 app.use(UsersService.GetUserMiddleware); //attaches user to request
-//app.use(PreferencesService.UpdatePreferencesMiddleware); //update server cache with cookie when triggered
+app.use(SyncService.Incoming); //syncs client to server
 
 app.use('/', routes);
 app.use('/saves', saves);

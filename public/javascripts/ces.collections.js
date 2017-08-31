@@ -155,6 +155,7 @@ var cesCollections = (function(config, _Compression, _PlayGameHandler, $wrapper,
     //in order to sync data between server and client, this structure must exist
     this.Sync = new (function() {
 
+        var __self = this;
         this.ready = false;
 
         var package = (function(active, collections) {
@@ -169,6 +170,7 @@ var cesCollections = (function(config, _Compression, _PlayGameHandler, $wrapper,
         };
 
         this.Outgoing = function() {
+            __self.reday = false;
             return new package(_active, _collections);
         };
 

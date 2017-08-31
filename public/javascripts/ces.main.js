@@ -70,18 +70,18 @@ var cesMain = (function() {
         //unpack client data
         var clientdata = _Compression.Out.json(c20); //this name is only used for obfiscation
 
-        _config = clientdata.c;
+        _config = clientdata.config;
 
         _Networking = new cesNetworking(_config, _Compression);
 
         //auto capture trigger. comment out to avoid build
         //self._autoCaptureHarness('n64', _config.autocapture['n64'].shaders, 7000, 1, 10000);
 
-        _Preferences = new cesPreferences(_Compression, clientdata.d.p);
-        _Networking.RegisterComponent('pr', _Preferences.Sync);
+        _Preferences = new cesPreferences(_Compression, clientdata.components.p);
+        _Networking.RegisterComponent('p', _Preferences.Sync);
 
-        _Collections = new cesCollections(_config, _Compression, PlayGame, $('#openCollectionGrid'), clientdata.d.c, null);
-        _Networking.RegisterComponent('co', _Collections.Sync);
+        _Collections = new cesCollections(_config, _Compression, PlayGame, $('#openCollectionGrid'), clientdata.components.c, null);
+        _Networking.RegisterComponent('c', _Collections.Sync);
 
         //show welcome dialog
         if ($.isEmptyObject(_Preferences.playHistory)) { //TODO fix this
@@ -906,9 +906,6 @@ var cesMain = (function() {
         var url = '/games/load?gk=' + encodeURIComponent(gameKey.gk);
 
         _Networking.Post(url, options, function(data) {
-
-            //TODO: add to collection using data from server
-
             deffered.resolve(data);
         });
     };

@@ -18,10 +18,9 @@ module.exports = new (function() {
             
             BuildComponentDataForEntry(req, (err, componentdata) => {
 
-                //since this footprint is going out over the wire, use less characters for names
                 var result = {
-                    c: BuildConfigForEntry(),
-                    d: componentdata
+                    config: BuildConfigForEntry(),
+                    components: componentdata
                 };
 
                 return callback(null, UtilitiesService.Compress.json(result));

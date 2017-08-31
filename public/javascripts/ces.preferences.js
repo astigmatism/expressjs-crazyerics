@@ -6,6 +6,7 @@ var cesPreferences = (function(_Compression, initialData) {
 
     var _self = this;
     var _data = {};
+    var _storageName = 'preferences';
 
     /**
      * returns player's shader preference for the system specified
@@ -65,32 +66,40 @@ var cesPreferences = (function(_Compression, initialData) {
         }
         
         _self.Sync.ready = true; //flag to update server
-        SetCookie();
+        SetStorage();
     };
 
-    var SetCookie = function() {
+    var SetStorage = function() {
+        localStorage.setItem(_storageName, _Compression.Compress.json(_data));
+    };
 
-        var cookieName = 'preferences';
-        var value = _Compression.Compress.json(_data);
+    var GetStorage = function() {
 
-        //a jquery plugin
-        if (Cookies) {
-            Cookies.set(cookieName, value);
+        var result;
+        try {
+            result = localStorage.getItem(_storageName);
+            result = _Compression.Decompress.json(result);
+        } 
+        catch (e) {
+            //nothing really, if its invalid, then we wont use it
         }
-    };
+        return result;
+    }
 
     //in order to sync data between server and client, this structure must exist
     this.Sync = new (function() {
         
+        var __self = this;
         this.ready = false;
 
         this.Incoming = function(preferences) {
 
             _data = preferences;
-            SetCookie();
+            SetStorage();
         };
 
         this.Outgoing = function() {
+            __self.ready = false;
             return _data;
         };
 
@@ -100,10 +109,25 @@ var cesPreferences = (function(_Compression, initialData) {
     //exists at bottom to ensure all other methods/members are defined
     var Constructor = (function() {
 
-        //if the server provided data, trust it implicitly.
-        if (initialData) {
+        //initialData will always be something, but check the client validation flag
+        if (initialData.validated === 1) {
+            _self.Sync.Incoming(initialData);
+            return;
+        }
+        
+        //if here, not validated with client yet. Perhaps client has more up to date data (server restart, cache cleared)
+        var clientData = GetStorage();
+        
+        if (clientData) {
+            _self.Sync.Incoming(clientData);
+        }
+        //there was no client cookie, accept the server data
+        else {
+            initialData.validated = 1;
             _self.Sync.Incoming(initialData);
         }
+        //in either case, we need to update the server cache to inform validation took place
+        _self.Sync.ready = true; //update the server with validated data
 
     })();
 

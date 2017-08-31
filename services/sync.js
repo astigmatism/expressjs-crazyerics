@@ -4,6 +4,7 @@ const config = require('config');
 const UtilitiesService = require('./utilities');
 const FileService = require('./files');
 const GamesService = require('./games');
+const PreferenceService = require('./preferences');
 
 module.exports = new (function() {
 
@@ -11,9 +12,21 @@ module.exports = new (function() {
 
     this.Incoming = function(req, res, next) {
 
-        if (req.body) {
+        if (req.body && req.user) {
 
-            //TODO maintain an
+            //preferences update
+            if (req.body.p) {
+                var clientCache;
+                try {
+                    clientCache = UtilitiesService.Decompress.json(req.body.p);
+                }
+                catch(e) {
+                    //nothing really, we simply dont update server if the user messed with client cache
+                }
+                if (clientCache) {
+                    PreferenceService.Sync.Incoming(req.user.user_id, clientCache);
+                }
+            }
 
         }
 

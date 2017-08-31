@@ -10,7 +10,14 @@ var cesNetworking = (function(_config, _Compression) {
 
     this.Post = function(url, body, callback) {
 
+        body = body || {};
+
         //before sending out post request, check sync to see if client wants to update server
+        for (var key in _components) {
+            if (_components[key].ready) {
+                body[key] = _Compression.Compress.json(_components[key].Outgoing()); //compress the json from the Outgoing function
+            }
+        }
 
         $.post(url, body, function(data) {
 
