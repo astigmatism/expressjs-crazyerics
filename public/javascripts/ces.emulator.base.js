@@ -6,7 +6,7 @@
  * @param  {string} file         Super Mario Bros. 3 (U)[!].nes
  * @return {undef}
  */
-var cesEmulatorBase = (function(_Compression, _PubSub, _config, _gameKey, _ui) {
+var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _gameKey, _ui) {
 
     // private members
     var self = this;
@@ -325,7 +325,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _gameKey, _ui) {
 
     this.InitializeSavesManager = function(saveData, gameKey, callback) {
 
-        _SavesManager = new cesSavesManager(_config, _Compression, gameKey, saveData);
+        _SavesManager = new cesSavesManager(_config, _Compression, _Sync, gameKey, saveData);
     };
 
 

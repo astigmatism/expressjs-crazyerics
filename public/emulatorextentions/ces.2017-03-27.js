@@ -7,7 +7,7 @@
  * @param  {string} file         Super Mario Bros. 3 (U)[!].nes
  * @return {undef}
  */
-var cesEmulator = (function(_Compression, _PubSub, _config, _gameKey) {
+var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _gameKey) {
 
     // private members
     var self = this;

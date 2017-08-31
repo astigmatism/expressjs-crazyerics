@@ -11,23 +11,32 @@ module.exports = new (function() {
 
     this.Incoming = function(req, res, next) {
 
-        //if _c in body (component data) then service has update from client
-        if (req.body && req.body._c && req.user) {
+        //manage incoming from client sync component. client adds header
+        if (req.body && req.headers.sync == 1) {
+            
+            var components;
 
-            var clientCache;
+            //decompress body, parse out component data
             try {
-                clientCache = UtilitiesService.Decompress.json(req.body._c);
+                var body = UtilitiesService.Decompress.json(req.body);
+                
+                if (body._c) {
+                    components = body._c; //UtilitiesService.Decompress.json(body._c);
+                    delete body._c;
+                }
+                req.body = body;
             }
             catch(e) {
-                //nothing really, we simply dont update server if the user messed with client cache
+                //nothing really, we simply dont update server if the user messed with response data
+                return next(e);
             }
 
-            if (clientCache) {
+            if (components && req.user) {
 
                 //preferences update from client
-                if (clientCache.p) {                
+                if (components.p) {                
 
-                    PreferenceService.Sync.Incoming(req.user.user_id, clientCache.p);
+                    PreferenceService.Sync.Incoming(req.user.user_id, components.p);
                 }
             }
         }

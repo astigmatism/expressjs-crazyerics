@@ -615,9 +615,9 @@ var cesMain = (function() {
                 }
 
                 //the class extention process: on the prototype of the ext, create using the base class.
-                cesEmulator.prototype = new cesEmulatorBase(_Compression, _PubSub, _config, gameKey, ui);
+                cesEmulator.prototype = new cesEmulatorBase(_Compression, _PubSub, _config, _Sync, gameKey, ui);
 
-                var emulator = new cesEmulator(_Compression, _PubSub, _config, gameKey);
+                var emulator = new cesEmulator(_Compression, _PubSub, _config, _Sync, gameKey);
 
                 //KEEP IN MIND: this pattern is imperfect. only the resulting structure (var emulator and later _Emulator)
                 //will have access to data in both, cesEmulatorBase does not have knowledge of anything in cesEmulator

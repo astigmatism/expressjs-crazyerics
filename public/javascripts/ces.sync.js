@@ -22,13 +22,24 @@ var cesSync = (function(_config, _Compression) {
         }
 
         //append compressed component data to update server with
-        body._c = _Compression.Compress.json(componentData);
+        body._c = componentData; //_Compression.Compress.json(componentData);
+        compressedBody = _Compression.Compress.json(body);
 
-        $.post(url, body, function(data) {
-
+        $.ajax({
+            url: url,
+            data: compressedBody,
+            processData: false,
+            contentType: 'text/plain',
+            type: 'POST',
+            headers: {
+                sync: 1
+            }
+        })
+        .done(function(data) {
+            
             //we handle decompression here, before dispatching
             var response = _Compression.Decompress.json(data);
-
+            
             //component data in response
             if (response._c) {
 
@@ -37,6 +48,7 @@ var cesSync = (function(_config, _Compression) {
                         _components[key].Incoming(response._c[key]);
                     }
                 }
+                delete response._c;
             }
             
             callback(response);

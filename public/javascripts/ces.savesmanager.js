@@ -2,7 +2,7 @@
  * Object which wraps all functionality specific to handling game save states
  * @type {Object}
  */
-var cesSavesManager = (function (_config, _Compression, _gameKey, _initialSaveData) {
+var cesSavesManager = (function (_config, _Compression, _Sync, _gameKey, _initialSaveData) {
 
     var self = this;
     var _savesData = {};
@@ -11,18 +11,18 @@ var cesSavesManager = (function (_config, _Compression, _gameKey, _initialSaveDa
 
     this.AddSave = function(saveType, screenDataUnzipped, stateDataUnzipped, callback) {
 
-        AddSaveToServer(saveType, screenDataUnzipped, stateDataUnzipped, function (data) {
+        AddSaveToServer(saveType, screenDataUnzipped, stateDataUnzipped, function (response) {
             
             //data coming back is formatted to help
-            if (data && data._) {
+            if (response.hasOwnProperty('data') && response.hasOwnProperty('pruned')) {
 
                 //the server controls the maximum number of saves. if over the max, it will return the timestamp to delete (usually the oldest save)
-                if (data.__) {
-                    delete _savesData[parseInt(data.__, 10)];
+                if (response.pruned) {
+                    delete _savesData[parseInt(response.pruned, 10)];
                 }
 
-                //add save to local store, only do it after successful server response
-                AddSave(saveType, data._.timestamp, screenDataUnzipped, stateDataUnzipped);
+                //add save to local store, only do it after successful server response (using server timestamp)
+                AddSave(saveType, response.data.timestamp, screenDataUnzipped, stateDataUnzipped);
             }
 
             if (callback) {
@@ -125,23 +125,16 @@ var cesSavesManager = (function (_config, _Compression, _gameKey, _initialSaveDa
         var screenDataZipped = _Compression.Zip.bytearray(screenDataUnzipped);
         var stateDataZipped = _Compression.Zip.bytearray(stateDataUnzipped);
 
-        //compress payload for server
-        var data = _Compression.Zip.json({
+        var url = '/saves?gk=' + encodeURIComponent(_gameKey.gk);
+        var data = {
             'state': stateDataZipped,
             'screenshot': screenDataZipped,
             'type': type,
             'timestamp': Date.now() //now because this is the moment the player (with timezone) understands when they saved
-        });
+        };
 
-        $.ajax({
-            url: '/saves?gk=' + encodeURIComponent(_gameKey.gk),
-            data: data,
-            processData: false,
-            contentType: 'text/plain',
-            type: 'POST'
-        })
-        .done(function(data) {
-            callback(data); //formatted as json from server
+        _Sync.Post(url, data, (response) => {
+            callback(response);
         });
     };
 

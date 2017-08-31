@@ -1,8 +1,10 @@
-var express = require('express');
-var pug = require('pug');
-var UtilitiesService = require('../services/utilities.js');
-var router = express.Router();
-var SaveService = require('../services/saves.js');
+'use strict';
+const express = require('express');
+const router = express.Router();
+const pug = require('pug');
+const UtilitiesService = require('../services/utilities');
+const SaveService = require('../services/saves');
+const SyncService = require('../services/sync');
 
 router.get('/', function(req, res, next) {
 
@@ -24,35 +26,47 @@ router.get('/', function(req, res, next) {
 
 router.post('/', function(req, res, next) {
 
-    var gameKey = decodeURIComponent(req.query.gk);
-    var postdata = UtilitiesService.Decompress.json(req.body); //unpack form data
-    var saveType = postdata.type; //user, auto...
-    var game = UtilitiesService.Decompress.json(gameKey);
+    //note: this route will have passed through sync (unpacked)
 
-    if (req.user && game.title && game.file && saveType && postdata.hasOwnProperty('timestamp') && postdata.hasOwnProperty('state') && postdata.hasOwnProperty('screenshot')) {
+    var gk = decodeURIComponent(req.query.gk);
+    var gameKey, body, saveType;
 
-        SaveService.NewSave(req.user.user_id, game.system, game.title, game.file, postdata.timestamp, postdata.screenshot, postdata.state, saveType, function(err, insertSaveRecord, prunedRecord) {
+    try {
+        gameKey = UtilitiesService.Decompress.gamekey(gk);
+        body = req.body; 
+        saveType = body.type;
+    }
+    catch (e) {
+        return next(e);
+    }
+
+    if (gameKey && req.user && saveType && body.hasOwnProperty('timestamp') && body.hasOwnProperty('state') && body.hasOwnProperty('screenshot')) {
+
+        SaveService.NewSave(req.user.user_id, gameKey, body.timestamp, body.screenshot, body.state, saveType, function(err, insertSaveRecord, prunedRecord) {
             if (err) {
                 return res.json({ error: err });
             }
 
             //reduce amount of data for client (dont want to expose userid, etc)
-            var result = ({
-                type: insertSaveRecord.type,
-                timestamp: insertSaveRecord.client_timestamp,
-                screenshot: insertSaveRecord.screenshot
-            });
+            var result = {
+                pruned: (prunedRecord) ? prunedRecord.client_timestamp : null,
+                data: {
+                    type: insertSaveRecord.type,
+                    timestamp: insertSaveRecord.client_timestamp,
+                    screenshot: insertSaveRecord.screenshot
+                }
+            };
 
-            return res.json({
-                __: (prunedRecord) ? prunedRecord.client_timestamp : null,
-                _: result
+            SyncService.Outgoing(result, req.user.user_id, (err, compressedResult) => {
+                if (err) {
+                    return res.json(err);
+                }
+                res.json(compressedResult);
             });
         });
     }
     else {
-        res.json({
-            error: 'the required data (postdata querystring) was not all present'
-        });
+        next('the required data (body querystring) was not all present');
     }
 });
 
