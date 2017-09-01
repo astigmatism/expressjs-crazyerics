@@ -14,6 +14,7 @@ var cesNotifications = (function(_config, _Compression, _PubSub, $wrapper) {
     var _minimumTimeTimeout = null; //holds a setTimeout
     var _currentlyShowing = null; //holds a note instance
     var _currentShowingTimeStamp = null; //holds a date instance of when note began showing
+    const _passageOfTime = 10 //in s. the amount of time to pass before showing (n seconds ago) on the notification
     
     /*
     Priority:
@@ -90,9 +91,9 @@ var cesNotifications = (function(_config, _Compression, _PubSub, $wrapper) {
             var message = _currentlyShowing.message;
 
             //if the time the note was queued to the time it was shown is greater than 5 second, append that message
-            if (occurTimeDiff > 1) {
+            if (occurTimeDiff > _passageOfTime) {
                 var value = Math.floor(occurTimeDiff);
-                message += '(' + value + ' second' + (value > 5 ? 's' : '') + ' ago)';
+                message += '(' + value + ' second' + (value > 1 ? 's' : '') + ' ago)';
             }
 
             //update dom

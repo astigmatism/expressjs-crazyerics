@@ -452,7 +452,7 @@ var cesMain = (function() {
                             _SaveSelection = new cesSaveSelection(_config, _Dialogs, _Emulator, gameKey.system, $('#savedgameselector'), function(err, selectedSaveTimeStamp, selectedSavescreenshot) {
                                 
                                 if (selectedSaveTimeStamp) {
-                                    ShowSaveLoading(system, selectedSavescreenshot);
+                                    ShowSaveLoading(gameKey.system, selectedSavescreenshot);
                                 }
 
                                 _preventLoadingGame = true;
