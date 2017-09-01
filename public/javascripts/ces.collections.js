@@ -140,7 +140,9 @@ var cesCollections = (function(config, _Compression, _PlayGameHandler, $wrapper,
         // });
     };
 
-    this.Refresh = function() {
+    this.Refresh = function(refreshAll) {
+
+        _grid.isotope('remove', _grid.children()); //clear grid
 
         for (var i = 0, len = _active.titles.length; i < len; ++i) {
             var game = _active.titles[i];
@@ -165,10 +167,12 @@ var cesCollections = (function(config, _Compression, _PlayGameHandler, $wrapper,
 
         this.Incoming = function(package) {
 
+            var isNewCollection = _active.data.name == package.active.data.name;
+
             _active = package.active;
             _collections = package.collections;
 
-            _self.Refresh();
+            _self.Refresh(isNewCollection);
         };
 
         this.Outgoing = function() {
