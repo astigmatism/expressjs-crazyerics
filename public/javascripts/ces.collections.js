@@ -140,7 +140,8 @@ var cesCollections = (function(config, _Compression, _PlayGameHandler, $wrapper,
         // });
     };
 
-    this.Refresh = function(refreshAll) {
+    //populate clears the grid from scratch
+    this.Populate = function() {
 
         _grid.isotope('remove', _grid.children()); //clear grid
 
@@ -152,6 +153,16 @@ var cesCollections = (function(config, _Compression, _PlayGameHandler, $wrapper,
         _self.SortBy('lastPlayed', false);
 
         OnImagesLoaded();
+    };
+
+    //updates the grid with new titles (or deleted ones)
+    this.Refresh = function() {
+
+        var items = _grid.isotope('getItemElements');
+
+        for (var i = 0, len = _active.titles.length; i < len; ++i) {
+            var game = _active.titles[i];
+        };
     };
 
     //in order to sync data between server and client, this structure must exist
@@ -167,12 +178,20 @@ var cesCollections = (function(config, _Compression, _PlayGameHandler, $wrapper,
 
         this.Incoming = function(package) {
 
-            var isNewCollection = _active.data.name == package.active.data.name;
+            var isNewCollection = true; 
+            if (_active.data) {
+                isNewCollection = (_active.data.name != package.active.data.name);
+            }
 
             _active = package.active;
             _collections = package.collections;
 
-            _self.Refresh(isNewCollection);
+            if (isNewCollection) {
+                _self.Populate();
+            }
+            else {
+                _self.Refresh();
+            }
         };
 
         this.Outgoing = function() {
