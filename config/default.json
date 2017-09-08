@@ -1,7 +1,7 @@
 {
 	"assetpath": "",
 	"shaderpath": "https://dl.dropboxusercontent.com/u/1433808/crazyerics/shaders/07-13-2017",
-	"boxpath": "https://d34dk2ur98gem2.cloudfront.net", //"https://dl.dropboxusercontent.com/u/1433808/crazyerics/boxes",
+	"boxpath": "http://cdn.crazyerics.com/boxes", //"https://dl.dropboxusercontent.com/u/1433808/crazyerics/boxes",
 	"rompath":"https://dl.dropboxusercontent.com/u/1433808/crazyerics/roms",
 	"emuextentionspath": "emulatorextentions/",
 	"emupath": "https://dl.dropboxusercontent.com/u/1433808/crazyerics/emulators",
