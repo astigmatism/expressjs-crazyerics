@@ -1,4 +1,4 @@
-var cesGameLink = (function(config, gameKey, size, includeRemove, opt_PlayGame) {
+var cesGameLink = (function(config, gameKey, size, includeRemove, opt_PlayGame, opt_onImageLoadError) {
 
     //private members
     var self = this;
@@ -28,7 +28,7 @@ var cesGameLink = (function(config, gameKey, size, includeRemove, opt_PlayGame) 
         includeRemove = includeRemove || false;
 
         var $div = $('<div class="gamelink"></div>');
-        var $box = cesGetBoxFront(config, gameKey.system, gameKey.title, size);
+        var $box = cesGetBoxFront(config, gameKey.system, gameKey.title, size, opt_onImageLoadError);
 
         $box.addClass('tooltip close');
         $box.attr('title', gameKey.title);

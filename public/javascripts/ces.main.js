@@ -994,7 +994,7 @@ $.fn.animateRotate = function(startingangle, angle, duration, easing, complete) 
  * @param  {number} size   size of the box art (114, 150...)
  * @return {Object}        jquery img
  */
-cesGetBoxFront = function(config, system, title, size) {
+cesGetBoxFront = function(config, system, title, size, onErrorHandler) {
 
     var _Compression = new cesCompression();
     var _nerfImages = false;
@@ -1005,13 +1005,26 @@ cesGetBoxFront = function(config, system, title, size) {
     var errorsrc = config.assetpath + '/images/blanks/' + system + '_' + size + '.png';
     var src = config.boxpath + '/' + system + '/' + config.systemdetails[system].boxcdnversion + '/' + (title + (_nerfImages ? 'sofawnsay' : '')) + '/' + size + '.jpg';
 
-    //a trick to preload the image
-    var nothing = (new Image()).src = src;
+    var img = document.createElement('img');
+    img.src = src;
+    img.addEventListener('error', function() {
+
+        //on error, set a new load listener and load the error image
+        this.addEventListener('load', function() {    
+            if (this.height) {
+                this.setAttribute('height', this.height + 'px');
+            }
+            if (onErrorHandler) {
+                onErrorHandler();
+            }
+        });
+        this.src = errorsrc;
+    });
 
     _Compression = null;
 
     //incldes swap to blank cart onerror
-    return $('<img width="' + size + '" onerror="this.src=\'' + errorsrc + '\'" src="' + src + '" />');
+    return $(img); //$('<img width="' + size + '" onerror="this.src=\'' + errorsrc + '\'" src="' + src + '" />');
 };
 
 /**

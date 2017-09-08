@@ -80,7 +80,12 @@ var cesCollections = (function(config, _Compression, _PlayGameHandler, $wrapper,
         //create the grid item
         var $griditem = $('<div class="grid-item" />');
 
-		var gamelink = new cesGameLink(config, gameKey, _BOXSIZE, true, _PlayGameHandler);
+        //if the box image fails to load, resync this grid to make room for the error images
+        var onBoxImageLoadError = function(el) {
+            _grid.isotope('layout');
+        };
+
+		var gamelink = new cesGameLink(config, gameKey, _BOXSIZE, true, _PlayGameHandler, onBoxImageLoadError);
 
         //set the on remove function
         gamelink.OnRemoveClick(function() {
