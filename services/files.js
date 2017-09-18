@@ -89,7 +89,7 @@ module.exports = new (function() {
             if (exists) {
 
                 if (overwrite) {
-                    FileService.rmdir(path, function (err) {
+                    _self.rmdir(path, function (err) {
                         if (err) {
                             return callback(err);
                         }

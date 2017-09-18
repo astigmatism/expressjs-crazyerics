@@ -6,14 +6,13 @@
 	"emuextentionspath": "emulatorextentions/",
 	"emupath": "http://cdn.crazyerics.com/emulators", //"https://dl.dropboxusercontent.com/u/1433808/crazyerics/emulators",
 	"supportpath": "http://cdn.crazyerics.com/support", //"https://dl.dropboxusercontent.com/u/1433808/crazyerics/support",
-	"dropboxaccesstoken": "m62ox__hvx4AAAAAAAg-wsMqXLg0V57RxRTk-PBFM3gKS23cOjrpY5y7x6aSZMRA",
 	"maxSavesPerGame": 40,
 	"defaultCollection": "Recently Played",
 	"db": {
 		"postgre": {
-			"host": "192.168.1.3",
+			"host": "http://www.crazyerics.com",
 			"user": "crazyerics",
-			"password": "crazyerics",
+			"password": "FU.BexZM2d9aTWXAWvxPFKsv",
 			"database": "crazyerics",
 			"port": 32769,
 			"max": 20,
@@ -549,139 +548,139 @@
 	},
 	"emulators": {
 		"2048_libretro.js": {
-			"s": 3465115
+			"s": 3465086
 		},
 		"4do_libretro.js": {
-			"s": 3576582
+			"s": 3576553
 		},
 		"bluemsx_libretro.js": {
-			"s": 5187677
+			"s": 5187648
 		},
 		"craft_libretro.js": {
-			"s": 6582887
+			"s": 6582858
 		},
 		"desmume_libretro.js": {
-			"s": 6949706
+			"s": 6949677
 		},
 		"dosbox_libretro.js": {
-			"s": 6701046
+			"s": 6701017
 		},
 		"embed.js": {
 			"s": 12222
 		},
 		"fbalpha2012_cps1_libretro.js": {
-			"s": 5091572
+			"s": 5091543
 		},
 		"fbalpha2012_cps2_libretro.js": {
-			"s": 4852210
+			"s": 4852181
 		},
 		"fbalpha2012_libretro.js": {
-			"s": 16724918
+			"s": 16724889
 		},
 		"fbalpha2012_neogeo_libretro.js": {
-			"s": 5069962
+			"s": 5069933
 		},
 		"fceumm_libretro.js": {
-			"s": 4030872
+			"s": 4030843
 		},
 		"gambatte_libretro.js": {
-			"s": 4103576
+			"s": 4103547
 		},
 		"genesis_plus_gx_libretro.js": {
-			"s": 6113541
+			"s": 6113512
 		},
 		"gme_libretro.js": {
-			"s": 3447397
+			"s": 3447368
 		},
 		"gpsp_libretro.js": {
-			"s": 4803505
+			"s": 4803476
 		},
 		"handy_libretro.js": {
-			"s": 3664541
+			"s": 3664512
 		},
 		"mame2000_libretro.js": {
-			"s": 11211937
+			"s": 11211908
 		},
 		"mednafen_lynx_libretro.js": {
-			"s": 3654899
+			"s": 3654870
 		},
 		"mednafen_ngp_libretro.js": {
-			"s": 3893908
+			"s": 3893879
 		},
 		"mednafen_pce_fast_libretro.js": {
-			"s": 3871966
+			"s": 3871937
 		},
 		"mednafen_pcfx_libretro.js": {
-			"s": 4102501
+			"s": 4102472
 		},
 		"mednafen_psx_libretro.js": {
-			"s": 6966010
+			"s": 6965981
 		},
 		"mednafen_snes_libretro.js": {
-			"s": 4634744
+			"s": 4634715
 		},
 		"mednafen_vb_libretro.js": {
-			"s": 3675847
+			"s": 3675818
 		},
 		"mednafen_wswan_libretro.js": {
-			"s": 3702771
+			"s": 3702742
 		},
 		"mupen64plus_libretro.js": {
-			"s": 5338348
+			"s": 5338319
 		},
 		"nestopia_libretro.js": {
-			"s": 5095554
+			"s": 5095525
 		},
 		"nxengine_libretro.js": {
-			"s": 3961198
+			"s": 3961169
 		},
 		"o2em_libretro.js": {
-			"s": 3526280
+			"s": 3526251
 		},
 		"parallel_n64_libretro.js": {
-			"s": 5341281
+			"s": 5341252
 		},
 		"picodrive_libretro.js": {
-			"s": 5015070
+			"s": 5015041
 		},
 		"prboom_libretro.js": {
-			"s": 4354344
+			"s": 4354315
 		},
 		"prosystem_libretro.js": {
-			"s": 3522197
+			"s": 3522168
 		},
 		"quicknes_libretro.js": {
-			"s": 3633557
+			"s": 3633528
 		},
 		"snes9x2002_libretro.js": {
-			"s": 4425022
+			"s": 4424993
 		},
 		"snes9x2005_libretro.js": {
-			"s": 4589027
+			"s": 4588998
 		},
 		"snes9x2010_libretro.js": {
-			"s": 5869189
+			"s": 5869160
 		},
 		"snes9x_libretro.js": {
-			"s": 8547561
+			"s": 8547532
 		},
 		"stella_libretro.js": {
-			"s": 4341982
+			"s": 4341953
 		},
 		"tgbdual_libretro.js": {
-			"s": 3619092
+			"s": 3619063
 		},
 		"tyrquake_libretro.js": {
-			"s": 4427086
+			"s": 4427057
 		},
 		"vba_next_libretro.js": {
-			"s": 4541121
+			"s": 4541092
 		},
 		"vecx_libretro.js": {
-			"s": 3553261
+			"s": 3553232
 		},
 		"virtualjaguar_libretro.js": {
-			"s": 4257149
+			"s": 4257120
 		}
 	},
 	"shaders": {

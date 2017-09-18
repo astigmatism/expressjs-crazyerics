@@ -22,7 +22,7 @@ router.get('/emulatorprep', function(req, res, next) {
     
     var writeMemFileToDestination = true;
     
-    var emulatorAssetLocation = 'https://dl.dropboxusercontent.com/u/1433808/crazyerics/emulators/' + EMULATOR_VERSION + '/'; //'/emulators/' + EMULATOR_VERSION + '/';
+    var emulatorAssetLocation = 'http://cdn.crazyerics.com/emulators/' + EMULATOR_VERSION + '/'; //'/emulators/' + EMULATOR_VERSION + '/';
     var destinationPath = __dirname + '/../public/emulators/' + EMULATOR_VERSION;
 
     var manifest = {};
