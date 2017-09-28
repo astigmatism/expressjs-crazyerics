@@ -164,12 +164,11 @@ module.exports = new (function() {
         //client had new data to update the server
         this.Incoming = function(_package) {
 
-            
+            console.log(_package);
         };
 
         //update the client with new data
         this.Outgoing = function(userId, callback) {
-
 
             _self.GetActiveCollection(userId, (err, _activeCollection) => {
                 if (err) {
