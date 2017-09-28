@@ -78,8 +78,10 @@ app.use(function(req, res, next) {
 });
 
 //run on app start
-ApplicationService.ApplicationStart(function() {
-    
+ApplicationService.ApplicationStart(function(err) {
+    if (err) {
+        console.log('Error on start', err)
+    }
 });
 
 // error handlers

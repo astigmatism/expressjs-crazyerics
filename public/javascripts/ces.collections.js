@@ -93,7 +93,7 @@ var cesCollections = (function(config, _Compression, _PlayGameHandler, $wrapper,
         });
 
         //place sorting data on grid item
-        $griditem.attr('data-key', gk);
+        $griditem.attr('data-gk', gk);
         $griditem.attr('data-lastPlayed', lastPlayed);
 
         $griditem.append(gamelink.GetDOM()); //add gamelink
@@ -164,10 +164,29 @@ var cesCollections = (function(config, _Compression, _PlayGameHandler, $wrapper,
     this.Refresh = function() {
 
         var items = _grid.isotope('getItemElements');
+        var toAdd = [];
+        var toRemove = [];
 
+        //step through all active titles
         for (var i = 0, len = _active.titles.length; i < len; ++i) {
             var game = _active.titles[i];
+
+            var found = false;
+            for (var j = 0, jlen = items.length; j < jlen; ++j) {
+                var gk = $(items[j]).data('gk');
+                if (gk === game.gk) {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                AddToGrid(game.gk, game.lastPlayed, game.playCount);
+            }
         };
+
+        _self.SortBy('lastPlayed', false);
+        
+        OnImagesLoaded();
     };
 
     //in order to sync data between server and client, this structure must exist
@@ -195,7 +214,7 @@ var cesCollections = (function(config, _Compression, _PlayGameHandler, $wrapper,
                 _self.Populate();
             }
             else {
-                _self.Refresh();
+                _self.Populate(); //Refresh();
             }
         };
 
