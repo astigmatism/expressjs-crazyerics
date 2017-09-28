@@ -1,4 +1,4 @@
-var cesCollections = (function(config, _Compression, _PlayGameHandler, $wrapper, _initialSyncPackage, _OnRemoveHandler) {
+var cesCollections = (function(config, _Compression, _PlayGameHandler, $wrapper, $title, _initialSyncPackage, _OnRemoveHandler) {
 		
     //private members
     var _self = this;
@@ -217,6 +217,14 @@ var cesCollections = (function(config, _Compression, _PlayGameHandler, $wrapper,
             }
             else {
                 _self.Refresh();
+            }
+
+            //title
+            if (_active.titles.length > 0) {
+                $title.text(_active.data.name);
+            }
+            else {
+                $title.empty();
             }
         };
 
