@@ -136,6 +136,7 @@ module.exports = new (function() {
             }
 
             var collectionId = activeCollection.data.collection_id;
+            var collectionName = activeCollection.data.name;
 
             //update or inserts the record (play count, last played)
             CollectionsSQL.PlayCollectionTitle(userId, collectionId, gk, titleId, fileId, (err, collectionsTitlesRecord) => {
@@ -143,10 +144,17 @@ module.exports = new (function() {
                     return callback(err);
                 }
 
-                //inform sync that new collection data has arrived
-                _self.Sync.ready = true;
+                //invalidate cache
+                _collectionCache.Delete([userId, collectionName], (err) => {
+                    if (err) {
+                        return callback(err);
+                    }
 
-                return callback(null, collectionsTitlesRecord);
+                    //inform sync that new collection data has arrived
+                    _self.Sync.ready = true;
+                
+                    return callback(null, collectionsTitlesRecord);
+                });
             });
         });
     };
