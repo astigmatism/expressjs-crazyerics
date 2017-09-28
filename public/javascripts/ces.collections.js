@@ -17,9 +17,9 @@ var cesCollections = (function(config, _Compression, _PlayGameHandler, $wrapper,
         //ensure data is up to date5
         _grid.isotope('updateSortData').isotope();
 
-        _grid.isotope({ 
-            sortBy : property,
-            sortAscending: sortAscending
+        _grid.isotope({
+            sortBy: property,
+            sortAscending: sortAscending,
         });
     };
 
@@ -94,7 +94,7 @@ var cesCollections = (function(config, _Compression, _PlayGameHandler, $wrapper,
 
         //place sorting data on grid item
         $griditem.attr('data-gk', gk);
-        $griditem.attr('data-lastPlayed', lastPlayed);
+        $griditem.attr('data-lastPlayed', new Date(lastPlayed).getTime()); //store as epoch time for sorting
 
         $griditem.append(gamelink.GetDOM()); //add gamelink
         
@@ -164,10 +164,8 @@ var cesCollections = (function(config, _Compression, _PlayGameHandler, $wrapper,
     this.Refresh = function() {
 
         var items = _grid.isotope('getItemElements');
-        var toAdd = [];
-        var toRemove = [];
 
-        //step through all active titles
+        //step through all updated active titles
         for (var i = 0, len = _active.titles.length; i < len; ++i) {
             var game = _active.titles[i];
 
@@ -176,6 +174,10 @@ var cesCollections = (function(config, _Compression, _PlayGameHandler, $wrapper,
                 var gk = $(items[j]).data('gk');
                 if (gk === game.gk) {
                     found = true;
+                    
+                    //update details
+                    $(items[j]).attr('data-lastPlayed', new Date(game.lastPlayed).getTime()); //store date in epoch time for sorting
+                    
                     break;
                 }
             }
@@ -214,7 +216,7 @@ var cesCollections = (function(config, _Compression, _PlayGameHandler, $wrapper,
                 _self.Populate();
             }
             else {
-                _self.Populate(); //Refresh();
+                _self.Refresh();
             }
         };
 
