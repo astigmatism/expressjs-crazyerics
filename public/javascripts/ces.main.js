@@ -38,6 +38,7 @@ var cesMain = (function() {
     var _SaveSelection = null;
     var _ProgressBar = null;
     var _Notifications = null;
+    var _ClientCache = {}; //a consistant location to store items in client memory during a non-refresh session
 
     // public members
     
@@ -615,7 +616,7 @@ var cesMain = (function() {
                 }
 
                 //the class extention process: on the prototype of the ext, create using the base class.
-                cesEmulator.prototype = new cesEmulatorBase(_Compression, _PubSub, _config, _Sync, gameKey, ui);
+                cesEmulator.prototype = new cesEmulatorBase(_Compression, _PubSub, _config, _Sync, gameKey, ui, _ClientCache);
 
                 var emulator = new cesEmulator(_Compression, _PubSub, _config, _Sync, gameKey);
 

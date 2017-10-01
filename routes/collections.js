@@ -14,4 +14,6 @@ router.post('/save', function(req, res, next) {
     
 });
 
+router.delete('/game')
+
 module.exports = router;

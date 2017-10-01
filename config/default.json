@@ -1,10 +1,11 @@
 {
+	//commented out urls are drop-ins for when primary is disrupted
 	"assetpath": "",
-	"shaderpath": "http://cdn.crazyerics.com/shaders", //"https://dl.dropboxusercontent.com/u/1433808/crazyerics/shaders/07-13-2017",
-	"boxpath": "http://cdn.crazyerics.com/boxes", //"https://dl.dropboxusercontent.com/u/1433808/crazyerics/boxes",
+	"shaderpath": "http://cdn.crazyerics.com/shaders",
+	"boxpath": "http://d34dk2ur98gem2.cloudfront.net", //"http://cdn.crazyerics.com/boxes",
 	"rompath": "http://cdn.crazyerics.com/roms", //"https://dl.dropboxusercontent.com/u/1433808/crazyerics/roms",
 	"emuextentionspath": "emulatorextentions/",
-	"emupath": "http://cdn.crazyerics.com/emulators", //"https://dl.dropboxusercontent.com/u/1433808/crazyerics/emulators",
+	"emupath": "http://d15urfrvwzi8iz.cloudfront.net", //"http://cdn.crazyerics.com/emulators",
 	"supportpath": "http://cdn.crazyerics.com/support", //"https://dl.dropboxusercontent.com/u/1433808/crazyerics/support",
 	"maxSavesPerGame": 40,
 	"defaultCollection": "Recently Played",
@@ -546,142 +547,142 @@
 		"video_windowed_fullscreen": false
 	},
 	"emulators": {
-		"2048_libretro.js": {
-			"s": 3465086
+		"2048_libretro.js":{
+		   "s":3465087
 		},
-		"4do_libretro.js": {
-			"s": 3576553
+		"4do_libretro.js":{
+		   "s":3576554
 		},
-		"bluemsx_libretro.js": {
-			"s": 5187648
+		"bluemsx_libretro.js":{
+		   "s":5187649
 		},
-		"craft_libretro.js": {
-			"s": 6582858
+		"craft_libretro.js":{
+		   "s":6582859
 		},
-		"desmume_libretro.js": {
-			"s": 6949677
+		"desmume_libretro.js":{
+		   "s":6949678
 		},
-		"dosbox_libretro.js": {
-			"s": 6701017
+		"dosbox_libretro.js":{
+		   "s":6701018
 		},
-		"embed.js": {
-			"s": 12222
+		"embed.js":{
+		   "s":12222
 		},
-		"fbalpha2012_cps1_libretro.js": {
-			"s": 5091543
+		"fbalpha2012_cps1_libretro.js":{
+		   "s":5091544
 		},
-		"fbalpha2012_cps2_libretro.js": {
-			"s": 4852181
+		"fbalpha2012_cps2_libretro.js":{
+		   "s":4852182
 		},
-		"fbalpha2012_libretro.js": {
-			"s": 16724889
+		"fbalpha2012_libretro.js":{
+		   "s":16724890
 		},
-		"fbalpha2012_neogeo_libretro.js": {
-			"s": 5069933
+		"fbalpha2012_neogeo_libretro.js":{
+		   "s":5069934
 		},
-		"fceumm_libretro.js": {
-			"s": 4030843
+		"fceumm_libretro.js":{
+		   "s":4030844
 		},
-		"gambatte_libretro.js": {
-			"s": 4103547
+		"gambatte_libretro.js":{
+		   "s":4103548
 		},
-		"genesis_plus_gx_libretro.js": {
-			"s": 6113512
+		"genesis_plus_gx_libretro.js":{
+		   "s":6113513
 		},
-		"gme_libretro.js": {
-			"s": 3447368
+		"gme_libretro.js":{
+		   "s":3447369
 		},
-		"gpsp_libretro.js": {
-			"s": 4803476
+		"gpsp_libretro.js":{
+		   "s":4803477
 		},
-		"handy_libretro.js": {
-			"s": 3664512
+		"handy_libretro.js":{
+		   "s":3664513
 		},
-		"mame2000_libretro.js": {
-			"s": 11211908
+		"mame2000_libretro.js":{
+		   "s":11211909
 		},
-		"mednafen_lynx_libretro.js": {
-			"s": 3654870
+		"mednafen_lynx_libretro.js":{
+		   "s":3654871
 		},
-		"mednafen_ngp_libretro.js": {
-			"s": 3893879
+		"mednafen_ngp_libretro.js":{
+		   "s":3893880
 		},
-		"mednafen_pce_fast_libretro.js": {
-			"s": 3871937
+		"mednafen_pce_fast_libretro.js":{
+		   "s":3871938
 		},
-		"mednafen_pcfx_libretro.js": {
-			"s": 4102472
+		"mednafen_pcfx_libretro.js":{
+		   "s":4102473
 		},
-		"mednafen_psx_libretro.js": {
-			"s": 6965981
+		"mednafen_psx_libretro.js":{
+		   "s":6965982
 		},
-		"mednafen_snes_libretro.js": {
-			"s": 4634715
+		"mednafen_snes_libretro.js":{
+		   "s":4634716
 		},
-		"mednafen_vb_libretro.js": {
-			"s": 3675818
+		"mednafen_vb_libretro.js":{
+		   "s":3675819
 		},
-		"mednafen_wswan_libretro.js": {
-			"s": 3702742
+		"mednafen_wswan_libretro.js":{
+		   "s":3702743
 		},
-		"mupen64plus_libretro.js": {
-			"s": 5338319
+		"mupen64plus_libretro.js":{
+		   "s":5338320
 		},
-		"nestopia_libretro.js": {
-			"s": 5095525
+		"nestopia_libretro.js":{
+		   "s":5095526
 		},
-		"nxengine_libretro.js": {
-			"s": 3961169
+		"nxengine_libretro.js":{
+		   "s":3961170
 		},
-		"o2em_libretro.js": {
-			"s": 3526251
+		"o2em_libretro.js":{
+		   "s":3526252
 		},
-		"parallel_n64_libretro.js": {
-			"s": 5341252
+		"parallel_n64_libretro.js":{
+		   "s":5341253
 		},
-		"picodrive_libretro.js": {
-			"s": 5015041
+		"picodrive_libretro.js":{
+		   "s":5015042
 		},
-		"prboom_libretro.js": {
-			"s": 4354315
+		"prboom_libretro.js":{
+		   "s":4354316
 		},
-		"prosystem_libretro.js": {
-			"s": 3522168
+		"prosystem_libretro.js":{
+		   "s":3522169
 		},
-		"quicknes_libretro.js": {
-			"s": 3633528
+		"quicknes_libretro.js":{
+		   "s":3633529
 		},
-		"snes9x2002_libretro.js": {
-			"s": 4424993
+		"snes9x2002_libretro.js":{
+		   "s":4424994
 		},
-		"snes9x2005_libretro.js": {
-			"s": 4588998
+		"snes9x2005_libretro.js":{
+		   "s":4588999
 		},
-		"snes9x2010_libretro.js": {
-			"s": 5869160
+		"snes9x2010_libretro.js":{
+		   "s":5869161
 		},
-		"snes9x_libretro.js": {
-			"s": 8547532
+		"snes9x_libretro.js":{
+		   "s":8547533
 		},
-		"stella_libretro.js": {
-			"s": 4341953
+		"stella_libretro.js":{
+		   "s":4341954
 		},
-		"tgbdual_libretro.js": {
-			"s": 3619063
+		"tgbdual_libretro.js":{
+		   "s":3619064
 		},
-		"tyrquake_libretro.js": {
-			"s": 4427057
+		"tyrquake_libretro.js":{
+		   "s":4427058
 		},
-		"vba_next_libretro.js": {
-			"s": 4541092
+		"vba_next_libretro.js":{
+		   "s":4541093
 		},
-		"vecx_libretro.js": {
-			"s": 3553232
+		"vecx_libretro.js":{
+		   "s":3553233
 		},
-		"virtualjaguar_libretro.js": {
-			"s": 4257120
+		"virtualjaguar_libretro.js":{
+		   "s":4257121
 		}
-	},
+	 },
 	"shaders": {
 		"3dfx-shaders-old-3dfx_4x1": {
 			"s": 4620

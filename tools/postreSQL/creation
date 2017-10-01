@@ -299,4 +299,10 @@ ALTER TABLE public.collections_titles
 ALTER TABLE public.collections_titles
     ADD COLUMN game_key character text NOT NULL;
 
+ALTER TABLE public.collections_titles
+    ALTER COLUMN created TYPE timestamp(6) with time zone ;
+
+ALTER TABLE public.collections_titles
+    ALTER COLUMN last_played TYPE timestamp(6) with time zone ;
+
 ----------------------------------

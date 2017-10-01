@@ -111,11 +111,11 @@ var cesCollections = (function(config, _Compression, _PlayGameHandler, $wrapper,
      * @param  {Object} gamelink
      * @param  {Object} griditem
      */
-    var Remove = function(gameKey, gamelink, griditem) {
+    var Remove = function(gk, gamelink, griditem) {
 
         //before removing, is this the current game being loaded? 
         //we cannot allow it to be deleted (like if there are selecting a save)
-        if (gameKey == _currentLoadingGame) {
+        if (gk == _currentLoadingGame) {
             return;
         }
 
@@ -125,24 +125,27 @@ var cesCollections = (function(config, _Compression, _PlayGameHandler, $wrapper,
         //immediately remove from grid (i used to wait for response but why right?)
         _grid.isotope('remove', griditem).isotope('layout');
 
-        // $.ajax({
-        //     url: '/saves/delete?gk=' + encodeURIComponent(gameKey),
-        //     type: 'DELETE',
-        //     /**
-        //      * on successful state deletion
-        //      * @return {undef}
-        //      */
-        //     complete: function() {
+        //now I could use sync. remove the item from the grid and wait until next server hit for sync to work
+        //that could be a problem however and I'd rather inform the server/cache right away
+        $.ajax({
+            url: '/collections/game?gk=' + encodeURIComponent(gk),
+            type: 'DELETE',
+            /**
+             * on successful state deletion
+             * @return {undef}
+             */
+            complete: function() {
                 
-        //         //clear mem
-        //         gamelink = null;
+                //clear mem
+                gamelink = null;
 
-        //         //callback the function to remove from player data
-        //         if (_OnRemoveHandler) {
-        //             _OnRemoveHandler(gameKey); //passed in, will remove from player data at main level 
-        //         }
-        //     }
-        // });
+                //callback the function to remove from player data
+                //at this time, not used
+                if (_OnRemoveHandler) {
+                    _OnRemoveHandler(gk); //passed in, reports back to ces.main function
+                }
+            }
+        });
     };
 
     //populate clears the grid from scratch
@@ -220,12 +223,12 @@ var cesCollections = (function(config, _Compression, _PlayGameHandler, $wrapper,
             }
 
             //title
-            if (_active.titles.length > 0) {
-                $title.text(_active.data.name);
-            }
-            else {
-                $title.empty();
-            }
+            // if (_active.titles.length > 0) {
+            //     $title.text(_active.data.name);
+            // }
+            // else {
+            //     $title.empty();
+            // }
         };
 
         this.Outgoing = function() {

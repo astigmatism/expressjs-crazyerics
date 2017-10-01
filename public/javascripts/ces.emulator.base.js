@@ -6,7 +6,7 @@
  * @param  {string} file         Super Mario Bros. 3 (U)[!].nes
  * @return {undef}
  */
-var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _gameKey, _ui) {
+var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _gameKey, _ui, _ClientCache) {
 
     // private members
     var self = this;
@@ -18,6 +18,8 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _gameKey,
     var _isLoadingState = false;
     var _hasStateToLoad = false; //flag for whether it is possible to load state
     var _gameBeganPlaying = false;
+    var _cacheEmulatorScripts = true; //do we want to use _ClientCache to store emulator script responses (in raw form before globalEval)
+    var _cacheName = _gameKey.system + '.script';
 
     var _displayDurationShow = 1000;
     var _displayDurationHide = 500;
@@ -80,10 +82,13 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _gameKey,
 
         //setup progress bar
         var emulatorFileSize = _config.systemdetails[_gameKey.system].emusize;
-        _ProgressBar.AddBucket('emulator', emulatorFileSize);
         _ProgressBar.AddBucket('game', filesize);
         _ProgressBar.AddBucket('shader', shaderFileSize); //will be 0 if no shader to load, not effecting the progress bar
         _ProgressBar.AddBucket('support', supportFileSize); //will be 0 if no support
+        //only create the bucket for the emaultor script if not in cache
+        if (!_cacheEmulatorScripts || !_ClientCache.hasOwnProperty(_cacheName)) {
+            _ProgressBar.AddBucket('emulator', emulatorFileSize);
+        }
 
         LoadEmulatorScript(_ProgressBar, _gameKey.system, module, emulatorFileSize, emulatorLoadComplete);
         LoadSupportFiles(_ProgressBar, _gameKey.system, supportFileSize, supportLoadComplete);
@@ -94,7 +99,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _gameKey,
 
             _isLoading = false;
 
-            OnEmulatorLoadComplete(emulator, support, game, shader);
+            OnAllLoadsComplete(emulator, support, game, shader);
 
             deffered.resolve(true);
         });
@@ -554,7 +559,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _gameKey,
      * @param {Array} game
      * @param {Array} shader
      */
-    var OnEmulatorLoadComplete = function(emulator, support, game, shader) {
+    var OnAllLoadsComplete = function(emulator, support, game, shader) {
 
         //LoadEmulator result
         if (emulator[0]) {
@@ -589,6 +594,27 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _gameKey,
         //the path is made of three sections, 1) cdn or local 2) the extention name is the folder where they are stored 3) the file itself
         var scriptPath = _config.emupath + '/' + _config.systemdetails[system].emuextention + '/' + _config.systemdetails[system].emuscript;
 
+        var returnHelper = function(script) {
+
+            //evaluate the response text and place it in the global scope
+            $.globalEval(script); 
+            var emulatorScriptInstance = new cesRetroArchEmulator(module);
+            
+            console.log('emulator done');
+
+            //this timeout is mega important, it gives the previous steps (globalEval, instantiation) enough time
+            //to sort themselves out. without this timeout, I get errors 
+            setTimeout(function() {
+                deffered.resolve(null, module, emulatorScriptInstance);
+            }, 1000);
+        };
+
+        //first check local cache
+        if (_cacheEmulatorScripts && _ClientCache.hasOwnProperty(_cacheName)) {
+            returnHelper(_ClientCache[_cacheName]);
+            return;
+        }
+
         LoadResource(scriptPath,
             //onProgress Update
             function(loaded) {
@@ -598,15 +624,12 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _gameKey,
             function(response, status, jqXHR) {
                 
                 _ProgressBar.Update('emulator', filesize);
-                //evaluate the response text and place it in the global scope
-                $.globalEval(response); 
-                var emulatorScriptInstance = new cesRetroArchEmulator(module);
                 
-                console.log('emulator done');
+                if (_cacheEmulatorScripts) {
+                    _ClientCache[_cacheName] = response;
+                }
 
-                setTimeout(function() {
-                    deffered.resolve(null, module, emulatorScriptInstance);
-                }, 5000);1
+                returnHelper(response);
             },
             //onFailure
             function(jqXHR, status, error) {
