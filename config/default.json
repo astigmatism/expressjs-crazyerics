@@ -1,7 +1,7 @@
 {
 	//commented out urls are drop-ins for when primary is disrupted
 	"assetpath": "",
-	"shaderpath": "http://cdn.crazyerics.com/shaders",
+	"shaderpath": "http://d1f1bmv0ctqnvi.cloudfront.net/07-13-2017", //"http://cdn.crazyerics.com/shaders",
 	"boxpath": "http://d34dk2ur98gem2.cloudfront.net", //"http://cdn.crazyerics.com/boxes",
 	"rompath": "http://cdn.crazyerics.com/roms", //"https://dl.dropboxusercontent.com/u/1433808/crazyerics/roms",
 	"emuextentionspath": "emulatorextentions/",
@@ -13,11 +13,12 @@
 		"postgre": {
 			"host": "http://www.crazyerics.com",
 			"user": "crazyerics",
+			"password": "FU.BexZM2d9aTWXAWvxPFKsv",
 			"database": "crazyerics",
 			"port": 32769,
 			"max": 20,
 			"idleTimeoutMillis": 10000,
-			"connectionTimeoutMillis": 5000
+			"connectionTimeoutMillis": 2000
 		}
 	},
 	"systems": {
@@ -446,7 +447,7 @@
 				},
 				"count": 100
 			},
-			"samples": 1
+			"samples": 20
 		},
 		"snes": {
 			"recipe": {

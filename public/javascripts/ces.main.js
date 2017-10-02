@@ -429,7 +429,7 @@ var cesMain = (function() {
                         }
                         var filesize = gameDetails.size;
 
-                        _ProgressBar.AddBucket('done', filesize * 0.05); //this represents the final work I need to do before the game starts (prevents bar from showing 1 until totally done)
+                        //_ProgressBar.AddBucket('done', filesize * 0.05); //this represents the final work I need to do before the game starts (prevents bar from showing 1 until totally done)
 
                         //begin loading all content. I know it seems like some of these (game, emulator, etc) could load while the user
                         //is viewing the shader select, but I found that when treated as background tasks, it interfere with the performance
@@ -466,7 +466,7 @@ var cesMain = (function() {
                                 //lets ensure a minimum time has passed (see private vars)
                                 setTimeout(function() {
 
-                                    _ProgressBar.Update('done', 1); //complete the progress bar here
+                                    //_ProgressBar.Update('done', 1); //complete the progress bar here
 
                                     // load state? bails if not set
                                     _Emulator.WriteSaveData(selectedSaveTimeStamp, function(stateToLoad) { //if save not set, bails on null
