@@ -81,7 +81,7 @@ var cesMain = (function() {
         _Preferences = new cesPreferences(_Compression, clientdata.components.p);
         _Sync.RegisterComponent('p', _Preferences.Sync);
 
-        _Collections = new cesCollections(_config, _Compression, PlayGame, $('#openCollectionGrid'), $('#collectionTitle'), clientdata.components.c, null);
+        _Collections = new cesCollections(_config, _Compression, _Sync, PlayGame, $('#openCollectionGrid'), $('#collectionTitle'), clientdata.components.c, null);
         _Sync.RegisterComponent('c', _Collections.Sync);
 
         //show welcome dialog
@@ -378,7 +378,7 @@ var cesMain = (function() {
     var RetroArchBootstrap = function(gameKey, slot, shader, callback) {
 
         var box = cesGetBoxFront(_config, gameKey.system, gameKey.title, 170); //preload loading screen box
-        //_RecentlyPlayed.SetCurrentGameLoading(key); //inform recently played what the current game is so that they don't attempt to delete it during load
+        _Collections.SetCurrentGameLoading(gameKey); //inform collections what the current game is so that they don't attempt to delete it during load
 
         //which emulator to load?
         EmulatorFactory(gameKey, function(err, emulator) {
@@ -521,7 +521,7 @@ var cesMain = (function() {
                                                         $('#emulator').focus(); //give focus (also calls resume game, I took care of the oddities :P)
 
                                                         //inform instances that game is starting (for those that care)
-                                                        //_RecentlyPlayed.RemoveCurrentGameLoading();
+                                                        _Collections.RemoveCurrentGameLoading();
 
                                                         //with all operations complete, callback
                                                         if (callback) {

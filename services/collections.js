@@ -3,6 +3,7 @@ const config = require('config');
 const CollectionsSQL = require('../db/collections');
 const PreferencesService = require('./preferences');
 const Cache = require('./cache');
+const GameService = require('../services/games');
 
 module.exports = new (function() { 
 
@@ -154,6 +155,45 @@ module.exports = new (function() {
                     _self.Sync.ready = true;
                 
                     return callback(null, collectionsTitlesRecord);
+                });
+            });
+        });
+    };
+
+    this.DeleteCollectionTitle = function(userId, gameKey, callback) {
+
+        //deletes can only take place from the currently active collection so get it
+        _self.GetActiveCollection(userId, (err, activeCollection) => {
+            if (err) {
+                return callback(err);
+            }
+
+            var collectionId = activeCollection.data.collection_id;
+            var collectionName = activeCollection.data.name;
+
+            //get the title_id for this game
+            GameService.Exists(gameKey, (err, titleRecord, fileRecord) => {
+                if (err) {
+                    return callback(err);
+                }
+
+                //to delete, pk's are collection id and title id
+                CollectionsSQL.DeleteCollectionTitle(collectionId, titleRecord.title_id, (err, deleteResult) => {
+                    if (err) {
+                        return callback(err);
+                    }
+    
+                    //invalidate cache
+                    _collectionCache.Delete([userId, collectionName], (err) => {
+                        if (err) {
+                            return callback(err);
+                        }
+    
+                        //inform sync that new collection data has arrived
+                        _self.Sync.ready = true;
+                    
+                        return callback();
+                    });
                 });
             });
         });

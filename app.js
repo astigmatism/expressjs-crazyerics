@@ -20,6 +20,7 @@ const saves = require('./routes/saves');
 const suggest = require('./routes/suggest');
 const work = require('./routes/work');
 const games = require('./routes/games');
+const collections = require('./routes/collections');
 
 const app = express();
 
@@ -64,6 +65,7 @@ app.use('/', routes);
 app.use('/saves', saves);
 app.use('/suggest', suggest);
 app.use('/games', games);
+app.use('/collections', collections);
 
 
 if (app.get('env') === 'development') {

@@ -58,6 +58,16 @@ module.exports = new (function() {
         });
     };
 
+    this.DeleteCollectionTitle = function(collectionId, titleId, callback) {
+
+        pool.query('DELETE FROM collections_titles WHERE collection_id=$1  AND title_id=$2 RETURNING *', [collectionId, titleId], (err, result) => {
+            if (err) {
+                return callback(err);
+            }
+            callback(null, result);
+        });
+    };
+
     this.GetCollectionByName = function(userId, name, callback, opt_createIfNoExist) {
 
         pool.query('SELECT * from collections WHERE user_id=$1 AND name=$2', [userId, name], (err, result) => {
