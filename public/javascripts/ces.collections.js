@@ -103,9 +103,9 @@ var cesCollections = (function(config, _Compression, _Sync, _PlayGameHandler, $w
         //immediately remove from grid (i used to wait for response but why right?)
         _grid.isotope('remove', griditem).isotope('layout');
 
-        _Sync.Post(url, options, function(data) {
-            deffered.resolve(data);
-        });
+        // _Sync.Post(url, options, function(data) {
+        //     deffered.resolve(data);
+        // });
 
         //now I could use sync. remove the item from the grid and wait until next server hit for sync to work
         //that could be a problem however and I'd rather inform the server/cache right away
@@ -116,7 +116,7 @@ var cesCollections = (function(config, _Compression, _Sync, _PlayGameHandler, $w
              * on successful state deletion
              * @return {undef}
              */
-            complete: function() {
+            complete: function(response) {
                 
                 //clear mem
                 gamelink = null;
