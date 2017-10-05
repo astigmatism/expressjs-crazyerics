@@ -606,7 +606,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _gameKey,
             //to sort themselves out. without this timeout, I get errors 
             setTimeout(function() {
                 deffered.resolve(null, module, emulatorScriptInstance);
-            }, 1000);
+            }, 2000);
         };
 
         //first check local cache

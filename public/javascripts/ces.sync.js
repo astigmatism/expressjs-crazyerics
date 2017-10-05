@@ -25,16 +25,34 @@ var cesSync = (function(_config, _Compression) {
         body._c = componentData; //_Compression.Compress.json(componentData);
         compressedBody = _Compression.Compress.json(body);
 
-        $.ajax({
+        Request(url, 'POST', compressedBody, callback);
+    };
+
+    //delete type simply passes through
+    this.Delete = function(url, callback) {
+
+        Request(url, 'DELETE', null, callback);
+    };
+
+    //common assembly of request object before sending
+    var Request = function(url, type, body, callback) {
+
+        var request = {
             url: url,
-            data: compressedBody,
             processData: false,
             contentType: 'text/plain',
-            type: 'POST',
-            headers: {
+            type: type
+        };
+
+        //if form body contains sync updates, add it to be process by the server
+        if (body) {
+            request.data = compressedBody;
+            request.headers = {
                 sync: 1
             }
-        })
+        }
+        
+        $.ajax(request)
         .done(function(data) {
             
             //we handle decompression here, before dispatching

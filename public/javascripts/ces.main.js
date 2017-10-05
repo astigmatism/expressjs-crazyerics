@@ -38,6 +38,7 @@ var cesMain = (function() {
     var _SaveSelection = null;
     var _ProgressBar = null;
     var _Notifications = null;
+    var _Tooltips= null;
     var _ClientCache = {}; //a consistant location to store items in client memory during a non-refresh session
 
     // public members
@@ -64,6 +65,8 @@ var cesMain = (function() {
             'emulatorcleanup': $('#emulatorcleanup')
         });
 
+        _Tooltips = new cesTooltips(_config, '.tooltip');
+
         _ProgressBar = new cesProgressBar(loadingprogressbar);
 
         _Notifications = new cesNotifications(_config, _Compression, _PubSub, $('#notificationwrapper'));
@@ -81,7 +84,7 @@ var cesMain = (function() {
         _Preferences = new cesPreferences(_Compression, clientdata.components.p);
         _Sync.RegisterComponent('p', _Preferences.Sync);
 
-        _Collections = new cesCollections(_config, _Compression, _Sync, PlayGame, $('#openCollectionGrid'), $('#collectionTitle'), clientdata.components.c, null);
+        _Collections = new cesCollections(_config, _Compression, _Sync, _Tooltips, PlayGame, $('#openCollectionGrid'), $('#collectionTitle'), clientdata.components.c, null);
         _Sync.RegisterComponent('c', _Collections.Sync);
 
         //show welcome dialog
@@ -127,7 +130,7 @@ var cesMain = (function() {
 
                 if (system === 'all' || _config.systemdetails[system].cannedSuggestion) {
                     _Suggestions.Load(system, true, function() {
-                        toolTips();
+                        _Tooltips.Apply();
                     }, true); //<-- load canned results
                 }
                 //default suggestions receipe for systems
@@ -143,7 +146,7 @@ var cesMain = (function() {
                     };
 
                     _Suggestions.Load(recipe, true, function() {
-                        toolTips();
+                        _Tooltips.Apply();
                     });
                 }
 
@@ -228,7 +231,7 @@ var cesMain = (function() {
 
                     _Suggestions.LoadMore(function() {
                         _suggestionsLoading = false;
-                        toolTips();
+                        _Tooltips.Apply();
                     });
                 }
             }
@@ -240,7 +243,7 @@ var cesMain = (function() {
                 var system = $('#search select').val();
                 var term = $(item).text();
                 _Suggestions.Load('/suggest/browse/' + system + '?term=' + term, false, function() {
-                    toolTips();
+                    _Tooltips.Apply();
                 });
             });
         });
@@ -254,19 +257,8 @@ var cesMain = (function() {
 
         //begin by showing all console suggestions
         _Suggestions.Load('all', true, function() {
-            toolTips();
+            _Tooltips.Apply();
         }, true); //<-- canned
-        // _Suggestions.Load({
-        //     "systems": {
-        //         "all": {
-        //             "proportion": 100,
-        //             "set": 0
-        //         }
-        //     },
-        //     "count": 100
-        // }, true, () => {
-        //     toolTips();
-        // });
 
         //pubsub for any error
         _PubSub.Subscribe('error', self, function(message, error) {
@@ -908,19 +900,6 @@ var cesMain = (function() {
 
         _Sync.Post(url, options, function(data) {
             deffered.resolve(data);
-        });
-    };
-
-    /**
-     * generates tooltips for all objects which might have been added that require it
-     * @return {undef}
-     */
-    var toolTips = function() {
-        //apply tooltips
-        $('.tooltip').tooltipster({
-            theme: 'tooltipster-shadow',
-            animation: 'grow',
-            delay: 100
         });
     };
 

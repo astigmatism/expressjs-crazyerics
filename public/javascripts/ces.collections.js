@@ -1,4 +1,4 @@
-var cesCollections = (function(config, _Compression, _Sync, _PlayGameHandler, $wrapper, $title, _initialSyncPackage, _OnRemoveHandler) {
+var cesCollections = (function(config, _Compression, _Sync, _Tooltips, _PlayGameHandler, $wrapper, $title, _initialSyncPackage, _OnRemoveHandler) {
 		
     //private members
     var _self = this;
@@ -38,6 +38,8 @@ var cesCollections = (function(config, _Compression, _Sync, _PlayGameHandler, $w
             
             $(image.img).parent().removeClass('close'); //remove close on parent to reveal image
             _grid.isotope('layout');
+
+            _Tooltips.Apply();
         });
     };
 
@@ -103,29 +105,10 @@ var cesCollections = (function(config, _Compression, _Sync, _PlayGameHandler, $w
         //immediately remove from grid (i used to wait for response but why right?)
         _grid.isotope('remove', griditem).isotope('layout');
 
-        // _Sync.Post(url, options, function(data) {
-        //     deffered.resolve(data);
-        // });
+        var url = '/collections/game?gk=' + encodeURIComponent(gk);
 
-        //now I could use sync. remove the item from the grid and wait until next server hit for sync to work
-        //that could be a problem however and I'd rather inform the server/cache right away
-        $.ajax({
-            url: '/collections/game?gk=' + encodeURIComponent(gk),
-            type: 'DELETE',
-            /**
-             * on successful state deletion
-             * @return {undef}
-             */
-            complete: function(response) {
-                
-                //clear mem
-                gamelink = null;
-
-                //not used, but handler to report back removed gk
-                if (_OnRemoveHandler) {
-                    _OnRemoveHandler(gk); //passed in, reports back to ces.main function
-                }
-            }
+        _Sync.Delete(url, function(data) {
+            //sync will take care of updating the collection
         });
     };
 
@@ -212,6 +195,7 @@ var cesCollections = (function(config, _Compression, _Sync, _PlayGameHandler, $w
             // }
         };
 
+        //not used (yet). delete forces update on server
         this.Outgoing = function() {
             __self.reday = false;
             return new package(_active, _collections);
