@@ -23,15 +23,34 @@ var cesGameLink = (function(config, gameKey, size, includeRemove, opt_PlayGame, 
         $(_gamelink).find('*').off();
     };
 
+    this.UpdateToolTipContent = function($tooltipContent) {
+        
+        //remove items which set this up as a standard tooltip
+        $(_imagewrapper).removeAttr('title');
+        $(_imagewrapper).removeClass('tooltip');
+        $(_imagewrapper).removeClass('tooltipstered');
+        $(_imagewrapper).addClass('tooltip-content');
+
+        //remove existing
+        $(_gamelink).find('.tooltip-content-wrapper').remove();
+
+        //write new id to content
+        $(_imagewrapper).attr('data-tooltip-content', '#' + $tooltipContent.attr('id'));
+        
+        //create wrapper and fill with content
+        $tooltipContentWrapper = $('<div class="tooltip-content-wrapper"></div>');
+        $tooltipContentWrapper.append($tooltipContent);
+        $(_gamelink).append($tooltipContentWrapper);
+
+        //cannot apply tooltips here because in loop
+    };
+
     var Constructor = (function() {
 
         includeRemove = includeRemove || false;
 
         var $div = $('<div class="gamelink"></div>');
         var $box = cesGetBoxFront(config, gameKey.system, gameKey.title, size, opt_onImageLoadError);
-
-        $box.addClass('tooltip close');
-        $box.attr('title', gameKey.title);
 
         //show box art when finished loading
         $box.load(function() {
@@ -49,6 +68,9 @@ var cesGameLink = (function(config, gameKey, size, includeRemove, opt_PlayGame, 
         });
 
         var $imagewrapper = $('<div class="box zoom close"></div>');
+        
+        $imagewrapper.addClass('tooltip close');
+        $imagewrapper.attr('title', gameKey.title);
 
         $imagewrapper.append($box);
 
@@ -62,27 +84,27 @@ var cesGameLink = (function(config, gameKey, size, includeRemove, opt_PlayGame, 
         var $remove = null;
 
         //if including a remove button
-        if (includeRemove) {
-            $remove = $('<div class="remove tooltip" title="Remove this game and all saved progress"></div>');
+        // if (includeRemove) {
+        //     $remove = $('<div class="remove tooltip" title="Remove this game and all saved progress"></div>');
             
-            //attach event 
-            $remove.on('click', function() {
-                if (_onRemove) {
-                    _onRemove();
-                }
-            });
+        //     //attach event 
+        //     $remove.on('click', function() {
+        //         if (_onRemove) {
+        //             _onRemove();
+        //         }
+        //     });
 
-            $imagewrapper.append($remove)
+        //     $imagewrapper.append($remove)
             
-            //show remove on mouse over
-            $imagewrapper
-                .on('mouseover', function() {
-                    $remove.show();
-                })
-                .on('mouseout', function() {
-                    $remove.hide();
-                });
-        }
+        //     //show remove on mouse over
+        //     $imagewrapper
+        //         .on('mouseover', function() {
+        //             $remove.show();
+        //         })
+        //         .on('mouseout', function() {
+        //             $remove.hide();
+        //         });
+        // }
 
         _gamelink = $div;
         _imagewrapper = $imagewrapper;

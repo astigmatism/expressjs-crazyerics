@@ -38,8 +38,7 @@ var cesCollections = (function(config, _Compression, _Sync, _Tooltips, _PlayGame
             
             $(image.img).parent().removeClass('close'); //remove close on parent to reveal image
             _grid.isotope('layout');
-
-            _Tooltips.Apply();
+            _Tooltips.AnyContent(true);
         });
     };
 
@@ -53,9 +52,9 @@ var cesCollections = (function(config, _Compression, _Sync, _Tooltips, _PlayGame
      * @param {[type]}   slots    [description]
      * @param {Function} callback [description]
      */
-	var AddToGrid = function(gk, lastPlayed, playCount, callback) {
+	var AddToGrid = function(game, index) {
 
-        var gameKey = _Compression.Decompress.gamekey(gk);
+        var gameKey = _Compression.Decompress.gamekey(game.gk);
 
         //create the grid item
         var $griditem = $('<div class="grid-item" />');
@@ -67,23 +66,39 @@ var cesCollections = (function(config, _Compression, _Sync, _Tooltips, _PlayGame
 
 		var gamelink = new cesGameLink(config, gameKey, _BOXSIZE, true, _PlayGameHandler, onBoxImageLoadError);
 
+        //create tooltip content
+        var $tooltipContent = Tooltip(game, index);
+        gamelink.UpdateToolTipContent($tooltipContent);
+
         //set the on remove function
         gamelink.OnRemoveClick(function() {
-            Remove(gk, gamelink, $griditem);
+            //Remove(game.gk, gamelink, $griditem);
         });
 
         //place sorting data on grid item
-        $griditem.attr('data-gk', gk);
-        $griditem.attr('data-lastPlayed', new Date(lastPlayed).getTime()); //store as epoch time for sorting
+        $griditem.attr('data-gk', game.gk);
+        $griditem.attr('data-lastPlayed', new Date(game.lastPlayed).getTime()); //store as epoch time for sorting
 
         $griditem.append(gamelink.GetDOM()); //add gamelink
         
-        _grid.isotope( 'insert', $griditem[0]);
+        _grid.isotope('insert', $griditem[0]);
 
-        if (callback) {
-        	callback();
-        }
-	};
+        game.gameLink = gamelink;
+        game.griditem = $griditem;
+    };
+    
+    var Tooltip = function(game, index) {
+
+        var gameKey = _Compression.Decompress.gamekey(game.gk);
+
+        //create the tooltip content
+        var $tooltipContent = $('<div class="collection-tooltip" id="collection' + index + '"></div>');
+        $tooltipContent.append('<div>' + gameKey.title + '</div>');
+        $tooltipContent.append('<div>Last Played: ' + $.format.date(game.lastPlayed, 'MMM D h:mm:ss a') + '</div>'); //using the jquery dateFormat plugin
+        $tooltipContent.append('<div>Play Count: ' + game.playCount + '</div>');
+
+        return $tooltipContent;
+    };
 
     
     /**
@@ -119,7 +134,9 @@ var cesCollections = (function(config, _Compression, _Sync, _Tooltips, _PlayGame
 
         for (var i = 0, len = _active.titles.length; i < len; ++i) {
             var game = _active.titles[i];
-            AddToGrid(game.gk, game.lastPlayed, game.playCount); 
+            
+            //add to grid returns handle to griditem and gamelink
+            AddToGrid(game, i);
         }
 
         _self.SortBy('lastPlayed', false);
@@ -138,18 +155,26 @@ var cesCollections = (function(config, _Compression, _Sync, _Tooltips, _PlayGame
 
             var found = false;
             for (var j = 0, jlen = items.length; j < jlen; ++j) {
-                var gk = $(items[j]).data('gk');
+
+                var $griditem = $(items[j]);
+                var gk = $griditem.data('gk');
+
                 if (gk === game.gk) {
                     found = true;
                     
                     //update details
-                    $(items[j]).attr('data-lastPlayed', new Date(game.lastPlayed).getTime()); //store date in epoch time for sorting
+                    $griditem.attr('data-lastPlayed', new Date(game.lastPlayed).getTime()); //store date in epoch time for sorting
+
+                    if (game.gameLink) {
+                        var $tooltipContent = Tooltip(game, index);
+                        game.gamelink.UpdateToolTipContent($tooltipContent);   
+                    }
                     
                     break;
                 }
             }
             if (!found) {
-                AddToGrid(game.gk, game.lastPlayed, game.playCount);
+                AddToGrid(game, i);
             }
         };
 

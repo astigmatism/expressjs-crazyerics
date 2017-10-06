@@ -65,7 +65,7 @@ var cesMain = (function() {
             'emulatorcleanup': $('#emulatorcleanup')
         });
 
-        _Tooltips = new cesTooltips(_config, '.tooltip');
+        _Tooltips = new cesTooltips(_config, '.tooltip', '.tooltip-content');
 
         _ProgressBar = new cesProgressBar(loadingprogressbar);
 
@@ -130,7 +130,7 @@ var cesMain = (function() {
 
                 if (system === 'all' || _config.systemdetails[system].cannedSuggestion) {
                     _Suggestions.Load(system, true, function() {
-                        _Tooltips.Apply();
+                        _Tooltips.Any();
                     }, true); //<-- load canned results
                 }
                 //default suggestions receipe for systems
@@ -146,7 +146,7 @@ var cesMain = (function() {
                     };
 
                     _Suggestions.Load(recipe, true, function() {
-                        _Tooltips.Apply();
+                        _Tooltips.Any();
                     });
                 }
 
@@ -231,7 +231,7 @@ var cesMain = (function() {
 
                     _Suggestions.LoadMore(function() {
                         _suggestionsLoading = false;
-                        _Tooltips.Apply();
+                        _Tooltips.Any();
                     });
                 }
             }
@@ -243,7 +243,7 @@ var cesMain = (function() {
                 var system = $('#search select').val();
                 var term = $(item).text();
                 _Suggestions.Load('/suggest/browse/' + system + '?term=' + term, false, function() {
-                    _Tooltips.Apply();
+                    _Tooltips.Any();
                 });
             });
         });
@@ -257,7 +257,7 @@ var cesMain = (function() {
 
         //begin by showing all console suggestions
         _Suggestions.Load('all', true, function() {
-            _Tooltips.Apply();
+            _Tooltips.Any();
         }, true); //<-- canned
 
         //pubsub for any error
