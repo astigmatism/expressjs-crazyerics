@@ -1,0 +1,83 @@
+{
+    "db": {
+		"postgre": {
+            "host": "192.168.1.3",
+            "idleTimeoutMillis": 100000,
+			"connectionTimeoutMillis": 50000
+		}
+    },
+    "cannedRecipes": {
+		"all": {
+			"recipe": {
+				"systems": {
+					"all": {
+						"proportion": 100,
+						"set": 0
+					}
+				},
+				"count": 50
+			},
+			"samples": 20
+		},
+		"snes": {
+			"recipe": {
+				"systems": {
+					"snes": {
+						"proportion": 100,
+						"set": 0
+					}
+				},
+				"count": 50
+			},
+			"samples": 10
+		},
+		"gb": {
+			"recipe": {
+				"systems": {
+					"gb": {
+						"proportion": 100,
+						"set": 0
+					}
+				},
+				"count": 50
+			},
+			"samples": 10
+		},
+		"gba": {
+			"recipe": {
+				"systems": {
+					"gba": {
+						"proportion": 100,
+						"set": 0
+					}
+				},
+				"count": 50
+			},
+			"samples": 10
+		},
+		"nes": {
+			"recipe": {
+				"systems": {
+					"nes": {
+						"proportion": 100,
+						"set": 0
+					}
+				},
+				"count": 50
+			},
+			"samples": 10
+		},
+		"gen": {
+			"recipe": {
+				"systems": {
+					"gen": {
+						"proportion": 100,
+						"set": 0
+					}
+				},
+				"count": 30
+			},
+			"samples": 10
+		}
+	}
+}
