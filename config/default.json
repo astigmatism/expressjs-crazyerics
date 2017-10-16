@@ -1,7 +1,7 @@
 {
 	//commented out urls are drop-ins for when primary is disrupted
 	"assetpath": "",
-	"shaderpath": "http://cdn.crazyerics.com/shaders", //"http://d1f1bmv0ctqnvi.cloudfront.net/07-13-2017",
+	"shaderpath": "http://cdn.crazyerics.com/shaders/07-13-2017", //"http://d1f1bmv0ctqnvi.cloudfront.net/07-13-2017",
 	"boxpath": "http://cdn.crazyerics.com/boxes", //"http://d34dk2ur98gem2.cloudfront.net",
 	"rompath": "http://cdn.crazyerics.com/roms",
 	"emuextentionspath": "emulatorextentions/",
