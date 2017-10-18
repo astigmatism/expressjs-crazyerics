@@ -176,7 +176,7 @@ var cesCollections = (function(config, _Compression, _Sync, _Tooltips, _PlayGame
             if (!found) {
                 AddToGrid(game, i);
             }
-        };
+        }
 
         _self.SortBy('lastPlayed', false);
         
@@ -190,7 +190,7 @@ var cesCollections = (function(config, _Compression, _Sync, _Tooltips, _PlayGame
         this.ready = false;
 
         var package = (function(active, collections) {
-            this.active = active,
+            this.active = active;
             this.collections = collections;
         });
 

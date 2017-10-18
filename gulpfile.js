@@ -6,8 +6,10 @@ var rename = require('gulp-rename');
 var concat = require('gulp-concat');
 var runSequence = require('run-sequence');
 var uglify = require('gulp-uglify');
+var minify = require('gulp-minify');
 var cssnano = require('gulp-cssnano');
 var sourcemaps = require('gulp-sourcemaps');
+var pump = require('pump');
 
 //ideally we are watching all javacript files inside this project
 var paths = [
@@ -34,40 +36,58 @@ watcher.on('change', function(event) {
 gulp.task('watch', function() {
     //run these sequences in this order:
     //runSequence('jscsfixjustwhitespace', 'jscs', 'lint', function() {
-    runSequence('jscs', 'lint', 'minify-css', 'uglify', function() {
+    runSequence('jscs', 'lint', 'minify-css', 'minify', function() {
         return;
     });
 });
 
-gulp.task('uglify', function() {
-  return gulp.src('./public/javascripts/*.js')
-    .pipe(sourcemaps.init())
-    .pipe(concat('build.js'))
-    .pipe(uglify())
-    .pipe(sourcemaps.write('./'))
-    .pipe(gulp.dest(DEST))
+gulp.task('uglify', function(callback) {
+    pump([
+        gulp.src('./public/javascripts/*.js'),
+        sourcemaps.init(),
+        concat('build.js'),
+        uglify(),
+        sourcemaps.write('./'),
+        gulp.dest(DEST)
+    ], callback);
 });
 
-gulp.task('jscsfixjustwhitespace', function() {
+gulp.task('minify', function(callback) {
+    pump([
+        gulp.src('./public/javascripts/*.js'),
+        sourcemaps.init(),
+        concat('build.js'),
+        minify({
+            ignoreFiles: ['build.js']
+        }),
+        sourcemaps.write('./'),
+        gulp.dest(DEST)
+    ], callback);
+});
+
+gulp.task('jscsfixjustwhitespace', function(callback) {
     // See here for why I specified a base: http://stackoverflow.com/a/24412960/3595355
     //return gulp.src(js_src, {base: './'})
-    return gulp.src(changedFiles, {base: './'})
-        .pipe(jscs({
+    pump([
+        gulp.src(changedFiles, {base: './'}),
+        jscs({
             fix: true,
             // The following won't work until the issue is fixed on github.
             // https://github.com/jscs-dev/node-jscs/pull/1479
             disallowTrailingWhitespace: true,
             requireLineFeedAtFileEnd: true,
             validateIndentation: 4
-        }))
-        .on('error', jscsErrorHandler)
-        .pipe(gulp.dest('./'));
+        }),
+        gulp.dest('./')
+    ], callback);
 });
 
-gulp.task('lint', function() {
-  var result = gulp.src(changedFiles)
-    .pipe(jshint(jshintConfig))
-    .pipe(jshint.reporter(stylish))
+gulp.task('lint', function(callback) {
+    pump([
+        gulp.src(changedFiles),
+        jshint(jshintConfig),
+        jshint.reporter(stylish)
+    ], callback);
 });
 
 function jscsErrorHandler(error) {
@@ -75,10 +95,12 @@ function jscsErrorHandler(error) {
     this.emit('end');
 }
 
-gulp.task('jscs', function() {
-  return gulp.src(changedFiles)
-    .pipe(jscs())
-    .pipe(jscs.reporter());
+gulp.task('jscs', function(callback) {
+    pump([
+        gulp.src(changedFiles),
+        jscs(),
+        jscs.reporter()
+    ], callback);
 });
 
 gulp.task('closure', function() {
@@ -97,9 +119,11 @@ gulp.task('closure', function() {
   //   .pipe(gulp.dest(DEST));
 });
 
-gulp.task('minify-css', function() {
-  return gulp.src('./public/stylesheets/*.css')
-    .pipe(cssnano())
-    .pipe(concat('style.min.css'))
-    .pipe(gulp.dest(DEST));
+gulp.task('minify-css', function(callback) {
+    pump([
+        gulp.src('./public/stylesheets/*.css'),
+        cssnano(),
+        concat('style.min.css'),
+        gulp.dest(DEST)
+    ], callback);
 });

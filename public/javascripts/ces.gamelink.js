@@ -17,7 +17,7 @@ var cesGameLink = (function(config, gameKey, size, includeRemove, opt_PlayGame, 
     this.OnRemoveClick = function(operation) {
         _onRemove = operation;
     };
-
+    
     this.DisableAllEvents = function() {
 
         $(_gamelink).find('*').off();
