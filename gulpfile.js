@@ -36,7 +36,7 @@ watcher.on('change', function(event) {
 gulp.task('watch', function() {
     //run these sequences in this order:
     //runSequence('jscsfixjustwhitespace', 'jscs', 'lint', function() {
-    runSequence('jscs', 'lint', 'minify-css', 'minify', function() {
+    runSequence('jscs', 'lint', 'minify-css', 'uglify', function() {
         return;
     });
 });
@@ -52,18 +52,16 @@ gulp.task('uglify', function(callback) {
     ], callback);
 });
 
-gulp.task('minify', function(callback) {
-    pump([
-        gulp.src('./public/javascripts/*.js'),
-        sourcemaps.init(),
-        concat('build.js'),
-        minify({
-            ignoreFiles: ['build.js']
-        }),
-        sourcemaps.write('./'),
-        gulp.dest(DEST)
-    ], callback);
-});
+// gulp.task('minify', function(callback) {
+//     pump([
+//         gulp.src('./public/javascripts/*.js'),
+//         sourcemaps.init(),
+//         concat('build.js'),
+//         minify(),
+//         sourcemaps.write('./'),
+//         gulp.dest(DEST)
+//     ], callback);
+// });
 
 gulp.task('jscsfixjustwhitespace', function(callback) {
     // See here for why I specified a base: http://stackoverflow.com/a/24412960/3595355
