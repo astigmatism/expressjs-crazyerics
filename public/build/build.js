@@ -581,17 +581,21 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _gameKey,
         }
 
         LoadEmulatorScript(_ProgressBar, _gameKey.system, module, emulatorFileSize, emulatorLoadComplete);
-        LoadSupportFiles(_ProgressBar, _gameKey.system, supportFileSize, supportLoadComplete);
-        LoadGame(_ProgressBar, filesize, gameLoadComplete);
-        LoadShader(_ProgressBar, shader, shaderFileSize, shaderLoadComplete);
+        
+        $.when(emulatorLoadComplete).done(function(emulator) {
 
-        $.when(emulatorLoadComplete, supportLoadComplete, gameLoadComplete, shaderLoadComplete).done(function(emulator, support, game, shader) {
+            LoadSupportFiles(_ProgressBar, _gameKey.system, supportFileSize, supportLoadComplete);
+            LoadGame(_ProgressBar, filesize, gameLoadComplete);
+            LoadShader(_ProgressBar, shader, shaderFileSize, shaderLoadComplete);
 
-            _isLoading = false;
+            $.when(supportLoadComplete, gameLoadComplete, shaderLoadComplete).done(function(support, game, shader) {
 
-            OnAllLoadsComplete(emulator, support, game, shader);
+                _isLoading = false;
 
-            deffered.resolve(true);
+                OnAllLoadsComplete(emulator, support, game, shader);
+
+                deffered.resolve(true);
+            });
         });
     };
 
@@ -814,7 +818,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _gameKey,
 
         //the keys are idle while the game runs! let's auto save
         MakeAutoSave();
-    }
+    };
 
     /* exposed saves manager functionality */
 
@@ -932,7 +936,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _gameKey,
                 _PubSub.Publish(topic);
                 proceed(true);
             });
-        }
+        };
 
         //reverse
         DownUpHandlers('reverse', 'Rewinding', 'emulatorreverse');
@@ -1095,7 +1099,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _gameKey,
             //this timeout is mega important, it gives the previous steps (globalEval, instantiation) enough time
             //to sort themselves out. without this timeout, I get errors 
             setTimeout(function() {
-                deffered.resolve(null, module, emulatorScriptInstance);
+                deffered.resolve([null, module, emulatorScriptInstance]);
             }, 2000);
         };
 
@@ -1227,7 +1231,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _gameKey,
             return;
         }
 
-        var location = _config.shaderpath + '/' + name
+        var location = _config.shaderpath + '/' + name;
 
         LoadResource(location,
             //onProgress Update
