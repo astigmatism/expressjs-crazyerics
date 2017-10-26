@@ -387,7 +387,7 @@ var cesDialogs = (function(wrapper, ui) {
     var Constructor = function() {
 
         //to all the dialog, add close (for animating in and out)
-        for (dialog in ui) {
+        for (var dialog in ui) {
             $(ui[dialog]).addClass('dialog hide close').append();
         }
     }();
@@ -435,7 +435,7 @@ var cesDialogs = (function(wrapper, ui) {
                 }, cssTransition);
             });
         });
-    }
+    };
 
     this.CloseDialog = function(alsoCloseWrapper, callback) {
 
@@ -483,7 +483,7 @@ var cesDialogs = (function(wrapper, ui) {
         $(wrapper).animate({
             'height': height + 'px'
         }, duration, defaultHeightChangeEasing, callback);
-    }
+    };
 
     return this;
 
@@ -2849,7 +2849,7 @@ var cesNotifications = (function(_config, _Compression, _PubSub, $wrapper) {
     var _minimumTimeTimeout = null; //holds a setTimeout
     var _currentlyShowing = null; //holds a note instance
     var _currentShowingTimeStamp = null; //holds a date instance of when note began showing
-    const _passageOfTime = 10 //in s. the amount of time to pass before showing (n seconds ago) on the notification
+    var _passageOfTime = 10; //in s. the amount of time to pass before showing (n seconds ago) on the notification
     
     /*
     Priority:
@@ -2971,7 +2971,7 @@ var cesNotifications = (function(_config, _Compression, _PubSub, $wrapper) {
                     self.ShowNext(); //move to next in queue
 
                 }, _transitionDuration);
-            }
+            };
 
             if (timeShown < _minimumTimeToShow) {
                 _minimumTimeTimeout = setTimeout(function() {

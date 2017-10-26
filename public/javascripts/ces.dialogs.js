@@ -16,7 +16,7 @@ var cesDialogs = (function(wrapper, ui) {
     var Constructor = function() {
 
         //to all the dialog, add close (for animating in and out)
-        for (dialog in ui) {
+        for (var dialog in ui) {
             $(ui[dialog]).addClass('dialog hide close').append();
         }
     }();
@@ -64,7 +64,7 @@ var cesDialogs = (function(wrapper, ui) {
                 }, cssTransition);
             });
         });
-    }
+    };
 
     this.CloseDialog = function(alsoCloseWrapper, callback) {
 
@@ -112,7 +112,7 @@ var cesDialogs = (function(wrapper, ui) {
         $(wrapper).animate({
             'height': height + 'px'
         }, duration, defaultHeightChangeEasing, callback);
-    }
+    };
 
     return this;
 

@@ -28,6 +28,7 @@ module.exports = function(key, opt_customCache) {
 
     this.Get = function(args, callback) {
         var key = MakeKey(args);
+        var startTime = new Date().getTime();
         _cache.get(key, (err, envelope) => {
             if (err) {
                 return callback(err);
@@ -36,8 +37,9 @@ module.exports = function(key, opt_customCache) {
                 
                 //for debugging - delete will show number of hits
                 envelope.hits++;
+                var finishTime = (new Date().getTime()) - startTime;
 
-                console.log(('cache: get -> ' + key + ', hits: ' + envelope.hits).green);
+                console.log(('cache: get -> ' + key + ', hits: ' + envelope.hits + ', fetch time (ms): ' + finishTime).green);
 
                 //set again but using envelope
                 _self.Set(args, null, (err, success)=> {
