@@ -186,7 +186,7 @@ module.exports = new (function() {
                                 //no qualifications for system search, all titles. 
                                 //I found it fastest to iterator with for in. the property doesn't matter since we have
                                 //to iterate over all props
-                                searchall[titlecount] = {
+                                search[titlecount] = {
                                     t: title,
                                     r: bestrank,
                                     gk: gk
