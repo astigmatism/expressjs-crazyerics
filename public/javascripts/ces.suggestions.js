@@ -30,7 +30,7 @@ var cesSuggestions = (function(config, _Compression, PlayGame, $wrapper) {
         _loading = true;
 
         Clear();
-        Fetch(recipe, (err, suggestions) => {
+        Fetch(recipe, function (err, suggestions) {
 
             Build(suggestions, function() {
 
@@ -39,7 +39,7 @@ var cesSuggestions = (function(config, _Compression, PlayGame, $wrapper) {
                 if (callback) {
                     callback();
                 }
-            })
+            });
 
         }, opt_canned);
     };
@@ -50,7 +50,7 @@ var cesSuggestions = (function(config, _Compression, PlayGame, $wrapper) {
             return;
         }
 
-        Fetch(_lastRecipe.recipe, (err, suggestions) => {
+        Fetch(_lastRecipe.recipe, function (err, suggestions) {
 
             Build(suggestions, function() {
 
@@ -59,7 +59,7 @@ var cesSuggestions = (function(config, _Compression, PlayGame, $wrapper) {
                 if (callback) {
                     callback();
                 }
-            })
+            });
 
         }, _lastRecipe.canned);
     };
@@ -101,12 +101,14 @@ var cesSuggestions = (function(config, _Compression, PlayGame, $wrapper) {
 
     var Build = function(suggestions, callback) {
 
+        var gamelink;
+    
         for (var i = 0; i < suggestions.length; ++i) {
             
             var gameKey = _Compression.Decompress.gamekey(suggestions[i].gk);
 
             //spawn new gamelink
-            var gamelink = new cesGameLink(config, gameKey, _BOXSIZE, false, PlayGame);
+            gamelink = new cesGameLink(config, gameKey, _BOXSIZE, false, PlayGame);
 
             //create the grid item and insert it
             var $griditem = $('<div class="grid-item" />');

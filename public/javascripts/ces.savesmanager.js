@@ -28,7 +28,7 @@ var cesSavesManager = (function (_config, _Compression, _Sync, _gameKey, _initia
             if (callback) {
                 callback();
             }
-        })
+        });
     };
 
     this.GetMostRecentSaves = function(count, type) {
@@ -44,7 +44,7 @@ var cesSavesManager = (function (_config, _Compression, _Sync, _gameKey, _initia
                 save: _savesData[_timestamps[i]],
                 i: i,
                 total: len
-            }
+            };
         }
         return result;
     };
@@ -133,7 +133,7 @@ var cesSavesManager = (function (_config, _Compression, _Sync, _gameKey, _initia
             'timestamp': Date.now() //now because this is the moment the player (with timezone) understands when they saved
         };
 
-        _Sync.Post(url, data, (response) => {
+        _Sync.Post(url, data, function (response) {
             callback(response);
         });
     };
