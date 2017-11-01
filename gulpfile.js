@@ -47,7 +47,7 @@ gulp.task('uglify', function(callback) {
         sourcemaps.init(),
         concat('build.js'),
         uglify(),
-        sourcemaps.write('./'),
+        //sourcemaps.write('./'),
         gulp.dest(DEST)
     ], callback);
 });
