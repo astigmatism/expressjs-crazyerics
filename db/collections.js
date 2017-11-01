@@ -37,15 +37,15 @@ module.exports = new (function() {
     };
 
     this.PlayCollectionTitle = function(userId, collectionId, gk, titleId, fileId, callback) {
-        
-        pool.query('UPDATE collections_titles SET active_file=$3, last_played=$4, play_count=play_count+1, game_key=$5 WHERE collection_id=$1 AND title_id=$2 RETURNING *', [collectionId, titleId, fileId, new Date, gk], (err, result) => {
+
+        pool.query('UPDATE collections_titles SET active_file=$3, last_played=now(), play_count=play_count+1, game_key=$4 WHERE collection_id=$1 AND title_id=$2 RETURNING *', [collectionId, titleId, fileId, gk], (err, result) => {
             if (err) {
                 return callback(err);
             }
             //if update failed to return rows, add this
             if (result.rows.length === 0) {
                 
-                pool.query('INSERT INTO collections_titles (collection_id, title_id, active_file, game_key) VALUES ($1, $2, $3, $4) RETURNING *', [collectionId, titleId, fileId, gk], (err, result) => {
+                pool.query('INSERT INTO collections_titles (collection_id, title_id, active_file, last_played, game_key) VALUES ($1, $2, $3, now(), $4) RETURNING *', [collectionId, titleId, fileId, gk], (err, result) => {
                     if (err) {
                         return callback(err);
                     }
