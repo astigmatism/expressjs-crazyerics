@@ -93,10 +93,10 @@ var cesCollections = (function(config, _Compression, _Sync, _Tooltips, _PlayGame
             activeTitle.gameLink.UpdateToolTipContent($tooltipContent);
         }
 
+        _Tooltips.AnyContent(true);
+
         //finally, sort everything
         _self.SortBy('lastPlayed', false);
-
-        OnImagesLoaded();
     };
 
     var Add = function(activeTitle) {
@@ -111,6 +111,8 @@ var cesCollections = (function(config, _Compression, _Sync, _Tooltips, _PlayGame
         $griditem.append(activeTitle.gameLink.GetDOM()); //add all visual content from gamelink to grid
         
         _grid.isotope('insert', $griditem[0]);
+
+        OnImagesLoaded($griditem[0]);
     };
 
     var GenerateTooltipContent = function(activeTitle, index) {
@@ -124,13 +126,12 @@ var cesCollections = (function(config, _Compression, _Sync, _Tooltips, _PlayGame
         return $tooltipContent;
     };
 
-    var OnImagesLoaded = function() {
+    var OnImagesLoaded = function($element) {
         
-        _grid.find('img').imagesLoaded().progress(function(imgLoad, image) {
+        $element.find('img').imagesLoaded().progress(function(imgLoad, image) {
             
             $(image.img).parent().removeClass('close'); //remove close on parent to reveal image
             _grid.isotope('layout');
-            _Tooltips.AnyContent(true);
         });
     };
 
