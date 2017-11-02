@@ -605,7 +605,7 @@ var cesMain = (function() {
                 var ui = {
                     'wrapper': $('#emulatorwrapper'),
                     'canvas': $('#emulator')
-                }
+                };
 
                 //the class extention process: on the prototype of the ext, create using the base class.
                 cesEmulator.prototype = new cesEmulatorBase(_Compression, _PubSub, _config, _Sync, gameKey, ui, _ClientCache);
@@ -750,13 +750,13 @@ var cesMain = (function() {
         $('#gameloadingname').show().text(title);
 
         //build loading box
-        var box = cesGetBoxFront(_config, system, title, 170) || box; //if it was preloaded!
-        box.addClass('tada');
-        box.load(function() {
+        var $box = cesGetBoxFront(_config, system, title, 170) || box; //if it was preloaded!
+        $box.addClass('tada');
+        $box.load(function() {
             $(this).fadeIn(200);
         });
 
-        $('#gameloadingimage').empty().addClass('centered').append(box);
+        $('#gameloadingimage').empty().addClass('centered').append($box);
 
         //show tips on loading
         var randomizedTips = shuffle(_tips);
@@ -896,7 +896,7 @@ var cesMain = (function() {
 
         //call returns not only states but misc game details. I tried to make this
         //part of the LoadGame call but the formatting for the compressed game got weird
-        var url = '/games/load?gk=' + encodeURIComponent(gameKey.gk);
+        var url = '/games/load?gk=' + encodeURIComponent(gameKey.gk) + '&ts=' + new Date().getTime();
 
         _Sync.Post(url, options, function(data) {
             deffered.resolve(data);
@@ -1017,6 +1017,7 @@ cesGetBoxFront = function(config, system, title, size, onErrorHandler) {
 var BuildScreenshot = function(config, system, arraybufferview, width, height) {
 
     var screenratio = 1;
+    var img;
 
     var blob = new Blob([arraybufferview], {
         type: 'image/bmp'
@@ -1031,10 +1032,10 @@ var BuildScreenshot = function(config, system, arraybufferview, width, height) {
     var imageUrl = urlCreator.createObjectURL(blob);
     
     if (width) {
-        var img = new Image(width, width / screenratio);        //create new image with correct ratio
+        img = new Image(width, width / screenratio);        //create new image with correct ratio
     }
     if (height) {
-        var img = new Image(height * screenratio, height);        //create new image with correct ratio   
+        img = new Image(height * screenratio, height);        //create new image with correct ratio   
     }
 
     
