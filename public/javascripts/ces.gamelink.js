@@ -26,8 +26,8 @@ var cesGameLink = (function(config, gameKey, size, includeRemove, opt_PlayGame, 
     this.UpdateToolTipContent = function($tooltipContent) {
         
         //remove items which set this up as a standard tooltip
-        $(_imagewrapper).removeAttr('title');
-        $(_imagewrapper).removeClass('tooltip');
+        //$(_imagewrapper).removeAttr('title');
+        //$(_imagewrapper).removeClass('tooltip');
         $(_imagewrapper).removeClass('tooltipstered');
         $(_imagewrapper).addClass('tooltip-content');
 
@@ -42,7 +42,7 @@ var cesGameLink = (function(config, gameKey, size, includeRemove, opt_PlayGame, 
         $tooltipContentWrapper.append($tooltipContent);
         $(_gamelink).append($tooltipContentWrapper);
 
-        //cannot apply tooltips here because in loop
+        //cannot apply tooltips here because in loop likely... perform outside this function
     };
 
     var Constructor = (function() {

@@ -80,7 +80,6 @@ var cesCollections = (function(config, _Compression, _Sync, _Tooltips, _PlayGame
 
                     //found this title in the grid, update its attributes to keep it up to date
                     $gridTitle.attr('data-lastPlayed', activeTitle.lastPlayed); //store as epoch time for sorting
-                    
                 }
             }
 
@@ -89,11 +88,12 @@ var cesCollections = (function(config, _Compression, _Sync, _Tooltips, _PlayGame
             }
 
             //ok, by this time the title should be on the grid and updated
-            var $tooltipContent = GenerateTooltipContent(activeTitle, i);
-            activeTitle.gameLink.UpdateToolTipContent($tooltipContent);
+            _Tooltips.Destory(activeTitle.gridItem);                        //this step ensures the tooltip plugin is removed
+            var $tooltipContent = GenerateTooltipContent(activeTitle, i);   //generate html specific for collections
+            activeTitle.gameLink.UpdateToolTipContent($tooltipContent);     //pass the generated html to the gamelink to be applied as a tooltip
         }
 
-        _Tooltips.AnyContent(true);
+        _Tooltips.AnyContent(true); //reapply tooltips
 
         //finally, sort everything
         _self.SortBy('lastPlayed', false);
@@ -109,10 +109,15 @@ var cesCollections = (function(config, _Compression, _Sync, _Tooltips, _PlayGame
         $griditem.attr('data-lastPlayed', activeTitle.lastPlayed); //store as epoch time for sorting
 
         $griditem.append(activeTitle.gameLink.GetDOM()); //add all visual content from gamelink to grid
-        
-        _grid.isotope('insert', $griditem[0]);
 
-        OnImagesLoaded($griditem[0]);
+        $griditem.find('img').imagesLoaded().progress(function(imgLoad, image) {
+            $(image.img).parent().removeClass('close'); //remove close on parent to reveal image
+            _grid.isotope('layout');
+        });
+
+        activeTitle.gridItem = $griditem; //hold reference to griditem in local cache
+
+        _grid.isotope('insert', $griditem[0]);
     };
 
     var GenerateTooltipContent = function(activeTitle, index) {
@@ -124,15 +129,6 @@ var cesCollections = (function(config, _Compression, _Sync, _Tooltips, _PlayGame
         $tooltipContent.append('<div>Play Count: ' + activeTitle.playCount + '</div>');
 
         return $tooltipContent;
-    };
-
-    var OnImagesLoaded = function($element) {
-        
-        $element.find('img').imagesLoaded().progress(function(imgLoad, image) {
-            
-            $(image.img).parent().removeClass('close'); //remove close on parent to reveal image
-            _grid.isotope('layout');
-        });
     };
 
     //in order to sync data between server and client, this structure must exist
@@ -152,46 +148,63 @@ var cesCollections = (function(config, _Compression, _Sync, _Tooltips, _PlayGame
             var isNewCollection = true;
             
             //reset local cache on incoming data
-            _activeCollectionTitles = [];
-            _activeCollectionData = {};
+            //_activeCollectionTitles = [];
+            //_activeCollectionData = {};
 
             //locally cache data
             if (package.active.hasOwnProperty('titles')) {
                 var payload = package.active.titles;
-
-                //let's set up our local cache with massaged data appropriate for consumption
+                
+                //let's step through the payload looking for new titles and updated info
                 for (var i = 0, len = payload.length; i < len; ++i) {
 
-                    //decompress gk
-                    var gameKey = _Compression.Decompress.gamekey(payload[i].gk);
-                    
-                    //get timezone correct last played date
+                    //get timezone correction for last played date
                     var timezoneOffset = new Date().getTimezoneOffset() * 60 * 1000; //convert from minutes to mili
                     var utcDate = new Date(payload[i].lastPlayed);
                     var utcTime = utcDate.getTime();
                     var lastPlayed = utcTime - timezoneOffset;
 
-                    //if the box image fails to load, resync this grid to make room for the error images
-                    var onBoxImageLoadError = function(el) {
-                        _grid.isotope('layout');
-                    };
+                    //does this title already exist in local cache?
+                    var newTitle = true;
+                    for (var j = 0, jlen = _activeCollectionTitles.length; j < jlen; ++j) {
+                        if (payload[i].gk === _activeCollectionTitles[j].gameKey.gk) {
+                            newTitle = false;
 
-                    //generate gamelink
-                    var gameLink = new cesGameLink(config, gameKey, _BOXSIZE, true, _PlayGameHandler, onBoxImageLoadError);
+                            //update these details in local cache from whatever the server says
+                            _activeCollectionTitles[j].lastPlayed = lastPlayed;
+                            _activeCollectionTitles[j].playCount = payload[i].playCount;
 
-                    //set the on remove function
-                    gameLink.OnRemoveClick(function() {
-                        //Remove(game.gk, gamelink, $griditem);
-                    });
+                        }
+                    }
 
-                    //push to our local cache
-                    _activeCollectionTitles.push({
-                        gameKey: gameKey,
-                        lastPlayed: lastPlayed,
-                        lastPlayedServerDate: utcDate,
-                        playCount: payload[i].playCount,
-                        gameLink: gameLink
-                    });
+                    //if this is a new title, build up other details for our local cache
+                    if (newTitle) {
+
+                        //decompress gk
+                        var gameKey = _Compression.Decompress.gamekey(payload[i].gk);
+
+                        //if the box image fails to load, resync this grid to make room for the error images
+                        var onBoxImageLoadError = function(el) {
+                            _grid.isotope('layout');
+                        };
+
+                        //generate gamelink
+                        var gameLink = new cesGameLink(config, gameKey, _BOXSIZE, true, _PlayGameHandler, onBoxImageLoadError);
+
+                        //set the on remove function
+                        gameLink.OnRemoveClick(function() {
+                            //Remove(game.gk, gamelink, $griditem);
+                        });
+
+                        //push to our local cache
+                        _activeCollectionTitles.push({
+                            gameKey: gameKey,
+                            lastPlayed: lastPlayed,
+                            lastPlayedServerDate: utcDate,
+                            playCount: payload[i].playCount,
+                            gameLink: gameLink
+                        });
+                    }
                 }
             }
             if (package.active.hasOwnProperty('data')) {

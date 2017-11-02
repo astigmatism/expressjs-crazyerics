@@ -27,6 +27,10 @@ var cesTooltips = (function(config, tooltipSelector, tooltipContentSelector) {
         });
     }
 
+    this.Destory = function($element) {
+        $element.find(alreadyProcessedSelector).tooltipster('destroy');
+    }
+
     //constructor
     var Constructor = (function() {
     })();
