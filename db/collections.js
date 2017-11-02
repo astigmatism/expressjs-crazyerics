@@ -60,7 +60,7 @@ module.exports = new (function() {
 
     this.DeleteCollectionTitle = function(collectionId, titleId, callback) {
 
-        pool.query('DELETE FROM collections_titles WHERE collection_id=$1  AND title_id=$2 RETURNING *', [collectionId, titleId], (err, result) => {
+        pool.query('DELETE FROM collections_titles WHERE collection_id=$1 AND title_id=$2 RETURNING *', [collectionId, titleId], (err, result) => {
             if (err) {
                 return callback(err);
             }

@@ -108,7 +108,7 @@ var cesSuggestions = (function(config, _Compression, PlayGame, $wrapper) {
             var gameKey = _Compression.Decompress.gamekey(suggestions[i].gk);
 
             //spawn new gamelink
-            gamelink = new cesGameLink(config, gameKey, _BOXSIZE, false, PlayGame);
+            gamelink = new cesGameLink(config, gameKey, _BOXSIZE, PlayGame);
 
             //create the grid item and insert it
             var $griditem = $('<div class="grid-item" />');

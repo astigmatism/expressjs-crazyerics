@@ -23,7 +23,8 @@ var cesTooltips = (function(config, tooltipSelector, tooltipContentSelector) {
             theme: 'tooltipster-shadow',
             animation: 'grow',
             delay: 100,
-            interactive: opt_interactive || false
+            interactive: opt_interactive || false,
+            contactAsHTML: true
         });
     }
 

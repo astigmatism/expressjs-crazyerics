@@ -839,7 +839,7 @@ div.slidingpanel {
 
 /* recentlyplayed */
 
-#recentlyplayedwrapper {
+#collectionsWrapper {
 	height: auto;
 	padding: 10px;
 
@@ -857,8 +857,10 @@ div.slidingpanel {
 .tooltip-content-wrapper {
 	display: none;
 }
-.collection-tooltip {
-	
+
+.tooltipster-sidetip.tooltipster-shadow .tooltipster-content .remove {
+	color: red;
+	cursor: pointer;
 }
 
 /* game links */
@@ -877,7 +879,7 @@ div.slidingpanel {
 	-o-transition:All 200ms ease-in;
 }
 
-.gamelink .remove {
+/* .gamelink .remove {
 	position: absolute;
 	width: 22px;
 	height: 22px;
@@ -885,7 +887,7 @@ div.slidingpanel {
 	top: -5px;
 	right: -5px;
 	z-index: 200;
-}
+} */
 
 /* suggestions */
 

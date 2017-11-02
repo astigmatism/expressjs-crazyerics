@@ -37,26 +37,34 @@ var cesCollections = (function(config, _Compression, _Sync, _Tooltips, _PlayGame
         _currentLoadingGame = null;
     };
     
-    // var Remove = function(gk, gamelink, griditem) {
+    var Remove = function(activeTitle, onRemoveComplete) {
 
-    //     //before removing, is this the current game being loaded? 
-    //     //we cannot allow it to be deleted (like if there are selecting a save)
-    //     if (_currentLoadingGame && _currentLoadingGame.hasOwnProperty('gk') && gk == _currentLoadingGame.gk) {
-    //         return;
-    //     }
+        //before removing, is this the current game being loaded? 
+        //we cannot allow it to be deleted (like if there are selecting a save)
+        if (_currentLoadingGame && _currentLoadingGame.hasOwnProperty('gk') && activeTitle.gameKey.gk == _currentLoadingGame.gk) {
+            return;
+        }
 
-    //     //maybe set a loading spinner on image here?
-    //     gamelink.DisableAllEvents(); //disabled buttons on gamelink to prevent loading game or removing again
+        // //maybe set a loading spinner on image here?
+        activeTitle.gameLink.DisableAllEvents(); //disabled buttons on gamelink to prevent loading game or removing again
 
-    //     //immediately remove from grid (i used to wait for response but why right?)
-    //     _grid.isotope('remove', griditem).isotope('layout');
+        //immediately remove from grid (i used to wait for response but why right?)
+        _grid.isotope('remove', activeTitle.gridItem).isotope('layout');
 
-    //     var url = '/collections/game?gk=' + encodeURIComponent(gk);
+        //destory its custom tooltip
+        _Tooltips.Destory(activeTitle.gridItem);
 
-    //     _Sync.Delete(url, function(data) {
-    //         //sync will take care of updating the collection
-    //     });
-    // };
+        //use sync for outgoing. will update this object on response
+
+        var url = '/collections/game?gk=' + encodeURIComponent(activeTitle.gameKey.gk);
+
+        _Sync.Delete(url, function(data) {
+            //sync will take care of updating the collection
+            if (onRemoveComplete) {
+                onRemoveComplete();
+            }
+        });
+    };
 
     //examines the local cache about the active collection and populates the grid as needed
     this.Populate = function() {
@@ -87,10 +95,23 @@ var cesCollections = (function(config, _Compression, _Sync, _Tooltips, _PlayGame
                 Add(activeTitle);
             }
 
-            //ok, by this time the title should be on the grid and updated
+            //generate new toolips content
             _Tooltips.Destory(activeTitle.gridItem);                        //this step ensures the tooltip plugin is removed
             var $tooltipContent = GenerateTooltipContent(activeTitle, i);   //generate html specific for collections
+
+            //update gamelink
             activeTitle.gameLink.UpdateToolTipContent($tooltipContent);     //pass the generated html to the gamelink to be applied as a tooltip
+            
+            //generate remove functionality
+            //inside closure to ensure proper activeTitle passed to remove function
+            (function(at) {
+                at.gameLink.AssignRemove('.remove', function() {
+                    
+                    Remove(at, function() {
+                        
+                    });
+                });
+            })(activeTitle);
         }
 
         _Tooltips.AnyContent(true); //reapply tooltips
@@ -127,6 +148,7 @@ var cesCollections = (function(config, _Compression, _Sync, _Tooltips, _PlayGame
         $tooltipContent.append('<div>' + activeTitle.gameKey.title + '</div>');
         $tooltipContent.append('<div>Last Played: ' + $.format.date(activeTitle.lastPlayed, 'MMM D h:mm:ss a') + '</div>'); //using the jquery dateFormat plugin
         $tooltipContent.append('<div>Play Count: ' + activeTitle.playCount + '</div>');
+        $tooltipContent.append('<div class="remove">Remove from Collection</div>');
 
         return $tooltipContent;
     };
@@ -185,12 +207,7 @@ var cesCollections = (function(config, _Compression, _Sync, _Tooltips, _PlayGame
                         };
 
                         //generate gamelink
-                        var gameLink = new cesGameLink(config, gameKey, _BOXSIZE, true, _PlayGameHandler, onBoxImageLoadError);
-
-                        //set the on remove function
-                        gameLink.OnRemoveClick(function() {
-                            //Remove(game.gk, gamelink, $griditem);
-                        });
+                        var gameLink = new cesGameLink(config, gameKey, _BOXSIZE, _PlayGameHandler, onBoxImageLoadError);
 
                         //push to our local cache
                         _activeCollectionTitles.push({
@@ -200,6 +217,22 @@ var cesCollections = (function(config, _Compression, _Sync, _Tooltips, _PlayGame
                             playCount: payload[i].playCount,
                             gameLink: gameLink
                         });
+                    }
+                }
+
+                //let's now check the opposite, run through local cache and ensure it exists in the payload,
+                //if it does not, then it is likely the title was deleted and should be deleted from local cache as well
+                //loop backwards in order to splice directly from the array we are iterating
+                var i = _activeCollectionTitles.length;
+                while (--i) {
+                    var found = false;
+                    for (var j = 0, jlen = payload.length; j < jlen; ++j) {
+                        if (payload[j].gk === _activeCollectionTitles[i].gameKey.gk) {
+                            found = true;
+                        }
+                    }
+                    if (!found) {
+                        _activeCollectionTitles.splice(i, 1); //remove title from local cache if not found in payload
                     }
                 }
             }
