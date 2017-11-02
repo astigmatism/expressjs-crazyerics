@@ -146,10 +146,6 @@ var cesCollections = (function(config, _Compression, _Sync, _Tooltips, _PlayGame
         this.Incoming = function(package) {
 
             var isNewCollection = true;
-            
-            //reset local cache on incoming data
-            //_activeCollectionTitles = [];
-            //_activeCollectionData = {};
 
             //locally cache data
             if (package.active.hasOwnProperty('titles')) {
@@ -170,7 +166,7 @@ var cesCollections = (function(config, _Compression, _Sync, _Tooltips, _PlayGame
                         if (payload[i].gk === _activeCollectionTitles[j].gameKey.gk) {
                             newTitle = false;
 
-                            //update these details in local cache from whatever the server says
+                            //update these details in local cache to whatever the server says
                             _activeCollectionTitles[j].lastPlayed = lastPlayed;
                             _activeCollectionTitles[j].playCount = payload[i].playCount;
 
