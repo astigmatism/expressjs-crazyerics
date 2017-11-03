@@ -13,7 +13,7 @@ var cesTooltips = (function(config, tooltipSelector, tooltipContentSelector) {
         $(tooltipSelector + ':not(' + alreadyProcessedSelector + ')').tooltipster({
             theme: 'tooltipster-shadow',
             animation: 'grow',
-            delay: 300
+            delay: 500
         });
     };
 
@@ -22,7 +22,7 @@ var cesTooltips = (function(config, tooltipSelector, tooltipContentSelector) {
         $(tooltipContentSelector + ':not(' + alreadyProcessedSelector + ')').tooltipster({
             theme: 'tooltipster-shadow',
             animation: 'grow',
-            delay: 300,
+            delay: 500,
             interactive: opt_interactive || false,
             contactAsHTML: true
         });
