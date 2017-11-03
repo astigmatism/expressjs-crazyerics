@@ -223,18 +223,16 @@ var cesCollections = (function(config, _Compression, _Sync, _Tooltips, _PlayGame
                 //let's now check the opposite, run through local cache and ensure it exists in the payload,
                 //if it does not, then it is likely the title was deleted and should be deleted from local cache as well
                 //loop backwards in order to splice directly from the array we are iterating
-                var k = _activeCollectionTitles.length;
-                if (k > 0) {
-                    while (--k) {
-                        var found = false;
-                        for (var l = 0, llen = payload.length; l < llen; ++l) {
-                            if (payload[l].gk === _activeCollectionTitles[k].gameKey.gk) {
-                                found = true;
-                            }
+                
+                for (var k = (_activeCollectionTitles.length - 1); k > -1; --k) {
+                    var found = false;
+                    for (var l = 0, llen = payload.length; l < llen; ++l) {
+                        if (payload[l].gk === _activeCollectionTitles[k].gameKey.gk) {
+                            found = true;
                         }
-                        if (!found) {
-                            _activeCollectionTitles.splice(k, 1); //remove title from local cache if not found in payload
-                        }
+                    }
+                    if (!found) {
+                        _activeCollectionTitles.splice(k, 1); //remove title from local cache if not found in payload
                     }
                 }
             }

@@ -48,8 +48,6 @@ var cesMain = (function() {
     $(document).ready(function() {
 
         //load libraries
-
-        debugger;
         
         _Compression = new cesCompression();
 
