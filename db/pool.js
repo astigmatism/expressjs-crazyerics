@@ -11,9 +11,18 @@ module.exports.query = (text, values, callback) => {
     
     //various debug output
     //console.log('query:', text, values);
-    console.log('query: ' + text);
+    console.log('query: <- ' + text);
     
-    return pool.query(text, values, callback);
+    const start = Date.now()
+
+    return pool.query(text, values, (err, result) => {
+        if (err) {
+            return callback(err);
+        }
+        const duration = Date.now() - start
+        console.log('query: -> ' + text + ', fetch time  (ms): ' + duration + ', rows: ' + result.rowCount);
+        callback(null, result);
+    });
 }
 
 // this would be the WRONG way to export the connect method
