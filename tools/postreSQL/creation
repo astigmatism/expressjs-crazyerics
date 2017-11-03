@@ -285,10 +285,10 @@ WITH (
     OIDS = FALSE
 );
 
-ALTER TABLE public.collections_games
+ALTER TABLE public.collections_titles
     OWNER to postgres;
 
-GRANT ALL ON TABLE public.collections_games TO crazyerics;
+GRANT ALL ON TABLE public.collections_titles TO crazyerics;
 
 ALTER TABLE public.collections_titles
     ALTER COLUMN last_played SET DEFAULT now();
@@ -297,12 +297,18 @@ ALTER TABLE public.collections_titles
     ALTER COLUMN play_count SET DEFAULT 1;
 
 ALTER TABLE public.collections_titles
-    ADD COLUMN game_key character text NOT NULL;
+    ADD COLUMN game_key text NOT NULL;
 
 ALTER TABLE public.collections_titles
     ALTER COLUMN created TYPE timestamp(6) without time zone ;
 
 ALTER TABLE public.collections_titles
     ALTER COLUMN last_played TYPE timestamp(6) without time zone ;
+
+ALTER TABLE public.collections_titles
+    ADD CONSTRAINT fk_collection_id FOREIGN KEY (collection_id)
+    REFERENCES public.collections (collection_id) MATCH SIMPLE
+    ON UPDATE CASCADE
+    ON DELETE CASCADE;
 
 ----------------------------------

@@ -17,8 +17,8 @@
 			"database": "crazyerics",
 			"port": 32769,
 			"max": 20,
-			"idleTimeoutMillis": 10000,
-			"connectionTimeoutMillis": 5000
+			"idleTimeoutMillis": 4000,
+			"connectionTimeoutMillis": 2000
 		}
 	},
 	"systems": {

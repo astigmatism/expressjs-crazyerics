@@ -11,7 +11,9 @@ module.exports.query = (text, values, callback) => {
     
     //various debug output
     //console.log('query:', text, values);
-    console.log('query: <- ' + text);
+    var date = new Date();
+    var id = date.getSeconds() + date.getMilliseconds();
+    console.log('query: #' + id + ' <- '  + text);
     
     const start = Date.now()
 
@@ -20,7 +22,7 @@ module.exports.query = (text, values, callback) => {
             return callback(err);
         }
         const duration = Date.now() - start
-        console.log('query: -> ' + text + ', fetch time  (ms): ' + duration + ', rows: ' + result.rowCount);
+        console.log('query: #' + id + ' -> fetch time  (ms): ' + duration + ', rows: ' + result.rowCount);
         callback(null, result);
     });
 }
