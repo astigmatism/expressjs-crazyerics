@@ -3,6 +3,7 @@ const fs = require('fs');
 const async = require('async');
 const config = require('config');
 const UsersSQL = require('../db/users');
+const UserTitlesSQL = require('../db/usertitles');
 const UtilitiesService = require('./utilities');
 
 module.exports = new (function() {
@@ -63,6 +64,16 @@ module.exports = new (function() {
                 console.log('Error removing users without sessions:', err);
             }
         });
+    };
+
+    this.PlayTitle = function(userId, eGameKey, callback) {
+        
+        UserTitlesSQL.PlayTitle(userId, eGameKey.gk, eGameKey.titleId, eGameKey.fileId, (err, userTitle) => {
+            if (err) {
+                return callback(err);
+            }
+            callback(null, userTitle);
+        })
     };
 
 })();

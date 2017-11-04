@@ -185,54 +185,44 @@ ALTER TABLE public.files
 
 CREATE TABLE public.saves
 (
-    save_id serial NOT NULL,
-    title_id integer NOT NULL,
+    save_id integer NOT NULL DEFAULT nextval('saves_save_id_seq'::regclass),
     file_id integer NOT NULL,
-    user_id integer NOT NULL,
-    created timestamp(10) without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    type character(10) NOT NULL,
-    screenshot text,
-    save text NOT NULL,
+    created timestamp(6) without time zone NOT NULL DEFAULT now(),
+    type character varying(10) COLLATE pg_catalog."default" NOT NULL,
+    screenshot text COLLATE pg_catalog."default",
+    save text COLLATE pg_catalog."default" NOT NULL,
     public boolean NOT NULL DEFAULT false,
-    comment text,
+    comment text COLLATE pg_catalog."default",
+    client_timestamp bigint NOT NULL,
+    title_id integer NOT NULL,
+    user_id integer NOT NULL,
     CONSTRAINT pk_save_id PRIMARY KEY (save_id),
-    CONSTRAINT fk_title_id FOREIGN KEY (title_id)
-        REFERENCES public.titles (title_id) MATCH SIMPLE
-        ON UPDATE NO ACTION
-        ON DELETE NO ACTION,
     CONSTRAINT fk_file_id FOREIGN KEY (file_id)
         REFERENCES public.files (file_id) MATCH SIMPLE
         ON UPDATE NO ACTION
         ON DELETE CASCADE,
+    CONSTRAINT fk_title_id FOREIGN KEY (title_id)
+        REFERENCES public.titles (title_id) MATCH SIMPLE
+        ON UPDATE CASCADE
+        ON DELETE CASCADE,
     CONSTRAINT fk_user_id FOREIGN KEY (user_id)
         REFERENCES public.users (user_id) MATCH SIMPLE
-        ON UPDATE NO ACTION
+        ON UPDATE CASCADE
         ON DELETE CASCADE
 )
 WITH (
     OIDS = FALSE
-);
+)
+TABLESPACE pg_default;
 
 ALTER TABLE public.saves
     OWNER to postgres;
 
 GRANT ALL ON TABLE public.saves TO crazyerics;
 
+GRANT ALL ON TABLE public.saves TO postgres;
+
 GRANT ALL ON SEQUENCE public.saves_save_id_seq TO crazyerics;
-
-ALTER TABLE public.saves DROP CONSTRAINT fk_title_id;
-
-ALTER TABLE public.saves
-    ADD CONSTRAINT fk_title_id FOREIGN KEY (title_id)
-    REFERENCES public.titles (title_id) MATCH SIMPLE
-    ON UPDATE NO ACTION
-    ON DELETE CASCADE;
-
-ALTER TABLE public.saves
-    ALTER COLUMN type TYPE character varying (10);
-
-ALTER TABLE public.saves
-    ADD COLUMN client_timestamp bigint NOT NULL;
 
 ----------------------------------
 
@@ -263,22 +253,58 @@ GRANT ALL ON SEQUENCE public.collections_collection_id_seq TO crazyerics;
 
 ----------------------------------
 
+CREATE TABLE public.users_titles
+(
+    user_id integer NOT NULL,
+    title_id integer NOT NULL,
+    user_title_id serial NOT NULL,
+    created timestamp(6) without time zone NOT NULL,
+    play_count integer NOT NULL DEFAULT 1,
+    last_played timestamp(6) without time zone NOT NULL,
+    active_file integer NOT NULL,
+    game_key text,
+    CONSTRAINT pk_user_title_id PRIMARY KEY (user_title_id),
+    CONSTRAINT fk_title_id FOREIGN KEY (title_id)
+        REFERENCES public.titles (title_id) MATCH SIMPLE
+        ON UPDATE CASCADE
+        ON DELETE CASCADE,
+    CONSTRAINT fk_user_id FOREIGN KEY (user_id)
+        REFERENCES public.users (user_id) MATCH SIMPLE
+        ON UPDATE CASCADE
+        ON DELETE CASCADE,
+    CONSTRAINT fk_active_file FOREIGN KEY (active_file)
+        REFERENCES public.files (file_id) MATCH SIMPLE
+        ON UPDATE CASCADE
+        ON DELETE CASCADE
+)
+WITH (
+    OIDS = FALSE
+);
+
+ALTER TABLE public.users_titles
+    OWNER to postgres;
+
+GRANT ALL ON SEQUENCE public.users_titles_user_title_id_seq TO crazyerics;
+
+GRANT ALL ON TABLE public.users_titles TO crazyerics;
+
+ALTER TABLE public.users_titles
+    ALTER COLUMN created SET DEFAULT now();
+
+----------------------------------
+
 CREATE TABLE public.collections_titles
 (
     collection_id integer NOT NULL,
     title_id integer NOT NULL,
-    active_file integer NOT NULL,
-    created timestamp(10) without time zone DEFAULT CURRENT_TIMESTAMP,
-    play_count integer NOT NULL DEFAULT 0,
-    last_played timestamp(10) without time zone,
-    CONSTRAINT pk_collections_games PRIMARY KEY (collection_id, title_id),
+    CONSTRAINT pk_collections_titles PRIMARY KEY (collection_id, title_id),
+    CONSTRAINT fk_collection_id FOREIGN KEY (collection_id)
+        REFERENCES public.collections (collection_id) MATCH SIMPLE
+        ON UPDATE CASCADE
+        ON DELETE CASCADE,
     CONSTRAINT fk_title_id FOREIGN KEY (title_id)
         REFERENCES public.titles (title_id) MATCH SIMPLE
-        ON UPDATE NO ACTION
-        ON DELETE CASCADE,
-    CONSTRAINT fk_file_id FOREIGN KEY (active_file)
-        REFERENCES public.files (file_id) MATCH SIMPLE
-        ON UPDATE NO ACTION
+        ON UPDATE CASCADE
         ON DELETE CASCADE
 )
 WITH (
@@ -289,26 +315,5 @@ ALTER TABLE public.collections_titles
     OWNER to postgres;
 
 GRANT ALL ON TABLE public.collections_titles TO crazyerics;
-
-ALTER TABLE public.collections_titles
-    ALTER COLUMN last_played SET DEFAULT now();
-
-ALTER TABLE public.collections_titles
-    ALTER COLUMN play_count SET DEFAULT 1;
-
-ALTER TABLE public.collections_titles
-    ADD COLUMN game_key text NOT NULL;
-
-ALTER TABLE public.collections_titles
-    ALTER COLUMN created TYPE timestamp(6) without time zone ;
-
-ALTER TABLE public.collections_titles
-    ALTER COLUMN last_played TYPE timestamp(6) without time zone ;
-
-ALTER TABLE public.collections_titles
-    ADD CONSTRAINT fk_collection_id FOREIGN KEY (collection_id)
-    REFERENCES public.collections (collection_id) MATCH SIMPLE
-    ON UPDATE CASCADE
-    ON DELETE CASCADE;
 
 ----------------------------------

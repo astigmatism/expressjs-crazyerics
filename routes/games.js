@@ -27,43 +27,47 @@ router.post('/load', function(req, res, next) {
         return next('The server failed to parse required post data or query strings.');
     }
 
-    if (req.user && req.session) {
+    if (req.user && req.session && gameKey) {
 
+        var userId = req.user.user_id;        
+        
         //ensure a record of this game exists in the db (since I dynmically add them when consumed)
-        GameService.PlayRequest(gameKey, function(err, titleRecord, fileRecord, details) {
+        GameService.PlayRequest(gameKey, function(err, eGameKey, gameDetails) {
             if (err) {
                 return next(err);
             }
-            
-            //add to active collection
-            CollectionService.PlayCollectionTitle(req.user.user_id, gameKey.gk, titleRecord.title_id, fileRecord.file_id, (err, result) => {
 
-                //if a shader was selected, return its filesize for the progress bar
-                if (shader) {
-                    shaderFileSize = config.shaders.hasOwnProperty(shader) ? config.shaders[shader].s : 0;
+            //add a record for this user playing this title
+            UserService.PlayTitle(userId, eGameKey, (err, userTitleRecord) => {
+                if (err) {
+                    return next(err);
                 }
 
-                //get saves used by this game
-                SaveService.GetSavesForClient(req.user.user_id, fileRecord.file_id, function(err, savesForClientResults) {
+                //add to active collection, if already there, no problem
+                CollectionService.AddTitle(userId, eGameKey, (err, addTitleResult) => {
                     if (err) {
-                        return res.status(500).send(err);
+                        return next(err);
                     }
-
-                    //also return the game files used by this title (for selecting a different file to load)
-                    GameService.GetGameDetails(gameKey, function(err, details) {
+                    
+                    //rebuilds cache of saves for this file and sets the flag to update the client through sync
+                    SaveService.ResetSavesCache(userId, eGameKey.fileId, (err) => {
                         if (err) {
-                            return res.json(err);
+                            return next(err);
+                        }
+
+                        //if a shader was selected, return its filesize for the progress bar
+                        if (shader) {
+                            shaderFileSize = config.shaders.hasOwnProperty(shader) ? config.shaders[shader].s : 0;
                         }
 
                         var result = {
-                            saves: savesForClientResults,
-                            files: details.files, //rom files
-                            info: details.info, //thegamesdb data
-                            size: details.size, //file size data
-                            shaderFileSize: shaderFileSize //will be 0 if no shader to load
+                            files: gameDetails.files,       //rom files
+                            info: gameDetails.info,         //thegamesdb data
+                            size: gameDetails.size,         //file size data
+                            shaderFileSize: shaderFileSize  //will be 0 if no shader to load
                         };
-
-                        SyncService.Outgoing(result, req.user.user_id, (err, compressedResult) => {
+    
+                        SyncService.Outgoing(result, userId, eGameKey, (err, compressedResult) => {
                             if (err) {
                                 return res.json(err);
                             }

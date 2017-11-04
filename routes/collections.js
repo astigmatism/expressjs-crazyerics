@@ -2,10 +2,10 @@
 const express = require('express');
 const router = express.Router();
 const config = require('config');
+const GamesService = require('../services/games');
 const CollectionsService = require('../services/collections');
 const UtilitiesService = require('../services/utilities');
 const SyncService = require('../services/sync');
-
 
 //stubbed at the moment. I'd like to have this feature working, but probably after other goals
 
@@ -31,22 +31,29 @@ router.delete('/game', function(req, res, next) {
         return next('The server failed to parse required post data or query strings.');
     }
 
-    if (req.user && req.session) {
+    if (req.user && req.session && gameKey) {
 
-        //the service will get the active collection for this user
-        CollectionsService.DeleteCollectionTitle(req.user.user_id, gameKey, (err) => {
+        var userId = req.user.user_id;
+
+        GamesService.EnhancedGameKey(gameKey, (err, eGameKey) => {
             if (err) {
                 return next(err);
             }
-            
-            SyncService.Outgoing({}, req.user.user_id, (err, compressedResult) => {
+
+            //the service will get the active collection for this user
+            CollectionsService.DeleteCollectionTitle(userId, eGameKey, (err) => {
                 if (err) {
-                    return res.json(err);
+                    return next(err);
                 }
-                res.json(compressedResult);
+                
+                SyncService.Outgoing({}, userId, eGameKey, (err, compressedResult) => {
+                    if (err) {
+                        return res.json(err);
+                    }
+                    res.json(compressedResult);
+                });
             });
         });
-
     }
 });
 

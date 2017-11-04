@@ -12,8 +12,13 @@ module.exports = new (function() {
 
     var _self = this;
 
-    //define custom cache for files
-    var _cache = new Cache('games.$1', new NodeCache({
+    var _gameDetailsCache = new Cache('games.details.$1', new NodeCache({
+            stdTTL: 0,                      //0 = unlimited. 
+            checkperiod: 0                  //0 = no periodic check
+        })
+    );
+
+    var _gameRecordCache = new Cache('games.record.$1', new NodeCache({
             stdTTL: 0,                      //0 = unlimited. 
             checkperiod: 0                  //0 = no periodic check
         })
@@ -22,62 +27,66 @@ module.exports = new (function() {
     //a play request is initiated, update game tables, return game details...
     this.PlayRequest = function(gameKey, callback) {
 
-        //ensures title and file exist in backend
-        _self.Exists(gameKey, (err, titleRecord, fileRecord) => {
+        //ensures title and file exist in backend and gets cached
+        _self.EnhancedGameKey(gameKey, (err, eGameKey) => {
             if (err) {
                 return callback(err);
             }
 
             //update files table
-            _self.PlayFile(fileRecord.file_id, (err, fileUpdateRecord) => {
+            UpdateFileDetails(eGameKey.fileId, (err, fileUpdateRecord) => {
                 if (err) {
                     return callback(err);
                 }
 
                 //get details from file system (cached). data from romsort project
-                _self.GetGameDetails(gameKey, (err, details) => {
+                GetGameDetails(gameKey, (err, details) => {
                     if (err) {
                         return callback(err);
                     }
-                    callback(null, titleRecord, fileRecord, details);
+                    callback(null, eGameKey, details);
                 });
             });
         });
     };
 
-    //ensures the creation of an entry in the title table. there's no need to create it until a user interacts with a game
-    this.Exists = function(gameKey, callback) {
-
-        TitlesSQL.GetTitle(gameKey.system, gameKey.title, (err, titleRecord) => {
+    //appends a regular gamekey with id's, for use on server only
+    this.EnhancedGameKey = function(gameKey, callback) {
+        
+        //pull from cache first of course
+        _gameRecordCache.Get([gameKey.gk], (err, cache) => {
             if (err) {
                 return callback(err);
             }
 
-            FilesSQL.GetFile(titleRecord.title_id, gameKey.file, (err, fileRecord) => {
+            if (cache) {
+                return callback(null, cache);
+            }
+
+            //writes record into db (if not present, otherwise returns data)
+            Exists(gameKey, (err, titleRecord, fileRecord) => {
                 if (err) {
                     return callback(err);
                 }
-                callback(null, titleRecord, fileRecord);
+
+                //make our enhanced gameKey
+                gameKey.fileId = fileRecord.file_id;
+                gameKey.titleId = titleRecord.title_id;
+
+                callback(null, gameKey);
             });
         });
     };
 
-    this.PlayFile = function(fileId, callback) {
-        FilesSQL.PlayFile(fileId, (err, fileUpdateResult) => {
-            if (err) {
-                return callback(err);
-            }
-            callback(null, fileUpdateResult);
-        })
-    };
+    //private
 
     //this function returns all details given a system and a title. must be exact matches to datafile!
     //also returns hasboxart flag and any info (ripped from thegamesdb)
-    this.GetGameDetails = function(gameKey, callback) {
+    var GetGameDetails = function(gameKey, callback) {
 
         //I found it faster to save all the results in a cache rather than load all the caches to create the result.
         //went from 120ms response to about 30ms
-        _cache.Get([gameKey.gk], (err, data) => {
+        _gameDetailsCache.Get([gameKey.gk], (err, data) => {
             if (err) {
                 return callback(err);
             }
@@ -153,7 +162,7 @@ module.exports = new (function() {
                                     }
                                 }
                                 
-                                _cache.Set([gameKey.gk], data, (err, success) => {
+                                _gameDetailsCache.Set([gameKey.gk], data, (err, success) => {
                                     if (err) {
                                         return callback(err);
                                     }
@@ -170,4 +179,32 @@ module.exports = new (function() {
 
         });
     };
+
+    //ensures the creation of an entry in the title table. there's no need to create it until a user interacts with a game
+    var Exists = function(gameKey, callback) {
+        
+        TitlesSQL.GetTitle(gameKey.system, gameKey.title, (err, titleRecord) => {
+            if (err) {
+                return callback(err);
+            }
+
+            FilesSQL.GetFile(titleRecord.title_id, gameKey.file, (err, fileRecord) => {
+                if (err) {
+                    return callback(err);
+                }
+                callback(null, titleRecord, fileRecord);
+            });
+        });
+    };
+
+    var UpdateFileDetails = function(fileId, callback) {
+        FilesSQL.PlayFile(fileId, (err, fileUpdateResult) => {
+            if (err) {
+                return callback(err);
+            }
+            callback(null, fileUpdateResult);
+        })
+    };
+
+
 })();

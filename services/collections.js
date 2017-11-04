@@ -8,18 +8,18 @@ const GameService = require('../services/games');
 module.exports = new (function() { 
 
     var _self = this;
-    var _collectionCache = new Cache('user.$1.collection.$2'); //value is an array of titles in collection
+    var _collectionCache = new Cache('collections.user.$1.collection.$2'); //value is an array of titles in collection with their data
 
     var CollectionEnvelope = (function() {
         this.data = null;   //details about the current collection (from collections table)
         this.titles = [];   //a list of titles for this collection (from collections_titles table with details from titles and files tables)
     });
 
-    this.GetCollectionByName = function(userId, name, callback, opt_createIfNoExist) {
+    this.GetCollectionByName = function(userId, collectionName, callback, opt_createIfNoExist) {
         
         opt_createIfNoExist = (opt_createIfNoExist == true) ? true : false;
         
-        _collectionCache.Get([userId, name], (err, cache) => {
+        _collectionCache.Get([userId, collectionName], (err, cache) => {
             if (err) {
                 return callback(err);
             }
@@ -31,22 +31,23 @@ module.exports = new (function() {
             var collection = new CollectionEnvelope();
             
             //get collection data first
-            CollectionsSQL.GetCollectionByName(userId, name, (err, data) => {
+            CollectionsSQL.GetCollectionByName(userId, collectionName, (err, data) => {
                 if (err) {
                     return callback(err);
                 }
                 //if exists (or was created)
                 if (data) {
-                    collection.data = data;
+                    collection.data = data; //add to our collection cache
 
+                    //fetch all the titles in this collection
                     CollectionsSQL.GetCollectionTitles(data.collection_id, (err, titles) => {
                         if (err) {
                             return callback(err);
                         }
 
-                        collection.titles = titles;
+                        collection.titles = titles; //add to our collection cache
 
-                        _collectionCache.Set([userId, name], collection, (err, success) => {
+                        _collectionCache.Set([userId, collectionName], collection, (err, success) => {
                             if (err) {
                                 return callback(err);
                             }
@@ -65,13 +66,13 @@ module.exports = new (function() {
 
     this.GetCollectionNames = CollectionsSQL.GetCollectionNames;
 
-    this.DeleteCollectionByName = function(userId, name, callback) {
+    this.DeleteCollectionByName = function(userId, collectionName, callback) {
         
-        CollectionsSQL.DeleteCollectionByName(userId, name, (err, deletedRecord) => {
+        CollectionsSQL.DeleteCollectionByName(userId, collectionName, (err, deletedRecord) => {
             if (err) {
                 return callback(err);
             }
-            _collectionCache.Delete([userId, name], (err, success) => {
+            _collectionCache.Delete([userId, collectionName], (err, success) => {
                 if (err) {
                     return callback(err);
                 }
@@ -85,19 +86,19 @@ module.exports = new (function() {
     this.GetActiveCollection = function(userId, callback) {
 
         //get active collection from user prefs, if it doen't exist, then assign the default collection
-        PreferencesService.Get(userId, (err, activeCollection) => {
+        PreferencesService.Get(userId, (err, activeCollectionName) => {
             if (err) {
                 return callback(err);
             }
 
             //assign and cache default if none is already defined (new user path)
-            if (!activeCollection) {
-                activeCollection = config.get('defaultCollection');
-                PreferencesService.SetAsync(userId, preferencesKeyForActiveCollection, activeCollection);
+            if (!activeCollectionName) {
+                activeCollectionName = config.get('defaultCollection');
+                PreferencesService.SetAsync(userId, preferencesKeyForActiveCollection, activeCollectionName);
             }
 
             //get collection (will create if not exist)
-            _self.GetCollectionByName(userId, activeCollection, (err, collection) => {
+            _self.GetCollectionByName(userId, activeCollectionName, (err, collection) => {
                 if (err) {
                     return callback(err);
                 }
@@ -128,8 +129,28 @@ module.exports = new (function() {
         }, preferencesKeyForActiveCollection);
     };
 
-    this.PlayCollectionTitle = function(userId, gk, titleId, fileId, callback) {
+    //get title data out of the collection using a gamekey
+    this.GetTitle = function(userId, gameKey, callback) {
 
+        _self.GetActiveCollection(userId, (err, activeCollection) => {
+            if (err) {
+                return callback(err);
+            }
+
+            var titles = activeCollection.titles;
+
+            //search through collection titles until we have a match
+            for (var i = 0, len = titles.length; i < len; ++i) {
+                if (titles[i].game_key === gameKey.gk) {
+                    return callback(null, titles[i]);
+                }
+            }
+            callback();
+        });
+    };
+
+    this.AddTitle = function(userId, eGameKey, callback) {
+        
         //get collection id
         _self.GetActiveCollection(userId, (err, activeCollection) => {
             if (err) {
@@ -139,28 +160,24 @@ module.exports = new (function() {
             var collectionId = activeCollection.data.collection_id;
             var collectionName = activeCollection.data.name;
 
-            //update or inserts the record (play count, last played)
-            CollectionsSQL.PlayCollectionTitle(userId, collectionId, gk, titleId, fileId, (err, collectionsTitlesRecord) => {
+            //adds user_title record to collection
+            CollectionsSQL.AddTitle(collectionId, eGameKey.titleId, (err, collectionsTitlesRecord) => {
                 if (err) {
                     return callback(err);
                 }
 
-                //invalidate cache
-                _collectionCache.Delete([userId, collectionName], (err) => {
+                //reset cache and flag sync to update client
+                ResetActiveCollectionCacheWithName(userId, collectionName, (err) => {
                     if (err) {
                         return callback(err);
                     }
-
-                    //inform sync that new collection data has arrived
-                    _self.Sync.ready = true;
-                
                     return callback(null, collectionsTitlesRecord);
                 });
             });
         });
     };
 
-    this.DeleteCollectionTitle = function(userId, gameKey, callback) {
+    this.DeleteCollectionTitle = function(userId, eGameKey, callback) {
 
         //deletes can only take place from the currently active collection so get it
         _self.GetActiveCollection(userId, (err, activeCollection) => {
@@ -171,31 +188,51 @@ module.exports = new (function() {
             var collectionId = activeCollection.data.collection_id;
             var collectionName = activeCollection.data.name;
 
-            //get the title_id for this game
-            GameService.Exists(gameKey, (err, titleRecord, fileRecord) => {
+            //delete this title from the collection
+            CollectionsSQL.DeleteTitle(collectionId, eGameKey.titleId, (err, deleteResult) => {
                 if (err) {
                     return callback(err);
                 }
 
-                //to delete, pk's are collection id and title id
-                CollectionsSQL.DeleteCollectionTitle(collectionId, titleRecord.title_id, (err, deleteResult) => {
+                //reset local cache for this collection, set the sync flag to update the client
+                _self.ResetActiveCollectionCacheWithName(userId, collectionName, (err) => {
                     if (err) {
                         return callback(err);
                     }
-    
-                    //invalidate cache
-                    _collectionCache.Delete([userId, collectionName], (err) => {
-                        if (err) {
-                            return callback(err);
-                        }
-    
-                        //inform sync that new collection data has arrived
-                        _self.Sync.ready = true;
-                    
-                        return callback();
-                    });
+                    return callback();
                 });
             });
+        });
+    };
+
+    //for external calls, only a userId is needed, we'll look up collection details
+    this.ResetActiveCollectionCache = function(userId, callback) {
+        
+        _self.GetActiveCollection(userId, (err, activeCollection) => {
+            if (err) {
+                return callback(err);
+            }
+
+            var collectionName = activeCollection.data.name;
+
+            ResetActiveCollectionCacheWithName(userId, collectionName, callback);
+        });
+    };
+
+    //a utility function that clears out the current active collection cache and tells sync to update client
+    var ResetActiveCollectionCacheWithName = function(userId, collectionName, callback) {
+        
+        //invalidate cache
+        _collectionCache.Delete([userId, collectionName], (err) => {
+            if (err) {
+                return callback(err);
+            }
+
+            //inform sync that new collection information is ready for client consumption
+            //this means that outgoing operations will commence, which rebuilds the cache with new data
+            _self.Sync.ready = true;
+        
+            return callback();
         });
     };
 
@@ -218,6 +255,7 @@ module.exports = new (function() {
         //update the client with new data
         this.Outgoing = function(userId, callback) {
 
+            //pulls from, or will rebuild cache
             _self.GetActiveCollection(userId, (err, _activeCollection) => {
                 if (err) {
                     return callback(err);
@@ -235,7 +273,8 @@ module.exports = new (function() {
                     _sanitizedCollection.titles.push({
                         gk: _activeCollection.titles[i].game_key,
                         lastPlayed: _activeCollection.titles[i].last_played,
-                        playCount: _activeCollection.titles[i].play_count
+                        playCount: _activeCollection.titles[i].play_count,
+                        saveCount: _activeCollection.titles[i].save_count
                     });
                 }
 

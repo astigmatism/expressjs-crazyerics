@@ -3,27 +3,51 @@ const express = require('express');
 const router = express.Router();
 const pug = require('pug');
 const UtilitiesService = require('../services/utilities');
+const GamesService = require('../services/games');
 const SaveService = require('../services/saves');
 const SyncService = require('../services/sync');
 
+//get a save record (requesting to load)
 router.get('/', function(req, res, next) {
 
-    var timestamp = req.query._;
+    //when getting a save record, the timestamp is unique enough amongst all the saves for this given fileId
+    var gameKey;
+    var gk = decodeURIComponent(req.query.gk);
+    var timestamp = req.query.ts;
+    
+    try {
+        gameKey = UtilitiesService.Decompress.gamekey(gk);
+    }
+    catch (e) {
+        return next(e);
+    }
 
-    if (timestamp && req.user) {
+    if (timestamp && req.user && gameKey) {
 
-        SaveService.GetSave(req.user.user_id, timestamp, function(err, compressedSaveState) {
+        var userId = req.user.user_id;
+        
+        GamesService.EnhancedGameKey(gameKey, (err, eGameKey) => {
             if (err) {
-                return res.json({ error: err });
+                return next(err);
             }
-            res.json({ state: compressedSaveState });
+
+            SaveService.GetSave(userId, eGameKey, timestamp, function(err, saveStateBinary) {
+                if (err) {
+                    return next(err);
+                }
+                
+                res.json({ 
+                    state: saveStateBinary 
+                });
+            });
         });
     }
     else {
-        res.json({ error: 'The required querystrings are not found.' });
+        return next('The required input data was not present');
     }
 });
 
+//a new save created in the client
 router.post('/', function(req, res, next) {
 
     //note: this route will have passed through sync (unpacked)
@@ -42,26 +66,24 @@ router.post('/', function(req, res, next) {
 
     if (gameKey && req.user && saveType && body.hasOwnProperty('timestamp') && body.hasOwnProperty('state') && body.hasOwnProperty('screenshot')) {
 
-        SaveService.NewSave(req.user.user_id, gameKey, body.timestamp, body.screenshot, body.state, saveType, function(err, insertSaveRecord, prunedRecord) {
+        var userId = req.user.user_id;
+        
+        GamesService.EnhancedGameKey(gameKey, (err, eGameKey) => {
             if (err) {
-                return res.json({ error: err });
+                return next(err);
             }
 
-            //reduce amount of data for client (dont want to expose userid, etc)
-            var result = {
-                pruned: (prunedRecord) ? prunedRecord.client_timestamp : null,
-                data: {
-                    type: insertSaveRecord.type,
-                    timestamp: insertSaveRecord.client_timestamp,
-                    screenshot: insertSaveRecord.screenshot
-                }
-            };
-
-            SyncService.Outgoing(result, req.user.user_id, (err, compressedResult) => {
+            SaveService.NewSave(userId, eGameKey, body.timestamp, body.screenshot, body.state, saveType, (err) => {
                 if (err) {
-                    return res.json(err);
+                    return next(err);
                 }
-                res.json(compressedResult);
+
+                SyncService.Outgoing({}, userId, eGameKey, (err, compressedResult) => {
+                    if (err) {
+                        return res.json(err);
+                    }
+                    res.json(compressedResult);
+                });
             });
         });
     }

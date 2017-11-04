@@ -316,14 +316,16 @@ module.exports = new (function() {
 
         if (req.user) {
 
+            var userId = req.user.user_id;
+
             //get client data with sync
-            CollectionService.Sync.Outgoing(req.user.user_id, (err, collectionPayload) => {
+            CollectionService.Sync.Outgoing(userId, (err, collectionPayload) => {
                 if (err) {
                     return callback(err);
                 }
                 components.c = collectionPayload;
 
-                PreferencesService.Sync.Outgoing(req.user.user_id, (err, preferencesPayload) => {
+                PreferencesService.Sync.Outgoing(userId, (err, preferencesPayload) => {
                         
                     components.p = preferencesPayload;
 

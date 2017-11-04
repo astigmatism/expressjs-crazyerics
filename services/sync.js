@@ -3,6 +3,7 @@ const async = require('async');
 const config = require('config');
 const UtilitiesService = require('./utilities');
 const CollectionsService = require('./collections');
+const SavesService = require('./saves');
 const PreferenceService = require('./preferences');
 
 module.exports = new (function() {
@@ -44,10 +45,13 @@ module.exports = new (function() {
         next();
     };
 
-    this.Outgoing = function(response, userId, callback) {
+    //outgoing is called from various routes which will return response data to the client along with any
+    //component data that sync determines needs to be updated on the client.
+    //the incoming parameters provide context between the server and client, like current user and current game
+    this.Outgoing = function(response, userId, eGameKey, callback) {
 
         response = response || {};
-        response._c = response._c || {};
+        response._c = response._c || {}; //_c will hold all data for components on client
 
         //collections update for client
         CheckCollections(userId, (err, data) => {
@@ -55,18 +59,28 @@ module.exports = new (function() {
                 return callback(err);
             }
             if (data) {
-                response._c.c = data;
+                response._c.c = data; //c for collections
             }
 
-            var compressed = UtilitiesService.Compress.json(response);
+            //saves update for client
+            CheckSaves(userId, eGameKey, (err, data) => {
+                if (err) {
+                    return callback(err);
+                }
+                if (data) {
+                    response._c.s = data; //s for saves
+                }
 
-            callback(null, compressed);
+                var compressed = UtilitiesService.Compress.json(response); //compress entire response for sync on client side
+
+                callback(null, compressed);
+            });
         });
-        
     };
 
     var CheckCollections = function(userId, callback) {
         
+        //if ready flag not set, no new information for client
         if (!CollectionsService.Sync.ready) {
             return callback();
         }
@@ -79,6 +93,19 @@ module.exports = new (function() {
         });
     };
 
+    var CheckSaves = function(userId, gameKey, callback) {
 
+        //if ready flag not set, no new information for client
+        if (!SavesService.Sync.ready) {
+            return callback();
+        }
+
+        SavesService.Sync.Outgoing(userId, gameKey, (err, data) => {
+            if (err) {
+                return callback(err);
+            }
+            return callback(null, data);
+        });
+    };
 
 })();

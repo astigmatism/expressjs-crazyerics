@@ -31,6 +31,7 @@ var cesSavesManager = (function (_config, _Compression, _Sync, _gameKey, _initia
         });
     };
 
+    //at this time, this function is used to build the save selection on game load
     this.GetMostRecentSaves = function(count, type) {
 
         result = {};
@@ -75,7 +76,7 @@ var cesSavesManager = (function (_config, _Compression, _Sync, _gameKey, _initia
         }
         //don't have it! go and get it
         $.ajax({
-            url: '/saves?_=' + timestamp, //we'll attach userid to the lookup for extra security
+            url: '/saves?gk=' + _gameKey.gk + '&ts=' + timestamp,
             contentType: 'text/plain',
             type: 'GET'
         })

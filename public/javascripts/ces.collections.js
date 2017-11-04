@@ -148,6 +148,7 @@ var cesCollections = (function(config, _Compression, _Sync, _Tooltips, _PlayGame
         $tooltipContent.append('<div>' + activeTitle.gameKey.title + '</div>');
         $tooltipContent.append('<div>Last Played: ' + $.format.date(activeTitle.lastPlayed, 'MMM D h:mm:ss a') + '</div>'); //using the jquery dateFormat plugin
         $tooltipContent.append('<div>Play Count: ' + activeTitle.playCount + '</div>');
+        $tooltipContent.append('<div>Number of Saves: ' + activeTitle.saveCount + '</div>');
         $tooltipContent.append('<div class="remove">Remove from Collection</div>');
 
         return $tooltipContent;
@@ -191,6 +192,7 @@ var cesCollections = (function(config, _Compression, _Sync, _Tooltips, _PlayGame
                             //update these details in local cache to whatever the server says
                             _activeCollectionTitles[j].lastPlayed = lastPlayed;
                             _activeCollectionTitles[j].playCount = payload[i].playCount;
+                            _activeCollectionTitles[j].saveCount = payload[i].saveCount;
 
                         }
                     }
@@ -215,6 +217,7 @@ var cesCollections = (function(config, _Compression, _Sync, _Tooltips, _PlayGame
                             lastPlayed: lastPlayed,
                             lastPlayedServerDate: utcDate,
                             playCount: payload[i].playCount,
+                            saveCount: payload[i].saveCount,
                             gameLink: gameLink
                         });
                     }

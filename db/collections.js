@@ -36,29 +36,26 @@ module.exports = new (function() {
         });
     };
 
-    this.PlayCollectionTitle = function(userId, collectionId, gk, titleId, fileId, callback) {
-
-        pool.query('UPDATE collections_titles SET active_file=$3, last_played=now(), play_count=play_count+1, game_key=$4 WHERE collection_id=$1 AND title_id=$2 RETURNING *', [collectionId, titleId, fileId, gk], (err, result) => {
+    this.AddTitle = function(collectionId, titleId, callback) {
+        
+        pool.query('SELECT * FROM collections_titles WHERE collection_id=$1 AND title_id=$2', [collectionId, titleId], (err, selectResult) => {
             if (err) {
                 return callback(err);
             }
-            //if update failed to return rows, add this
-            if (result.rows.length === 0) {
-                
-                pool.query('INSERT INTO collections_titles (collection_id, title_id, active_file, last_played, game_key) VALUES ($1, $2, $3, now(), $4) RETURNING *', [collectionId, titleId, fileId, gk], (err, result) => {
-                    if (err) {
-                        return callback(err);
-                    }
-                    return callback(null, result.rows[0]); //insert result
-                });
+            if (selectResult.rows.length > 0) {
+                return callback(null, selectResult.rows[0]);
             }
-            else {
-                return callback(null, result.rows[0]); //update result
-            }
+        
+            pool.query('INSERT INTO collections_titles (collection_id, title_id) VALUES ($1, $2) RETURNING *', [collectionId, titleId], (err, result) => {
+                if (err) {
+                    return callback(err);
+                }
+                return callback(null, result.rows[0]); //insert result
+            });
         });
     };
 
-    this.DeleteCollectionTitle = function(collectionId, titleId, callback) {
+    this.DeleteTitle = function(collectionId, titleId, callback) {
 
         pool.query('DELETE FROM collections_titles WHERE collection_id=$1 AND title_id=$2 RETURNING *', [collectionId, titleId], (err, result) => {
             if (err) {
@@ -141,9 +138,9 @@ module.exports = new (function() {
 
     this.GetCollectionTitles = function(collectionId, callback) {
 
-        //old call had joins to title and file tables, poor look up :P I decided to cache/store the gamekey in this table since the client can handle it right away
-        //pool.query('SELECT collections_titles.*, files.name AS file_name, titles.name AS title_name FROM collections_titles INNER JOIN titles ON collections_titles.title_id=titles.title_id INNER JOIN files ON collections_titles.active_file=files.file_id WHERE collection_id=$1', [collectionId], (err, result) => {
-        pool.query('SELECT * FROM collections_titles WHERE collection_id=$1', [collectionId], (err, result) => {
+        //joins with users_titles
+        var countSubQuery = '(SELECT COUNT(save_id) FROM saves WHERE saves.file_id=users_titles.active_file AND saves.user_id=users_titles.user_id)';
+        pool.query('SELECT users_titles.*, ' + countSubQuery + ' AS save_count FROM collections_titles INNER JOIN users_titles ON collections_titles.title_id=users_titles.title_id WHERE collections_titles.collection_id=$1', [collectionId], (err, result) => {
             if (err) {
                 return callback(err);
             }
