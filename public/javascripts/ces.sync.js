@@ -78,5 +78,9 @@ var cesSync = (function(_config, _Compression) {
         //making assumption that sync component is correctly structured
         _components[key] = syncObject;
     };
+
+    this.DeregisterComponent = function(key) {
+        delete _components[key];
+    }
     
 });

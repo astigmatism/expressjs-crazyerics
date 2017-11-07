@@ -50,7 +50,7 @@ router.post('/load', function(req, res, next) {
                     }
                     
                     //rebuilds cache of saves for this file and sets the flag to update the client through sync
-                    SaveService.ResetSavesCache(userId, eGameKey.fileId, (err) => {
+                    SaveService.Sync.Outgoing(userId, eGameKey, (err, initialSaveData) => {
                         if (err) {
                             return next(err);
                         }
@@ -61,6 +61,7 @@ router.post('/load', function(req, res, next) {
                         }
 
                         var result = {
+                            saves: initialSaveData,         //initial save data
                             files: gameDetails.files,       //rom files
                             info: gameDetails.info,         //thegamesdb data
                             size: gameDetails.size,         //file size data

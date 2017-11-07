@@ -8,51 +8,15 @@ module.exports = new (function() {
 
     //public
 
-    this.NewSave = function(userTitleId, fileId, timestamp, screenData, saveData, type, callback) {
+    this.NewSave = function(userId, fileId, timestamp, screenData, saveData, type, callback) {
     
         var _self = this;
     
-        pool.query('INSERT INTO saves (user_title_id, file_id, client_timestamp, save, screenshot, type) VALUES ($1,$2,$3,$4,$5,$6) RETURNING *', [userTitleId, fileId, timestamp, saveData, screenData, type], (err, saveInsertResult) => {
+        pool.query('INSERT INTO saves (user_id, file_id, client_timestamp, save, screenshot, type) VALUES ($1,$2,$3,$4,$5,$6) RETURNING *', [userId, fileId, timestamp, saveData, screenData, type], (err, saveInsertResult) => {
             if (err) {
                 return callback(err);
             }
             callback(null, saveInsertResult.rows[0]);
-
-            //prune too many saves for this game?
-            // GetCache(userTitleId, fileId, (err, cache, key) => {
-            //     if (err) {
-            //         return callback(err);
-            //     }
-    
-            //     //update cache after insert.
-            //     //save id's are in the array in desc order (newest to oldest)
-            //     cache.unshift(saveInsertResult.rows[0].save_id); //add newest to front
-    
-            //     var onPruneCheckComplete = function(prunedRecord) {
-            //         nodecache.set(key, cache, (err, success) => {
-            //             if (err) {
-            //                 return callback(err);
-            //             }
-            //             callback(null, saveInsertResult.rows[0], prunedRecord); //prunedRecord will be undef if none was pruned
-            //         });
-            //     }
-                
-            //     //check number of saves against max
-            //     if (cache.length > maxSavesPerGame) {
-                    
-            //         var prunedSaveId = cache.pop(); //pop oldest off end of array
-            //         DeleteSave(prunedSaveId, (err, deleteResult) => {
-            //             if (err) {
-            //                 return callback(err);
-            //             }
-            //             onPruneCheckComplete(deleteResult.rows[0]);
-            //         });
-            //     }
-            //     //not thre yet!
-            //     else {
-            //         onPruneCheckComplete();
-            //     }
-            // });
         });
     };
 

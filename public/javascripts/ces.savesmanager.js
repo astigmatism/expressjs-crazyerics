@@ -4,7 +4,7 @@
  */
 var cesSavesManager = (function (_config, _Compression, _Sync, _gameKey, _initialSaveData) {
 
-    var self = this;
+    var _self = this;
     var _savesData = {};
     var _timestamps = [];
     var _currentlyWrittenSaveData = {};
@@ -139,12 +139,16 @@ var cesSavesManager = (function (_config, _Compression, _Sync, _gameKey, _initia
         });
     };
 
-    var Constructor = (function() {
+    //in order to sync data between server and client, this structure must exist
+    this.Sync = new (function() {
+        
+        var __self = this;
+        this.ready = false;
 
-        if (_initialSaveData) {
+        this.Incoming = function(data) {
 
-            for (var i = 0, len = _initialSaveData.length; i < len; ++i) {
-                var item = _initialSaveData[i];
+            for (var i = 0, len = data.length; i < len; ++i) {
+                var item = data[i];
                 
                 //sanity check for all expected initial save properties
                 if (item.type && item.screenshot && item.timestamp) {
@@ -154,8 +158,19 @@ var cesSavesManager = (function (_config, _Compression, _Sync, _gameKey, _initia
                     AddSave(item.type, item.timestamp, screenDataUnzipped, null);
                 }
             }
-        }
+        };
 
+        this.Outgoing = function() {
+            __self.reday = false;
+        };
+
+        return this;
+    })();
+
+    var Constructor = (function() {
+
+        //parse the incoming sync data from server
+        _self.Sync.Incoming(_initialSaveData);
 
     })();
     

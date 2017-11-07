@@ -187,7 +187,7 @@ module.exports = new (function() {
                 var result = [];
                 for (var i = 0, len = savesResult.length; i < len; ++i) {
                     result.push({
-                        saveId: savesResult[i].save_id, //dont want to expose this.... TODO!!!!
+                        //saveId: savesResult[i].save_id, //dont want to expose this.... TODO!!!!
                         type: savesResult[i].type,
                         timestamp: savesResult[i].client_timestamp,
                         screenshot: savesResult[i].screenshot

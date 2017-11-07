@@ -228,6 +228,10 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _gameKey,
         _PubSub.Unsubscribe('screenshotWritten');
         _PubSub.Unsubscribe('stateWritten');
 
+        //remove the saves manager component from sync
+        _SavesManager = null;
+        _Sync.DeregisterComponent('s');
+
         if (_Module) {
 
             //also unbinds events from document and window
@@ -324,13 +328,14 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _gameKey,
 
         //the keys are idle while the game runs! let's auto save
         MakeAutoSave();
-    }
+    };
 
     /* exposed saves manager functionality */
 
     this.InitializeSavesManager = function(saveData, gameKey, callback) {
 
         _SavesManager = new cesSavesManager(_config, _Compression, _Sync, gameKey, saveData);
+        _Sync.RegisterComponent('s', _SavesManager.Sync);
     };
 
 
@@ -442,7 +447,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _gameKey,
                 _PubSub.Publish(topic);
                 proceed(true);
             });
-        }
+        };
 
         //reverse
         DownUpHandlers('reverse', 'Rewinding', 'emulatorreverse');
@@ -737,7 +742,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _gameKey,
             return;
         }
 
-        var location = _config.shaderpath + '/' + name
+        var location = _config.shaderpath + '/' + name;
 
         LoadResource(location,
             //onProgress Update
