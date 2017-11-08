@@ -179,7 +179,7 @@ module.exports = new (function() {
         this.Outgoing = function(userId, eGameKey, callback) {
 
             //get current saves, will rebuild cache if necessary
-            _self.GetSaves(userId, eGameKey.fileId, (err, savesResult) => {
+            _self.GetSaves(userId, eGameKey, (err, savesResult) => {
                 if (err) {
                     return callback(err);
                 }
