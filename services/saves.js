@@ -106,7 +106,7 @@ module.exports = new (function() {
             
             //parse through our cache looking for the correct timestamp
             for (var i = 0, len = saves.length; i < len; ++i) {
-                if (saves[i].timestamp === timestamp) {
+                if (saves[i].client_timestamp === timestamp) {
                     saveId = saves[i].save_id;
                     break;
                 }
