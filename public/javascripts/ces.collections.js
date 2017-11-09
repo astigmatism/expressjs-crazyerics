@@ -255,6 +255,8 @@ var cesCollections = (function(config, _Compression, _Sync, _Tooltips, _PlayGame
             //if this is entire package contains data for a new collection not currently being shown, clear the grid
             if (isNewCollection) {
                 _grid.isotope('remove', _grid.children()); //clear grid first
+
+                //$title.text(_activeCollectionData.name);
                 
             }
 

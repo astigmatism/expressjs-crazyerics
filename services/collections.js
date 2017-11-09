@@ -195,7 +195,7 @@ module.exports = new (function() {
                 }
 
                 //reset local cache for this collection, set the sync flag to update the client
-                _self.ResetActiveCollectionCacheWithName(userId, collectionName, (err) => {
+                ResetActiveCollectionCacheWithName(userId, collectionName, (err) => {
                     if (err) {
                         return callback(err);
                     }
