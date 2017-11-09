@@ -1,8 +1,9 @@
-var cesCollections = (function(config, _Compression, _Sync, _Tooltips, _PlayGameHandler, $wrapper, $title, _initialSyncPackage, _OnRemoveHandler) {
+var cesCollections = (function(config, _Compression, _Sync, _Tooltips, _PlayGameHandler, $collectionTitlesWrapper, $collectionNamesWrapper, $title, _initialSyncPackage, _OnRemoveHandler) {
 		
     //private members
     var _self = this;
-    var _grid = null; //see constructor for assignment
+    var _titlesGrid = null;             //see constructor for assignment
+    var _collectionsGrid = null;
     var _activeCollectionData = {};
     var _activeCollectionTitles = [];
     var _BOXSIZE = 120;
@@ -21,9 +22,9 @@ var cesCollections = (function(config, _Compression, _Sync, _Tooltips, _PlayGame
         sortAscending = sortAscending === true || false;
 
         //ensure data is up to date5
-        _grid.isotope('updateSortData').isotope();
+        _titlesGrid.isotope('updateSortData').isotope();
 
-        _grid.isotope({
+        _titlesGrid.isotope({
             sortBy: property,
             sortAscending: sortAscending,
         });
@@ -49,7 +50,7 @@ var cesCollections = (function(config, _Compression, _Sync, _Tooltips, _PlayGame
         activeTitle.gameLink.DisableAllEvents(); //disabled buttons on gamelink to prevent loading game or removing again
 
         //immediately remove from grid (i used to wait for response but why right?)
-        _grid.isotope('remove', activeTitle.gridItem).isotope('layout');
+        _titlesGrid.isotope('remove', activeTitle.gridItem).isotope('layout');
 
         //destory its custom tooltip
         _Tooltips.Destory(activeTitle.gridItem);
@@ -69,7 +70,7 @@ var cesCollections = (function(config, _Compression, _Sync, _Tooltips, _PlayGame
     //examines the local cache about the active collection and populates the grid as needed
     this.Populate = function() {
 
-        var gridTitles = _grid.isotope('getItemElements');
+        var gridTitles = _titlesGrid.isotope('getItemElements');
 
         //go through all titles in cache
         for (var i = 0, len = _activeCollectionTitles.length; i < len; ++i) {
@@ -133,12 +134,12 @@ var cesCollections = (function(config, _Compression, _Sync, _Tooltips, _PlayGame
 
         $griditem.find('img').imagesLoaded().progress(function(imgLoad, image) {
             $(image.img).parent().removeClass('close'); //remove close on parent to reveal image
-            _grid.isotope('layout');
+            _titlesGrid.isotope('layout');
         });
 
         activeTitle.gridItem = $griditem; //hold reference to griditem in local cache
 
-        _grid.isotope('insert', $griditem[0]);
+        _titlesGrid.isotope('insert', $griditem[0]);
     };
 
     var GenerateTooltipContent = function(activeTitle, index) {
@@ -205,7 +206,7 @@ var cesCollections = (function(config, _Compression, _Sync, _Tooltips, _PlayGame
 
                         //if the box image fails to load, resync this grid to make room for the error images
                         var onBoxImageLoadError = function(el) {
-                            _grid.isotope('layout');
+                            _titlesGrid.isotope('layout');
                         };
 
                         //generate gamelink
@@ -248,13 +249,20 @@ var cesCollections = (function(config, _Compression, _Sync, _Tooltips, _PlayGame
                 _activeCollectionData = package.active.data;
             }
 
+            if (package.hasOwnProperty('collections')) {
+
+                for (var m = 0, mlen = package.collections.length; m < mlen; ++m) {
+
+                }
+            }
+
             //save incoming data for later use in outgoing in needed
             _active = package.active;
             _collections = package.collections;
 
             //if this is entire package contains data for a new collection not currently being shown, clear the grid
             if (isNewCollection) {
-                _grid.isotope('remove', _grid.children()); //clear grid first
+                _titlesGrid.isotope('remove', _titlesGrid.children()); //clear grid first
 
                 //$title.text(_activeCollectionData.name);
                 
@@ -280,7 +288,7 @@ var cesCollections = (function(config, _Compression, _Sync, _Tooltips, _PlayGame
     var Constructor = (function() {
         
         //first, build the grid
-        _grid = $wrapper.isotope({
+        _titlesGrid = $collectionTitlesWrapper.isotope({
             layoutMode: 'masonry',
             itemSelector: '.grid-item',
             getSortData: {
@@ -289,6 +297,11 @@ var cesCollections = (function(config, _Compression, _Sync, _Tooltips, _PlayGame
                     return parseInt(played, 10);
                 }
             }
+        });
+
+        _collectionsGrid = $collectionNamesWrapper.isotope({
+            layoutMode: 'masonry',
+            itemSelector: '.grid-item'
         });
 
         //parse the incoming sync data from server

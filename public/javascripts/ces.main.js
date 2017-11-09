@@ -84,7 +84,7 @@ var cesMain = (function() {
         _Preferences = new cesPreferences(_Compression, clientdata.components.p);
         _Sync.RegisterComponent('p', _Preferences.Sync);
 
-        _Collections = new cesCollections(_config, _Compression, _Sync, _Tooltips, PlayGame, $('#openCollectionGrid'), $('#collectionTitle'), clientdata.components.c, null);
+        _Collections = new cesCollections(_config, _Compression, _Sync, _Tooltips, PlayGame, $('#openCollectionGrid'), $('#collectionsGrid'), $('#collectionTitle'), clientdata.components.c, null);
         _Sync.RegisterComponent('c', _Collections.Sync);
 
         //show welcome dialog
