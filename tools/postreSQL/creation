@@ -121,7 +121,7 @@ CREATE TABLE public.titles
 (
     title_id serial NOT NULL,
     system_id character varying(10) NOT NULL,
-    name character text NOT NULL,
+    name text NOT NULL,
     created timestamp(10) without time zone NOT NULL,
     CONSTRAINT pk_title_id PRIMARY KEY (title_id),
     CONSTRAINT fk_system_id FOREIGN KEY (system_id)
