@@ -19,8 +19,9 @@ var cesMain = (function() {
     var _tipsCycleRate = 3000;
     var _preventLoadingGame = false;
     var _preventGamePause = false; //condition for blur event of emulator, sometimes we don't want it to pause when we're giving it back focus
-    var _minimumGameLoadingTime = 6000; //have to consider tips (make longer) and transition times
-    var _minimumSaveLoadingTime = 3000; //have to consider tips (make longer) and transition times
+    var _minimumGameLoadingTime = 6000; //minimum amount of time to display the title loading. artificially longer for tips
+    var _minimumSaveLoadingTime = 3000; //minimum amount of time to display the state loading screenshot
+    var _delayToLoadStateAfterEmulatorStarts = 1000; //I was originally simulating keypresses before the emulator was running :P changed with 11-14 set
     var _defaultSuggestions = 60;
     var _suggestionsLoading = false;
 
@@ -472,7 +473,7 @@ var cesMain = (function() {
                                         //before going any further, we can correctly assume that once the config
                                         //is written, the file system is ready for us to read from it
                                         _PubSub.SubscribeOnce('retroArchConfigWritten', self, function() {
-
+                                            
                                             //load state? bails if null.. if valid, will show a new save loading dialog
                                             //and will load state. callback occurs after state has loaded
                                             LoadEmulatorState(gameKey.system, stateToLoad, function() {
@@ -572,11 +573,13 @@ var cesMain = (function() {
         }, true); //sub once exclusive flag
 
         //start here
-        _PubSub.Mute('notification'); //mute notifications during load
-        _Emulator._InputHelper.Keypress('mute', function() {
+        setTimeout(function() {
+            _PubSub.Mute('notification'); //mute notifications during load
+            _Emulator._InputHelper.Keypress('mute', function() {
 
-            _Emulator._InputHelper.Keypress('loadstate');
-        });
+                _Emulator._InputHelper.Keypress('loadstate');
+            });
+        }, _delayToLoadStateAfterEmulatorStarts);
     };
 
     var ShowErrorDialog = function(message, e) {

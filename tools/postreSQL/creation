@@ -183,6 +183,10 @@ ALTER TABLE public.files
 
 ----------------------------------
 
+-- Table: public.saves
+
+-- DROP TABLE public.saves;
+
 CREATE TABLE public.saves
 (
     save_id integer NOT NULL DEFAULT nextval('saves_save_id_seq'::regclass),
@@ -194,16 +198,11 @@ CREATE TABLE public.saves
     public boolean NOT NULL DEFAULT false,
     comment text COLLATE pg_catalog."default",
     client_timestamp bigint NOT NULL,
-    title_id integer NOT NULL,
     user_id integer NOT NULL,
     CONSTRAINT pk_save_id PRIMARY KEY (save_id),
     CONSTRAINT fk_file_id FOREIGN KEY (file_id)
         REFERENCES public.files (file_id) MATCH SIMPLE
         ON UPDATE NO ACTION
-        ON DELETE CASCADE,
-    CONSTRAINT fk_title_id FOREIGN KEY (title_id)
-        REFERENCES public.titles (title_id) MATCH SIMPLE
-        ON UPDATE CASCADE
         ON DELETE CASCADE,
     CONSTRAINT fk_user_id FOREIGN KEY (user_id)
         REFERENCES public.users (user_id) MATCH SIMPLE
@@ -221,8 +220,6 @@ ALTER TABLE public.saves
 GRANT ALL ON TABLE public.saves TO crazyerics;
 
 GRANT ALL ON TABLE public.saves TO postgres;
-
-GRANT ALL ON SEQUENCE public.saves_save_id_seq TO crazyerics;
 
 ----------------------------------
 
