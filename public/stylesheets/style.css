@@ -863,6 +863,18 @@ div.slidingpanel {
 	cursor: pointer;
 }
 
+#collectionsGrid .grid-item {
+	margin: 5px;
+	padding: 5px;
+	cursor: pointer;
+	background-color: #1a1f26;
+	color: #ccc;
+	border-radius: 3px;
+}
+
+#collectionsGrid .grid-item.on {
+}
+
 /* game links */
 
 .gamelink {
