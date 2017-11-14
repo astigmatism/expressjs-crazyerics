@@ -241,9 +241,10 @@ module.exports = new (function() {
         var __self = this;
         this.ready = false;
 
-        var _package = (function(active, collections) {
-            this.active = active,
-            this.collections = collections;
+        var _package = (function(activeName, titles, collectionNames) {
+            this.active = activeName,
+            this.titles = titles;
+            this.collections = collectionNames;
         });
 
         //client had new data to update the server
@@ -262,15 +263,10 @@ module.exports = new (function() {
                 }
 
                 //sanitize data going to client
-                var _sanitizedCollection = {
-                    data: {
-                        name: _activeCollection.data.name
-                    },
-                    titles: []
-                };
+                var titles = [];
 
                 for (var i = 0, len = _activeCollection.titles.length; i < len; ++i) {
-                    _sanitizedCollection.titles.push({
+                    titles.push({
                         gk: _activeCollection.titles[i].game_key,
                         lastPlayed: _activeCollection.titles[i].last_played,
                         playCount: _activeCollection.titles[i].play_count,
@@ -285,12 +281,14 @@ module.exports = new (function() {
                     }
 
                     //sanitize result as well, didn't see a general need to move this into its own func
-                    var names = [];
+                    var collectionNames = [];
                     for (var i = 0, len = collections.length; i < len; ++i) {
-                        names.push(collections[i].name);
+                        collectionNames.push({
+                            name: collections[i].name
+                        });
                     }
 
-                    var result = new _package(_sanitizedCollection, names);
+                    var result = new _package(_activeCollection.data.name, titles, collectionNames);
 
                     callback(null, result);
                 });

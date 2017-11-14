@@ -4,14 +4,13 @@ var cesCollections = (function(config, _Compression, _Sync, _Tooltips, _PlayGame
     var _self = this;
     var _titlesGrid = null;             //see constructor for assignment
     var _collectionsGrid = null;
-    var _activeCollectionData = {};
-    var _activeCollectionTitles = [];
     var _BOXSIZE = 120;
     var _currentLoadingGame = null;
 
-    //original incoming data from sync
-    var _collections = [];
-    var _active = {};
+    //local data structures/cache
+    var _activeCollectionName = "";
+    var _activeCollectionTitles = [];
+    var _collectionNames = [];
 
 	//public members
 
@@ -68,7 +67,7 @@ var cesCollections = (function(config, _Compression, _Sync, _Tooltips, _PlayGame
     };
 
     //examines the local cache about the active collection and populates the grid as needed
-    this.Populate = function() {
+    this.PopulateTitles = function() {
 
         var gridTitles = _titlesGrid.isotope('getItemElements');
 
@@ -93,12 +92,12 @@ var cesCollections = (function(config, _Compression, _Sync, _Tooltips, _PlayGame
             }
 
             if (!foundInGrid) {
-                Add(activeTitle);
+                AddTitle(activeTitle);
             }
 
             //generate new toolips content
             _Tooltips.Destory(activeTitle.gridItem);                        //this step ensures the tooltip plugin is removed
-            var $tooltipContent = GenerateTooltipContent(activeTitle, i);   //generate html specific for collections
+            var $tooltipContent = GenerateTitleTooltipContent(activeTitle, i);   //generate html specific for collections
 
             //update gamelink
             activeTitle.gameLink.UpdateToolTipContent($tooltipContent);     //pass the generated html to the gamelink to be applied as a tooltip
@@ -121,7 +120,7 @@ var cesCollections = (function(config, _Compression, _Sync, _Tooltips, _PlayGame
         _self.SortBy('lastPlayed', false);
     };
 
-    var Add = function(activeTitle) {
+    var AddTitle = function(activeTitle) {
         
         //create the grid item
         var $griditem = $('<div class="grid-item" />');
@@ -142,7 +141,51 @@ var cesCollections = (function(config, _Compression, _Sync, _Tooltips, _PlayGame
         _titlesGrid.isotope('insert', $griditem[0]);
     };
 
-    var GenerateTooltipContent = function(activeTitle, index) {
+    this.PopulateCollections = function()  {
+
+        var gridCollections = _collectionsGrid.isotope('getItemElements');
+        
+        //go through all collection names in cache
+        for (var i = 0, len = _collectionNames.length; i < len; ++i) {
+
+            var collection = _collectionNames[i];
+
+            //does this title already exist in the grid?
+            var foundInGrid = false;
+            for (var j = 0, jlen = gridCollections.length; j < jlen; ++j) {
+                if ($(gridCollections[i]).text() === collection.name) {
+                    foundInGrid = true;
+                }
+            }
+
+            if (!foundInGrid) {
+                AddCollection(collection);
+            }
+        }
+    };
+
+    var AddCollection = function(collection) {
+        
+        //create the grid item
+        var $griditem = $('<div class="grid-item" />');
+
+        //place sorting data on grid item
+        //$griditem.attr('data-gk', activeTitle.gameKey.gk);
+        //$griditem.attr('data-lastPlayed', activeTitle.lastPlayed); //store as epoch time for sorting
+
+        $griditem.append(collection.name); //add all visual content from gamelink to grid
+
+        // $griditem.find('img').imagesLoaded().progress(function(imgLoad, image) {
+        //     $(image.img).parent().removeClass('close'); //remove close on parent to reveal image
+        //     _titlesGrid.isotope('layout');
+        // });
+
+        collection.gridItem = $griditem; //hold reference to griditem in local cache
+
+        _collectionsGrid.isotope('insert', $griditem[0]);
+    };
+
+    var GenerateTitleTooltipContent = function(activeTitle, index) {
 
         //create the tooltip content
         var $tooltipContent = $('<div class="collection-tooltip" id="collection' + index + '"></div>');
@@ -162,120 +205,108 @@ var cesCollections = (function(config, _Compression, _Sync, _Tooltips, _PlayGame
         this.ready = false;
 
         //a package is the entire payload of data shared between client and server
-        var package = (function(active, collections) {
-            this.active = active;
-            this.collections = collections;
+        var package = (function(activeName, titles, collectionNames) {
+            this.active = activeName;
+            this.titles = titles;
+            this.collections = collectionNames;
         });
 
         this.Incoming = function(package) {
 
             var isNewCollection = true;
 
-            //locally cache data
-            if (package.active.hasOwnProperty('titles')) {
-                var payload = package.active.titles;
-                
-                //let's step through the payload looking for new titles and updated info
-                for (var i = 0, len = payload.length; i < len; ++i) {
+            //handle active collection titles
+            ParseActiveTitles(package.titles);
 
-                    //get timezone correction for last played date
-                    var timezoneOffset = new Date().getTimezoneOffset() * 60 * 1000; //convert from minutes to mili
-                    var utcDate = new Date(payload[i].lastPlayed);
-                    var utcTime = utcDate.getTime();
-                    var lastPlayed = utcTime - timezoneOffset;
+            //determine if this collection is not the collection currently on display
+            isNewCollection = (_activeCollectionName != package.active);
+            _activeCollectionName = package.active;
 
-                    //does this title already exist in local cache?
-                    var newTitle = true;
-                    for (var j = 0, jlen = _activeCollectionTitles.length; j < jlen; ++j) {
-                        if (payload[i].gk === _activeCollectionTitles[j].gameKey.gk) {
-                            newTitle = false;
-
-                            //update these details in local cache to whatever the server says
-                            _activeCollectionTitles[j].lastPlayed = lastPlayed;
-                            _activeCollectionTitles[j].playCount = payload[i].playCount;
-                            _activeCollectionTitles[j].saveCount = payload[i].saveCount;
-
-                        }
-                    }
-
-                    //if this is a new title, build up other details for our local cache
-                    if (newTitle) {
-
-                        //decompress gk
-                        var gameKey = _Compression.Decompress.gamekey(payload[i].gk);
-
-                        //if the box image fails to load, resync this grid to make room for the error images
-                        var onBoxImageLoadError = function(el) {
-                            _titlesGrid.isotope('layout');
-                        };
-
-                        //generate gamelink
-                        var gameLink = new cesGameLink(config, gameKey, _BOXSIZE, _PlayGameHandler, onBoxImageLoadError);
-
-                        //push to our local cache
-                        _activeCollectionTitles.push({
-                            gameKey: gameKey,
-                            lastPlayed: lastPlayed,
-                            lastPlayedServerDate: utcDate,
-                            playCount: payload[i].playCount,
-                            saveCount: payload[i].saveCount,
-                            gameLink: gameLink
-                        });
-                    }
-                }
-
-                //let's now check the opposite, run through local cache and ensure it exists in the payload,
-                //if it does not, then it is likely the title was deleted and should be deleted from local cache as well
-                //loop backwards in order to splice directly from the array we are iterating
-                
-                for (var k = (_activeCollectionTitles.length - 1); k > -1; --k) {
-                    var found = false;
-                    for (var l = 0, llen = payload.length; l < llen; ++l) {
-                        if (payload[l].gk === _activeCollectionTitles[k].gameKey.gk) {
-                            found = true;
-                        }
-                    }
-                    if (!found) {
-                        _activeCollectionTitles.splice(k, 1); //remove title from local cache if not found in payload
-                    }
-                }
-            }
-            if (package.active.hasOwnProperty('data')) {
-
-                //determine if this collection is not the collection currently on display
-                if (_activeCollectionData.hasOwnProperty('name') && package.active.data.hasOwnProperty('name')) {
-                    isNewCollection = (_activeCollectionData.name != package.active.data.name);
-                }
-                _activeCollectionData = package.active.data;
-            }
-
-            if (package.hasOwnProperty('collections')) {
-
-                for (var m = 0, mlen = package.collections.length; m < mlen; ++m) {
-
-                }
-            }
-
-            //save incoming data for later use in outgoing in needed
-            _active = package.active;
-            _collections = package.collections;
+            //handle other collection names data
+            _collectionNames = package.collections;
 
             //if this is entire package contains data for a new collection not currently being shown, clear the grid
             if (isNewCollection) {
                 _titlesGrid.isotope('remove', _titlesGrid.children()); //clear grid first
-
-                //$title.text(_activeCollectionData.name);
-                
             }
 
             //populate updates grid
-            _self.Populate();
+            _self.PopulateTitles();
+            _self.PopulateCollections();
         };
 
         //not used (yet). delete forces update on server
         this.Outgoing = function() {
             __self.reday = false;
             return new package(_active, _collections);
+        };
+
+        var ParseActiveTitles = function(payload) {
+
+            //let's step through the payload looking for new titles and updated info
+            for (var i = 0, len = payload.length; i < len; ++i) {
+
+                //get timezone correction for last played date
+                var timezoneOffset = new Date().getTimezoneOffset() * 60 * 1000; //convert from minutes to mili
+                var utcDate = new Date(payload[i].lastPlayed);
+                var utcTime = utcDate.getTime();
+                var lastPlayed = utcTime - timezoneOffset;
+
+                //does this title already exist in local cache?
+                var newTitle = true;
+                for (var j = 0, jlen = _activeCollectionTitles.length; j < jlen; ++j) {
+                    if (payload[i].gk === _activeCollectionTitles[j].gameKey.gk) {
+                        newTitle = false;
+
+                        //update these details in local cache to whatever the server says
+                        _activeCollectionTitles[j].lastPlayed = lastPlayed;
+                        _activeCollectionTitles[j].playCount = payload[i].playCount;
+                        _activeCollectionTitles[j].saveCount = payload[i].saveCount;
+
+                    }
+                }
+
+                //if this is a new title, build up other details for our local cache
+                if (newTitle) {
+
+                    //decompress gk
+                    var gameKey = _Compression.Decompress.gamekey(payload[i].gk);
+
+                    //if the box image fails to load, resync this grid to make room for the error images
+                    var onBoxImageLoadError = function(el) {
+                        _titlesGrid.isotope('layout');
+                    };
+
+                    //generate gamelink
+                    var gameLink = new cesGameLink(config, gameKey, _BOXSIZE, _PlayGameHandler, onBoxImageLoadError);
+
+                    //push to our local cache
+                    _activeCollectionTitles.push({
+                        gameKey: gameKey,
+                        lastPlayed: lastPlayed,
+                        lastPlayedServerDate: utcDate,
+                        playCount: payload[i].playCount,
+                        saveCount: payload[i].saveCount,
+                        gameLink: gameLink
+                    });
+                }
+            }
+
+            //let's now check the opposite, run through local cache and ensure it exists in the payload,
+            //if it does not, then it is likely the title was deleted and should be deleted from local cache as well
+            //loop backwards in order to splice directly from the array we are iterating
+            
+            for (var k = (_activeCollectionTitles.length - 1); k > -1; --k) {
+                var found = false;
+                for (var l = 0, llen = payload.length; l < llen; ++l) {
+                    if (payload[l].gk === _activeCollectionTitles[k].gameKey.gk) {
+                        found = true;
+                    }
+                }
+                if (!found) {
+                    _activeCollectionTitles.splice(k, 1); //remove title from local cache if not found in payload
+                }
+            }
         };
 
         return this;
