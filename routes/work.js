@@ -17,15 +17,16 @@ router.get('/', function(req, res, next) {
 
 router.get('/emulatorprep', function(req, res, next) {
 
-    var EMULATOR_VERSION = '1.6.7-stable';
-    var SOURE_PATH = __dirname + '/../workspace/RetroArch-stable-1.6.7/';
+    var EMULATOR_VERSION = '2017-03-27';
+    var SOURE_PATH = __dirname + '/../workspace/2017-03-27_RetroArch/';
     
     var writeMemFileToDestination = true;
     
     var emulatorAssetLocation = config.get('emupath') + '/' + EMULATOR_VERSION + '/';
     var destinationPath = __dirname + '/../public/emulators/' + EMULATOR_VERSION;
 
-    var manifest = {};
+    var output = {};
+    output[EMULATOR_VERSION] = {};
 
     //open source folder
     fs.readdir(SOURE_PATH, function(err, emulatorfiles) {
@@ -190,8 +191,8 @@ router.get('/emulatorprep', function(req, res, next) {
                             //get resulting filesize
                             fs.stat(destinationPath + '/' + emulatorfile, (err, stat) => {
 
-                                manifest[emulatorfile] = {};
-                                manifest[emulatorfile].s = stat.size;
+                                output[EMULATOR_VERSION][emulatorfile] = {};
+                                output[EMULATOR_VERSION][emulatorfile]["s"] = stat.size;
 
                                 console.log('file size: ' + stats.size);
 
@@ -207,10 +208,9 @@ router.get('/emulatorprep', function(req, res, next) {
                     return res.json(err);
                 }
 
-                console.log('copy this into config:');
-                console.log(manifest);
+                console.log('Copy the result in the response to config');
 
-                return res.json();
+                return res.json(output);
             });
         });
     });

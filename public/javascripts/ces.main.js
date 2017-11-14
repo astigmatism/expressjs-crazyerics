@@ -470,9 +470,11 @@ var cesMain = (function() {
                                             _PubSub.Publish('error', ['There was an error with the emulator:', e]);
                                         });
 
-                                        //before going any further, we can correctly assume that once the config
-                                        //is written, the file system is ready for us to read from it
-                                        _PubSub.SubscribeOnce('retroArchConfigWritten', self, function() {
+                                        //this is a weird one I know.
+                                        //The most reliable way I've found that the emulator is running and ready for input is when it
+                                        //attempts to write to the window title. When that occurs for the first time,
+                                        //we can begin to load a state (or not)
+                                        _PubSub.SubscribeOnce('emulatorsetwindowtitle', self, function() {
                                             
                                             //load state? bails if null.. if valid, will show a new save loading dialog
                                             //and will load state. callback occurs after state has loaded
@@ -573,13 +575,11 @@ var cesMain = (function() {
         }, true); //sub once exclusive flag
 
         //start here
-        setTimeout(function() {
-            _PubSub.Mute('notification'); //mute notifications during load
-            _Emulator._InputHelper.Keypress('mute', function() {
+        _PubSub.Mute('notification'); //mute notifications during load
+        _Emulator._InputHelper.Keypress('mute', function() {
 
-                _Emulator._InputHelper.Keypress('loadstate');
-            });
-        }, _delayToLoadStateAfterEmulatorStarts);
+            _Emulator._InputHelper.Keypress('loadstate');
+        });
     };
 
     var ShowErrorDialog = function(message, e) {

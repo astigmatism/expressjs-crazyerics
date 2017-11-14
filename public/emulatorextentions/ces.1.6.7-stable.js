@@ -54,6 +54,7 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _gameKey) {
     
             //an override to prevent
             this.setWindowTitle = function(title) {
+                _PubSub.Publish('emulatorsetwindowtitle');
                 console.log('Module wanted to rename title: ' + title);
             };
     
@@ -121,7 +122,7 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _gameKey) {
              * @return {undef}              
              */
             this.cesEventHandlerRegistered = function (eventHandler) {
-    
+
                 //ensure the current format
                 if (eventHandler.target && eventHandler.eventTypeString) {
     

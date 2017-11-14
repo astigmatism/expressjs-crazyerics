@@ -210,7 +210,7 @@ var cesInputHelper = (function(_Emulator, _ui) {
                 if (_keysWhichHaveFunctionalityInTheBrowserWeWantToPrevent[e.which]) {
                     e.preventDefault();
                 }
-            }
+            };
             $(window).on('keydown', keyboardListener); //using jQuerys on and off here worked :P
 
         } else {
@@ -218,7 +218,7 @@ var cesInputHelper = (function(_Emulator, _ui) {
             self.CancelIdleTimeout(); //in case its running
             $(window).off('keydown');
         }
-    }
+    };
 
     /**
      * This is the function we override the emulator handler with. Its resulting callback will pass a boolean to indictae if the original functionality should proceed
@@ -253,7 +253,7 @@ var cesInputHelper = (function(_Emulator, _ui) {
             _lastInputKeyCode = keycode;
             ResetIdleTimeout();
         }
-    }
+    };
 
     var ResetIdleTimeout = function() {
 
@@ -268,7 +268,7 @@ var cesInputHelper = (function(_Emulator, _ui) {
 
             //catch if an operational input was last used
             var operationalKeyUsed = false;
-            for (operation in _operationMap) {
+            for (var operation in _operationMap) {
                 if (_lastInputKeyCode == _operationMap[operation]) {
                     operationalKeyUsed = true;
                     break;
@@ -303,7 +303,7 @@ var cesInputHelper = (function(_Emulator, _ui) {
      * Given a keycode, simulate a keypress by generating a keydown and keyup event and pass them through the handlers destined for the emulator (but first pass through here ;)
      * @param {int}   keycode
      * @param {Function} callback   After keyup fires
-     * @param {int}   keyUpDelay    Define this for long holds, otherwise leave it and allow the default of 10
+     * @param {int}   keyUpDelay    Define this for long holds, otherwise leave it and allow the default of 30
      */
     var SimulateEmulatorKeypress = function(keycode, callback, args, keyUpDelay) {
 
@@ -313,8 +313,7 @@ var cesInputHelper = (function(_Emulator, _ui) {
             return;
         }
 
-        var keyUpDelay = keyUpDelay || 10;
-
+        keyUpDelay = keyUpDelay || 100; //the 1.6.7 emulator was happy with this value. make it no less
         
         var keydownHandler = _modifiedEmulatorKeydownHandlers[Object.keys(_modifiedEmulatorKeydownHandlers)[0]].handlerFunc; //take first handler, doesn't matter which really, its likely attached to window
         var keyupHandler = _modifiedEmulatorKeyupHandlers[Object.keys(_modifiedEmulatorKeyupHandlers)[0]].handlerFunc; //take first handler, doesn't matter which really
@@ -361,7 +360,7 @@ var cesInputHelper = (function(_Emulator, _ui) {
         }
 
         return oEvent;
-    }
+    };
 
     //public members
     return this;
