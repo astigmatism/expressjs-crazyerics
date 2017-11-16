@@ -15,6 +15,19 @@ module.exports = new (function() {
         this.titles = [];   //a list of titles for this collection (from collections_titles table with details from titles and files tables)
     });
 
+    this.CreateCollection = function(userId, name, callback) {
+
+        CollectionsSQL.CreateCollection(userId, name, (err, createResult) => {
+            if (err) {
+                return callback(err);
+            }
+
+            _self.Sync.ready = true; //new collection means passing new names to client
+
+            callback(null, createResult);
+        });
+    };
+
     this.GetCollectionByName = function(userId, collectionName, callback, opt_createIfNoExist) {
         
         opt_createIfNoExist = (opt_createIfNoExist == true) ? true : false;
@@ -67,16 +80,20 @@ module.exports = new (function() {
     this.GetCollectionNames = CollectionsSQL.GetCollectionNames;
 
     this.DeleteCollectionByName = function(userId, collectionName, callback) {
-        
+
         CollectionsSQL.DeleteCollectionByName(userId, collectionName, (err, deletedRecord) => {
             if (err) {
                 return callback(err);
             }
-            _collectionCache.Delete([userId, collectionName], (err, success) => {
+
+            //TODO: if deleting active collection
+            
+            //reset local cache for this collection, set the sync flag to update the client
+            ResetActiveCollectionCacheWithName(userId, collectionName, (err) => {
                 if (err) {
                     return callback(err);
                 }
-                callback(null, deletedRecord); 
+                return callback();
             });
         });
     };

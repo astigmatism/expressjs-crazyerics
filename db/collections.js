@@ -77,7 +77,7 @@ module.exports = new (function() {
                 
                 //create if no exist
                 if (opt_createIfNoExist) {
-                    CreateCollection(userId, name, (err, data) => {
+                    _self.CreateCollection(userId, name, (err, data) => {
                         if (err) {
                             return callback(err);
                         }
@@ -95,7 +95,7 @@ module.exports = new (function() {
         });
     };
 
-    var CreateCollection = function(userId, name, callback) {
+    this.CreateCollection = function(userId, name, callback) {
         
         pool.query('INSERT INTO collections (user_id, name) VALUES ($1, $2) RETURNING *', [userId, name], (err, result) => {
             if (err) {
@@ -117,14 +117,9 @@ module.exports = new (function() {
 
     this.DeleteCollectionByName = function(userId, name, callback) {
         
-        var key = MakeCollectionKey(userId, name);
-        
         pool.query('DELETE from collections WHERE user_id=$1 AND name=$2', [userId, name], (err, result) => {
             if (err) {
                 return callback(err);
-            }
-            if (result.rows.length === 0) {
-                return callback();
             }
 
             _collectionsCache.Delete([userId], (err, success) => {

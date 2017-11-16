@@ -6,31 +6,35 @@ var cesTooltips = (function(config, tooltipSelector, tooltipContentSelector) {
     
     //private members
     var self = this;
-    const alreadyProcessedSelector = '.tooltipstered';
+    var alreadyProcessedName = 'tooltipstered';
 
     this.Any = function() {
 
-        $(tooltipSelector + ':not(' + alreadyProcessedSelector + ')').tooltipster({
+        //convert name to selector by adding .
+        $(tooltipSelector + ':not(.' + alreadyProcessedName + ')').tooltipster({
             theme: 'tooltipster-shadow',
             animation: 'grow',
             delay: 500
         });
     };
 
-    this.AnyContent = function(opt_interactive) {
+    this.SingleHTML = function($el, $content, opt_interactive) {
 
-        $(tooltipContentSelector + ':not(' + alreadyProcessedSelector + ')').tooltipster({
-            theme: 'tooltipster-shadow',
-            animation: 'grow',
-            delay: 500,
-            interactive: opt_interactive || false,
-            contactAsHTML: true
-        });
-    }
+        if (!$el.hasClass(alreadyProcessedName)) {
+            $el.tooltipster({
+                theme: 'tooltipster-shadow',
+                animation: 'grow',
+                delay: 500,
+                interactive: opt_interactive || false, //allows users to interact with tooltip
+                contentAsHTML: true
+            });
+        }
+        $el.tooltipster('content', $content);
+    };
 
     this.Destory = function($element) {
         $element.find(alreadyProcessedSelector).tooltipster('destroy');
-    }
+    };
 
     //constructor
     var Constructor = (function() {

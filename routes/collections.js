@@ -7,14 +7,57 @@ const CollectionsService = require('../services/collections');
 const UtilitiesService = require('../services/utilities');
 const SyncService = require('../services/sync');
 
-//stubbed at the moment. I'd like to have this feature working, but probably after other goals
+router.post('/', function(req, res, next) {
+    
+    var name = req.body.name;
 
-router.get('/', function(req, res, next) {
+    if (req.user && name) {
+        
+        var userId = req.user.user_id;
 
+        CollectionsService.CreateCollection(userId, name, (err, createResult) => {
+            if (err) {
+                return next(err);
+            }
+
+            SyncService.Outgoing({}, userId, null, (err, compressedResult) => {
+                if (err) {
+                    return res.json(err);
+                }
+                res.json(compressedResult);
+            });
+        })
+    }
+    else {
+        return next('There are missing input parameters');
+    }
 });
 
-router.post('/save', function(req, res, next) {
-    
+router.delete('/', function(req, res, next) {
+
+    var name = decodeURIComponent(req.query.n);
+
+    if (req.user && req.session && name) {
+
+        var userId = req.user.user_id;
+
+        CollectionsService.DeleteCollectionByName(userId, name, (err, deleteRecord) => {
+            if (err) {
+                return next(err);
+            }
+
+            SyncService.Outgoing({}, userId, null, (err, compressedResult) => {
+                if (err) {
+                    return res.json(err);
+                }
+                res.json(compressedResult);
+            });
+
+        });
+    }
+    else {
+        return next('missing input parameters');
+    }
 });
 
 router.delete('/game', function(req, res, next) {
