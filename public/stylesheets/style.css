@@ -875,6 +875,8 @@ div.slidingpanel {
 }
 
 #collectionsGrid .grid-item.on {
+	background: #ccc;
+	color: #000;
 }
 
 #collectionsGrid .grid-item div.button {

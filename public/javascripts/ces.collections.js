@@ -66,7 +66,7 @@ var cesCollections = (function(config, _Compression, _Sync, _Tooltips, _PlayGame
         _collectionsGrid.isotope('remove', collection.gridItem).isotope('layout'); //immediately remove from grid (i used to wait for response but why right?)
 
         //use sync for outgoing. will update this object on response
-        var url = _baseUrl + '?n=' + encodeURIComponent(collection.name);
+        var url = _baseUrl + '?n=' + encodeURIComponent(_Compression.Compress.string(collection.name));
         _Sync.Delete(url, function(data) {
             //sync will take care of updating the collection
             if (onRemoveComplete) {
@@ -156,6 +156,13 @@ var cesCollections = (function(config, _Compression, _Sync, _Tooltips, _PlayGame
                 collection.gridItem = AddCollection(collection);
             }
 
+            if (_activeCollectionName === collection.name) {
+                collection.gridItem.addClass('on');
+            }
+            else {
+                collection.gridItem.removeClass('on');
+            }
+
             //generate new toolips content
             var $tooltipContent = GenerateCollectionTooltipContent(collection);   //generate html specific for collections
             _Tooltips.SingleHTML(collection.gridItem, $tooltipContent, true); //reapply tooltips
@@ -172,6 +179,13 @@ var cesCollections = (function(config, _Compression, _Sync, _Tooltips, _PlayGame
         //$griditem.attr('data-lastPlayed', activeTitle.lastPlayed); //store as epoch time for sorting
 
         $griditem.append(collection.name); //add all visual content from gamelink to grid
+
+        //on click, make active collection
+        $griditem.on('click', function() {
+            _Sync.Get(_baseUrl + '?n=' + encodeURIComponent(_Compression.Compress.string(collection.name)), function(data) {
+                
+            });
+        });
 
         _collectionsGrid.isotope('insert', $griditem[0]);
 

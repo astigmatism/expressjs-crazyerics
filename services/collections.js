@@ -9,6 +9,7 @@ module.exports = new (function() {
 
     var _self = this;
     var _collectionCache = new Cache('collections.user.$1.collection.$2'); //value is an array of titles in collection with their data
+    const preferencesKeyForActiveCollection = 'collections.active';
 
     var CollectionEnvelope = (function() {
         this.data = null;   //details about the current collection (from collections table)
@@ -21,13 +22,12 @@ module.exports = new (function() {
             if (err) {
                 return callback(err);
             }
-
             _self.Sync.ready = true; //new collection means passing new names to client
-
             callback(null, createResult);
         });
     };
 
+    //gets, or creates collection by name
     this.GetCollectionByName = function(userId, collectionName, callback, opt_createIfNoExist) {
         
         opt_createIfNoExist = (opt_createIfNoExist == true) ? true : false;
@@ -86,20 +86,50 @@ module.exports = new (function() {
                 return callback(err);
             }
 
-            //TODO: if deleting active collection
-            
-            //reset local cache for this collection, set the sync flag to update the client
-            ResetActiveCollectionCacheWithName(userId, collectionName, (err) => {
+            OnDelete(userId, collectionName, (err) => {
                 if (err) {
                     return callback(err);
                 }
-                return callback();
+
+                //reset local cache for this collection, set the sync flag to update the client
+                ResetActiveCollectionCacheWithName(userId, collectionName, (err) => {
+                    if (err) {
+                        return callback(err);
+                    }
+                    return callback();
+                });
             });
         });
     };
 
-    const preferencesKeyForActiveCollection = 'collections.active';
+    //for handling if active collection was deleted
+    var OnDelete = function(userId, deletedName, callback) {
 
+        //TODO: if deleting active collection
+        PreferencesService.Get(userId, (err, activeCollectionName) => {
+            if (err) {
+                return callback(err);
+            }
+
+            //if we deleted the active collection
+            if (activeCollectionName && activeCollectionName === deletedName) {
+
+                //set back to default, it gets created when not there
+                var defaultCollection = config.get('defaultCollection');
+                _self.SetActiveCollection(userId, defaultCollection, (err, success) => {
+                    if (err) {
+                        return callback(err);
+                    }
+                    return callback();
+                });
+            }
+            else {
+                callback();
+            }
+        }, preferencesKeyForActiveCollection);
+    };
+
+    //uses preference service to take the current active collection (gets or creates)
     this.GetActiveCollection = function(userId, callback) {
 
         //get active collection from user prefs, if it doen't exist, then assign the default collection
@@ -125,45 +155,32 @@ module.exports = new (function() {
         }, preferencesKeyForActiveCollection);
     };
 
-    this.SetActiveCollection = function(userId, collection, callback) {
+    this.SetActiveCollection = function(userId, collectionName, callback) {
 
         PreferencesService.Get(userId, (err, activeCollection) => {
             if (err) {
                 return callback(err);
             }
             //if no change, bail
-            if (activeCollection === collection) {
+            if (activeCollection === collectionName) {
                 return callback();
             }
 
-            PreferencesService.Set(userId, preferencesKeyForActiveCollection, collection, (err, success) => {
+            PreferencesService.Set(userId, preferencesKeyForActiveCollection, collectionName, (err, success) => {
                 if (err) {
                     return callback(err);
                 }
-                callback(null, success);
+
+                //reset cache and flag sync to update client
+                ResetActiveCollectionCacheWithName(userId, collectionName, (err) => {
+                    if (err) {
+                        return callback(err);
+                    }
+                    return callback(null, success);
+                });
             });
 
         }, preferencesKeyForActiveCollection);
-    };
-
-    //get title data out of the collection using a gamekey
-    this.GetTitle = function(userId, gameKey, callback) {
-
-        _self.GetActiveCollection(userId, (err, activeCollection) => {
-            if (err) {
-                return callback(err);
-            }
-
-            var titles = activeCollection.titles;
-
-            //search through collection titles until we have a match
-            for (var i = 0, len = titles.length; i < len; ++i) {
-                if (titles[i].game_key === gameKey.gk) {
-                    return callback(null, titles[i]);
-                }
-            }
-            callback();
-        });
     };
 
     this.AddTitle = function(userId, eGameKey, callback) {

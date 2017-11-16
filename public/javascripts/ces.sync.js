@@ -34,6 +34,11 @@ var cesSync = (function(_config, _Compression) {
         Request(url, 'DELETE', null, callback);
     };
 
+    this.Get = function(url, callback) {
+
+        Request(url, 'GET', null, callback);
+    };
+
     //common assembly of request object before sending
     var Request = function(url, type, body, callback) {
 
