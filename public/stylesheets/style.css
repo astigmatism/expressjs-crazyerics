@@ -863,6 +863,13 @@ div.slidingpanel {
 	cursor: pointer;
 }
 
+#openCollectionGrid {
+	transition:All 200ms ease-in;
+	-webkit-transition:All 200ms ease-in;
+	-moz-transition:All 200ms ease-in;
+	-o-transition:All 200ms ease-in;
+}
+
 #collectionsGrid .grid-item {
 	min-width: 20px;
 	height: 20px;

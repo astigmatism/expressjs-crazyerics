@@ -44,8 +44,8 @@ var cesGameLink = (function(config, gameKey, size, opt_tooltip, opt_PlayGame, op
         $imagewrapper.addClass('close');
         if (opt_tooltip) {
             $imagewrapper.addClass('tooltip');
+            $imagewrapper.attr('title', gameKey.title);
         }
-        $imagewrapper.attr('title', gameKey.title);
 
         $imagewrapper.append($box);
 

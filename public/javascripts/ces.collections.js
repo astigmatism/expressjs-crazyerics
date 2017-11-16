@@ -79,6 +79,10 @@ var cesCollections = (function(config, _Compression, _Sync, _Tooltips, _PlayGame
     this.PopulateTitles = function() {
 
         var gridTitles = _titlesGrid.isotope('getItemElements');
+        
+        for (var x = 0, xlen = gridTitles.length; x < xlen; ++x) {
+            $(gridTitles[x]).data('active', 0);
+        }
 
         //go through all titles in cache
         for (var i = 0, len = _activeCollectionTitles.length; i < len; ++i) {
@@ -94,6 +98,7 @@ var cesCollections = (function(config, _Compression, _Sync, _Tooltips, _PlayGame
 
                 if (gridGk === activeTitle.gameKey.gk) {
                     foundInGrid = true;
+                    $gridTitle.data('active', 1);
 
                     //found this title in the grid, update its attributes to keep it up to date
                     $gridTitle.attr('data-lastPlayed', activeTitle.lastPlayed); //store as epoch time for sorting
@@ -102,11 +107,20 @@ var cesCollections = (function(config, _Compression, _Sync, _Tooltips, _PlayGame
 
             if (!foundInGrid) {
                 activeTitle.gridItem = AddTitle(activeTitle);
+                activeTitle.gridItem.data('active', 1);
             }
 
             //generate new toolips content
             var $tooltipContent = GenerateTitleTooltipContent(activeTitle);   //generate html specific for collections
-            _Tooltips.SingleHTML(activeTitle.gridItem, $tooltipContent, true); //reapply tooltips
+            _Tooltips.SingleHTML(activeTitle.gridItem, $tooltipContent); //reapply tooltips
+        }
+
+        //remove anything from the grid not found
+        for (var k = 0, klen = gridTitles.length; k < klen; ++k) {
+            var m = $.data(gridTitles[k], 'active');
+            if (m === 0) {
+                _titlesGrid.isotope('remove', gridTitles[k]);
+            }
         }
 
         //finally, sort everything
@@ -165,7 +179,7 @@ var cesCollections = (function(config, _Compression, _Sync, _Tooltips, _PlayGame
 
             //generate new toolips content
             var $tooltipContent = GenerateCollectionTooltipContent(collection);   //generate html specific for collections
-            _Tooltips.SingleHTML(collection.gridItem, $tooltipContent, true); //reapply tooltips
+            _Tooltips.SingleHTML(collection.gridItem, $tooltipContent); //reapply tooltips
         }
     };
 
@@ -354,7 +368,7 @@ var cesCollections = (function(config, _Compression, _Sync, _Tooltips, _PlayGame
 
             _Tooltips.Destory($gi); //remove tooltips from validation on text entry
             
-            var value = $input.val().replace(/[^a-zA-Z0-9\s\-/]/g,''); //sanitize anyway ;)
+            value = value.replace(/[^a-zA-Z0-9\s\-/]/g,''); //sanitize anyway ;)
             
             $wrapper.hide();
 
@@ -402,7 +416,7 @@ var cesCollections = (function(config, _Compression, _Sync, _Tooltips, _PlayGame
 
             //if this is entire package contains data for a new collection not currently being shown, clear the grid
             if (isNewCollection) {
-                _titlesGrid.isotope('remove', _titlesGrid.children()); //clear grid first
+                //_titlesGrid.isotope('remove', _titlesGrid.children()); //clear grid first
             }
 
             //populate updates grid
@@ -495,7 +509,7 @@ var cesCollections = (function(config, _Compression, _Sync, _Tooltips, _PlayGame
                         gameLink: gameLink
                     });
                 }
-            };
+            }
 
             //let's now check the opposite, run through local cache and ensure it exists in the payload,
             //if it does not, then it is likely the title was deleted and should be deleted from local cache as well

@@ -7,7 +7,7 @@ var cesTooltips = (function(config, tooltipSelector, tooltipContentSelector) {
     //private members
     var self = this;
     var alreadyProcessedName = 'tooltipstered';
-    var alreadyProcessedSelector = '.' + alreadyProcessedName
+    var alreadyProcessedSelector = '.' + alreadyProcessedName;
 
     this.Any = function() {
 
@@ -15,18 +15,18 @@ var cesTooltips = (function(config, tooltipSelector, tooltipContentSelector) {
         $(tooltipSelector + ':not(' + alreadyProcessedSelector + ')').tooltipster({
             theme: 'tooltipster-shadow',
             animation: 'grow',
-            delay: 500
+            delay: [1200, 0]
         });
     };
 
-    this.SingleHTML = function($el, $content, opt_interactive) {
+    this.SingleHTML = function($el, $content) {
 
         if (!$el.hasClass(alreadyProcessedName)) {
             $el.tooltipster({
                 theme: 'tooltipster-shadow',
                 animation: 'grow',
-                delay: 500,
-                interactive: opt_interactive || false, //allows users to interact with tooltip
+                delay: [1200, 200],
+                interactive: true,
                 contentAsHTML: true
             });
         }
