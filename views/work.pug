@@ -5,27 +5,31 @@ block content
         var camera, scene, renderer, mesh;
 
         getVibrant(function(swatches) {
-            init(swatches);
-            animate();
+            mergeImage(swatches, function(img) {
+                init(swatches, img);
+                animate();
+            });
         });
 
-        function init(swatches) {
+        function init(swatches, img) {
             //fov, aspect, near, far
             camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 1000 );
             camera.position.z = 200;
 
-            debugger;
+            var rgb = 'rgb(' + swatches[0] + ', ' + swatches[1] + ', ' + swatches[2] + ')';
 
-            var frontTexture = new THREE.TextureLoader().load( '/images/boxes/front.png' );
-            var backTexture = new THREE.TextureLoader().load( '/images/boxes/back.jpg' );
+            var frontTexture = new THREE.TextureLoader().load( '/images/boxes/front.jpg' );
+            var backTexture = new THREE.TextureLoader().load( img );
 
             var frontMaterial = new THREE.MeshBasicMaterial( { map: frontTexture } );
-            var backMaterial = new THREE.MeshBasicMaterial( { map: backTexture } );
-            var color = new THREE.MeshBasicMaterial( { color: 'rgb(' + swatches[0] + ', ' + swatches[1] + ', ' + swatches[2] + ')' } );
+            var backMaterial = new THREE.MeshBasicMaterial({ 
+                map: backTexture
+            });
+            var color = new THREE.MeshBasicMaterial( { color: rgb } );
             
             var materials = [
-                backMaterial,        // Left side
-                backMaterial,       // Right side
+                color,        // Left side
+                color,       // Right side
                 color,         // Top side
                 color,      // Bottom side
                 frontMaterial,       // Front side
@@ -52,20 +56,20 @@ block content
         }
         function animate() {
             requestAnimationFrame( animate );
-            mesh.rotation.x += 0.005;
-            mesh.rotation.y += 0.05;
+            //mesh.rotation.x += 0.005;
+            mesh.rotation.y += 0.01;
             renderer.render( scene, camera );
         }
         function getVibrant(callback) {
 
             var img = document.createElement('img');
-            img.setAttribute('src', '/images/boxes/front.png');
+            img.setAttribute('src', '/images/boxes/front.jpg');
 
             img.addEventListener('load', function() {
                 
                 var colorThief = new ColorThief();
                 var result = colorThief.getColor(img);
-                callback(result);
+                return callback(result);
                 
                 //- var vibrant = new Vibrant(img);
                 //- var swatches = vibrant.swatches()
@@ -84,4 +88,31 @@ block content
                 * LightVibrant #f3ccb4
                 */
             });
+        }
+        function mergeImage(swatches, callback) {
+
+            var rgb = 'rgb(' + swatches[0] + ', ' + swatches[1] + ', ' + swatches[2] + ')';
+            
+            var imageObj1 = new Image();
+            imageObj1.src = '/images/boxes/back.png';
+            imageObj1.onload = function() {
+                
+                var w = imageObj1.width;
+                var h = imageObj1.height;
+                var c = document.createElement('canvas');
+                c.width = w;
+                c.height = h;
+                var ctx = c.getContext("2d");
+                ctx.fillStyle = rgb;
+                ctx.fillRect(0, 0, imageObj1.width, imageObj1.height);
+            
+                ctx.drawImage(imageObj1, 0, 0, w, h);
+                //imageObj2.src = '/images/boxes/front.jpg';
+                //imageObj2.onload = function() {
+                //ctx.drawImage(imageObj2, 15, 85, 300, 300);
+                var img = c.toDataURL("image/png");
+                //document.write('<img src="' + img + '" width="' + imageObj1.width + '" height="' + imageObj1.height + '"/>');
+                callback(img);
+                //}
+            };
         }
