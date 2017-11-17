@@ -6,13 +6,10 @@ var beautify = require('js-beautify');
 var FileService = require('../services/files.js');
 var async = require('async');
 
-router.get('/', function(req, res, next) {
+router.get('/three', function(req, res, next) {
 
-    var emulator = req.query.emulator || 'genesis_plus_gx_libretro';
 
-    res.render('emulatortest', {
-        emuname: emulator
-    });
+    res.render('work');
 });
 
 router.get('/emulatorprep', function(req, res, next) {
