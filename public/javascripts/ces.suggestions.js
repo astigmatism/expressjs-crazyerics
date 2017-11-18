@@ -2,7 +2,7 @@
  * Object which wraps common functions related to player preferences, data that comes form the server initially but can be changed
  * @type {Object}
  */
-var cesSuggestions = (function(config, _Compression, PlayGame, $wrapper) {
+var cesSuggestions = (function(_BoxArt, _Compression, PlayGame, $wrapper) {
 
     //private members
     var self = this;
@@ -108,7 +108,7 @@ var cesSuggestions = (function(config, _Compression, PlayGame, $wrapper) {
             var gameKey = _Compression.Decompress.gamekey(suggestions[i].gk);
 
             //spawn new gamelink
-            gamelink = new cesGameLink(config, gameKey, _BOXSIZE, true, PlayGame);
+            gamelink = new cesGameLink(_BoxArt, gameKey, _BOXSIZE, true, PlayGame);
 
             //create the grid item and insert it
             var $griditem = $('<div class="grid-item" />');

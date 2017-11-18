@@ -24,6 +24,7 @@ html
             script(src='/javascripts/ces.progressbar.js', type='text/javascript')
             script(src='/javascripts/ces.notifications.js', type='text/javascript')
             script(src='/javascripts/ces.tooltips.js', type='text/javascript')
+            script(src='/javascripts/ces.boxart.js', type='text/javascript')
             script(src='/javascripts/ces.loading.webgl.js', type='text/javascript')
             script(src='/javascripts/jquery.auto-complete.min.js')
             script(src='/javascripts/isotope.min.js')
@@ -65,10 +66,10 @@ html
         div#container
             div#maincolumn
                 - titlebanner = Math.floor((Math.random() * 19) + 1);
-                div#titlebanner(style='background:url(' + assetpath + '/images/titlebanners/' + titlebanner + '.jpg)')
-                    div(class='bannergradient')
-                    div(class='titlewrapper')
-                        h1 crazyerics.com
-                        p retro gaming commmunity
+                //- div#titlebanner(style='background:url(' + assetpath + '/images/titlebanners/' + titlebanner + '.jpg)')
+                //-     div(class='bannergradient')
+                //-     div(class='titlewrapper')
+                //-         h1 crazyerics.com
+                //-         p retro gaming commmunity
                 block content
             - //div#menucolumn

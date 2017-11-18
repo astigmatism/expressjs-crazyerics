@@ -1,4 +1,4 @@
-var cesCollections = (function(config, _Compression, _Sync, _Tooltips, _PlayGameHandler, $collectionTitlesWrapper, $collectionNamesWrapper, $title, _initialSyncPackage, _OnRemoveHandler) {
+var cesCollections = (function(_BoxArt, _Compression, _Sync, _Tooltips, _PlayGameHandler, $collectionTitlesWrapper, $collectionNamesWrapper, $title, _initialSyncPackage, _OnRemoveHandler) {
 		
     //private members
     var _self = this;
@@ -497,7 +497,7 @@ var cesCollections = (function(config, _Compression, _Sync, _Tooltips, _PlayGame
                     };
 
                     //generate gamelink
-                    var gameLink = new cesGameLink(config, gameKey, _BOXSIZE, false, _PlayGameHandler, onBoxImageLoadError);
+                    var gameLink = new cesGameLink(_BoxArt, gameKey, _BOXSIZE, false, _PlayGameHandler, onBoxImageLoadError);
 
                     //push to our local cache
                     _activeCollectionTitles.push({

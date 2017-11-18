@@ -34,6 +34,7 @@ var cesMain = (function() {
     var _SavesManager = null;
     var _Emulator = null;
     var _Dialogs = null;
+    var _BoxArt = null;
     var _Collections = null;
     var _Suggestions = null;
     var _SaveSelection = null;
@@ -79,21 +80,31 @@ var cesMain = (function() {
 
         _Sync = new cesSync(_config, _Compression);
 
+        _BoxArt = new cesBoxArt(_config, _Compression);
+
         //auto capture trigger. comment out to avoid build
         //self._autoCaptureHarness('n64', _config.autocapture['n64'].shaders, 7000, 1, 10000);
 
         _Preferences = new cesPreferences(_Compression, clientdata.components.p);
         _Sync.RegisterComponent('p', _Preferences.Sync);
 
-        _Collections = new cesCollections(_config, _Compression, _Sync, _Tooltips, PlayGame, $('#openCollectionGrid'), $('#collectionsGrid'), $('#collectionTitle'), clientdata.components.c, null);
+        _Collections = new cesCollections(_BoxArt, _Compression, _Sync, _Tooltips, PlayGame, $('#openCollectionGrid'), $('#collectionsGrid'), $('#collectionTitle'), clientdata.components.c, null);
         _Sync.RegisterComponent('c', _Collections.Sync);
 
         //show welcome dialog
-        if ($.isEmptyObject(_Preferences.playHistory)) { //TODO fix this
-            _Dialogs.ShowDialog('welcomefirst', 200);
-        } else {
-            _Dialogs.ShowDialog('welcomeback', 200);
-        }
+        // if ($.isEmptyObject(_Preferences.playHistory)) { //TODO fix this
+        //     _Dialogs.ShowDialog('welcomefirst', 200);
+        // } else {
+        //     _Dialogs.ShowDialog('welcomeback', 200);
+        // }
+
+        // var gameKey = {
+        // "system": "nes",
+        // "title": "Excitebike",
+        // "file": "Excitebike (JU) [!].nes",
+        // "gk": "eJyLVspLLVbSUXKtSM4sSU3KzE5F4ShoeIVqKkQrxuqBlMUCAF2cDpo="
+        // };
+        // ShowGameLoading(gameKey, function() {});
 
         //build console select for search (had to create a structure to sort by the short name :P)
         var shortnames = [];
@@ -187,7 +198,8 @@ var cesMain = (function() {
 
                 var gameKey = _Compression.Decompress.gamekey(item[0]);
                 var $suggestion = $('<div class="autocomplete-suggestion" data-gk="' + gameKey.gk + '" data-searchscore="' + item[1] + '"></div>');
-                $suggestion.append(cesGetBoxFront(_config, gameKey.system, gameKey.title, 50));
+                var $box = _BoxArt.Get$(gameKey, 50);
+                $suggestion.append($box);
                 $suggestion.append('<div>' + gameKey.title + '</div>');
                 return $('<div/>').append($suggestion).html(); //because .html only returns inner content
             },
@@ -254,7 +266,7 @@ var cesMain = (function() {
 
         _Sliders = new cesSliders();
 
-        _Suggestions = new cesSuggestions(_config, _Compression, PlayGame, $('#suggestionsgrid'));
+        _Suggestions = new cesSuggestions(_BoxArt, _Compression, PlayGame, $('#suggestionsgrid'));
 
         //begin by showing all console suggestions
         _Suggestions.Load('all', true, function() {
@@ -370,7 +382,7 @@ var cesMain = (function() {
      */
     var RetroArchBootstrap = function(gameKey, slot, shader, callback) {
 
-        var box = cesGetBoxFront(_config, gameKey.system, gameKey.title, 170); //preload loading screen box
+        //var box = cesGetBoxFront(_config, gameKey.system, gameKey.title, 170, true); //preload loading screen box
         _Collections.SetCurrentGameLoading(gameKey); //inform collections what the current game is so that they don't attempt to delete it during load
 
         //which emulator to load?
@@ -398,7 +410,7 @@ var cesMain = (function() {
                 _ProgressBar.Reset(); //before loading dialog, reset progress bar from previous
 
                 //game load dialog show
-                ShowGameLoading(gameKey.system, gameKey.title, box, function(tipInterval) {
+                ShowGameLoading(gameKey, function(tipInterval) {
 
                     var optionsToSendToServer = {
                         shader: shaderselection.shader,  //name of shader file
@@ -747,19 +759,22 @@ var cesMain = (function() {
         _Dialogs.ShowDialog('saveloading');
     };
 
-    var ShowGameLoading = function(system, title, box, callback) {
+    var ShowGameLoading = function(gameKey, callback) {
 
         $('#tip').hide();
-        $('#gameloadingname').show().text(title);
+        $('#gameloadingname').show().text(gameKey.title);
+
+        var box = _BoxArt.Get(gameKey, 170);
+        var loadingWebGL = new cesLoadingWebGL(_config, _Compression, _PubSub, $('#gameloadingimage'), box);
 
         //build loading box
-        var $box = cesGetBoxFront(_config, system, title, 170) || box; //if it was preloaded!
-        $box.addClass('tada');
-        $box.load(function() {
-            $(this).fadeIn(200);
-        });
+        // var $box = cesGetBoxFront(_config, system, title, 170) || box; //if it was preloaded!
+        // $box.addClass('tada');
+        // $box.load(function() {
+        //     $(this).fadeIn(200);
+        // });
 
-        $('#gameloadingimage').empty().addClass('centered').append($box);
+        //$('#gameloadingimage').empty().addClass('centered').append($box);
 
         //show tips on loading
         var randomizedTips = shuffle(_tips);
@@ -796,13 +811,13 @@ var cesMain = (function() {
      */
     var DisplayGameContext = function(gameKey, callback) {
 
-        var box = cesGetBoxFront(_config, gameKey.system, gameKey.title, 170);
+        var $box = _BoxArt.Get$(gameKey, 170);
 
         //using old skool img because it was the only way to get proper image height
         var img = document.createElement('img');
         img.addEventListener('load', function() {
 
-            $('#gamedetailsboxfront').empty().append(box);
+            $('#gamedetailsboxfront').empty().append($box);
             $('#gametitle').empty().hide().append(gameKey.title);
 
             // slide down background
@@ -968,46 +983,6 @@ $.fn.animateRotate = function(startingangle, angle, duration, easing, complete) 
 
         $({deg: startingangle}).animate({deg: angle}, args);
     });
-};
-
-/**
- * a common function to return to the jquery object of a box front image. includes onerror handler for loading generic art when box not found
- * @param  {string} system
- * @param  {string} title
- * @param  {number} size   size of the box art (114, 150...)
- * @return {Object}        jquery img
- */
-cesGetBoxFront = function(config, system, title, size, onErrorHandler) {
-
-    var _Compression = new cesCompression();
-    var _nerfImages = false;
-
-    //double encode, once for the url, again for the actual file name (files saved with encoding becase they contain illegal characters without)
-    title = encodeURIComponent(encodeURIComponent(_Compression.Zip.string(title)));
-
-    var errorsrc = config.assetpath + '/images/blanks/' + system + '_' + size + '.png';
-    var src = config.boxpath + '/' + system + '/' + config.systemdetails[system].boxcdnversion + '/' + (title + (_nerfImages ? 'sofawnsay' : '')) + '/' + size + '.jpg';
-
-    var img = document.createElement('img');
-    img.src = src;
-    img.addEventListener('error', function() {
-
-        //on error, set a new load listener and load the error image
-        this.addEventListener('load', function() {    
-            if (this.height) {
-                this.setAttribute('height', this.height + 'px');
-            }
-            if (onErrorHandler) {
-                onErrorHandler();
-            }
-        });
-        this.src = errorsrc;
-    });
-
-    _Compression = null;
-
-    //incldes swap to blank cart onerror
-    return $(img); //$('<img width="' + size + '" onerror="this.src=\'' + errorsrc + '\'" src="' + src + '" />');
 };
 
 /**

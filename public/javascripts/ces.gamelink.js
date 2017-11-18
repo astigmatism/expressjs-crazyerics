@@ -1,4 +1,4 @@
-var cesGameLink = (function(config, gameKey, size, opt_tooltip, opt_PlayGame, opt_onImageLoadError, opt_removeSelector, opt_onRemove) {
+var cesGameLink = (function(_BoxArt, gameKey, size, opt_tooltip, opt_PlayGame, opt_onImageLoadError, opt_removeSelector, opt_onRemove) {
 
     //private members
     var self = this;
@@ -22,7 +22,7 @@ var cesGameLink = (function(config, gameKey, size, opt_tooltip, opt_PlayGame, op
         var _self = this;
 
         var $div = $('<div class="gamelink"></div>');
-        var $box = cesGetBoxFront(config, gameKey.system, gameKey.title, size, opt_onImageLoadError);
+        var $box = _BoxArt.Get$(gameKey, size);
 
         //show box art when finished loading
         $box.load(function() {
