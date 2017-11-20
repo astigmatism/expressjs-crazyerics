@@ -596,6 +596,8 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _gameKey,
      */
     var LoadEmulatorScript = function(_ProgressBar, system, module, filesize, deffered) {
 
+return;
+
         //the path is made of three sections, 1) cdn or local 2) the extention name is the folder where they are stored 3) the file itself
         var scriptPath = _config.emupath + '/' + _config.systemdetails[system].emuextention + '/' + _config.systemdetails[system].emuscript;
 

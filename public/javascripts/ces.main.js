@@ -765,7 +765,7 @@ var cesMain = (function() {
         $('#gameloadingname').show().text(gameKey.title);
 
         var box = _BoxArt.Get(gameKey, 170);
-        var loadingWebGL = new cesLoadingWebGL(_config, _Compression, _PubSub, $('#gameloadingimage'), box);
+        var loadingWebGL = new cesLoadingWebGL(_config, _Compression, _PubSub, $('#webglloader'), box);
 
         //build loading box
         // var $box = cesGetBoxFront(_config, system, title, 170) || box; //if it was preloaded!
@@ -849,7 +849,7 @@ var cesMain = (function() {
         }, true);
 
         //once the formal box loads, use the same src for our temp img to measure its height
-        box.load(function() {
+        $box.load(function() {
             img.setAttribute('src', box.attr('src'));
         });
     };
