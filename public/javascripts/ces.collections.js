@@ -415,6 +415,12 @@ var cesCollections = (function(_BoxArt, _Compression, _Sync, _Tooltips, _PlayGam
 
             //handle other collection names data
             ParseCollectionNames(package.collections);
+            if (package.collections.length === 0) {
+                _collectionsGrid.hide();
+            }
+            else {
+                _collectionsGrid.show();
+            }
 
             //if this is entire package contains data for a new collection not currently being shown, clear the grid
             if (isNewCollection) {
