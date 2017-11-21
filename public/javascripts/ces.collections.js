@@ -415,7 +415,9 @@ var cesCollections = (function(_BoxArt, _Compression, _Sync, _Tooltips, _PlayGam
 
             //handle other collection names data
             ParseCollectionNames(package.collections);
-            if (package.collections.length === 0) {
+
+            //dont show default collection when no titles (new user)
+            if (_collectionNames.length === 1 && _activeCollectionTitles.length === 0) {
                 _collectionsGrid.hide();
             }
             else {
