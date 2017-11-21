@@ -1,4 +1,4 @@
-var cesLoadingWebGL = (function(_config, _Compression, _PubSub, $wrapper, box) {
+var cesLoadingWebGL = (function(_recipe, _Compression, _PubSub, _texturePath, $wrapper, box, texture) {
     
     //private members
     var _self = this;
@@ -10,38 +10,95 @@ var cesLoadingWebGL = (function(_config, _Compression, _PubSub, $wrapper, box) {
     var _width = $wrapper.parent().width();
     var _height = $wrapper.parent().height();
 
-    var BuildLayout = function(loadedImage, colors) {
+    var BuildMaterials = function(texture, rgbDominant, callback) {
 
-        //fov, aspect, near, far
-        _camera = new THREE.PerspectiveCamera( 70, _width / _height, 1, 1000 );
-        _camera.position.z = 600;
+        var map = {};
+        var rgb;
 
-        if (colors && colors.length) {
-            var rgb = 'rgb(' + colors[0] + ', ' + colors[1] + ', ' + colors[2] + ')';
+        if (rgbDominant && rgbDominant.length) {
+            rgb = 'rgb(' + rgbDominant[0] + ', ' + rgbDominant[1] + ', ' + rgbDominant[2] + ')';
         }
 
-        var frontTexture = new THREE.TextureLoader().load(loadedImage.src);
-        var backTexture = new THREE.TextureLoader().load( '/images/boxes/back.png' );
+        //first, create the default texture. it is always the dominant color or black if no color data passed
+        if (rgb) {
+            map.default = new THREE.MeshBasicMaterial( { color: rgb } );
+        }
+        else {
+            map.default = new THREE.MeshBasicMaterial( { color: 'rgb(0,0,0)' } );
+        }
 
-        var frontMaterial = new THREE.MeshBasicMaterial( { map: frontTexture } );
-        var backMaterial = new THREE.MeshBasicMaterial({ 
-            map: backTexture
+        //front texture is not configurable, is always box art
+        map.front = new THREE.MeshBasicMaterial({ 
+            map: new THREE.TextureLoader().load(texture.src)
         });
-        var color = new THREE.MeshBasicMaterial( { color: rgb } );
+
+        var promises = [];
+        
+        for (var face in _recipe.faces) {
+            
+            promises.push((function(face) {
+                
+                var d = $.Deferred();
+
+                if (_recipe.faces[face].texture) {
+                    map[face] = new THREE.MeshBasicMaterial({ 
+                        map: new THREE.TextureLoader().load(_texturePath + _recipe.faces[face].texture)
+                    });
+                    return d.resolve();
+                }
+    
+                if (_recipe.faces[face].color) {
+                    map[face] = new THREE.MeshBasicMaterial( { color: _recipe.faces[face].color } );
+                    return d.resolve();
+                }
+    
+                if (_recipe.faces[face].combine) {
+    
+                    var combineColor = rgb;
+    
+                    //does combine have a color value?
+                    if (_recipe.faces[face].combine.color) {
+                        combineColor = _recipe.faces.face.combine.color;
+                    }
+    
+                    var textureSrc = _texturePath + _recipe.faces[face].combine.texture;
+    
+                    //generate new image with color and texture
+                    MergeImage(textureSrc, rgb, function(combineSrc) {
+                        map[face] = new THREE.MeshBasicMaterial({ 
+                            map: new THREE.TextureLoader().load(combineSrc)
+                        });
+                        return d.resolve();
+                    });
+                }
+                return d.promise();
+
+            })(face));
+        }
+        
+        $.when.apply(null, promises).done(function(a){
+            callback(map);
+        });
+
+    };
+
+    var BuildLayout = function(width, height, materialMap, colors) {
         
         var materials = [
-            color,        // Left side
-            color,       // Right side
-            color,         // Top side
-            color,      // Bottom side
-            frontMaterial,       // Front side
-            backMaterial         // Back side
+            materialMap.left || materialMap.default,        // Left side
+            materialMap.right || materialMap.default,       // Right side
+            materialMap.top || materialMap.default,         // Top side
+            materialMap.bottom || materialMap.default,      // Bottom side
+            materialMap.front,       // Front side
+            materialMap.back || materialMap.default         // Back side
         ];
-
-        var geometry = new THREE.BoxBufferGeometry( 170, 170 * 1.372, 170 * 0.186 );
+        
+        var geometry = new THREE.BoxBufferGeometry( width, height, width * 0.2);
 
         _scene = new THREE.Scene();
         _mesh = new THREE.Mesh( geometry, materials);
+        _camera = new THREE.PerspectiveCamera( 70, _width / _height, 1, 1000 ); //fov, aspect, near, far
+        _camera.position.z = 800;
 
         _scene.add( _mesh );
         _renderer = new THREE.WebGLRenderer({ alpha: true });
@@ -59,8 +116,35 @@ var cesLoadingWebGL = (function(_config, _Compression, _PubSub, $wrapper, box) {
             var colorThief = new ColorThief();
             var result = colorThief.getColor(img);
             callback(result);
-        }
+        };
         img.src = src;
+    };
+
+    var MergeImage = function(imageSrc, rgbColor, callback) {
+        
+        var image = new Image();
+        image.src = imageSrc;
+        image.crossOrigin = 'anonymous';
+        image.onload = function() {
+            
+            var w = image.width;
+            var h = image.height;
+            var c = document.createElement('canvas');
+            c.width = w;
+            c.height = h;
+            var ctx = c.getContext("2d");
+            ctx.fillStyle = rgbColor;
+            ctx.fillRect(0, 0, image.width, image.height);
+        
+            ctx.drawImage(image, 0, 0, w, h);
+            //imageObj2.src = '/images/boxes/front.jpg';
+            //imageObj2.onload = function() {
+            //ctx.drawImage(imageObj2, 15, 85, 300, 300);
+            var img = c.toDataURL("image/png");
+            //document.write('<img src="' + img + '" width="' + image.width + '" height="' + image.height + '"/>');
+            callback(img);
+            //}
+        };
     };
 
     var CreateBoxEdgeCrossection = function(loadedImage, callback) {
@@ -88,8 +172,8 @@ var cesLoadingWebGL = (function(_config, _Compression, _PubSub, $wrapper, box) {
         ctx2.rotate(-90 * Math.PI/180);
 
         //top
-        sx = 0
-        sy = 0
+        sx = 0;
+        sy = 0;
         swidth = min;
         sheight = slice;
         x = 0;
@@ -117,8 +201,8 @@ var cesLoadingWebGL = (function(_config, _Compression, _PubSub, $wrapper, box) {
         //return;
 
         //left
-        sx = 0
-        sy = 0
+        sx = 0;
+        sy = 0;
         swidth = slice;
         sheight = min;
         x = -slice * 2;
@@ -156,28 +240,40 @@ var cesLoadingWebGL = (function(_config, _Compression, _PubSub, $wrapper, box) {
 
         ctx.drawImage(canvas2, x, y, width, height);
         var img = canvas.toDataURL("image/png");
-        //document.write('<img src="' + img + '" width="' + img.width + '" height="' + img.height + '"/>');
+        
+        // var testImage = new Image();
+        // testImage.onload = function() {
+        //     document.write('<img src="' + img + '" width="' + this.width + '" height="' + this.height + '"/>');
+        // };
+        // testImage.src = img;
+        
 
         callback(img);
     };
 
     var Animate = function() {
         requestAnimationFrame( Animate );
-        //mesh.rotation.x += 0.005;
-        _mesh.rotation.y += 0.01;
+        //_mesh.rotation.x -= 0.09;
+        _mesh.rotation.y += 0.09;
         _renderer.render( _scene, _camera );
     };
 
     var Constructor = (function() {
 
+        $wrapper.empty();
+
         box.onload = function() {
-            var loadedImage = this;
-            CreateBoxEdgeCrossection(loadedImage, function(crossSectionSrc) {
+            var loadedBox = this;
+            CreateBoxEdgeCrossection(loadedBox, function(crossSectionSrc) {
                 GetDominantColor(crossSectionSrc, function(dominantColors) {
-                    BuildLayout(loadedImage, dominantColors, function() {
+                    BuildMaterials(texture, dominantColors, function(materialMap) {
+
+                        BuildLayout(loadedBox.width, loadedBox.height, materialMap, function() {
                         
+                        });
+                    
+                        Animate();
                     });
-                    Animate();
                 });
             });
         };

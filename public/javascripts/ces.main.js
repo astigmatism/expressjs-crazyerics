@@ -92,19 +92,11 @@ var cesMain = (function() {
         _Sync.RegisterComponent('c', _Collections.Sync);
 
         //show welcome dialog
-        // if ($.isEmptyObject(_Preferences.playHistory)) { //TODO fix this
-        //     _Dialogs.ShowDialog('welcomefirst', 200);
-        // } else {
-        //     _Dialogs.ShowDialog('welcomeback', 200);
-        // }
-
-        // var gameKey = {
-        // "system": "nes",
-        // "title": "Excitebike",
-        // "file": "Excitebike (JU) [!].nes",
-        // "gk": "eJyLVspLLVbSUXKtSM4sSU3KzE5F4ShoeIVqKkQrxuqBlMUCAF2cDpo="
-        // };
-        // ShowGameLoading(gameKey, function() {});
+        if ($.isEmptyObject(_Preferences.playHistory)) { //TODO fix this
+            _Dialogs.ShowDialog('welcomefirst', 200);
+        } else {
+            _Dialogs.ShowDialog('welcomeback', 200);
+        }
 
         //build console select for search (had to create a structure to sort by the short name :P)
         var shortnames = [];
@@ -704,7 +696,7 @@ var cesMain = (function() {
         //     }));
         // }
 
-        $('#shaderselectlist').append($('<li class="zoom" data-shader=""><h3>No Processing</h3><img class="tada" src="' + _config.assetpath + '/images/shaders/' + system + '/pixels.png" /></li>').on('click', function(e) {
+        $('#shaderselectlist').append($('<li class="zoom" data-shader=""><h3>No Processing</h3><img class="tada" src="' + _config.imagepath + '/shaders/' + system + '/pixels.png" /></li>').on('click', function(e) {
             onFinish($(this).attr('data-shader'));
         }));
 
@@ -712,7 +704,7 @@ var cesMain = (function() {
 
             var key = recommended[i];
 
-            $('#shaderselectlist').append($('<li class="zoom" data-shader="' + key.shader + '"><h3>' + key.title + '</h3><img src="' + _config.assetpath + '/images/shaders/' + system + '/' + i + '.png" /></li>').on('click', function(e) {
+            $('#shaderselectlist').append($('<li class="zoom" data-shader="' + key.shader + '"><h3>' + key.title + '</h3><img src="' + _config.imagepath + '/shaders/' + system + '/' + i + '.png" /></li>').on('click', function(e) {
                 onFinish($(this).attr('data-shader'));
             }));
         }
@@ -764,17 +756,14 @@ var cesMain = (function() {
         $('#tip').hide();
         $('#gameloadingname').show().text(gameKey.title);
 
-        var box = _BoxArt.Get(gameKey, 170);
-        var loadingWebGL = new cesLoadingWebGL(_config, _Compression, _PubSub, $('#webglloader'), box);
-
-        //build loading box
-        // var $box = cesGetBoxFront(_config, system, title, 170) || box; //if it was preloaded!
-        // $box.addClass('tada');
-        // $box.load(function() {
-        //     $(this).fadeIn(200);
-        // });
-
-        //$('#gameloadingimage').empty().addClass('centered').append($box);
+        var box = _BoxArt.Get(gameKey, 200);
+        var texture = _BoxArt.Get(gameKey, '256x256');
+        var recipe = {};
+        if (_config.loadingBoxRecipes[gameKey.system]) {
+            recipe = _config.loadingBoxRecipes[gameKey.system];
+        }
+        
+        var loadingWebGL = new cesLoadingWebGL(recipe, _Compression, _PubSub, _config.texturepath, $('#webglloader'), box, texture);
 
         //show tips on loading
         var randomizedTips = shuffle(_tips);
@@ -811,13 +800,11 @@ var cesMain = (function() {
      */
     var DisplayGameContext = function(gameKey, callback) {
 
-        var $box = _BoxArt.Get$(gameKey, 170);
+        var box = _BoxArt.Get(gameKey, 170, function(loadedImage) {
 
-        //using old skool img because it was the only way to get proper image height
-        var img = document.createElement('img');
-        img.addEventListener('load', function() {
+            var img = $('<img src="' + loadedImage.src + '" />');
 
-            $('#gamedetailsboxfront').empty().append($box);
+            $('#gamedetailsboxfront').empty().append(img);
             $('#gametitle').empty().hide().append(gameKey.title);
 
             // slide down background
@@ -846,11 +833,7 @@ var cesMain = (function() {
                     horizontalAlign: 'left'
                 }); //auto size text to fit
             });
-        }, true);
 
-        //once the formal box loads, use the same src for our temp img to measure its height
-        $box.load(function() {
-            img.setAttribute('src', box.attr('src'));
         });
     };
 

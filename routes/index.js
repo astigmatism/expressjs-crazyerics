@@ -23,7 +23,7 @@ router.get('/', function(req, res, next) {
         res.render('index', {
             layout: 'layout',
             clientdata: clientdata, //all data client needs. config and player data
-            assetpath: config.get('assetpath') //defined outside of client data because it is used in layout
+            imagepath: config.get('imagepath') //defined outside of client data because it is used in layout
         });
     });
 });
@@ -53,7 +53,7 @@ router.get('/load/emulator/:system', function(req, res, next) {
         if (exists) {
 
             res.render('emulators/' + system, {
-                assetpath: config.get('assetpath'),
+                imagepath: config.get('imagepath'),
                 emupath: config.get('emupath'),
                 emufile: config.get('systems.' + system + '.emufile')
             });
@@ -62,7 +62,7 @@ router.get('/load/emulator/:system', function(req, res, next) {
 
         //otherwise, render the common emulator layout
         res.render('emulator', {
-            assetpath: config.get('assetpath'),
+            imagepath: config.get('imagepath'),
             emupath: config.get('emupath'),
             emufile: config.get('systems.' + system + '.emufile')
         });

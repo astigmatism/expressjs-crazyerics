@@ -16,8 +16,8 @@ var cesBoxArt = (function(_config, _Compression) {
                 if (this.height) {
                     this.setAttribute('height', this.height + 'px');
                 }
-                if (onErrorHandler) {
-                    onErrorHandler();
+                if (opt_customErrorhandler) {
+                    opt_customErrorhandler(this);
                 }
             });
             this.src = BuildErrorUrl(gameKey, size);
@@ -30,7 +30,9 @@ var cesBoxArt = (function(_config, _Compression) {
         img.src = BuildUrl(gameKey, size);
         img.crossOrigin = 'anonymous'; //this is necessary when creating a new image from canvas
         if (onImageLoad) {
-            img.onload = onImageLoad;
+            img.onload = function() {
+                onImageLoad(this);
+            }
         }
         return img;
     }
@@ -48,6 +50,6 @@ var cesBoxArt = (function(_config, _Compression) {
     }
 
     var BuildErrorUrl = function(gameKey, size) {
-        return _config.assetpath + '/images/blanks/' + gameKey.system + '_' + size + '.png';
+        return _config.imagepath + '/blanks/' + gameKey.system + '_' + size + '.png';
     }
 });

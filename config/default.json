@@ -1,6 +1,7 @@
 {
 	//commented out urls are drop-ins for when primary is disrupted
-	"assetpath": "",
+	"imagepath": "http://cdn.crazyerics.com/images",
+	"texturepath": "http://cdn.crazyerics.com/textures",
 	"shaderpath": "http://cdn.crazyerics.com/shaders/07-13-2017", //"http://d1f1bmv0ctqnvi.cloudfront.net/07-13-2017",
 	"boxpath": "http://cdn.crazyerics.com/boxes", //"http://d34dk2ur98gem2.cloudfront.net",
 	"rompath": "http://cdn.crazyerics.com/roms",
@@ -40,7 +41,7 @@
 			"live": true,
 			"supportfilesize": 0,
 			"collection": "Good2600 1.0.0",
-			"boxcdnversion": "2.0.4",
+			"boxcdnversion": "2017-11-20",
 			"romcdnversion": "Good2600-1.00",
 			"emuextention": "1.6.7-stable",
 			"emuscript": "stella_libretro.js",
@@ -62,7 +63,7 @@
 		"a7800": {
 			"name": "Atari 7800",
 			"shortname": "Atari 7800",
-			"live": true,
+			"live": false,
 			"boxcdnversion": "",
 			"romcdnversion": "",
 			"supportfilesize": 0,
@@ -78,7 +79,7 @@
 			"shortname": "Game Boy",
 			"live": true,
 			"supportfilesize": 0,
-			"boxcdnversion": "2.0.5",
+			"boxcdnversion": "2017-11-20",
 			"romcdnversion": "GoodGbx-3.14",
 			"collection": "GoodGBx 3.14",
 			"emuextention": "1.6.7-stable",
@@ -107,7 +108,7 @@
 			"shortname": "Game Boy Advance",
 			"live": true,
 			"supportfilesize": 0,
-			"boxcdnversion": "2.0.5",
+			"boxcdnversion": "2017-11-20",
 			"romcdnversion": "GoodGba-3.23",
 			"collection": "GoodGba3.23",
 			"emuextention": "1.6.7-stable",
@@ -136,7 +137,7 @@
 			"shortname": "Sega Genesis",
 			"live": true,
 			"supportfilesize": 0,
-			"boxcdnversion": "05.21.17",
+			"boxcdnversion": "2017-11-20",
 			"romcdnversion": "GoodGen-3.14",
 			"emuextention": "1.6.7-stable",
 			"collection": "GoodGen 3.21",
@@ -165,7 +166,7 @@
 			"shortname": "Sega Game Gear",
 			"live": true,
 			"collection": "GoodGG 3.20",
-			"boxcdnversion": "06.02.2017",
+			"boxcdnversion": "2017-11-20",
 			"romcdnversion": "GoodGG-3.20",
 			"supportfilesize": 0,
 			"emuextention": "1.6.7-stable",
@@ -195,7 +196,7 @@
 			"collection":"GoodJag 2.01",
 			"live": true,
 			"supportfilesize": 0,
-			"boxcdnversion": "2.0.3",
+			"boxcdnversion": "2017-11-20",
 			"romcdnversion": "GoodJag-2.01",
 			"emuextention": "1.6.7-stable",
 			"emuscript": "virtualjaguar_libretro.js",
@@ -208,7 +209,7 @@
 			"live": true,
 			"supportfilesize": 0,
 			"collection":"GoodLynx 2.01",
-			"boxcdnversion": "2.0.2",
+			"boxcdnversion": "2017-11-20",
 			"romcdnversion": "GoodLynx-2.01",
 			"emuextention": "1.6.7-stable",
 			"emuscript": "handy_libretro.js",
@@ -221,7 +222,7 @@
 			"live": true,
 			"supportfilesize": 0,
 			"collection": "GoodN64 3.27",
-			"boxcdnversion": "2.0.4",
+			"boxcdnversion": "2017-11-20",
 			"romcdnversion": "GoodN64-3.27",
 			"emuextention": "1.6.7-stable",
 			"emuscript": "parallel_n64_libretro.js",
@@ -277,7 +278,7 @@
 			"shortname": "Nintendo",
 			"live": true,
 			"supportfilesize": 0,
-			"boxcdnversion": "2.0.2",
+			"boxcdnversion": "2017-11-20",
 			"romcdnversion": "GoodNes-3.23b",
 			"collection": "GoodNES 3.23b",
 			"emuextention": "1.6.7-stable",
@@ -302,7 +303,7 @@
 			"shortname": "TurboGrafx-16",
 			"live": true,
 			"supportfilesize": 0,
-			"boxcdnversion": "2.0.2",
+			"boxcdnversion": "2017-11-20",
 			"romcdnversion": "GoodPce-1.09a",
 			"collection": "GoodPCE 1.09a GoodMerged",
 			"emuextention": "1.6.7-stable",
@@ -338,7 +339,7 @@
 			"shortname": "Sega Master System",
 			"live": true,
 			"supportfilesize": 0,
-			"boxcdnversion": "2.0.4",
+			"boxcdnversion": "2017-11-20",
 			"romcdnversion": "GoodSms-3.20",
 			"emuextention": "1.6.7-stable",
 			"emuscript": "genesis_plus_gx_libretro.js",
@@ -366,7 +367,7 @@
 			"shortname": "Super Nintendo",
 			"live": true,
 			"supportfilesize": 0,
-			"boxcdnversion": "2.0.3",
+			"boxcdnversion": "2017-11-20",
 			"romcdnversion": "GoodSnes-3.23",
 			"collection": "GoodSNES 3.23",
 			"emuextention": "1.6.7-stable",
@@ -396,7 +397,7 @@
 			"live": true,
 			"supportfilesize": 0,
 			"collection": "GoodVBoy 3.1415",
-			"boxcdnversion": "2.0.3",
+			"boxcdnversion": "2017-11-20",
 			"romcdnversion": "GoodVboy-3.1415",
 			"emuextention": "1.6.7-stable",
 			"emuscript": "mednafen_vb_libretro.js",
@@ -409,7 +410,7 @@
 			"live": true,
 			"supportfilesize": 0,
 			"collection": "GoodVect 1.06",
-			"boxcdnversion": "2.0.4",
+			"boxcdnversion": "2017-11-20",
 			"romcdnversion": "GoodVect-1.06",
 			"emuextention": "1.6.7-stable",
 			"emuscript": "vecx_libretro.js",
@@ -422,7 +423,7 @@
 			"live": true,
 			"supportfilesize": 0,
 			"collection": "GoodWSx 3.27",
-			"boxcdnversion": "05.22.17",
+			"boxcdnversion": "2017-11-20",
 			"romcdnversion": "GoodWsx3.27",
 			"suggestionThreshold": 250,
 			"emuextention": "1.6.7-stable",
@@ -435,6 +436,51 @@
 		"searchAllThreshold": 400,
 		"suggestionThreshold": 400,
 		"foreignMixPerc": 0
+	},
+	//color for each face is "dominant unless specified
+	"loadingBoxRecipes": {
+		"nes": {
+			"faces": {
+				"back": {
+					"combine": {
+						"texture": "/nes/256x256back.png"
+					}
+				},
+				"left": {
+					"combine": {
+						"texture": "/nes/leftside.png"
+					}
+				},
+				"right": {
+					"combine": {
+						"texture": "/nes/rightside.png"
+					}
+				}
+			}
+		},
+		"snes": {
+			"faces": {
+				"back": {
+					"texture": "/snes/256x256back.png"
+				},
+				"top": {
+					"texture": "/snes/top.png"
+				},
+				"bottom": {
+					"texture": "/snes/bottom.png"
+				},
+				"left": {
+					"color": "rgb(0,0,0)"
+				},
+				"right": {
+					"color": "rgb(0,0,0)"
+				}
+			}
+		},
+		"n64": {
+		},
+		"gb": {
+		}
 	},
 	"cannedRecipes": {
 		"all": {

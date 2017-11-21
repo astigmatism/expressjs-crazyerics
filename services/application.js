@@ -295,10 +295,16 @@ module.exports = new (function() {
         configdata['shaderpath'] = config.get('shaderpath');
 
         //asset location
-        configdata['assetpath'] = config.get('assetpath');
+        configdata['imagepath'] = config.get('imagepath');
+
+        //texture location
+        configdata['texturepath'] = config.get('texturepath');
 
         //box art location
         configdata['boxpath'] = config.get('boxpath');
+
+        //loading box art recipes
+        configdata['loadingBoxRecipes'] = config.get('loadingBoxRecipes');
 
         configdata['maxSavesPerGame'] = config.get('maxSavesPerGame');
 
