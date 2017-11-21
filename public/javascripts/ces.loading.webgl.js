@@ -239,7 +239,9 @@ var cesLoadingWebGL = (function(_recipe, _Compression, _PubSub, _texturePath, $w
         height = slice * 2;
 
         ctx.drawImage(canvas2, x, y, width, height);
-        var img = canvas.toDataURL("image/png");
+        // var img = new Image();
+        // img.crossOrigin = 'anonymous';
+        img = canvas.toDataURL("image/png");
         
         // var testImage = new Image();
         // testImage.onload = function() {
@@ -247,6 +249,8 @@ var cesLoadingWebGL = (function(_recipe, _Compression, _PubSub, _texturePath, $w
         // };
         // testImage.src = img;
         
+        canvas = null;
+        canvas2 = null;
 
         callback(img);
     };
