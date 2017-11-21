@@ -898,7 +898,7 @@ div.slidingpanel {
 }
 
 #collectionsGrid .grid-item div.add {
-	background: url("/images/add.png") center center no-repeat;
+	background: url("http://cdn.crazyerics.com/images/add.png") center center no-repeat;
 	height: 20px;
 	width: 20px;
 
@@ -908,12 +908,16 @@ div.slidingpanel {
 	-o-transition:All 200ms ease-in;
 }
 
+#collectionsGrid div.button {
+	cursor: pointer;
+}
+
 #collectionsGrid .grid-item div.confirm {
-	background-color: green;
+	background: url("http://cdn.crazyerics.com/images/col-ok.png") center center no-repeat;
 }
 
 #collectionsGrid .grid-item div.cancel {
-	background-color: red;
+	background: url("http://cdn.crazyerics.com/images/col-close.png") center center no-repeat;
 }
 
 #collectionsGrid .grid-item div.controls {

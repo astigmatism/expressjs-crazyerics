@@ -195,11 +195,13 @@ var cesCollections = (function(_BoxArt, _Compression, _Sync, _Tooltips, _PlayGam
         $griditem.append(collection.name); //add all visual content from gamelink to grid
 
         //on click, make active collection
-        $griditem.on('click', function() {
-            _Sync.Get(_baseUrl + '?n=' + encodeURIComponent(_Compression.Compress.string(collection.name)), function(data) {
-                
+        if (collection.name != '') {
+            $griditem.on('click', function() {
+                _Sync.Get(_baseUrl + '?n=' + encodeURIComponent(_Compression.Compress.string(collection.name)), function(data) {
+                    
+                });
             });
-        });
+        }
 
         _collectionsGrid.isotope('insert', $griditem[0]);
 
