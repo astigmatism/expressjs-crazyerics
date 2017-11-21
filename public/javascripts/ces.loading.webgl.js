@@ -2,7 +2,7 @@ var cesLoadingWebGL = (function(_recipe, _Compression, _PubSub, _texturePath, $w
     
     //private members
     var _self = this;
-    var _percOfImageToSample = 0.1;
+    var _percOfImageToSample = 0.05;
     var _camera;
     var _mesh;
     var _scene;
