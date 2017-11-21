@@ -424,7 +424,7 @@
 			"supportfilesize": 0,
 			"collection": "GoodWSx 3.27",
 			"boxcdnversion": "2017-11-20",
-			"romcdnversion": "GoodWsx3.27",
+			"romcdnversion": "GoodWsx-3.27",
 			"suggestionThreshold": 250,
 			"emuextention": "1.6.7-stable",
 			"emuscript": "mednafen_wswan_libretro.js",
@@ -441,45 +441,108 @@
 	"loadingBoxRecipes": {
 		"nes": {
 			"faces": {
-				"back": {
-					"combine": {
-						"texture": "/nes/256x256back.png"
-					}
-				},
-				"left": {
-					"combine": {
-						"texture": "/nes/leftside.png"
-					}
-				},
-				"right": {
-					"combine": {
-						"texture": "/nes/rightside.png"
-					}
-				}
+				"back": "combine",
+				"left": "combine",
+				"right": "combine"
 			}
 		},
 		"snes": {
 			"faces": {
-				"back": {
-					"texture": "/snes/256x256back.png"
-				},
-				"top": {
-					"texture": "/snes/top.png"
-				},
-				"bottom": {
-					"texture": "/snes/bottom.png"
-				},
-				"left": {
-					"color": "rgb(0,0,0)"
-				},
-				"right": {
-					"color": "rgb(0,0,0)"
-				}
+				"back": "texture",
+				"top": "texture",
+				"bottom": "texture",
+				"left": "texture",
+				"right": "texture"
 			}
 		},
 		"n64": {
+			"faces": {
+				"back": "combine",
+				"left": "texture",
+				"right": "texture"
+			}
 		},
 		"gb": {
+			"faces": {
+				"back": "combine",
+				"left": "combine",
+				"right": "combine"
+			}
+		},
+		"gba": {
+			"faces": {
+				"back": "combine"
+			}
+		},
+		"gen": {
+			"faces": {
+				"back": "combine",
+				"left": "texture",
+				"right": "texture"
+			}
+		},
+		"sms": {
+			"faces": {
+				"left": "texture",
+				"right": "texture",
+				"back": "texture"
+			}
+		},
+		"gg": {
+			"faces": {
+				"back": "combine",
+				"left": "texture",
+				"right": "texture"
+			}
+		},
+		"a2600": {
+			"faces": {
+				"back": "combine",
+				"left": "combine",
+				"right": "combine"
+			}
+		},
+		"jag": {
+			"faces": {
+				"back": "texture",
+				"left": "texture",
+				"right": "texture"
+			}
+		},
+		"pce": {
+			"faces": {
+				"back": "texture",
+				"left": "texture",
+				"right": "texture"
+			}
+		},
+		"vect": {
+			"faces": {
+				"back": "texture",
+				"left": "texture",
+				"right": "texture"
+			}
+		},
+		"vb": {
+			"faces": {
+				"back": "texture",
+				"left": "texture",
+				"right": "texture"
+			}
+		},
+		"lynx": {
+			"faces": {
+				"back": "texture",
+				"left": "texture",
+				"right": "texture"
+			}
+		},
+		"wsx": {
+			"faces": {
+				"back": "texture",
+				"left": "texture",
+				"right": "texture"
+			}
 		}
 	},
 	"cannedRecipes": {

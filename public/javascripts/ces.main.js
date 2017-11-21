@@ -763,7 +763,7 @@ var cesMain = (function() {
             recipe = _config.loadingBoxRecipes[gameKey.system];
         }
         
-        var loadingWebGL = new cesLoadingWebGL(recipe, _Compression, _PubSub, _config.texturepath, $('#webglloader'), box, texture);
+        var loadingWebGL = new cesLoadingWebGL(recipe, _Compression, _PubSub, _config.texturepath, $('#webglloader'), box, texture, gameKey.system);
 
         //show tips on loading
         var randomizedTips = shuffle(_tips);
