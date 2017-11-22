@@ -360,7 +360,18 @@ var cesLoadingWebGL = (function(_recipe, _Compression, _PubSub, _texturePath, $w
     var Animate = function() {
         requestAnimationFrame( Animate );
         //_mesh.rotation.x -= 0.09;
-        _mesh.rotation.y += 0.09;
+        
+        var t = THREE.Math.radToDeg(_mesh.rotation.y) % 360;
+
+        //back of box
+        if (t > 90 && t < 270) {
+            _mesh.rotation.y += 0.1;
+            //_mesh.rotation.x -= 0.2;
+        }
+        else {
+            _mesh.rotation.y += 0.06;
+        }
+
         _renderer.render( _scene, _camera );
     };
 
