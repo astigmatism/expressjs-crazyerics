@@ -71,28 +71,6 @@ module.exports = new (function() {
         });
     };
 
-    //for preparing a simple set of save data to client for save selection
-    //depricate in favor of sync
-    // this.GetSavesForClient = function(userTitleId, fileId, callback) {
-        
-    //     SavesSQL.GetSaves(userTitleId, fileId, (err, savesResult) => {
-    //         if (err) {
-    //             return callback(err);
-    //         }
-
-    //         var result = [];
-    //         for (var i = 0, len = savesResult.length; i < len; ++i) {
-    //             result.push({
-    //                 saveId: savesResult[i].save_id,
-    //                 type: savesResult[i].type,
-    //                 timestamp: savesResult[i].client_timestamp,
-    //                 screenshot: savesResult[i].screenshot
-    //             });
-    //         }
-    //         callback(null, result);
-    //     });
-    // };
-
     //get a specific save record using userId, eGameKey and a timestamp
     this.GetSave = function(userId, eGameKey, timestamp, callback) {
         

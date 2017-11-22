@@ -93,14 +93,14 @@ module.exports = new (function() {
         });
     };
 
-    var CheckSaves = function(userId, gameKey, callback) {
+    var CheckSaves = function(userId, eGameKey, callback) {
 
         //if ready flag not set, no new information for client
-        if (!SavesService.Sync.ready) {
+        if (!SavesService.Sync.ready || eGameKey === null) {
             return callback();
         }
 
-        SavesService.Sync.Outgoing(userId, gameKey, (err, data) => {
+        SavesService.Sync.Outgoing(userId, eGameKey, (err, data) => {
             if (err) {
                 return callback(err);
             }

@@ -85,14 +85,14 @@ var cesMain = (function() {
         //auto capture trigger. comment out to avoid build
         //self._autoCaptureHarness('n64', _config.autocapture['n64'].shaders, 7000, 1, 10000);
 
-        _Preferences = new cesPreferences(_Compression, clientdata.components.p);
+        _Preferences = new cesPreferences(_Compression, _PubSub, clientdata.components.p);
         _Sync.RegisterComponent('p', _Preferences.Sync);
 
-        _Collections = new cesCollections(_BoxArt, _Compression, _Sync, _Tooltips, PlayGame, $('#openCollectionGrid'), $('#collectionsGrid'), $('#collectionTitle'), clientdata.components.c, null);
+        _Collections = new cesCollections(_Compression, _PubSub, _BoxArt, _Sync, _Tooltips, PlayGame, $('#openCollectionGrid'), $('#collectionsGrid'), $('#collectionTitle'), clientdata.components.c, null);
         _Sync.RegisterComponent('c', _Collections.Sync);
 
         //show welcome dialog
-        if ($.isEmptyObject(_Preferences.playHistory)) { //TODO fix this
+        if (_Collections.TitleCount === 0 && _Collections.CollectionCount === 1) {
             _Dialogs.ShowDialog('welcomefirst', 200);
         } else {
             _Dialogs.ShowDialog('welcomeback', 200);

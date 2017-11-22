@@ -1,4 +1,4 @@
-var cesCollections = (function(_BoxArt, _Compression, _Sync, _Tooltips, _PlayGameHandler, $collectionTitlesWrapper, $collectionNamesWrapper, $title, _initialSyncPackage, _OnRemoveHandler) {
+var cesCollections = (function(_Compression, _PubSub, _BoxArt, _Sync, _Tooltips, _PlayGameHandler, $collectionTitlesWrapper, $collectionNamesWrapper, $title, _initialSyncPackage, _OnRemoveHandler) {
 		
     //private members
     var _self = this;
@@ -29,6 +29,14 @@ var cesCollections = (function(_BoxArt, _Compression, _Sync, _Tooltips, _PlayGam
             sortAscending: sortAscending,
         });
     };
+
+    this.TitleCount = function() {
+        return _activeCollectionTitles.length;
+    }
+
+    this.CollectionCount = function() {
+        return _collectionNames.length;
+    }
 
     this.SetCurrentGameLoading = function(gameKey) {
         _currentLoadingGame = gameKey;
@@ -102,6 +110,7 @@ var cesCollections = (function(_BoxArt, _Compression, _Sync, _Tooltips, _PlayGam
 
                     //found this title in the grid, update its attributes to keep it up to date
                     $gridTitle.attr('data-lastPlayed', activeTitle.lastPlayed); //store as epoch time for sorting
+                    $gridTitle.attr('data-playCount', activeTitle.playCount);
                 }
             }
 
@@ -135,6 +144,9 @@ var cesCollections = (function(_BoxArt, _Compression, _Sync, _Tooltips, _PlayGam
         //place sorting data on grid item
         $griditem.attr('data-gk', activeTitle.gameKey.gk);
         $griditem.attr('data-lastPlayed', activeTitle.lastPlayed); //store as epoch time for sorting
+        $griditem.attr('data-name', activeTitle.gameKey.title);
+        $griditem.attr('data-system', activeTitle.gameKey.system);
+        $griditem.attr('data-playCount', activeTitle.playCount);
 
         $griditem.append(activeTitle.gameLink.GetDOM()); //add all visual content from gamelink to grid
 
@@ -197,8 +209,9 @@ var cesCollections = (function(_BoxArt, _Compression, _Sync, _Tooltips, _PlayGam
         //on click, make active collection
         if (collection.name != '') {
             $griditem.on('click', function() {
-                _Sync.Get(_baseUrl + '?n=' + encodeURIComponent(_Compression.Compress.string(collection.name)), function(data) {
-                    
+                var compressedName = _Compression.Compress.string(collection.name);
+                _Sync.Get(_baseUrl + '?n=' + encodeURIComponent(compressedName), function(data) {
+                    _PubSub.Publish('setpreference', ['collections.active', compressedName]);
                 });
             });
         }
@@ -233,6 +246,25 @@ var cesCollections = (function(_BoxArt, _Compression, _Sync, _Tooltips, _PlayGam
         //create the tooltip content
         var $tooltipContent = $('<div class="collection-tooltip" />');
         
+        $lastPlayed = $('<div class="pointer">Sort by Last Played</div>');
+        $lastPlayed.on('click', function() {
+            _self.SortBy('lastPlayed', false);
+        });
+        $tooltipContent.append($lastPlayed);
+        
+        
+        $nameSort = $('<div class="pointer">Sort by Name</div>');
+        $nameSort.on('click', function() {
+            _self.SortBy('name', true);
+        });
+        $tooltipContent.append($nameSort);
+
+        $playCountSort = $('<div class="pointer">Sort by Most Played</div>');
+        $playCountSort.on('click', function() {
+            _self.SortBy('playCount', false);
+        });
+        $tooltipContent.append($playCountSort);
+        
         $remove = $('<div class="remove">Delete this Collection</div>');
         $remove.on('click', function() {
             $remove.off('click');
@@ -252,7 +284,7 @@ var cesCollections = (function(_BoxArt, _Compression, _Sync, _Tooltips, _PlayGam
         var Show = function() {
 
             $gi.animate({
-                width: 150    
+                width: 200    
             },{
                 duration: 300,
                 easing: "linear",
@@ -554,6 +586,14 @@ var cesCollections = (function(_BoxArt, _Compression, _Sync, _Tooltips, _PlayGam
             getSortData: {
                 lastPlayed: function(item) {
                     var played = $(item).attr('data-lastPlayed');
+                    return parseInt(played, 10);
+                },
+                name: function(item) {
+                    return $(item).attr('data-name');
+                    
+                },
+                playCount: function(item) {
+                    var played = $(item).attr('data-playCount');
                     return parseInt(played, 10);
                 }
             }

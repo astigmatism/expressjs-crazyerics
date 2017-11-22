@@ -2,7 +2,7 @@
  * Object which wraps common functions related to player preferences, data that comes form the server initially but can be changed
  * @type {Object}
  */
-var cesPreferences = (function(_Compression, initialData) {
+var cesPreferences = (function(_Compression, _PubSub, initialData) {
 
     var _self = this;
     var _data = {};
@@ -79,7 +79,7 @@ var cesPreferences = (function(_Compression, initialData) {
         try {
             result = localStorage.getItem(_storageName);
             result = _Compression.Decompress.json(result);
-        } 
+        }
         catch (e) {
             //nothing really, if its invalid, then we wont use it
         }
@@ -128,6 +128,12 @@ var cesPreferences = (function(_Compression, initialData) {
         }
         //in either case, we need to update the server cache to inform validation took place
         _self.Sync.ready = true; //update the server with validated data
+
+
+        //listen to these
+        _PubSub.Subscribe('setpreference', _self, function(key, value) {
+            Set(key, value);
+        });
 
     })();
 
