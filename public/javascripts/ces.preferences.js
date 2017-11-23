@@ -9,41 +9,16 @@ var cesPreferences = (function(_Compression, _PubSub, initialData) {
     var _storageName = 'preferences';
 
     /**
-     * returns player's shader preference for the system specified
-     * @param  {string} system
-     * @return {string}
-     */
-    this.GetShader = function(system) {
-
-        var shader = Get('systems.' + system + '.shader');
-        if (shader != null && typeof shader != 'undefined') {
-            return shader;
-        }
-        return null;
-    };
-
-    /**
-     * set's a player's shader preference for the system specified.
-     * @param {string} system
-     * @param {string} value
-     */
-    this.SetShader = function(system, value) {
-        
-        Set('systems.' + system + '.shader', value);
-        return _data;
-    };
-
-    /**
      * Helper function to get values out of nested object structure
      * @param {String} key 
      */
-    var Get = function(key, values) {
+    this.Get = function(key, values) {
         return key.split('.').reduce(function(o, x) {
             return (typeof o == 'undefined' || o === null) ? o : o[x];
         }, _data);
     };
 
-    var Set = function(key, value) {
+    this.Set = function(key, value) {
 
         var pieces = key.split('.');
         var currentDepth = _data;
@@ -51,18 +26,26 @@ var cesPreferences = (function(_Compression, _PubSub, initialData) {
         for (var i = 0, len = pieces.length; i < len; ++i) {
             
             var valueToInsert = {};
+            var currentKey = pieces[i];
+
             //final assigns value
             if (i == len - 1) {
-                valueToInsert = value;
+                currentDepth[currentKey] = value;
+                break;
             }
             
-            if (!currentDepth.hasOwnProperty(pieces[i])) {
-                currentDepth[pieces[i]] = valueToInsert;
+            //if this key is not found in preferences, create or insert it
+            if (!currentDepth.hasOwnProperty(currentKey)) {
+                currentDepth[currentKey] = valueToInsert;
 
-            } else if (typeof currentDepth[pieces[i]] != 'object') {
-                currentDepth[pieces[i]] = valueToInsert;
             } 
-            currentDepth = currentDepth[pieces[i]];
+            //if it was found, but the depth is not an object, create or insert it
+            else if (typeof currentDepth[currentKey] != 'object') {
+                currentDepth[currentKey] = valueToInsert;
+            }
+
+            //move into next
+            currentDepth = currentDepth[currentKey];
         }
         
         _self.Sync.ready = true; //flag to update server
@@ -70,6 +53,7 @@ var cesPreferences = (function(_Compression, _PubSub, initialData) {
     };
 
     var SetStorage = function() {
+        console.log(_data);
         localStorage.setItem(_storageName, _Compression.Compress.json(_data));
     };
 
@@ -84,7 +68,7 @@ var cesPreferences = (function(_Compression, _PubSub, initialData) {
             //nothing really, if its invalid, then we wont use it
         }
         return result;
-    }
+    };
 
     //in order to sync data between server and client, this structure must exist
     this.Sync = new (function() {
@@ -108,25 +92,18 @@ var cesPreferences = (function(_Compression, _PubSub, initialData) {
 
     //exists at bottom to ensure all other methods/members are defined
     var Constructor = (function() {
-
-        //initialData will always be something, but check the client validation flag
-        if (initialData.validated === 1) {
-            _self.Sync.Incoming(initialData);
-            return;
-        }
         
-        //if here, not validated with client yet. Perhaps client has more up to date data (server restart, cache cleared)
+        //client always gets authority on values, unless they don't exist
         var clientData = GetStorage();
         
         if (clientData) {
             _self.Sync.Incoming(clientData);
         }
         //there was no client cookie, accept the server data
-        else {
-            initialData.validated = 1;
+        else if (initialData) {
             _self.Sync.Incoming(initialData);
         }
-        //in either case, we need to update the server cache to inform validation took place
+
         _self.Sync.ready = true; //update the server with validated data
 
 

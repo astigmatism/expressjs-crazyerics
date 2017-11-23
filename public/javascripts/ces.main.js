@@ -88,7 +88,7 @@ var cesMain = (function() {
         _Preferences = new cesPreferences(_Compression, _PubSub, clientdata.components.p);
         _Sync.RegisterComponent('p', _Preferences.Sync);
 
-        _Collections = new cesCollections(_Compression, _PubSub, _BoxArt, _Sync, _Tooltips, PlayGame, $('#openCollectionGrid'), $('#collectionsGrid'), $('#collectionTitle'), clientdata.components.c, null);
+        _Collections = new cesCollections(_Compression, _Preferences, _BoxArt, _Sync, _Tooltips, PlayGame, $('#openCollectionGrid'), $('#collectionsGrid'), clientdata.components.c, null);
         _Sync.RegisterComponent('c', _Collections.Sync);
 
         //show welcome dialog
@@ -676,7 +676,7 @@ var cesMain = (function() {
 
         //bail early: check if user checked to use a shader for this system everytime
         //if they saved "No Processing" its an empty string
-        var userpreference = _Preferences.GetShader(system);
+        var userpreference = _Preferences.Get('systems.' + system + '.shader');
         if (userpreference || userpreference == "") {
             callback({
                 'shader': userpreference
@@ -723,7 +723,7 @@ var cesMain = (function() {
             //get result of checkbox
             if ($('#shaderselectcheckbox').is(':checked')) {
                 saveselection = true;
-                _Preferences.SetShader(system, shader); //we set a flag in pref when update to go out over the next request
+                _Preferences.Set('systems.' + system + '.shader', shader); //we set a flag in pref when update to go out over the next request
             }
 
             setTimeout(function() {

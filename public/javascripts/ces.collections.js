@@ -1,4 +1,4 @@
-var cesCollections = (function(_Compression, _PubSub, _BoxArt, _Sync, _Tooltips, _PlayGameHandler, $collectionTitlesWrapper, $collectionNamesWrapper, $title, _initialSyncPackage, _OnRemoveHandler) {
+var cesCollections = (function(_Compression, _Preferences, _BoxArt, _Sync, _Tooltips, _PlayGameHandler, $collectionTitlesWrapper, $collectionNamesWrapper, _initialSyncPackage, _OnRemoveHandler) {
 		
     //private members
     var _self = this;
@@ -32,11 +32,11 @@ var cesCollections = (function(_Compression, _PubSub, _BoxArt, _Sync, _Tooltips,
 
     this.TitleCount = function() {
         return _activeCollectionTitles.length;
-    }
+    };
 
     this.CollectionCount = function() {
         return _collectionNames.length;
-    }
+    };
 
     this.SetCurrentGameLoading = function(gameKey) {
         _currentLoadingGame = gameKey;
@@ -133,7 +133,13 @@ var cesCollections = (function(_Compression, _PubSub, _BoxArt, _Sync, _Tooltips,
         }
 
         //finally, sort everything
-        _self.SortBy('lastPlayed', false);
+        var preferredSort = _Preferences.Get('collections.sort.' + _activeCollectionName);
+        if (preferredSort) {
+            _self.SortBy(preferredSort.type, preferredSort.asc);
+        }
+        else {
+            _self.SortBy('lastPlayed', false);
+        }
     };
 
     var AddTitle = function(activeTitle) {
@@ -209,10 +215,12 @@ var cesCollections = (function(_Compression, _PubSub, _BoxArt, _Sync, _Tooltips,
         //on click, make active collection
         if (collection.name != '') {
             $griditem.on('click', function() {
-                var compressedName = _Compression.Compress.string(collection.name);
-                _Sync.Get(_baseUrl + '?n=' + encodeURIComponent(compressedName), function(data) {
-                    _PubSub.Publish('setpreference', ['collections.active', compressedName]);
-                });
+                if (_activeCollectionName != collection.name) {
+                    var compressedName = _Compression.Compress.string(collection.name);
+                    _Sync.Get(_baseUrl + '?n=' + encodeURIComponent(compressedName), function(data) {
+                        
+                    });
+                }
             });
         }
 
@@ -249,6 +257,7 @@ var cesCollections = (function(_Compression, _PubSub, _BoxArt, _Sync, _Tooltips,
         $lastPlayed = $('<div class="pointer">Sort by Last Played</div>');
         $lastPlayed.on('click', function() {
             _self.SortBy('lastPlayed', false);
+            _Preferences.Set('collections.sort.' + collection.name, { type: 'lastPlayed', asc: false });
         });
         $tooltipContent.append($lastPlayed);
         
@@ -256,12 +265,14 @@ var cesCollections = (function(_Compression, _PubSub, _BoxArt, _Sync, _Tooltips,
         $nameSort = $('<div class="pointer">Sort by Name</div>');
         $nameSort.on('click', function() {
             _self.SortBy('name', true);
+            _Preferences.Set('collections.sort.' + collection.name, { type: 'name', asc: true });
         });
         $tooltipContent.append($nameSort);
 
         $playCountSort = $('<div class="pointer">Sort by Most Played</div>');
         $playCountSort.on('click', function() {
             _self.SortBy('playCount', false);
+            _Preferences.Set('collections.sort.' + collection.name, { type: 'playCount', asc: false });
         });
         $tooltipContent.append($playCountSort);
         
@@ -417,6 +428,11 @@ var cesCollections = (function(_Compression, _PubSub, _BoxArt, _Sync, _Tooltips,
         };
 
         var Constructor = (function() {
+
+            //add a tooltip
+            $griditem.attr('title', 'Create a New Collection');
+            $griditem.addClass('tooltip');
+
             Reset(); //start by resetting
         })();
     });
@@ -438,6 +454,14 @@ var cesCollections = (function(_Compression, _PubSub, _BoxArt, _Sync, _Tooltips,
 
             var isNewCollection = true;
 
+            //dont show default collection when no titles (new user)
+            if (package.collections.length === 1 && package.titles.length === 0) {
+                $collectionNamesWrapper.addClass('hidden');
+            }
+            else {
+                $collectionNamesWrapper.removeClass('hidden');
+            }
+
             //handle active collection titles
             ParseActiveTitles(package.titles);
 
@@ -447,14 +471,6 @@ var cesCollections = (function(_Compression, _PubSub, _BoxArt, _Sync, _Tooltips,
 
             //handle other collection names data
             ParseCollectionNames(package.collections);
-
-            //dont show default collection when no titles (new user)
-            if (_collectionNames.length === 1 && _activeCollectionTitles.length === 0) {
-                _collectionsGrid.hide();
-            }
-            else {
-                _collectionsGrid.show();
-            }
 
             //if this is entire package contains data for a new collection not currently being shown, clear the grid
             if (isNewCollection) {
@@ -486,7 +502,7 @@ var cesCollections = (function(_Compression, _PubSub, _BoxArt, _Sync, _Tooltips,
                 if (newCollection) {
                     _collectionNames.push(payload[i]);
                 }
-            };
+            }
 
             //check for removals
             for (var k = (_collectionNames.length - 1); k > -1; --k) {

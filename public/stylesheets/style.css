@@ -846,7 +846,7 @@ div.slidingpanel {
 	display: block;
 }
 
-/* recentlyplayed */
+/* collections */
 
 #collectionsWrapper {
 	height: auto;
@@ -860,8 +860,6 @@ div.slidingpanel {
 	background: linear-gradient(to bottom,  rgba(0,0,0,1) 0%,rgba(0,0,0,0) 100%); /* W3C */
 	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#000000', endColorstr='#00000000',GradientType=0 ); /* IE6-9 */
 }
-
-/* collections */
 
 .tooltip-content-wrapper {
 	display: none;
@@ -877,6 +875,11 @@ div.slidingpanel {
 	-webkit-transition:All 200ms ease-in;
 	-moz-transition:All 200ms ease-in;
 	-o-transition:All 200ms ease-in;
+}
+
+#collectionsGrid.hidden {
+	position: absolute !important;
+	visibility: hidden;
 }
 
 #collectionsGrid .grid-item {
