@@ -132,14 +132,7 @@ var cesCollections = (function(_Compression, _Preferences, _BoxArt, _Sync, _Tool
             }
         }
 
-        //finally, sort everything
-        var preferredSort = _Preferences.Get('collections.sort.' + _activeCollectionName);
-        if (preferredSort) {
-            _self.SortBy(preferredSort.type, preferredSort.asc);
-        }
-        else {
-            _self.SortBy('lastPlayed', false);
-        }
+        RelayoutTitles();
     };
 
     var AddTitle = function(activeTitle) {
@@ -156,14 +149,31 @@ var cesCollections = (function(_Compression, _Preferences, _BoxArt, _Sync, _Tool
 
         $griditem.append(activeTitle.gameLink.GetDOM()); //add all visual content from gamelink to grid
 
+        //set box image load error
+        activeTitle.gameLink.SetImageLoadError(function() {
+            RelayoutTitles(); 
+        });
+
         $griditem.find('img').imagesLoaded().progress(function(imgLoad, image) {
             $(image.img).parent().removeClass('close'); //remove close on parent to reveal image
-            _titlesGrid.isotope('layout');
+            RelayoutTitles();
         });
 
         _titlesGrid.isotope('insert', $griditem[0]);
 
         return $griditem;
+    };
+
+    var RelayoutTitles = function() {
+
+        var preferredSort = _Preferences.Get('collections.sort.' + _activeCollectionName);
+        if (preferredSort) {
+            _self.SortBy(preferredSort.type, preferredSort.asc);
+        }
+        else {
+            _self.SortBy('lastPlayed', false);
+        }
+        _titlesGrid.isotope('layout');
     };
 
     this.PopulateCollections = function()  {
@@ -279,6 +289,7 @@ var cesCollections = (function(_Compression, _Preferences, _BoxArt, _Sync, _Tool
         $remove = $('<div class="remove">Delete this Collection</div>');
         $remove.on('click', function() {
             $remove.off('click');
+            _Preferences.Remove('collections.sort.' + collection.name);
             RemoveCollection(collection, function() {
                 
             });

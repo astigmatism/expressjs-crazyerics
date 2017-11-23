@@ -52,6 +52,34 @@ var cesPreferences = (function(_Compression, _PubSub, initialData) {
         SetStorage();
     };
 
+    this.Remove = function(key) {
+
+        var pieces = key.split('.');
+        var currentDepth = _data;
+
+        for (var i = 0, len = pieces.length; i < len; ++i) {
+            
+            var currentKey = pieces[i];
+
+            //final assigns value
+            if (i == len - 1) {
+               delete currentDepth[currentKey];
+                break;
+            }
+            
+            //if part of this key is not found in preferences, bail
+            if (!currentDepth.hasOwnProperty(currentKey)) {
+                break;
+            } 
+
+            //move into next
+            currentDepth = currentDepth[currentKey];
+        }
+        
+        _self.Sync.ready = true; //flag to update server
+        SetStorage();
+    };
+
     var SetStorage = function() {
         console.log(_data);
         localStorage.setItem(_storageName, _Compression.Compress.json(_data));

@@ -13,6 +13,7 @@ var cesBoxArt = (function(_config, _Compression) {
     
             //on error, set a new load listener and load the error image
             this.addEventListener('load', function() {    
+                
                 if (this.height) {
                     this.setAttribute('height', this.height + 'px');
                 }
@@ -25,15 +26,29 @@ var cesBoxArt = (function(_config, _Compression) {
         return $(img);
     };
 
-    this.Get = function(gameKey, size, onImageLoad) {
+    this.Get = function(gameKey, size, opt_imageLoaded, opt_customErrorhandler) {
         var img = new Image();
         img.src = BuildUrl(gameKey, size);
         img.crossOrigin = 'anonymous'; //this is necessary when creating a new image from canvas
-        if (onImageLoad) {
+        if (opt_imageLoaded) {
             img.onload = function() {
-                onImageLoad(this);
+                opt_imageLoaded(this);
             };
         }
+        img.addEventListener('error', function() {
+            //on error, set a new load listener and load the error image
+            this.addEventListener('load', function() {
+
+                if (this.height) {
+                    this.setAttribute('height', this.height + 'px');
+                }
+                if (opt_customErrorhandler) {
+                    opt_customErrorhandler(this);
+                }
+            });
+            this.src = BuildErrorUrl(gameKey, size);
+        });
+
         return img;
     };
 

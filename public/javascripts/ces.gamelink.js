@@ -17,12 +17,22 @@ var cesGameLink = (function(_BoxArt, gameKey, size, opt_tooltip, opt_PlayGame, o
         $(_gamelink).find('*').off();
     };
 
+    this.SetImageLoadError = function(handler) {
+        opt_onImageLoadError = handler;
+    };
+
     var Constructor = (function() {
 
         var _self = this;
 
         var $div = $('<div class="gamelink"></div>');
-        var $box = _BoxArt.Get$(gameKey, size);
+        var $box = _BoxArt.Get$(gameKey, size, function(image) {
+            //on image load failure
+            $(image).parent().append('<div class="boxlabel boxlabel-' + gameKey.system + '"><p>' + gameKey.title + '</p></div>');
+            if (opt_onImageLoadError) {
+                opt_onImageLoadError(image);
+            }
+        });
 
         //show box art when finished loading
         $box.load(function() {
@@ -48,11 +58,6 @@ var cesGameLink = (function(_BoxArt, gameKey, size, opt_tooltip, opt_PlayGame, o
         }
 
         $imagewrapper.append($box);
-
-        //also when box load fails, in addition to showing the blank cartridge, let's create a fake label for it
-        $box.error(function(e) {
-            $(this).parent().append('<div class="boxlabel boxlabel-' + gameKey.system + '"><p>' + gameKey.title + '</p></div>');
-        });
 
         $div.append($imagewrapper);
 
