@@ -92,7 +92,7 @@ var cesMain = (function() {
         _Sync.RegisterComponent('c', _Collections.Sync);
 
         //show welcome dialog
-        if (_Collections.TitleCount === 0 && _Collections.CollectionCount === 1) {
+        if (_Collections.TitleCount() === 0 && _Collections.CollectionCount() === 1) {
             _Dialogs.ShowDialog('welcomefirst', 200);
         } else {
             _Dialogs.ShowDialog('welcomeback', 200);

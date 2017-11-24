@@ -9,7 +9,7 @@
 	"emupath": "http://cdn.crazyerics.com/emulators", //"http://d15urfrvwzi8iz.cloudfront.net",
 	"supportpath": "http://cdn.crazyerics.com/support", //"https://dl.dropboxusercontent.com/u/1433808/crazyerics/support",
 	"maxSavesPerGame": 40,
-	"defaultCollection": "Recently Played",
+	"defaultCollection": "My Library",
 	"db": {
 		"postgre": {
 			"host": "192.168.1.3",

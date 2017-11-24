@@ -878,7 +878,6 @@ div.slidingpanel {
 }
 
 #collectionsGrid.hidden {
-	position: absolute !important;
 	visibility: hidden;
 }
 

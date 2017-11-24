@@ -438,7 +438,7 @@ var cesCollections = (function(_Compression, _Preferences, _BoxArt, _Sync, _Tool
         var Constructor = (function() {
 
             //add a tooltip
-            $griditem.attr('title', 'Create a New Collection');
+            $griditem.attr('title', 'Create a New Personal Game Collection');
             $griditem.addClass('tooltip');
 
             Reset(); //start by resetting
@@ -521,14 +521,6 @@ var cesCollections = (function(_Compression, _Preferences, _BoxArt, _Sync, _Tool
 
             var isNewCollection = true;
 
-            //dont show default collection when no titles (new user)
-            if (package.collections.length === 1 && package.titles.length === 0) {
-                $collectionNamesWrapper.addClass('hidden');
-            }
-            else {
-                $collectionNamesWrapper.removeClass('hidden');
-            }
-
             //handle active collection titles
             ParseActiveTitles(package.titles);
 
@@ -542,6 +534,14 @@ var cesCollections = (function(_Compression, _Preferences, _BoxArt, _Sync, _Tool
             //populate updates grid
             _self.PopulateTitles();
             _self.PopulateCollections();
+
+            //dont show default collection when no titles (new user)
+            if (package.collections.length === 1 && package.titles.length === 0) {
+                $collectionNamesWrapper.addClass('hidden');
+            }
+            else {
+                $collectionNamesWrapper.removeClass('hidden');
+            }
         };
 
         //not used (yet). delete forces update on server
