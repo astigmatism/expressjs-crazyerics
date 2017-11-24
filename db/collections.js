@@ -6,33 +6,14 @@ const Cache = require('../services/cache');
 module.exports = new (function() {
 
     var _self = this;
-    var _collectionsCache = new Cache('user.$1.collections'); //value is an array of collection names for this user
 
     this.GetCollectionNames = function (userId, callback) {
 
-        _collectionsCache.Get([userId], (err, cache) => {
+        pool.query('SELECT * from collections WHERE user_id=$1', [userId], (err, result) => {
             if (err) {
                 return callback(err);
             }
-
-            if (cache) {
-                return callback(null, cache);
-            }
-
-            pool.query('SELECT * from collections WHERE user_id=$1', [userId], (err, result) => {
-                if (err) {
-                    return callback(err);
-                }
-
-                var collections = result.rows;
-
-                _collectionsCache.Set([userId], collections, (err, success) => {
-                    if (err) {
-                        return callback(err);
-                    }
-                    return callback(null, collections);
-                });
-            });
+            return callback(null, result.rows);
         });
     };
 
@@ -104,14 +85,7 @@ module.exports = new (function() {
             if (result.rows.length === 0) {
                 return callback();
             }
-
-            //invalidate cache which holds collection names for this user
-            _collectionsCache.Delete([userId], (err, success) => {
-                if (err) {
-                    return callback(err);
-                }
-                callback(null, result.rows[0]);
-            });
+            callback(null, result.rows[0]);
         });
     };
 
@@ -121,13 +95,7 @@ module.exports = new (function() {
             if (err) {
                 return callback(err);
             }
-
-            _collectionsCache.Delete([userId], (err, success) => {
-                if (err) {
-                    return callback(err);
-                }
-                callback(null, result.rows[0]);
-            });
+            callback(null, result.rows[0]);
         });
     };
 
@@ -140,6 +108,16 @@ module.exports = new (function() {
                 return callback(err);
             }
             callback(null, result.rows); //ensure we always return an array, 0 length or not
+        });
+    };
+
+    this.ReassignCollectionWithSort = function(collectionId, userId, sort, asc, callback) {
+
+        pool.query('UPDATE collections SET user_id=$1, sort=$3, "asc"=$4 WHERE collection_id=$2', [userId, collectionId, sort, asc], (err, result) => {
+            if (err) {
+                return callback(err);
+            }
+            callback(null, result.rows[0]);
         });
     };
 

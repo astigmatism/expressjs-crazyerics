@@ -81,7 +81,6 @@ var cesPreferences = (function(_Compression, _PubSub, initialData) {
     };
 
     var SetStorage = function() {
-        console.log(_data);
         localStorage.setItem(_storageName, _Compression.Compress.json(_data));
     };
 

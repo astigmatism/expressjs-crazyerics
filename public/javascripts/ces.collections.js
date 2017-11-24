@@ -7,9 +7,12 @@ var cesCollections = (function(_Compression, _Preferences, _BoxArt, _Sync, _Tool
     var _BOXSIZE = 120;
     var _currentLoadingGame = null;
     var _baseUrl = '/collections';
+    var _copyToFeaturedButton = false;   //DISABLE FOR PROD
 
     //local data structures/cache
     var _activeCollectionName = "";
+    var _TitlesSort = null;
+
     var _activeCollectionTitles = [];
     var _collectionNames = [];
 
@@ -132,7 +135,7 @@ var cesCollections = (function(_Compression, _Preferences, _BoxArt, _Sync, _Tool
             }
         }
 
-        RelayoutTitles();
+        _TitlesSort.Sort();
     };
 
     var AddTitle = function(activeTitle) {
@@ -151,29 +154,17 @@ var cesCollections = (function(_Compression, _Preferences, _BoxArt, _Sync, _Tool
 
         //set box image load error
         activeTitle.gameLink.SetImageLoadError(function() {
-            RelayoutTitles(); 
+            _TitlesSort.Sort();
         });
 
         $griditem.find('img').imagesLoaded().progress(function(imgLoad, image) {
             $(image.img).parent().removeClass('close'); //remove close on parent to reveal image
-            RelayoutTitles();
+            _TitlesSort.Sort();
         });
 
         _titlesGrid.isotope('insert', $griditem[0]);
 
         return $griditem;
-    };
-
-    var RelayoutTitles = function() {
-
-        var preferredSort = _Preferences.Get('collections.sort.' + _activeCollectionName);
-        if (preferredSort) {
-            _self.SortBy(preferredSort.type, preferredSort.asc);
-        }
-        else {
-            _self.SortBy('lastPlayed', false);
-        }
-        _titlesGrid.isotope('layout');
     };
 
     this.PopulateCollections = function()  {
@@ -223,10 +214,19 @@ var cesCollections = (function(_Compression, _Preferences, _BoxArt, _Sync, _Tool
         $griditem.append(collection.name); //add all visual content from gamelink to grid
 
         //on click, make active collection
-        if (collection.name != '') {
+        if (collection.name === '!') {
+            $griditem.on('click', function() {
+                var sortData = _TitlesSort.Get();
+                _Sync.Post(_baseUrl + '/makefeature', sortData, function(data) {
+                    
+                });
+            });
+        }
+        else if (collection.name != '') {
             $griditem.on('click', function() {
                 if (_activeCollectionName != collection.name) {
                     var compressedName = _Compression.Compress.string(collection.name);
+                    _Preferences.Set('collections.active', collection.name);
                     _Sync.Get(_baseUrl + '?n=' + encodeURIComponent(compressedName), function(data) {
                         
                     });
@@ -266,23 +266,20 @@ var cesCollections = (function(_Compression, _Preferences, _BoxArt, _Sync, _Tool
         
         $lastPlayed = $('<div class="pointer">Sort by Last Played</div>');
         $lastPlayed.on('click', function() {
-            _self.SortBy('lastPlayed', false);
-            _Preferences.Set('collections.sort.' + collection.name, { type: 'lastPlayed', asc: false });
+            _TitlesSort.Change('lastPlayed', false);
         });
         $tooltipContent.append($lastPlayed);
         
         
         $nameSort = $('<div class="pointer">Sort by Name</div>');
         $nameSort.on('click', function() {
-            _self.SortBy('name', true);
-            _Preferences.Set('collections.sort.' + collection.name, { type: 'name', asc: true });
+            _TitlesSort.Change('name', true);
         });
         $tooltipContent.append($nameSort);
 
         $playCountSort = $('<div class="pointer">Sort by Most Played</div>');
         $playCountSort.on('click', function() {
-            _self.SortBy('playCount', false);
-            _Preferences.Set('collections.sort.' + collection.name, { type: 'playCount', asc: false });
+            _TitlesSort.Change('playCount', false);
         });
         $tooltipContent.append($playCountSort);
         
@@ -447,6 +444,65 @@ var cesCollections = (function(_Compression, _Preferences, _BoxArt, _Sync, _Tool
             Reset(); //start by resetting
         })();
     });
+    
+    var TitleSortHelper = (function() {
+
+        var __self = this;
+        var _sort = 'lastPlayed';
+        var _asc = false;
+        var _name = '';
+
+        this.Set = function(payload) {
+            
+            _name = payload.name;
+
+            var userPreferece = _Preferences.Get('collections.sort.' + _name);
+
+            //first get user preferences for sorting
+            if (userPreferece && userPreferece.hasOwnProperty('sort')) {
+                _sort = userPreferece.sort;
+            }
+            //next the default value (if exists)
+            else if (payload.hasOwnProperty('sort') && payload.sort != null) {
+                _sort = payload.sort;
+            }
+
+            if (userPreferece && userPreferece.hasOwnProperty('asc')) {
+                _asc = userPreferece.asc;
+            }
+            else if (payload.hasOwnProperty('asc') && payload.asc != null) {
+                _asc = payload.asc;
+            }
+
+            return __self.Get();
+        };
+
+        this.Get = function() {
+            return {
+                sort: _sort,
+                asc: _asc
+            };
+        };
+
+        this.Reset = function() {
+            _sort = 'lastPlayed';
+            _asc = false;
+        };
+
+        this.Sort = function() {
+            
+            _self.SortBy(_sort, _asc);
+    
+            _titlesGrid.isotope('layout');
+        };
+
+        this.Change = function(sort, asc) {
+            _sort = sort;
+            _asc = asc;
+            _Preferences.Set('collections.sort.' + _name, __self.Get());
+            __self.Sort();
+        };
+    });
 
     //in order to sync data between server and client, this structure must exist
     this.Sync = new (function() {
@@ -483,11 +539,6 @@ var cesCollections = (function(_Compression, _Preferences, _BoxArt, _Sync, _Tool
             //handle other collection names data
             ParseCollectionNames(package.collections);
 
-            //if this is entire package contains data for a new collection not currently being shown, clear the grid
-            if (isNewCollection) {
-                //_titlesGrid.isotope('remove', _titlesGrid.children()); //clear grid first
-            }
-
             //populate updates grid
             _self.PopulateTitles();
             _self.PopulateCollections();
@@ -512,6 +563,10 @@ var cesCollections = (function(_Compression, _Preferences, _BoxArt, _Sync, _Tool
                 }
                 if (newCollection) {
                     _collectionNames.push(payload[i]);
+                }
+
+                if (_activeCollectionName === payload[i].name) {
+                    _TitlesSort.Set(payload[i]);
                 }
             }
 
@@ -606,6 +661,8 @@ var cesCollections = (function(_Compression, _Preferences, _BoxArt, _Sync, _Tool
      */
     var Constructor = (function() {
         
+        _TitlesSort = new TitleSortHelper(); //sorting helper
+
         //first, build the grid
         _titlesGrid = $collectionTitlesWrapper.isotope({
             layoutMode: 'masonry',
@@ -633,6 +690,11 @@ var cesCollections = (function(_Compression, _Preferences, _BoxArt, _Sync, _Tool
 
         $add = AddCollection({name:''});
         new NewCollectionControls($add);
+
+        //will also disable on the server for prod
+        if (_copyToFeaturedButton) {
+            $featureAdd = AddCollection({name:'!'}); //! since this name cannot be entered by a user
+        }
 
         //parse the incoming sync data from server
         _self.Sync.Incoming(_initialSyncPackage);

@@ -20,7 +20,7 @@ router.get('/', function(req, res, next) {
         return next('The server failed to parse required post data or query strings.');
     }
     
-    if (req.user && name) {
+    if (req.user && name && name !== '' && name != '!') {
 
         var userId = req.user.user_id;
 
@@ -47,7 +47,7 @@ router.post('/', function(req, res, next) {
     
     var name = req.body.name;
 
-    if (req.user && name) {
+    if (req.user && name && name !== '' && name !== '!') {
         
         var userId = req.user.user_id;
 
@@ -143,6 +143,28 @@ router.delete('/game', function(req, res, next) {
                 });
             });
         });
+    }
+    else {
+        return next('Missing input parameters');
+    }
+});
+
+router.post('/makefeature', function(req, res, next) {
+    
+    var env = process.env.NODE_ENV;
+    var sort = req.body.sort;
+    var asc = req.body.asc;
+
+    if (env !== 'production' && req.user && sort && asc) {
+        
+        var userId = req.user.user_id;
+
+        CollectionsService.MakeFeaturedCollection(userId, sort, asc, (err) => {
+            if (err) {
+                return next(err);
+            }
+            res.json();
+        })
     }
     else {
         return next('Missing input parameters');

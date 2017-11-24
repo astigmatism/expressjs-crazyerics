@@ -9,6 +9,7 @@ module.exports = new (function() {
 
     var _self = this;
     var _collectionCache = new Cache('collections.user.$1.collection.$2'); //value is an array of titles in collection with their data
+    var _collectionNamesCache = new Cache('collections.user.$1.collections'); //value is an array of collection names for this user
     const preferencesKeyForActiveCollection = 'collections.active';
 
     var CollectionEnvelope = (function() {
@@ -22,8 +23,16 @@ module.exports = new (function() {
             if (err) {
                 return callback(err);
             }
-            _self.Sync.ready = true; //new collection means passing new names to client
-            callback(null, createResult);
+            
+            //invalidate cache which holds collection names for this user
+            _collectionNamesCache.Delete([userId], (err, success) => {
+                if (err) {
+                    return callback(err);
+                }
+                _self.Sync.ready = true; //new collection means passing new names to client
+                
+                callback(null, createResult);
+            });
         });
     };
 
@@ -77,7 +86,31 @@ module.exports = new (function() {
         });
     };
 
-    this.GetCollectionNames = CollectionsSQL.GetCollectionNames;
+    this.GetCollectionNames = function (userId, callback) {
+        
+        _collectionNamesCache.Get([userId], (err, cache) => {
+            if (err) {
+                return callback(err);
+            }
+
+            if (cache) {
+                return callback(null, cache);
+            }
+
+            CollectionsSQL.GetCollectionNames(userId, (err, collections) => {
+                if (err) {
+                    return callback(err);
+                }
+
+                _collectionNamesCache.Set([userId], collections, (err, success) => {
+                    if (err) {
+                        return callback(err);
+                    }
+                    return callback(null, collections);
+                });
+            });
+        });
+    };
 
     this.DeleteCollectionByName = function(userId, collectionName, callback) {
 
@@ -86,18 +119,25 @@ module.exports = new (function() {
                 return callback(err);
             }
 
-            OnDelete(userId, collectionName, (err) => {
+            //delete collection names cache
+            _collectionNamesCache.Delete([userId], (err, success) => {
                 if (err) {
                     return callback(err);
                 }
-
-                //reset local cache for this collection, set the sync flag to update the client
-                ResetActiveCollectionCacheWithName(userId, collectionName, (err) => {
+                
+                OnDelete(userId, collectionName, (err) => {
                     if (err) {
                         return callback(err);
                     }
-                    return callback();
-                });
+    
+                    //reset local cache for this collection, set the sync flag to update the client
+                    ResetActiveCollectionCacheWithName(userId, collectionName, (err) => {
+                        if (err) {
+                            return callback(err);
+                        }
+                        return callback();
+                    });
+                }); 
             });
         });
     };
@@ -253,6 +293,35 @@ module.exports = new (function() {
         });
     };
 
+    this.MakeFeaturedCollection = function(userId, sort, asc, callback) {
+
+        _self.GetActiveCollection(userId, (err, activeCollection) => {
+            if (err) {
+                return callback(err);
+            }
+
+            CollectionsSQL.ReassignCollectionWithSort(activeCollection.data.collection_id, 0, sort, asc, (err) => {
+                if (err) {
+                    return callback(err);
+                }
+                
+                //delete caches for both users
+                _collectionNamesCache.Delete([0], (err, success) => {
+                    if (err) {
+                        return callback(err);
+                    }
+                    
+                    _collectionNamesCache.Delete([userId], (err, success) => {
+                        if (err) {
+                            return callback(err);
+                        }
+                        callback();
+                    });
+                });
+            });
+        });
+    };
+
     //a utility function that clears out the current active collection cache and tells sync to update client
     var ResetActiveCollectionCacheWithName = function(userId, collectionName, callback) {
         
@@ -318,7 +387,9 @@ module.exports = new (function() {
                     var collectionNames = [];
                     for (var i = 0, len = collections.length; i < len; ++i) {
                         collectionNames.push({
-                            name: collections[i].name
+                            name: collections[i].name,
+                            sort: collections[i].sort,
+                            asc: collections[i].asc
                         });
                     }
 

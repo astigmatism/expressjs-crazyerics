@@ -79,7 +79,7 @@ module.exports = new (function() {
     };
 
     this.RemoveUsersWithoutSessions = function(callback) {
-        pool.query('DELETE FROM users WHERE user_id NOT IN (SELECT user_id FROM users_sessions)', [], (err, result) => {
+        pool.query('DELETE FROM users WHERE user_id NOT IN (SELECT user_id FROM users_sessions) AND user_id!=0', [], (err, result) => {
             if (err) {
                 return callback(err);
             }

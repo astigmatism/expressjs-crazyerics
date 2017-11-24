@@ -70,32 +70,41 @@ GRANT ALL ON TABLE public.users TO crazyerics;
 
 GRANT ALL ON SEQUENCE public.users_userid_seq TO crazyerics;
 
+INSERT INTO users (user_id, user_name) VALUES (0, 'application');
+
 ----------------------------------
 
+
+-- Table: public.users_sessions
+
+-- DROP TABLE public.users_sessions;
 
 CREATE TABLE public.users_sessions
 (
     user_id bigint NOT NULL,
-    sid character varying NOT NULL,
+    sid character varying COLLATE pg_catalog."default" NOT NULL,
     last_activity date,
-    PRIMARY KEY (user_id, sid),
-    CONSTRAINT fk_user_id FOREIGN KEY (user_id)
-        REFERENCES public.users (user_id) MATCH SIMPLE
-        ON UPDATE NO ACTION
-        ON DELETE CASCADE,
+    CONSTRAINT users_sessions_pkey PRIMARY KEY (user_id, sid),
     CONSTRAINT fk_sid FOREIGN KEY (sid)
         REFERENCES public.sessions (sid) MATCH SIMPLE
         ON UPDATE NO ACTION
-        ON DELETE CASCADE
+        ON DELETE CASCADE,
+    CONSTRAINT fk_user_id FOREIGN KEY (user_id)
+        REFERENCES public.users (user_id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
 )
 WITH (
     OIDS = FALSE
-);
+)
+TABLESPACE pg_default;
 
 ALTER TABLE public.users_sessions
     OWNER to postgres;
 
 GRANT ALL ON TABLE public.users_sessions TO crazyerics;
+
+GRANT ALL ON TABLE public.users_sessions TO postgres;
 
 ----------------------------------
 
@@ -223,14 +232,20 @@ GRANT ALL ON TABLE public.saves TO postgres;
 
 ----------------------------------
 
+-- Table: public.collections
+
+-- DROP TABLE public.collections;
+
 CREATE TABLE public.collections
 (
-    collection_id serial NOT NULL,
+    collection_id integer NOT NULL DEFAULT nextval('collections_collection_id_seq'::regclass),
     user_id integer NOT NULL,
-    created timestamp(10) without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    name character varying(80) NOT NULL,
-    comment text,
+    created timestamp(6) without time zone NOT NULL DEFAULT now(),
+    name character varying(80) COLLATE pg_catalog."default" NOT NULL,
+    comment text COLLATE pg_catalog."default",
     public boolean NOT NULL DEFAULT false,
+    sort character varying(20) COLLATE pg_catalog."default",
+    "asc" boolean,
     CONSTRAINT pk_collection_id PRIMARY KEY (collection_id),
     CONSTRAINT fk_user_id FOREIGN KEY (user_id)
         REFERENCES public.users (user_id) MATCH SIMPLE
@@ -239,14 +254,15 @@ CREATE TABLE public.collections
 )
 WITH (
     OIDS = FALSE
-);
+)
+TABLESPACE pg_default;
 
 ALTER TABLE public.collections
     OWNER to postgres;
 
 GRANT ALL ON TABLE public.collections TO crazyerics;
 
-GRANT ALL ON SEQUENCE public.collections_collection_id_seq TO crazyerics;
+GRANT ALL ON TABLE public.collections TO postgres;
 
 ----------------------------------
 
