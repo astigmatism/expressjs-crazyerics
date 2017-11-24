@@ -623,7 +623,7 @@
 		"system_directory": "/system",
 		"input_menu_toggle":  "f1",
 		"savestate_directory": "/states",
-		"video_message_pos_y": 10, 			/* retroarch emulator messages, negative value is off-screen */
+		"video_message_pos_y": -100, 			/* retroarch emulator messages, negative value is off-screen */
 		"video_shader_enable": true,
 		"input_shader_next": "rightbracket",
 		"input_shader_prev": "leftbracket",
@@ -643,7 +643,7 @@
 		"input_hold_fast_forward": "space",
 		"input_player1_select": "shift",
 		"input_cheat_toggle": "u",
-		"video_vsync": false,
+		"video_vsync": true,					/* when false, fps dropped big time */
 		"audio_latency": 96,
 		"video_font_size": 32,
 		"video_smooth": false,
@@ -652,7 +652,6 @@
 		"video_force_aspect": true,
 		"video_hard_sync": false,
 		"video_scale": 5, 						/* at 5, games show perfect pixels */
-		"video_refresh_rate": 59.940060,
 		"video_fullscreen": false,
 		"video_windowed_fullscreen": false
 	},
