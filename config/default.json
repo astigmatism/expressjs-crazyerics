@@ -30,7 +30,7 @@
 			"supportfilesize": true,
 			"boxcdnversion": "2.0.1",
 			"romcdnversion": "2.0.1",
-			"emuextention": "1.6.7-stable",
+			"emuextention": "2017-03-27",
 			"collection": "GoodGen 3.21",
 			"screenshotaspectratio": 1.333333333333333,
 			"emuscript": "picodrive_libretro.js"
@@ -139,7 +139,7 @@
 			"supportfilesize": 0,
 			"boxcdnversion": "2017-11-20",
 			"romcdnversion": "GoodGen-3.14",
-			"emuextention": "1.6.7-stable",
+			"emuextention": "2017-03-27",
 			"collection": "GoodGen 3.21",
 			"screenshotaspectratio": 1.333333333333333,
 			"emuscript": "genesis_plus_gx_libretro.js",
@@ -169,7 +169,7 @@
 			"boxcdnversion": "2017-11-20",
 			"romcdnversion": "GoodGG-3.20",
 			"supportfilesize": 0,
-			"emuextention": "1.6.7-stable",
+			"emuextention": "2017-03-27",
 			"emuscript": "genesis_plus_gx_libretro.js",
 			"screenshotaspectratio": 1.11,
 			"recommendedshaders": [
@@ -341,7 +341,7 @@
 			"supportfilesize": 0,
 			"boxcdnversion": "2017-11-20",
 			"romcdnversion": "GoodSms-3.20",
-			"emuextention": "1.6.7-stable",
+			"emuextention": "2017-03-27",
 			"emuscript": "genesis_plus_gx_libretro.js",
 			"screenshotaspectratio": 1.333333333333333,
 			"recommendedshaders": [
