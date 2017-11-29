@@ -10,29 +10,26 @@ const SyncService = require('../services/sync');
 //gets collection (also sets that collection to active)
 router.get('/', function(req, res, next) {
 
-    var name = decodeURIComponent(req.query.n);
+    var clientCollectionId = decodeURIComponent(req.query.c);
+    var collectionId;
 
     //sanitize expected values
     try {
-        name = UtilitiesService.Decompress.string(name); //extract values
+        collectionId = CollectionsService.DecodeClientCollectionId(clientCollectionId);
     }
     catch (e) {
         return next('The server failed to parse required post data or query strings.');
     }
     
-    if (req.user && name && name !== '' && name != '!') {
+    if (req.user && collectionId) {
 
         var userId = req.user.user_id;
 
-        CollectionsService.SetActiveCollection(userId, name, (err, result) => {
-            if (err) {
-                return next(err);
-            }
+        CollectionsService.SetActiveCollection(userId, collectionId, (err, result) => {
+            if (err) { return next(err); }
 
             SyncService.Outgoing({}, userId, null, (err, compressedResult) => {
-                if (err) {
-                    return res.json(err);
-                }
+                if (err) { return res.json(err); }
                 res.json(compressedResult);
             });
         });
@@ -52,14 +49,10 @@ router.post('/', function(req, res, next) {
         var userId = req.user.user_id;
 
         CollectionsService.CreateCollection(userId, name, (err, createResult) => {
-            if (err) {
-                return next(err);
-            }
+            if (err) { return next(err); }
 
             SyncService.Outgoing({}, userId, null, (err, compressedResult) => {
-                if (err) {
-                    return res.json(err);
-                }
+                if (err) { return res.json(err); }
                 res.json(compressedResult);
             });
         })
@@ -72,29 +65,26 @@ router.post('/', function(req, res, next) {
 //delete collection
 router.delete('/', function(req, res, next) {
 
-    var name = decodeURIComponent(req.query.n);
+    var clientCollectionId = decodeURIComponent(req.query.c);
+    var collectionId;
     
     //sanitize expected values
     try {
-        name = UtilitiesService.Decompress.string(name); //extract values
+        collectionId = CollectionsService.DecodeClientCollectionId(clientCollectionId);
     }
     catch (e) {
         return next('The server failed to parse required post data or query strings.');
     }
 
-    if (req.user && name) {
+    if (req.user && collectionId) {
 
         var userId = req.user.user_id;
 
-        CollectionsService.DeleteCollectionByName(userId, name, (err, deleteRecord) => {
-            if (err) {
-                return next(err);
-            }
+        CollectionsService.DeleteCollection(userId, collectionId, (err, deleteRecord) => {
+            if (err) { return next(err); }
 
             SyncService.Outgoing({}, userId, null, (err, compressedResult) => {
-                if (err) {
-                    return res.json(err);
-                }
+                if (err) { return res.json(err); }
                 res.json(compressedResult);
             });
 
@@ -125,20 +115,14 @@ router.delete('/game', function(req, res, next) {
         var userId = req.user.user_id;
 
         GamesService.EnhancedGameKey(gameKey, (err, eGameKey) => {
-            if (err) {
-                return next(err);
-            }
+            if (err) { return next(err); }
 
             //the service will get the active collection for this user
             CollectionsService.DeleteCollectionTitle(userId, eGameKey, (err) => {
-                if (err) {
-                    return next(err);
-                }
+                if (err) { return next(err); }
                 
                 SyncService.Outgoing({}, userId, eGameKey, (err, compressedResult) => {
-                    if (err) {
-                        return res.json(err);
-                    }
+                    if (err) { return res.json(err); }
                     res.json(compressedResult);
                 });
             });

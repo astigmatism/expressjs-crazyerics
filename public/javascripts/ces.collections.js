@@ -10,7 +10,7 @@ var cesCollections = (function(_Compression, _Preferences, _BoxArt, _Sync, _Tool
     var _copyToFeaturedButton = false;   //DISABLE FOR PROD
 
     //local data structures/cache
-    var _activeCollectionName = "";
+    var _activeCollectionId = null;
     var _TitlesSort = null;
 
     var _activeCollectionTitles = [];
@@ -77,7 +77,7 @@ var cesCollections = (function(_Compression, _Preferences, _BoxArt, _Sync, _Tool
         _collectionsGrid.isotope('remove', collection.gridItem).isotope('layout'); //immediately remove from grid (i used to wait for response but why right?)
 
         //use sync for outgoing. will update this object on response
-        var url = _baseUrl + '?n=' + encodeURIComponent(_Compression.Compress.string(collection.name));
+        var url = _baseUrl + '?c=' + encodeURIComponent(collection.id);
         _Sync.Delete(url, function(data) {
             //sync will take care of updating the collection
             if (onRemoveComplete) {
@@ -189,7 +189,7 @@ var cesCollections = (function(_Compression, _Preferences, _BoxArt, _Sync, _Tool
                 collection.gridItem = AddCollection(collection);
             }
 
-            if (_activeCollectionName === collection.name) {
+            if (_activeCollectionId === collection.id) {
                 collection.gridItem.addClass('on');
             }
             else {
@@ -224,10 +224,8 @@ var cesCollections = (function(_Compression, _Preferences, _BoxArt, _Sync, _Tool
         }
         else if (collection.name != '') {
             $griditem.on('click', function() {
-                if (_activeCollectionName != collection.name) {
-                    var compressedName = _Compression.Compress.string(collection.name);
-                    _Preferences.Set('collections.active', collection.name);
-                    _Sync.Get(_baseUrl + '?n=' + encodeURIComponent(compressedName), function(data) {
+                if (_activeCollectionId != collection.id) {
+                    _Sync.Get(_baseUrl + '?c=' + encodeURIComponent(collection.id), function(data) {
                         
                     });
                 }
@@ -510,33 +508,26 @@ var cesCollections = (function(_Compression, _Preferences, _BoxArt, _Sync, _Tool
         var __self = this;
         this.ready = false;
 
-        //a package is the entire payload of data shared between client and server
-        var package = (function(activeName, titles, collectionNames) {
-            this.active = activeName;
-            this.titles = titles;
-            this.collections = collectionNames;
-        });
-
-        this.Incoming = function(package) {
+        this.Incoming = function(payload) {
 
             var isNewCollection = true;
 
             //handle active collection titles
-            ParseActiveTitles(package.titles);
+            ParseActiveTitles(payload.titles);
 
             //determine if this collection is not the collection currently on display
-            isNewCollection = (_activeCollectionName != package.active);
-            _activeCollectionName = package.active;
+            isNewCollection = (_activeCollectionId != payload.id);
+            _activeCollectionId = payload.id;
 
             //handle other collection names data
-            ParseCollectionNames(package.collections);
+            ParseCollectionNames(payload.collections);
 
             //populate updates grid
             _self.PopulateTitles();
             _self.PopulateCollections();
 
             //dont show default collection when no titles (new user)
-            if (package.collections.length === 1 && package.titles.length === 0) {
+            if (payload.collections.length === 1 && payload.titles.length === 0) {
                 $collectionNamesWrapper.addClass('hidden');
             }
             else {
@@ -547,7 +538,7 @@ var cesCollections = (function(_Compression, _Preferences, _BoxArt, _Sync, _Tool
         //not used (yet). delete forces update on server
         this.Outgoing = function() {
             __self.reday = false;
-            return new package(_active, _collections);
+            //return new package(_active, _collections);
         };
 
         var ParseCollectionNames = function(payload) {
@@ -556,7 +547,7 @@ var cesCollections = (function(_Compression, _Preferences, _BoxArt, _Sync, _Tool
             for (var i = 0, len = payload.length; i < len; ++i) {
                 var newCollection = true;
                 for (var j = 0, jlen = _collectionNames.length; j < jlen; ++j) {
-                    if (_collectionNames[j].name === payload[i].name) {
+                    if (_collectionNames[j].id === payload[i].id) {
                         newCollection = false;
                         break;
                     }
@@ -565,7 +556,7 @@ var cesCollections = (function(_Compression, _Preferences, _BoxArt, _Sync, _Tool
                     _collectionNames.push(payload[i]);
                 }
 
-                if (_activeCollectionName === payload[i].name) {
+                if (_activeCollectionId === payload[i].id) {
                     _TitlesSort.Set(payload[i]);
                 }
             }
@@ -574,7 +565,7 @@ var cesCollections = (function(_Compression, _Preferences, _BoxArt, _Sync, _Tool
             for (var k = (_collectionNames.length - 1); k > -1; --k) {
                 var found = false;
                 for (var l = 0, llen = payload.length; l < llen; ++l) {
-                    if (payload[l].name === _collectionNames[k].name) {
+                    if (payload[l].id === _collectionNames[k].id) {
                         found = true;
                     }
                 }

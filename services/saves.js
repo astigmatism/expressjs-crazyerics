@@ -26,15 +26,11 @@ module.exports = new (function() {
                 //since a new save increases the save count, something we attach to collection data for the client (in the popup)
                 //reset the collection cache (which also informs sync to update the client)
                 CollectionsService.ResetActiveCollectionCache(userId, (err) => {
-                    if (err) {
-                        return callback(err);
-                    }
+                    if (err) { return callback(err); }
 
                     //of course the same for the here too ;)
                     _self.ResetSavesCache(userId, eGameKey.fileId, (err) => {
-                        if (err) {
-                            return callback(err);
-                        }
+                        if (err) { return callback(err); }
 
                         //no need to return anything, sync does that for us
                         callback();

@@ -1,399 +1,409 @@
 'use strict';
 const config = require('config');
 const CollectionsSQL = require('../db/collections');
-const PreferencesService = require('./preferences');
 const Cache = require('./cache');
 const GameService = require('../services/games');
+const UtilitiesService = require('./utilities');
 
-module.exports = new (function() { 
+module.exports = new (function() {
 
-    var _self = this;
-    var _collectionCache = new Cache('collections.user.$1.collection.$2'); //value is an array of titles in collection with their data
-    var _collectionNamesCache = new Cache('collections.user.$1.collections'); //value is an array of collection names for this user
-    const preferencesKeyForActiveCollection = 'collections.active';
+    const _self = this;
+    var _cacheActiveCollection = new Cache('collections.user.$1.active');
+    var _cacheCollectionNames = new Cache('collections.user.$1.names');
 
     var CollectionEnvelope = (function() {
-        this.data = null;   //details about the current collection (from collections table)
+        this.collection = null;   //details about the current collection (from collections table)
         this.titles = [];   //a list of titles for this collection (from collections_titles table with details from titles and files tables)
     });
 
-    this.CreateCollection = function(userId, name, callback) {
+    this.CreateCollection = function(userId, name, callback, opt_makeActive) {
 
         CollectionsSQL.CreateCollection(userId, name, (err, createResult) => {
-            if (err) {
-                return callback(err);
-            }
+            if (err) { return callback(err); }
             
-            //invalidate cache which holds collection names for this user
-            _collectionNamesCache.Delete([userId], (err, success) => {
-                if (err) {
-                    return callback(err);
+            //invalidate names cache
+            _cacheCollectionNames.Delete([userId], (err, success) => {
+                _self.Sync.ready = true;
+
+                //make it active now?
+                if (opt_makeActive) {
+                    _self.SetActiveCollection(userId, createResult.collection_id, () => {
+                        return callback(null, createResult);
+                    });
                 }
-                _self.Sync.ready = true; //new collection means passing new names to client
-                
-                callback(null, createResult);
+                else {
+                    return callback(null, createResult);
+                }
             });
         });
     };
 
     //gets, or creates collection by name
-    this.GetCollectionByName = function(userId, collectionName, callback, opt_createIfNoExist) {
+    // this.GetCollectionByName = function(userId, collectionName, callback, opt_createIfNoExist) {
         
-        opt_createIfNoExist = (opt_createIfNoExist == true) ? true : false;
+    //     opt_createIfNoExist = (opt_createIfNoExist == true) ? true : false;
         
-        _collectionCache.Get([userId, collectionName], (err, cache) => {
-            if (err) {
-                return callback(err);
-            }
+    //     _collectionCache.Get([userId, collectionName], (err, cache) => {
+    //         if (err) {
+    //             return callback(err);
+    //         }
+
+    //         if (cache) {
+    //             return callback(null, cache);
+    //         }
+
+    //         var collection = new CollectionEnvelope();
+            
+    //         //get collection data first
+    //         CollectionsSQL.GetCollectionByName(userId, collectionName, (err, data) => {
+    //             if (err) {
+    //                 return callback(err);
+    //             }
+    //             //if exists (or was created)
+    //             if (data) {
+    //                 collection.data = data; //add to our collection cache
+
+    //                 //fetch all the titles in this collection
+    //                 CollectionsSQL.GetCollectionTitles(data.collection_id, (err, titles) => {
+    //                     if (err) {
+    //                         return callback(err);
+    //                     }
+
+    //                     collection.titles = titles; //add to our collection cache
+
+    //                     _collectionCache.Set([userId, collectionName], collection, (err, success) => {
+    //                         if (err) {
+    //                             return callback(err);
+    //                         }
+    //                         return callback(null, collection);
+    //                     });
+    //                 });
+    //             }
+    //             //does not exist, was not created, bail
+    //             else {
+    //                 return callback();
+    //             }
+
+    //         }, opt_createIfNoExist);
+    //     });
+    // };
+
+    var GetCollectionNames = function (userId, callback) {
+        
+        _cacheCollectionNames.Get([userId], (err, cache) => {
+            if (err) { return callback(err); }
 
             if (cache) {
                 return callback(null, cache);
             }
 
-            var collection = new CollectionEnvelope();
-            
-            //get collection data first
-            CollectionsSQL.GetCollectionByName(userId, collectionName, (err, data) => {
-                if (err) {
-                    return callback(err);
-                }
-                //if exists (or was created)
-                if (data) {
-                    collection.data = data; //add to our collection cache
+            CollectionsSQL.GetCollectionNames(userId, (err, collectionRecords) => {
+                if (err) { return callback(err); }
 
-                    //fetch all the titles in this collection
-                    CollectionsSQL.GetCollectionTitles(data.collection_id, (err, titles) => {
-                        if (err) {
-                            return callback(err);
-                        }
+                _cacheCollectionNames.Set([userId], collectionRecords);
+                callback(null, collectionRecords);
+            });
+        });
+    };
 
-                        collection.titles = titles; //add to our collection cache
+    this.DeleteCollection = function(userId, collectionId, callback) {
 
-                        _collectionCache.Set([userId, collectionName], collection, (err, success) => {
-                            if (err) {
-                                return callback(err);
+        DoesUserOwnCollection(userId, collectionId, (err, isOwner) => {
+            if (err) { return callback(err); }
+
+            if (isOwner) {
+
+                //so here's something pretty cool. if the deleted collection was the active collection,
+                //that record is also deleted thanks to CASCASE on delete. The next time we pull values, the default collection will be used
+                CollectionsSQL.DeleteCollection(userId, collectionId, (err) => {
+                    if (err) { return callback(err); }
+
+                    _cacheCollectionNames.Delete([userId], () => {
+
+                        //delete the active cache if the id is the same
+                        _cacheActiveCollection.Get([userId], (err, cache) => {
+                            if (err) { return callback(err); }
+                            
+                            if (cache && cache.collection.collection_id === collectionId) {
+                                _cacheActiveCollection.Delete([userId]);
                             }
-                            return callback(null, collection);
+
+                            _self.Sync.ready = true;
+                            return callback();
                         });
                     });
-                }
-                //does not exist, was not created, bail
-                else {
-                    return callback();
-                }
-
-            }, opt_createIfNoExist);
-        });
-    };
-
-    this.GetCollectionNames = function (userId, callback) {
-        
-        _collectionNamesCache.Get([userId], (err, cache) => {
-            if (err) {
-                return callback(err);
-            }
-
-            if (cache) {
-                return callback(null, cache);
-            }
-
-            CollectionsSQL.GetCollectionNames(userId, (err, collections) => {
-                if (err) {
-                    return callback(err);
-                }
-
-                _collectionNamesCache.Set([userId], collections, (err, success) => {
-                    if (err) {
-                        return callback(err);
-                    }
-                    return callback(null, collections);
-                });
-            });
-        });
-    };
-
-    this.DeleteCollectionByName = function(userId, collectionName, callback) {
-
-        CollectionsSQL.DeleteCollectionByName(userId, collectionName, (err, deletedRecord) => {
-            if (err) {
-                return callback(err);
-            }
-
-            //delete collection names cache
-            _collectionNamesCache.Delete([userId], (err, success) => {
-                if (err) {
-                    return callback(err);
-                }
-                
-                OnDelete(userId, collectionName, (err) => {
-                    if (err) {
-                        return callback(err);
-                    }
-    
-                    //reset local cache for this collection, set the sync flag to update the client
-                    ResetActiveCollectionCacheWithName(userId, collectionName, (err) => {
-                        if (err) {
-                            return callback(err);
-                        }
-                        return callback();
-                    });
-                }); 
-            });
-        });
-    };
-
-    //for handling if active collection was deleted
-    var OnDelete = function(userId, deletedName, callback) {
-
-        //TODO: if deleting active collection
-        PreferencesService.Get(userId, (err, activeCollectionName) => {
-            if (err) {
-                return callback(err);
-            }
-
-            //if we deleted the active collection
-            if (activeCollectionName && activeCollectionName === deletedName) {
-
-                //set back to default, it gets created when not there
-                var defaultCollection = config.get('defaultCollection');
-                _self.SetActiveCollection(userId, defaultCollection, (err, success) => {
-                    if (err) {
-                        return callback(err);
-                    }
-                    return callback();
                 });
             }
             else {
-                callback();
+                return callback('User ' + userId + ' does not own the collection ' + collectionId);
             }
-        }, preferencesKeyForActiveCollection);
+        })
     };
 
-    //uses preference service to take the current active collection (gets or creates)
+    var DoesUserOwnCollection = function(userId, collectionId, callback) {
+        
+        GetCollectionNames(userId, (err, collectionRecords) => {
+            if (err) { return callback(err); }
+            
+            for (var i = 0, len = collectionRecords.length; i < len; ++i) {
+                if (collectionRecords[i].collection_id === collectionId) {
+                    return callback(null, true);
+                }
+            }
+            return callback(null, false);
+        });
+    };
+
+    this.SetActiveCollection = function(userId, collectionId, callback) {
+
+        //ensure the user owns this collection first by pulling collection records from cache
+        DoesUserOwnCollection(userId, collectionId, (err, ownsCollection) => {
+            if (err) { return callback(err); }
+
+            if (ownsCollection) {
+                CollectionsSQL.SetActiveCollection(userId, collectionId, (err, result) => {
+                    if (err) { return callback(err); }
+        
+                    _cacheActiveCollection.Delete([userId], () => {
+                        _self.Sync.ready = true;
+                        return callback();
+                    });
+                });
+            }
+            else {
+                return callback('The user ' + userId + ' does not down the collection id ' + collectionId);
+            }
+        });
+    };
+
+    //get all details about active collection, this is cached
     this.GetActiveCollection = function(userId, callback) {
 
-        //get active collection from user prefs, if it doen't exist, then assign the default collection
-        PreferencesService.Get(userId, (err, activeCollectionName) => {
-            if (err) {
-                return callback(err);
+        //retrieve cache
+        _cacheActiveCollection.Get([userId], (err, cache) => {
+            if (err) { return callback(err); }
+
+            if (cache) {
+                return callback(null, cache);
             }
 
-            //assign and cache default if none is already defined (new user path)
-            if (!activeCollectionName) {
-                activeCollectionName = config.get('defaultCollection');
-                PreferencesService.SetAsync(userId, preferencesKeyForActiveCollection, activeCollectionName);
-            }
+            //get id from db, if not there, this process will create the default collection
+            GetActiveCollectionId(userId, (err, collectionId) => {
+                if (err) { return callback(err); }
 
-            //get collection (will create if not exist)
-            _self.GetCollectionByName(userId, activeCollectionName, (err, collection) => {
-                if (err) {
-                    return callback(err);
-                }
-                return callback(null, collection);
-            }, true);
+                CollectionsSQL.GetCollectionById(userId, collectionId, (err, collectionRecord) => {
+                    if (err) { return callback(err); }
 
-        }, preferencesKeyForActiveCollection);
-    };
+                    CollectionsSQL.GetCollectionTitles(collectionId, (err, titleRecords) => {
+                        if (err) { return callback(err); }
 
-    this.SetActiveCollection = function(userId, collectionName, callback) {
+                        //compose all data into a collection envelope
+                        var envelope = new CollectionEnvelope();
+                        envelope.collection = collectionRecord;
+                        envelope.titles = titleRecords;
 
-        PreferencesService.Get(userId, (err, activeCollection) => {
-            if (err) {
-                return callback(err);
-            }
-            //if no change, bail
-            if (activeCollection === collectionName) {
-                return callback();
-            }
+                        _cacheActiveCollection.Set([userId], envelope);
 
-            PreferencesService.Set(userId, preferencesKeyForActiveCollection, collectionName, (err, success) => {
-                if (err) {
-                    return callback(err);
-                }
-
-                //reset cache and flag sync to update client
-                ResetActiveCollectionCacheWithName(userId, collectionName, (err) => {
-                    if (err) {
-                        return callback(err);
-                    }
-                    return callback(null, success);
+                        return callback(null, envelope);
+                    })
                 });
             });
+        });
+    };
 
-        }, preferencesKeyForActiveCollection);
+    var GetActiveCollectionId = function(userId, callback) {
+    
+        CollectionsSQL.GetActiveCollectionId(userId, (err, collectionId) => {
+            if (err) { return callback(err); }
+
+            if (collectionId) {
+                return callback(null, collectionId);
+            }
+
+            //if here, returned value was undef, a record was not found for active collection.
+            //could be user is new
+            var defaultCollectionName = config.get('defaultCollection');
+
+            //will create if not exist (with flag)
+            CollectionsSQL.GetCollectionByName(userId, defaultCollectionName, (err, collectionRecord) => {
+                if (err) { return callback(err); }
+
+                var collectionId = collectionRecord.collection_id;
+                CollectionsSQL.SetActiveCollection(userId, collectionId, (err) => {
+                    if (err) { return callback(err); }
+                    return callback(null, collectionId);
+                });
+
+            }, true);
+        });
     };
 
     this.AddTitle = function(userId, eGameKey, callback) {
         
-        //get collection id
-        _self.GetActiveCollection(userId, (err, activeCollection) => {
-            if (err) {
-                return callback(err);
-            }
+        _self.GetActiveCollection(userId, (err, envelope) => {
+            if (err) { return callback(err); }
 
-            var collectionId = activeCollection.data.collection_id;
-            var collectionName = activeCollection.data.name;
+            var collectionId = envelope.collection.collection_id;
 
             //adds user_title record to collection
             CollectionsSQL.AddTitle(collectionId, eGameKey.titleId, (err, collectionsTitlesRecord) => {
-                if (err) {
-                    return callback(err);
-                }
+                if (err) { return callback(err); }
 
-                //reset cache and flag sync to update client
-                ResetActiveCollectionCacheWithName(userId, collectionName, (err) => {
-                    if (err) {
-                        return callback(err);
-                    }
-                    return callback(null, collectionsTitlesRecord);
-                });
+                //reset collection cache
+                _cacheActiveCollection.Delete([userId], (err) => {
+                    _self.Sync.ready = true; //inform sync that new data is ready for the client to consume
+                    return callback();
+                }); 
             });
         });
     };
 
     this.DeleteCollectionTitle = function(userId, eGameKey, callback) {
 
-        //deletes can only take place from the currently active collection so get it
-        _self.GetActiveCollection(userId, (err, activeCollection) => {
-            if (err) {
-                return callback(err);
-            }
+        _self.GetActiveCollection(userId, (err, envelope) => {
+            if (err) { return callback(err); }
 
-            var collectionId = activeCollection.data.collection_id;
-            var collectionName = activeCollection.data.name;
+            var collectionId = envelope.collection.collection_id;
 
             //delete this title from the collection
             CollectionsSQL.DeleteTitle(collectionId, eGameKey.titleId, (err, deleteResult) => {
-                if (err) {
-                    return callback(err);
-                }
+                if (err) { return callback(err); }
 
-                //reset local cache for this collection, set the sync flag to update the client
-                ResetActiveCollectionCacheWithName(userId, collectionName, (err) => {
-                    if (err) {
-                        return callback(err);
-                    }
+                //reset collection cache
+                _cacheActiveCollection.Delete([userId], (err) => {
+                    _self.Sync.ready = true; //inform sync that new data is ready for the client to consume
                     return callback();
                 });
             });
         });
     };
 
+    var EncodeClientCollectionId = function(collectionId, createDate) {
+        return UtilitiesService.Compress.json({
+            id: collectionId,
+            z: createDate //a unique value used for padding/obfuscation
+        });
+    };
+
+    this.DecodeClientCollectionId = function(value) {
+        var data = UtilitiesService.Decompress.json(value);
+        return data.id;
+    };
+
     //for external calls, only a userId is needed, we'll look up collection details
     this.ResetActiveCollectionCache = function(userId, callback) {
-        
-        _self.GetActiveCollection(userId, (err, activeCollection) => {
-            if (err) {
-                return callback(err);
-            }
 
-            var collectionName = activeCollection.data.name;
-
-            ResetActiveCollectionCacheWithName(userId, collectionName, callback);
+        _cacheActiveCollection.Delete([userId], () => {
+            _self.Sync.ready = true;
+            callback();
         });
     };
 
-    this.MakeFeaturedCollection = function(userId, sort, asc, callback) {
+    // this.MakeFeaturedCollection = function(userId, sort, asc, callback) {
 
-        _self.GetActiveCollection(userId, (err, activeCollection) => {
-            if (err) {
-                return callback(err);
-            }
+    //     _self.GetActiveCollection(userId, (err, activeCollection) => {
+    //         if (err) {
+    //             return callback(err);
+    //         }
 
-            CollectionsSQL.ReassignCollectionWithSort(activeCollection.data.collection_id, 0, sort, asc, (err) => {
-                if (err) {
-                    return callback(err);
-                }
+    //         CollectionsSQL.ReassignCollectionWithSort(activeCollection.data.collection_id, 0, sort, asc, (err) => {
+    //             if (err) {
+    //                 return callback(err);
+    //             }
                 
-                //delete caches for both users
-                _collectionNamesCache.Delete([0], (err, success) => {
-                    if (err) {
-                        return callback(err);
-                    }
+    //             //delete caches for both users
+    //             _collectionNamesCache.Delete([0], (err, success) => {
+    //                 if (err) {
+    //                     return callback(err);
+    //                 }
                     
-                    _collectionNamesCache.Delete([userId], (err, success) => {
-                        if (err) {
-                            return callback(err);
-                        }
-                        callback();
-                    });
-                });
-            });
-        });
-    };
+    //                 _collectionNamesCache.Delete([userId], (err, success) => {
+    //                     if (err) {
+    //                         return callback(err);
+    //                     }
+    //                     callback();
+    //                 });
+    //             });
+    //         });
+    //     });
+    // };
 
     //a utility function that clears out the current active collection cache and tells sync to update client
-    var ResetActiveCollectionCacheWithName = function(userId, collectionName, callback) {
+    // var ResetActiveCollectionCacheWithName = function(userId, collectionName, callback) {
         
-        //invalidate cache
-        _collectionCache.Delete([userId, collectionName], (err) => {
-            if (err) {
-                return callback(err);
-            }
+    //     //invalidate cache
+    //     _collectionCache.Delete([userId, collectionName], (err) => {
+    //         if (err) {
+    //             return callback(err);
+    //         }
 
-            //inform sync that new collection information is ready for client consumption
-            //this means that outgoing operations will commence, which rebuilds the cache with new data
-            _self.Sync.ready = true;
+    //         //inform sync that new collection information is ready for client consumption
+    //         //this means that outgoing operations will commence, which rebuilds the cache with new data
+    //         _self.Sync.ready = true;
         
-            return callback();
-        });
-    };
+    //         return callback();
+    //     });
+    // };
 
     this.Sync = new (function() {
 
         var __self = this;
         this.ready = false;
 
-        var _package = (function(activeName, titles, collectionNames) {
-            this.active = activeName,
+        var _payload = (function(id, name, titles, collectionNames) {
+            this.id = id;
+            this.name = name;
             this.titles = titles;
             this.collections = collectionNames;
         });
 
-        //client had new data to update the server
+        //we don't respond to incoming data about collection from the client through Sync
         this.Incoming = function(_package) {
 
             console.log(_package);
         };
 
-        //update the client with new data
+        //outgoing is how we package the data here on the serverside to the client
         this.Outgoing = function(userId, callback) {
 
-            //pulls from, or will rebuild cache
-            _self.GetActiveCollection(userId, (err, _activeCollection) => {
-                if (err) {
-                    return callback(err);
-                }
+            //client needs to know about active collection and collection names to select
+            //will build, get or pull from cache
+            _self.GetActiveCollection(userId, (err, envelope) => {
+                if (err) { return callback(err); }
 
                 //sanitize data going to client
                 var titles = [];
 
-                for (var i = 0, len = _activeCollection.titles.length; i < len; ++i) {
+                for (var i = 0, len = envelope.titles.length; i < len; ++i) {
                     titles.push({
-                        gk: _activeCollection.titles[i].game_key,
-                        lastPlayed: _activeCollection.titles[i].last_played,
-                        playCount: _activeCollection.titles[i].play_count,
-                        saveCount: _activeCollection.titles[i].save_count
+                        gk: envelope.titles[i].game_key,
+                        lastPlayed: envelope.titles[i].last_played,
+                        playCount: envelope.titles[i].play_count,
+                        saveCount: envelope.titles[i].save_count
                     });
                 }
 
                 //get list of all collections
-                _self.GetCollectionNames(userId, (err, collections) => {
+                GetCollectionNames(userId, (err, collectionRecords) => {
                     if (err) {
                         return callback(err);
                     }
 
                     //sanitize result as well, didn't see a general need to move this into its own func
                     var collectionNames = [];
-                    for (var i = 0, len = collections.length; i < len; ++i) {
+                    for (var i = 0, len = collectionRecords.length; i < len; ++i) {
+                        var id = EncodeClientCollectionId(collectionRecords[i].collection_id, collectionRecords[i].created);
                         collectionNames.push({
-                            name: collections[i].name,
-                            sort: collections[i].sort,
-                            asc: collections[i].asc
+                            id: id,
+                            name: collectionRecords[i].name,
+                            sort: collectionRecords[i].sort,
+                            asc: collectionRecords[i].asc
                         });
                     }
 
-                    var result = new _package(_activeCollection.data.name, titles, collectionNames);
+                    var id = EncodeClientCollectionId(envelope.collection.collection_id, envelope.collection.created);
+
+                    var result = new _payload(id, envelope.collection.name, titles, collectionNames);
 
                     callback(null, result);
                 });

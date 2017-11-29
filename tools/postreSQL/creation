@@ -330,3 +330,35 @@ ALTER TABLE public.collections_titles
 GRANT ALL ON TABLE public.collections_titles TO crazyerics;
 
 ----------------------------------
+
+-- Table: public.collections_active
+
+-- DROP TABLE public.collections_active;
+
+CREATE TABLE public.collections_active
+(
+    user_id integer NOT NULL,
+    collection_id integer NOT NULL,
+    CONSTRAINT collections_active_pkey PRIMARY KEY (user_id),
+    CONSTRAINT fk_collection_id FOREIGN KEY (collection_id)
+        REFERENCES public.collections (collection_id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE CASCADE,
+    CONSTRAINT fk_user_id FOREIGN KEY (user_id)
+        REFERENCES public.users (user_id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE CASCADE
+)
+WITH (
+    OIDS = FALSE
+)
+TABLESPACE pg_default;
+
+ALTER TABLE public.collections_active
+    OWNER to postgres;
+
+GRANT ALL ON TABLE public.collections_active TO crazyerics;
+
+GRANT ALL ON TABLE public.collections_active TO postgres;
+
+----------------------------------
