@@ -99,7 +99,7 @@ var cesLoadingWebGL = (function(_recipe, _Compression, _PubSub, _texturePath, $w
                     
                     //does combine have a texture value
                     if (_recipe.faces[face].combine.texture) {
-                        var textureSrc = _texturePath + _recipe.faces[face].combine.texture;
+                        textureSrc = _texturePath + _recipe.faces[face].combine.texture;
                     }
     
                     //generate new image with color and texture

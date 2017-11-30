@@ -110,8 +110,8 @@ var cesPubSub = (function() {
                 delete _topics[topic][index];
             }
             return;
-        }
-    }
+        };
+    };
 
     this.Pub = this.Publish;
     this.Sub = this.Subscribe;

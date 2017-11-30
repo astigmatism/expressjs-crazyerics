@@ -71,6 +71,20 @@ module.exports = new (function() {
 
     //rudimentary file system operations
 
+    this.DeleteFile = function(path, callback) {
+        fs.unlink(__dirname + '/..' + path, (err) => {
+            if (err) return callback(err);
+            callback();
+        });
+    };
+
+    this.WriteFile = function(path, content, callback) {
+        fs.writeFile(__dirname + '/..' + path, content, (err) => {
+            if (err) return callback(err);
+            callback();
+        })
+    };
+
     this.createFolder = function(path, overwrite, callback) {
 
         fs.exists(path, function (exists) {

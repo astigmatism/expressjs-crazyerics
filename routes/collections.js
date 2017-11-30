@@ -55,7 +55,7 @@ router.post('/', function(req, res, next) {
                 if (err) { return res.json(err); }
                 res.json(compressedResult);
             });
-        })
+        }, true); //true say to make it active
     }
     else {
         return next('Missing input parameters');

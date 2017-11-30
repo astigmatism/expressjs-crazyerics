@@ -12,7 +12,7 @@ var cesProgressBar = (function(_wrapper) {
         _buckets[name] = {
             'progress': 0,
             'total': totalsize
-        }
+        };
     };
 
     this.Update = function(name, amount) {

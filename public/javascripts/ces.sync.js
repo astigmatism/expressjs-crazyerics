@@ -54,7 +54,7 @@ var cesSync = (function(_config, _Compression) {
             request.data = compressedBody;
             request.headers = {
                 sync: 1
-            }
+            };
         }
         
         $.ajax(request)
@@ -86,6 +86,6 @@ var cesSync = (function(_config, _Compression) {
 
     this.DeregisterComponent = function(key) {
         delete _components[key];
-    }
+    };
     
 });

@@ -7,10 +7,11 @@ var cesCollections = (function(_Compression, _Preferences, _BoxArt, _Sync, _Tool
     var _BOXSIZE = 120;
     var _currentLoadingGame = null;
     var _baseUrl = '/collections';
+    var _featureUrl = '/featured';
     var _copyToFeaturedButton = false;   //DISABLE FOR PROD
 
-    //local data structures/cache
     var _activeCollectionId = null;
+    var _activeCollectionName = null;
     var _TitlesSort = null;
 
     var _activeCollectionTitles = [];
@@ -213,15 +214,26 @@ var cesCollections = (function(_Compression, _Preferences, _BoxArt, _Sync, _Tool
 
         $griditem.append(collection.name); //add all visual content from gamelink to grid
 
-        //on click, make active collection
+        //if making this collection a feature
         if (collection.name === '!') {
             $griditem.on('click', function() {
-                var sortData = _TitlesSort.Get();
-                _Sync.Post(_baseUrl + '/makefeature', sortData, function(data) {
+                
+                //get list of gameKeys in order from the grid
+                var gridTitles = _titlesGrid.isotope('getItemElements');
+                var gks = [];
+                for (var i = 0, len = gridTitles.length; i < len; ++i) {
+                    gks.push($(gridTitles[i]).data('gk'));
+                }
+
+                _Sync.Post(_featureUrl, {
+                    name: _activeCollectionName,
+                    gks: gks
+                }, function(data) {
                     
                 });
             });
         }
+        //on click, make active collection
         else if (collection.name != '') {
             $griditem.on('click', function() {
                 if (_activeCollectionId != collection.id) {
@@ -518,6 +530,7 @@ var cesCollections = (function(_Compression, _Preferences, _BoxArt, _Sync, _Tool
             //determine if this collection is not the collection currently on display
             isNewCollection = (_activeCollectionId != payload.id);
             _activeCollectionId = payload.id;
+            _activeCollectionName = payload.name;
 
             //handle other collection names data
             ParseCollectionNames(payload.collections);

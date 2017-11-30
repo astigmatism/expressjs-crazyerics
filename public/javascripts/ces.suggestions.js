@@ -132,7 +132,7 @@ var cesSuggestions = (function(_BoxArt, _Compression, PlayGame, $wrapper) {
             });
 
         _currentGameLinks.push(gamelink);
-    }
+    };
 
     //constructor
     var Constructor = (function() {

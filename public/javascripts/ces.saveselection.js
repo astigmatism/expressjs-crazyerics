@@ -20,7 +20,7 @@ var cesSaveSelection = (function(_config, _Dialogs, _Emulator, _system, $wrapper
 
         var saves = _Emulator.GetMostRecentSaves(3, type);
 
-        for (timestamp in saves) {
+        for (var timestamp in saves) {
 
             switch (saves[timestamp].save.type) {
                 case 'user':
@@ -118,7 +118,7 @@ var ShowSaveSelection = function(system, title, file, callback) {
         $('#savesselectlist').append($li);
     };
 
-    for (timestamp in saves) {
+    for (var timestamp in saves) {
         switch (saves[timestamp].type) {
             case 'user':
             addToSelectionList(timestamp, saves[timestamp], 'green', 'YOUR SAVE');

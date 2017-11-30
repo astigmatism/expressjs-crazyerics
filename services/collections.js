@@ -38,56 +38,6 @@ module.exports = new (function() {
         });
     };
 
-    //gets, or creates collection by name
-    // this.GetCollectionByName = function(userId, collectionName, callback, opt_createIfNoExist) {
-        
-    //     opt_createIfNoExist = (opt_createIfNoExist == true) ? true : false;
-        
-    //     _collectionCache.Get([userId, collectionName], (err, cache) => {
-    //         if (err) {
-    //             return callback(err);
-    //         }
-
-    //         if (cache) {
-    //             return callback(null, cache);
-    //         }
-
-    //         var collection = new CollectionEnvelope();
-            
-    //         //get collection data first
-    //         CollectionsSQL.GetCollectionByName(userId, collectionName, (err, data) => {
-    //             if (err) {
-    //                 return callback(err);
-    //             }
-    //             //if exists (or was created)
-    //             if (data) {
-    //                 collection.data = data; //add to our collection cache
-
-    //                 //fetch all the titles in this collection
-    //                 CollectionsSQL.GetCollectionTitles(data.collection_id, (err, titles) => {
-    //                     if (err) {
-    //                         return callback(err);
-    //                     }
-
-    //                     collection.titles = titles; //add to our collection cache
-
-    //                     _collectionCache.Set([userId, collectionName], collection, (err, success) => {
-    //                         if (err) {
-    //                             return callback(err);
-    //                         }
-    //                         return callback(null, collection);
-    //                     });
-    //                 });
-    //             }
-    //             //does not exist, was not created, bail
-    //             else {
-    //                 return callback();
-    //             }
-
-    //         }, opt_createIfNoExist);
-    //     });
-    // };
-
     var GetCollectionNames = function (userId, callback) {
         
         _cacheCollectionNames.Get([userId], (err, cache) => {
