@@ -76,7 +76,7 @@ var cesSavesManager = (function (_config, _Compression, _Sync, _gameKey, _initia
         }
         //don't have it! go and get it
         $.ajax({
-            url: '/saves?gk=' + _gameKey.gk + '&ts=' + timestamp,
+            url: '/saves?gk=' + encodeURIComponent(_gameKey.gk) + '&ts=' + timestamp,
             contentType: 'text/plain',
             type: 'GET'
         })
