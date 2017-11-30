@@ -20,11 +20,13 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _gameKey,
     var _gameBeganPlaying = false;
     var _cacheEmulatorScripts = true; //do we want to use _ClientCache to store emulator script responses (in raw form before globalEval)
     var _cacheName = _gameKey.system + '.script';
+    var _loadPriority = 'emulator'; //emulator first, game first or null for simultanious
 
     var _displayDurationShow = 1000;
     var _displayDurationHide = 500;
     var _timeToWaitForScreenshot = 2000; //hopefully never take more than 2 sec
     var _timeToWaitForSaveState = 30000; //hopefully never more than 30 sec
+    var _timeToWaitForEmulatorInstantiation = 2500; //x2 once for global eval, again for instantiation
 
     //instances
     var _EmulatorInstance = null;
@@ -90,19 +92,39 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _gameKey,
             _ProgressBar.AddBucket('emulator', emulatorFileSize);
         }
 
+        //loading technique 1 -> emulator first
+
         LoadEmulatorScript(_ProgressBar, _gameKey.system, module, emulatorFileSize, emulatorLoadComplete);
-        LoadSupportFiles(_ProgressBar, _gameKey.system, supportFileSize, supportLoadComplete);
-        LoadGame(_ProgressBar, filesize, gameLoadComplete);
-        LoadShader(_ProgressBar, shader, shaderFileSize, shaderLoadComplete);
+        
+        $.when(emulatorLoadComplete).done(function(a, b, c) {
+            
+            var emulator = [a,b,c]; //combine as it were
 
-        $.when(emulatorLoadComplete, supportLoadComplete, gameLoadComplete, shaderLoadComplete).done(function(emulator, support, game, shader) {
+            LoadSupportFiles(_ProgressBar, _gameKey.system, supportFileSize, supportLoadComplete);
+            LoadGame(_ProgressBar, filesize, gameLoadComplete);
+            LoadShader(_ProgressBar, shader, shaderFileSize, shaderLoadComplete);
 
-            _isLoading = false;
-
-            OnAllLoadsComplete(emulator, support, game, shader);
-
-            deffered.resolve(true);
+            $.when(emulatorLoadComplete, supportLoadComplete, gameLoadComplete, shaderLoadComplete).done(function(emulator, support, game, shader) {
+                
+                _isLoading = false;
+                OnAllLoadsComplete(emulator, support, game, shader);
+                deffered.resolve(true);
+            });
         });
+
+        //loading technique 2 -> everything all at once
+
+        // LoadEmulatorScript(_ProgressBar, _gameKey.system, module, emulatorFileSize, emulatorLoadComplete);
+        // LoadSupportFiles(_ProgressBar, _gameKey.system, supportFileSize, supportLoadComplete);
+        // LoadGame(_ProgressBar, filesize, gameLoadComplete);
+        // LoadShader(_ProgressBar, shader, shaderFileSize, shaderLoadComplete);
+        
+        // $.when(emulatorLoadComplete, supportLoadComplete, gameLoadComplete, shaderLoadComplete).done(function(emulator, support, game, shader) {
+
+        //     _isLoading = false;
+        //     OnAllLoadsComplete(emulator, support, game, shader);
+        //     deffered.resolve(true);
+        // });
     };
 
     this.WriteSaveData = function(timeStamp, callback) {
@@ -602,16 +624,17 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _gameKey,
         var returnHelper = function(script) {
 
             //evaluate the response text and place it in the global scope
-            $.globalEval(script); 
+            $.globalEval(script);
+
             var emulatorScriptInstance = new cesRetroArchEmulator(module);
             
-            console.log('emulator done');
+            console.log('emulator ready');
 
-            //this timeout is mega important, it gives the previous steps (globalEval, instantiation) enough time
+            //this timeout is important, it gives the previous steps (globalEval, instantiation) enough time
             //to sort themselves out. without this timeout, I get errors 
             setTimeout(function() {
                 deffered.resolve(null, module, emulatorScriptInstance);
-            }, 2000);
+            }, _timeToWaitForEmulatorInstantiation);
         };
 
         //first check local cache

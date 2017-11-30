@@ -16,7 +16,7 @@ var cesMain = (function() {
         'Screenshots are deleted when you leave or refresh the page. Download your favorites to keep them'
     ];
     var _bar = null;
-    var _tipsCycleRate = 3000;
+    var _tipsCycleRate = 4000;
     var _preventLoadingGame = false;
     var _preventGamePause = false; //condition for blur event of emulator, sometimes we don't want it to pause when we're giving it back focus
     var _minimumGameLoadingTime = 6000; //minimum amount of time to display the title loading. artificially longer for tips
