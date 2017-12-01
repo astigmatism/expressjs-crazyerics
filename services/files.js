@@ -85,6 +85,33 @@ module.exports = new (function() {
         })
     };
 
+    this.ReadFile = function(path, callback) {
+        fs.readFile(__dirname + '/..' + path, (err, data) => {
+            if (err) return callback(err);
+            callback(null, data);
+        });
+    };
+
+    this.ReadJsonFile = function(path, callback) {
+        fs.readFile(__dirname + '/..' + path, (err, data) => {
+            if (err) return callback(err);
+            try {
+                data = JSON.parse(data);
+            }
+            catch (e) {
+                return callback(e);
+            }
+            callback(null, data);
+        });
+    };
+
+    this.OpenDir = function(path, callback) {
+        fs.readdir(__dirname + '/..' + path, (err, files) => {
+            if (err) return callback(err);
+            callback (null, files);
+        });
+    };
+
     this.createFolder = function(path, overwrite, callback) {
 
         fs.exists(path, function (exists) {

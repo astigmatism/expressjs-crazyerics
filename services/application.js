@@ -8,6 +8,7 @@ const UserService = require('./users');
 const CollectionService = require('./collections');
 const PreferencesService = require('./preferences');
 const SuggestionService = require('./suggestions');
+const GamesService = require('./games');
 const FeaturedService = require('./featured');
 const CronService = require('./cron');
 
@@ -238,6 +239,11 @@ module.exports = new (function() {
                 }
                 callback();
             });
+        });
+
+        //build the featured titles cache from the sets saved in the file system
+        FeaturedService.RefreshFromFiles((err) => {
+            if (err) console.log(err);
         });
     };
 

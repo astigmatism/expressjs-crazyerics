@@ -3,7 +3,7 @@ const async = require('async');
 const config = require('config');
 const FeaturedSQL = require('../db/featured');
 const UtilitiesService = require('../services/utilities');
-const FilesService = require('../services/files');
+const FileService = require('../services/files');
 const CronService = require('../services/cron');
 const Cache = require('../services/cache');
 const NodeCache = require('node-cache');
@@ -22,7 +22,7 @@ module.exports = new (function() {
     this.Create = function(name, gks, callback) {
 
         //will replace will already exists
-        FilesService.WriteFile(_path + name, JSON.stringify(gks), (err) => {
+        FileService.WriteFile(_path + name, JSON.stringify(gks), (err) => {
             if (err) return callback(err);
             callback();
         });
@@ -53,6 +53,34 @@ module.exports = new (function() {
             else {
                 callback();
             }
+        });
+    };
+
+    //reload the featured title sets from the file system, replaces live cache
+    this.RefreshFromFiles = function(callback) {
+
+        FileService.OpenDir(_path, (err, files) => {
+            if (err) return callback(err);
+
+            //loop over all files
+            async.each(files, function(file, nextfile) {
+
+                //read file
+                FileService.ReadJsonFile(_path + file, (err, content) => {
+                    if (err) return callback(err);
+
+                    //add to cache
+                    Add(file, content, (err) => {
+                        if (err) return callback(err);
+                        nextfile();
+                    });
+                });
+
+            }, function(err) {
+                if (err) return callback(err);
+
+                callback();
+            });
         });
     };
 

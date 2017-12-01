@@ -952,6 +952,10 @@ div.slidingpanel {
 	outline-offset: -2px;
 }
 
+#collectionsGrid {
+	padding-top: 10px;
+}
+
 /* game links */
 
 .gamelink {
@@ -982,7 +986,7 @@ div.slidingpanel {
 
 #suggestionswrapper {
 	height: auto;
-	padding: 10px;
+	padding: 0px 10px;
 }
 
 #alphabar {
