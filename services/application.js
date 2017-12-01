@@ -331,25 +331,32 @@ module.exports = new (function() {
         //since this footprint is going out over the wire, use less characters for names
         var components = {
             c: {},
-            p: {}
+            p: {},
+            f: {}
         };
 
         if (req.user) {
 
             var userId = req.user.user_id;
-
+            
             //get client data with sync
             CollectionService.Sync.Outgoing(userId, (err, collectionPayload) => {
-                if (err) {
-                    return callback(err);
-                }
+                if (err) return callback(err);
+
                 components.c = collectionPayload;
 
                 PreferencesService.Sync.Outgoing(userId, (err, preferencesPayload) => {
-                        
+                    if (err) return callback(err);
+
                     components.p = preferencesPayload;
 
-                    callback(null, components);
+                    FeaturedService.Sync.Outgoing((err, featuredPayload) => {
+                        if (err) return callback(err);
+
+                        components.f = featuredPayload;
+
+                        callback(null, components);
+                    });
                 });
             });
         } else {

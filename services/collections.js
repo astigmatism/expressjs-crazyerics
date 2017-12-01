@@ -249,52 +249,6 @@ module.exports = new (function() {
         });
     };
 
-    // this.MakeFeaturedCollection = function(userId, sort, asc, callback) {
-
-    //     _self.GetActiveCollection(userId, (err, activeCollection) => {
-    //         if (err) {
-    //             return callback(err);
-    //         }
-
-    //         CollectionsSQL.ReassignCollectionWithSort(activeCollection.data.collection_id, 0, sort, asc, (err) => {
-    //             if (err) {
-    //                 return callback(err);
-    //             }
-                
-    //             //delete caches for both users
-    //             _collectionNamesCache.Delete([0], (err, success) => {
-    //                 if (err) {
-    //                     return callback(err);
-    //                 }
-                    
-    //                 _collectionNamesCache.Delete([userId], (err, success) => {
-    //                     if (err) {
-    //                         return callback(err);
-    //                     }
-    //                     callback();
-    //                 });
-    //             });
-    //         });
-    //     });
-    // };
-
-    //a utility function that clears out the current active collection cache and tells sync to update client
-    // var ResetActiveCollectionCacheWithName = function(userId, collectionName, callback) {
-        
-    //     //invalidate cache
-    //     _collectionCache.Delete([userId, collectionName], (err) => {
-    //         if (err) {
-    //             return callback(err);
-    //         }
-
-    //         //inform sync that new collection information is ready for client consumption
-    //         //this means that outgoing operations will commence, which rebuilds the cache with new data
-    //         _self.Sync.ready = true;
-        
-    //         return callback();
-    //     });
-    // };
-
     this.Sync = new (function() {
 
         var __self = this;

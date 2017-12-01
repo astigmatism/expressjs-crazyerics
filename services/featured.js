@@ -35,9 +35,9 @@ module.exports = new (function() {
 
             var gameKeys = [];
 
-            if (results.length > 0) {
+            if (results.length > min) {
 
-                var name = results[0].system_name + ' Most Played';
+                var name = 'Most Played ' + results[0].system_name + ' Games';
 
                 for (var i = 0, len = results.length; i < len; ++i) {
                     
@@ -84,6 +84,41 @@ module.exports = new (function() {
         });
     };
 
+    this.SelectRandom = function(quantity, callback) {
+
+        quantity = quantity || 1;
+        var selection = [];
+        var result = {};
+
+        FeaturedCache.Get([], (err, cache) => {
+            if (err) return callback(err);
+
+            var keys = UtilitiesService.Shuffle(Object.keys(cache));
+
+            //while less than asking and less than the number of keys
+            for (var i = keys.length - 1; i > -1 && i > (keys.length - 1) - quantity; --i) {
+                selection.push(keys[i]);
+            }
+
+            for (var i = 0, len = selection.length; i < len; ++i) {
+                result[selection[i]] = cache[selection[i]];
+            }
+            callback(null, result);
+        });
+    };
+
+    this.Select = function(name, callback) {
+
+        FeaturedCache.Get([], (err, cache) => {
+            if (err) return callback(err);
+
+            if (cache.hasOwnProperty(name)) {
+                return callback(null, cache[name]);
+            }
+            callback();
+        })
+    };
+
     var Add = function(name, data, callback) {
 
         FeaturedCache.Get([], (err, cache) => {
@@ -101,5 +136,28 @@ module.exports = new (function() {
             });
         });
     };
+
+    this.Sync = new (function() {
+        
+        var __self = this;
+        this.ready = false;
+
+        //we don't respond to incoming data about featured from the client through Sync
+        this.Incoming = function() {
+            return;
+        };
+
+        //outgoing is how we package the data here on the serverside to the client
+        this.Outgoing = function(callback) {
+
+            _self.SelectRandom(3, (err, selections) => {
+                if (err) return callback(err);
+
+                callback(null, selections);
+            });
+        };
+
+        return this;
+    })();
 
 })();

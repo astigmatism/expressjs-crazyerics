@@ -36,6 +36,7 @@ var cesMain = (function() {
     var _Dialogs = null;
     var _BoxArt = null;
     var _Collections = null;
+    var _Featured = null;
     var _Suggestions = null;
     var _SaveSelection = null;
     var _ProgressBar = null;
@@ -90,6 +91,9 @@ var cesMain = (function() {
 
         _Collections = new cesCollections(_Compression, _Preferences, _BoxArt, _Sync, _Tooltips, PlayGame, $('#openCollectionGrid'), $('#collectionsGrid'), clientdata.components.c, null);
         _Sync.RegisterComponent('c', _Collections.Sync);
+
+        _Featured = new cesFeatured(_Compression, _Preferences, _BoxArt, _Sync, _Tooltips, PlayGame, $('#featuredTitle'), $('#featuredGrid'), clientdata.components.f, null);
+        _Sync.RegisterComponent('f', _Collections.Sync);
 
         //show welcome dialog
         if (_Collections.TitleCount() === 0 && _Collections.CollectionCount() === 1) {

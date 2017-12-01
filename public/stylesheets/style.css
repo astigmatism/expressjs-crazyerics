@@ -956,6 +956,31 @@ div.slidingpanel {
 	padding-top: 10px;
 }
 
+
+/* featured grid */
+
+#featuredGrid, #featuredCaption {
+	padding: 0px 10px 10px 10px;
+}
+
+#featuredCaption div {
+	display: inline-block;
+	overflow: hidden;
+	height: 20px;
+	margin: 5px;
+	padding: 5px;
+	background-color: #1a1f26;
+	color: #ccc;
+	border-radius: 3px;
+}
+
+#featuredCaption div.on {
+	background: #ccc;
+	color: #000;
+}
+
+
+
 /* game links */
 
 .gamelink {

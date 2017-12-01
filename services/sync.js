@@ -4,6 +4,7 @@ const config = require('config');
 const UtilitiesService = require('./utilities');
 const CollectionsService = require('./collections');
 const SavesService = require('./saves');
+const FeaturedService = require('./featured');
 const PreferenceService = require('./preferences');
 
 module.exports = new (function() {
@@ -47,33 +48,39 @@ module.exports = new (function() {
 
     //outgoing is called from various routes which will return response data to the client along with any
     //component data that sync determines needs to be updated on the client.
-    //the incoming parameters provide context between the server and client, like current user and current game
+    //the incoming parameters provide context between the server and client, like current user and current game (optional)
     this.Outgoing = function(response, userId, eGameKey, callback) {
 
         response = response || {};
         response._c = response._c || {}; //_c will hold all data for components on client
 
-        //collections update for client
+        //c: collections update for client
         CheckCollections(userId, (err, data) => {
-            if (err) {
-                return callback(err);
-            }
+            if (err) return callback(err);
+            
             if (data) {
                 response._c.c = data; //c for collections
             }
 
-            //saves update for client
+            //s: saves update for client
             CheckSaves(userId, eGameKey, (err, data) => {
-                if (err) {
-                    return callback(err);
-                }
+                if (err) return callback(err);
+                
                 if (data) {
                     response._c.s = data; //s for saves
                 }
 
-                var compressed = UtilitiesService.Compress.json(response); //compress entire response for sync on client side
+                CheckFeatured((err, data) => {
+                    if (err) return callback(err);
 
-                callback(null, compressed);
+                    if (data) {
+                        response._c.f = data;
+                    }
+
+                    var compressed = UtilitiesService.Compress.json(response); //compress entire response for sync on client side
+                    
+                    callback(null, compressed);
+                });
             });
         });
     };
@@ -86,9 +93,7 @@ module.exports = new (function() {
         }
 
         CollectionsService.Sync.Outgoing(userId, (err, data) => {
-            if (err) {
-                return callback(err);
-            }
+            if (err) return callback(err);
             return callback(null, data);
         });
     };
@@ -101,11 +106,22 @@ module.exports = new (function() {
         }
 
         SavesService.Sync.Outgoing(userId, eGameKey, (err, data) => {
-            if (err) {
-                return callback(err);
-            }
+            if (err) return callback(err);
             return callback(null, data);
         });
     };
+
+    var CheckFeatured = function(callback) {
+
+        if (!FeaturedService.Sync.ready) {
+            return callback();
+        }
+
+        FeaturedService.Sync.Outgoing((err, data) => {
+            if (err) return callback(err);
+            return callback(null, data);
+        });
+
+    }
 
 })();

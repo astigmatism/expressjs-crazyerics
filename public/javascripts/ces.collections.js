@@ -92,6 +92,7 @@ var cesCollections = (function(_Compression, _Preferences, _BoxArt, _Sync, _Tool
 
         var gridTitles = _titlesGrid.isotope('getItemElements');
         
+        //put a flag in each grid item saying this is not in the current collection (unless we find a match later)
         for (var x = 0, xlen = gridTitles.length; x < xlen; ++x) {
             $(gridTitles[x]).data('active', 0);
         }
@@ -274,20 +275,20 @@ var cesCollections = (function(_Compression, _Preferences, _BoxArt, _Sync, _Tool
         //create the tooltip content
         var $tooltipContent = $('<div class="collection-tooltip" />');
         
-        $lastPlayed = $('<div class="pointer">Sort by Last Played</div>');
+        $lastPlayed = $('<div class="pointer">Sort Titles by Last Played</div>');
         $lastPlayed.on('click', function() {
             _TitlesSort.Change('lastPlayed', false);
         });
         $tooltipContent.append($lastPlayed);
         
         
-        $nameSort = $('<div class="pointer">Sort by Name</div>');
+        $nameSort = $('<div class="pointer">Sort Titles by Name</div>');
         $nameSort.on('click', function() {
             _TitlesSort.Change('name', true);
         });
         $tooltipContent.append($nameSort);
 
-        $playCountSort = $('<div class="pointer">Sort by Most Played</div>');
+        $playCountSort = $('<div class="pointer">Sort Titles by Most Played</div>');
         $playCountSort.on('click', function() {
             _TitlesSort.Change('playCount', false);
         });
@@ -507,8 +508,16 @@ var cesCollections = (function(_Compression, _Preferences, _BoxArt, _Sync, _Tool
         };
 
         this.Change = function(sort, asc) {
-            _sort = sort;
-            _asc = asc;
+            
+            //if already set to this, change the sort order
+            if (_sort === sort) {
+                _asc = !_asc
+            }
+            else {
+                _sort = sort;
+                _asc = asc;
+            }
+
             _Preferences.Set('collections.sort.' + _name, __self.Get());
             __self.Sort();
         };
