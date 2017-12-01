@@ -511,7 +511,7 @@ var cesCollections = (function(_Compression, _Preferences, _BoxArt, _Sync, _Tool
             
             //if already set to this, change the sort order
             if (_sort === sort) {
-                _asc = !_asc
+                _asc = !_asc;
             }
             else {
                 _sort = sort;
