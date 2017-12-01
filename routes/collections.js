@@ -26,10 +26,11 @@ router.get('/', function(req, res, next) {
         var userId = req.user.user_id;
 
         CollectionsService.SetActiveCollection(userId, collectionId, (err, result) => {
-            if (err) { return next(err); }
+            if (err) return next(err);
 
             SyncService.Outgoing({}, userId, null, (err, compressedResult) => {
-                if (err) { return res.json(err); }
+                if (err) return res.json(err);
+
                 res.json(compressedResult);
             });
         });
@@ -49,10 +50,11 @@ router.post('/', function(req, res, next) {
         var userId = req.user.user_id;
 
         CollectionsService.CreateCollection(userId, name, (err, createResult) => {
-            if (err) { return next(err); }
+            if (err) return next(err);
 
             SyncService.Outgoing({}, userId, null, (err, compressedResult) => {
-                if (err) { return res.json(err); }
+                if (err) return res.json(err);
+                
                 res.json(compressedResult);
             });
         }, true); //true say to make it active
@@ -81,10 +83,11 @@ router.delete('/', function(req, res, next) {
         var userId = req.user.user_id;
 
         CollectionsService.DeleteCollection(userId, collectionId, (err, deleteRecord) => {
-            if (err) { return next(err); }
+            if (err) return next(err);
 
             SyncService.Outgoing({}, userId, null, (err, compressedResult) => {
-                if (err) { return res.json(err); }
+                if (err) return res.json(err);
+                
                 res.json(compressedResult);
             });
 

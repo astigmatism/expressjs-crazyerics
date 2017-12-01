@@ -16,9 +16,7 @@ router.get('/', function(req, res, next) {
 
     //get general client config data
     ApplicationService.ApplicationEntry(req, function(err, clientdata) {
-        if (err) {
-            return next(err);
-        }
+        if (err) return next(err);
 
         res.render('index', {
             layout: 'layout',
@@ -34,9 +32,8 @@ router.get('/search/:system/:query', function(req, res, next) {
     var term = req.params.query || '';
 
     SearchService.Search(system, term, null, function(err, result) {
-        if (err) {
-            return next(err);
-        }
+        if (err) return next(err);
+        
         var compressed = UtilitiesService.Compress.json(result);
         res.json(compressed);
     });

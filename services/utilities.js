@@ -30,9 +30,9 @@ module.exports = new (function() {
             var base64 = btoa(deflate);
             return base64;
         },
-        gamekey: function(gameKey) {
-            //try not to do this! gamekeys are predefined in masterfiles
-            //return this.json([gameKey.system, gameKey.title, gameKey.file]);
+        gamekey: function(system, title, file) {
+            //remember that gamekeys are predefined in masterfiles so you won't need it for them
+            return this.json([system, title, file]);
 	    }
     };
 

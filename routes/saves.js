@@ -27,14 +27,10 @@ router.get('/', function(req, res, next) {
         var userId = req.user.user_id;
         
         GamesService.EnhancedGameKey(gameKey, (err, eGameKey) => {
-            if (err) {
-                return next(err);
-            }
+            if (err) return next(err);
 
             SaveService.GetSave(userId, eGameKey, timestamp, function(err, saveStateBinary) {
-                if (err) {
-                    return next(err);
-                }
+                if (err) return next(err);
                 
                 res.json({ 
                     state: saveStateBinary 
@@ -69,19 +65,14 @@ router.post('/', function(req, res, next) {
         var userId = req.user.user_id;
         
         GamesService.EnhancedGameKey(gameKey, (err, eGameKey) => {
-            if (err) {
-                return next(err);
-            }
+            if (err) return next(err);
 
             SaveService.NewSave(userId, eGameKey, body.timestamp, body.screenshot, body.state, saveType, (err) => {
-                if (err) {
-                    return next(err);
-                }
+                if (err) return next(err);
 
                 SyncService.Outgoing({}, userId, eGameKey, (err, compressedResult) => {
-                    if (err) {
-                        return res.json(err);
-                    }
+                    if (err) return res.json(err);
+                    
                     res.json(compressedResult);
                 });
             });

@@ -1,5 +1,4 @@
 'use strict';
-const fs = require('fs');
 const async = require('async');
 const config = require('config');
 const FileService = require('./files');
@@ -9,6 +8,8 @@ const UserService = require('./users');
 const CollectionService = require('./collections');
 const PreferencesService = require('./preferences');
 const SuggestionService = require('./suggestions');
+const FeaturedService = require('./featured');
+const CronService = require('./cron');
 
 module.exports = new (function() {
 
@@ -51,8 +52,7 @@ module.exports = new (function() {
                 'aboveSuggestionCount': 0,
                 'belowSuggestionCount': 0
             }
-        }; 
-        
+        };
 
         async.each(Object.keys(systems), function(system, nextsystem) {
 
@@ -60,6 +60,14 @@ module.exports = new (function() {
                 console.log(system + ' is not live, skipping caching');
                 return nextsystem();
             }
+
+            //create features sets for this system
+            //at some point during the hour, refresh the most played games feature for each system
+            CronService.RandomEveryHour(() => {
+                FeaturedService.CreateMostPlayed(system, 6, 18, (err) => {
+                    if (err) console.log('Cron failed for CreateMostPlayed, system ' + system);
+                });
+            }, true);
 
             //ok, lets open the data file
             FileService.Get('/data/' + system + '_master', function(err, data) {

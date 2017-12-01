@@ -7,17 +7,21 @@ const { Pool } = require('pg');
 const pool = new Pool(config.get('db.postgre'));
 
 // this is the right way to export the query method
-module.exports.query = (text, values, callback) => {
+module.exports.query = (query, values, callback) => {
     
     //various debug output
-    //console.log('query:', text, values);
+    //console.log('query:', query, values);
     var date = new Date();
     var id = date.getSeconds() + date.getMilliseconds();
+    var text = query;
+    for (var i = 0, len = values.length; i < len; ++i) {
+        text = text.replace('$' + (i + 1), values[i]);
+    }
     console.log('query: #' + id + ' <- '  + text);
     
     const start = Date.now()
 
-    return pool.query(text, values, (err, result) => {
+    return pool.query(query, values, (err, result) => {
         if (err) {
             return callback(err);
         }

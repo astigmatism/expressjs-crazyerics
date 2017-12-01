@@ -26,12 +26,12 @@
 		"32x": {
 			"name": "Sega 32x",
 			"shortname": "Sega 32x",
-			"live": false,
+			"live": true,
 			"supportfilesize": true,
 			"boxcdnversion": "2.0.1",
 			"romcdnversion": "2.0.1",
 			"emuextention": "2017-03-27",
-			"collection": "GoodGen 3.21",
+			"collection": "1.6.7-stable",
 			"screenshotaspectratio": 1.333333333333333,
 			"emuscript": "picodrive_libretro.js"
 		},

@@ -7,8 +7,6 @@ var FileService = require('../services/files.js');
 var async = require('async');
 
 router.get('/three', function(req, res, next) {
-
-
     res.render('work');
 });
 

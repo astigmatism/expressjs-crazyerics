@@ -33,27 +33,19 @@ router.post('/load', function(req, res, next) {
         
         //ensure a record of this game exists in the db (since I dynmically add them when consumed)
         GameService.PlayRequest(gameKey, function(err, eGameKey, gameDetails) {
-            if (err) {
-                return next(err);
-            }
+            if (err) return next(err);
 
             //add a record for this user playing this title
             UserService.PlayTitle(userId, eGameKey, (err, userTitleRecord) => {
-                if (err) {
-                    return next(err);
-                }
+                if (err) return next(err);
 
                 //add to active collection, if already there, no problem
                 CollectionService.AddTitle(userId, eGameKey, (err, addTitleResult) => {
-                    if (err) {
-                        return next(err);
-                    }
+                    if (err) return next(err);
                     
                     //rebuilds cache of saves for this file and sets the flag to update the client through sync
                     SaveService.Sync.Outgoing(userId, eGameKey, (err, initialSaveData) => {
-                        if (err) {
-                            return next(err);
-                        }
+                        if (err) return next(err);
 
                         //if a shader was selected, return its filesize for the progress bar
                         if (shader) {
@@ -69,9 +61,8 @@ router.post('/load', function(req, res, next) {
                         };
     
                         SyncService.Outgoing(result, userId, eGameKey, (err, compressedResult) => {
-                            if (err) {
-                                return res.json(err);
-                            }
+                            if (err) return res.json(err);
+                            
                             res.json(compressedResult);
                         });
                     });

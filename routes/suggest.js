@@ -76,9 +76,8 @@ router.post('/', function(req, res, next) {
     var recipe = UtilitiesService.Decompress.json(req.body.recipe);
 
     SuggestionsService.Get(recipe, function(err, result) {
-        if (err) {
-            return res.json(err);
-        }
+        if (err) return res.json(err);
+
         result = UtilitiesService.Compress.json(result);
 
         res.json(result);
@@ -90,9 +89,8 @@ router.get('/', function(req, res, next) {
     var cannedRecipe = decodeURIComponent(req.query.rp);
 
     SuggestionsService.GetCanned(cannedRecipe, (err, result) => {
-        if (err) {
-            return res.json(err);
-        }
+        if (err) return res.json(err);
+        
         result = UtilitiesService.Compress.json(result);
 
         res.json(result);
