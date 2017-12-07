@@ -8,7 +8,7 @@ var cesCollections = (function(_Compression, _Preferences, _BoxArt, _Sync, _Tool
     var _currentLoadingGame = null;
     var _baseUrl = '/collections';
     var _featureUrl = '/featured';
-    var _copyToFeaturedButton = false;   //DISABLE FOR PROD
+    var _copyToFeaturedButton = false;   //DISABLE FOR PROD. dont worry, end point protects on server too
 
     var _activeCollectionId = null;
     var _activeCollectionName = null;
@@ -684,18 +684,21 @@ var cesCollections = (function(_Compression, _Preferences, _BoxArt, _Sync, _Tool
         //first, build the grid
         _titlesGrid = $collectionTitlesWrapper.isotope({
             layoutMode: 'masonry',
+            masonry: {
+                horizontalOrder: true
+            },
             itemSelector: '.grid-item',
             getSortData: {
                 lastPlayed: function(item) {
-                    var played = $(item).attr('data-lastPlayed');
+                    var played = $(item).data('lastPlayed');
                     return parseInt(played, 10);
                 },
                 name: function(item) {
-                    return $(item).attr('data-name');
+                    return $(item).data('name');
                     
                 },
                 playCount: function(item) {
-                    var played = $(item).attr('data-playCount');
+                    var played = $(item).data('playCount');
                     return parseInt(played, 10);
                 }
             }
@@ -720,7 +723,7 @@ var cesCollections = (function(_Compression, _Preferences, _BoxArt, _Sync, _Tool
         //will also disable on the server for prod
         if (_copyToFeaturedButton) {
             $featureAdd = AddCollection({
-                name: 'MAKE FEATURE!', 
+                name: '!', 
                 type: 'b'
             }); //! since this name cannot be entered by a user
         }
