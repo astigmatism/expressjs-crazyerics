@@ -116,19 +116,41 @@ var AddCollection = function(collection) {
     var $griditem = $('<div class="grid-item" />');
 
     $griditem.data('id', collection.id);
+    //place sorting data on grid item
+    
+    $griditem.data('type', collection.type || 'd');
 
-    $griditem.append('Featured Collection: ' + collection.name);
+    //if making this collection a feature
+    if (collection.name === '!') {
+        //add a tooltip
+        $griditem.attr('title', 'Load Another Featured Collection');
+        $griditem.addClass('tooltip');
+        $griditem.append('<div class="loadFeature" />');
+        $griditem.on('click', function() {
+            //use sync to get the next featured collection.
+            //here i am using sync purely for compressing data from the server, it does not go through the routine
+            //of using client sync and the incoming funtion, just returns the pure data from the call, so we have to call it directly
+            _Sync.Get(_baseUrl + '?i=' + _currentIndex++, function(data) {
+                _self.Sync.Incoming(data);
+            }); 
+        });
+    }
+    else {
 
-    $griditem.on('click', function() {
-        $(this).parent().find('.grid-item').removeClass('on');
-        $(this).addClass('on');
+        $griditem.append('Featured Collection: ' + collection.name);
 
-        _Collections.SetActiveCollectionId(collection.id);
-        
-        Populate(collection);
-    });
+        $griditem.on('click', function() {
+            $(this).parent().find('.grid-item').removeClass('on');
+            $(this).addClass('on');
+
+            _Collections.SetActiveCollectionId(collection.id);
+            
+            Populate(collection);
+        });
+    }
 
     _collectionsGrid.isotope('insert', $griditem[0]);
+    _collectionsGrid.isotope({ sortBy : 'type' });
 
     return $griditem;
 };
@@ -138,17 +160,17 @@ var GenerateCollectionTooltipContent = function(collection) {
     //create the tooltip content
     var $tooltipContent = $('<div class="collection-tooltip" />');
     
-    $loadMore = $('<div class="pointer">Load Another Featured Collection</div>');
-    $loadMore.on('click', function() {
+    // $loadMore = $('<div class="pointer">Load Another Featured Collection</div>');
+    // $loadMore.on('click', function() {
 
-        //use sync to get the next featured collection.
-        //here i am using sync purely for compressing data from the server, it does not go through the routine
-        //of using client sync and the incoming funtion, just returns the pure data from the call, so we have to call it directly
-        _Sync.Get(_baseUrl + '?i=' + _currentIndex++, function(data) {
-            _self.Sync.Incoming(data);
-        });
-    });
-    $tooltipContent.append($loadMore);
+    //     //use sync to get the next featured collection.
+    //     //here i am using sync purely for compressing data from the server, it does not go through the routine
+    //     //of using client sync and the incoming funtion, just returns the pure data from the call, so we have to call it directly
+    //     _Sync.Get(_baseUrl + '?i=' + _currentIndex++, function(data) {
+    //         _self.Sync.Incoming(data);
+    //     });
+    // });
+    // $tooltipContent.append($loadMore);
 
     $remove = $('<div class="remove">Remove</div>');
     $remove.on('click', function() {
@@ -225,6 +247,11 @@ var Constructor = (function() {
 
     //parse the incoming sync data from server
     _self.Sync.Incoming(_initialSyncPackage);
+
+    $loadMore = AddCollection({
+        name: '!', 
+        type: 'e'
+    });
 
     //also save off the highest index returned, we will increment it to retrieve the next feature
     for (var i = 0, len = _initialSyncPackage.length; i < len; ++i) {

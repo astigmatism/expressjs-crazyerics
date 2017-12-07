@@ -915,6 +915,17 @@ div.slidingpanel {
 	-o-transition:All 200ms ease-in;
 }
 
+#collectionsGrid .grid-item div.loadFeature {
+	background: url("http://cdn.crazyerics.com/images/morefeatured.png") center center no-repeat;
+	height: 20px;
+	width: 20px;
+
+	transition:All 200ms ease-in;
+	-webkit-transition:All 200ms ease-in;
+	-moz-transition:All 200ms ease-in;
+	-o-transition:All 200ms ease-in;
+}
+
 #collectionsGrid div.button {
 	cursor: pointer;
 }

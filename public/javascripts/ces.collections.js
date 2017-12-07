@@ -195,16 +195,8 @@ var cesCollections = (function(_Compression, _Preferences, _BoxArt, _Sync, _Tool
 
             var collection = _collectionNames[i];
 
-            //does this title already exist in the grid?
-            var foundInGrid = false;
-            for (var j = 0, jlen = gridCollections.length; j < jlen; ++j) {
-                var name = $(gridCollections[j]).text();
-                if (name === collection.name) {
-                    foundInGrid = true;
-                }
-            }
-
-            if (!foundInGrid) {
+            //if not in grid, wont have griditem
+            if (!collection.hasOwnProperty('gridItem')) {
                 collection.gridItem = AddCollection(collection);
             }
 
@@ -224,8 +216,7 @@ var cesCollections = (function(_Compression, _Preferences, _BoxArt, _Sync, _Tool
         var $griditem = $('<div class="grid-item" />');
 
         //place sorting data on grid item
-        //$griditem.attr('data-gk', activeTitle.gameKey.gk);
-        //$griditem.attr('data-lastPlayed', activeTitle.lastPlayed); //store as epoch time for sorting
+        $griditem.data('type', collection.type || 'c');
 
         $griditem.append(collection.name); //add all visual content from gamelink to grid
 
@@ -260,6 +251,7 @@ var cesCollections = (function(_Compression, _Preferences, _BoxArt, _Sync, _Tool
         }
 
         _collectionsGrid.isotope('insert', $griditem[0]);
+        _collectionsGrid.isotope({ sortBy : 'type' });
 
         return $griditem;
     };
@@ -711,15 +703,26 @@ var cesCollections = (function(_Compression, _Preferences, _BoxArt, _Sync, _Tool
 
         _collectionsGrid = $collectionNamesWrapper.isotope({
             layoutMode: 'fitRows',
-            itemSelector: '.grid-item'
+            itemSelector: '.grid-item',
+            getSortData: {
+                type: function(item) {
+                    return $(item).data('type');
+                }
+            }
         });
 
-        $add = AddCollection({name:''});
+        $add = AddCollection({
+            name: '', 
+            type: 'a'
+        });
         new NewCollectionControls($add);
 
         //will also disable on the server for prod
         if (_copyToFeaturedButton) {
-            $featureAdd = AddCollection({name:'!'}); //! since this name cannot be entered by a user
+            $featureAdd = AddCollection({
+                name: 'MAKE FEATURE!', 
+                type: 'b'
+            }); //! since this name cannot be entered by a user
         }
 
         //parse the incoming sync data from server
