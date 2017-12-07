@@ -80,7 +80,11 @@ block content
                             span#gametitle
                         div#gametitlecaption
                         div#sliderwrapper
-                            ul#slidericons
+                            ul#slidericons(class="hide")
+                                li(class="controls tooltip", title="Controls")
+                                li(class="screenshots tooltip", title="Screenshots")
+                                li(class="saves tooltip", title="Saves")
+                                li(class="info tooltip", title="Info")
                         //- sliding panels
                         //- div#controlsslider(class="slidingpanel closed")
                         //- div#screenshotsslider(class="slidingpanel closed")

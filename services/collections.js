@@ -144,7 +144,7 @@ module.exports = new (function() {
                 CollectionsSQL.GetCollectionById(userId, collectionId, (err, collectionRecord) => {
                     if (err) { return callback(err); }
 
-                    CollectionsSQL.GetCollectionTitles(collectionId, (err, titleRecords) => {
+                    CollectionsSQL.GetCollectionTitles(userId, collectionId, (err, titleRecords) => {
                         if (err) { return callback(err); }
 
                         //compose all data into a collection envelope

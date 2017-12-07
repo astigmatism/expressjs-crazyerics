@@ -96,10 +96,20 @@ var cesMain = (function() {
 
         //show welcome dialog
         if (_Collections.IsEmpty()) {
-            _Dialogs.ShowDialog('welcomefirst', 200);
+            _Dialogs.ShowDialog('welcomefirst', 150);
         } else {
-            _Dialogs.ShowDialog('welcomeback', 200);
+            _Dialogs.ShowDialog('welcomeback', 150);
         }
+
+        // TODO remove. for building icons
+        // var gk = {
+        //     "system": "snes",
+        //     "title": "Super Mario World",
+        //     "file": "Super Mario World (U) [!].smc",
+        //     "gk": "eJyLVirOSy1W0lEKLi1ILVLwTSzKzFcIzy/KScEmpqARqqkQrRirV5ybrBQLAFxrE2Q="
+        //   };
+        // DisplayGameContext(gk, function() {
+        // });
 
         //build console select for search (had to create a structure to sort by the short name :P)
         var shortnames = [];
@@ -428,6 +438,10 @@ var cesMain = (function() {
                             //meh
                         }
                         var filesize = gameDetails.size;
+
+                        //add this bail for when bulding featured collections
+                        // _preventLoadingGame = false;
+                        // return;
 
                         //_ProgressBar.AddBucket('done', filesize * 0.05); //this represents the final work I need to do before the game starts (prevents bar from showing 1 until totally done)
 

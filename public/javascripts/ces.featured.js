@@ -25,27 +25,8 @@ var Populate = function(collection) {
     //go through all titles in cache
     for (var i = 0, len = collection.gks.length; i < len; ++i) {
         
-        var currentGk = collection.gks[i];
-
-        //does this title already exist in the grid?
-        var foundInGrid = false;
-        for (var j = 0, jlen = gridTitles.length; j < jlen; ++j) {
-
-            var $gridTitle = $(gridTitles[j]);
-            var gridGk = $gridTitle.data('gk');      //take the gk from the element for comparison. will be unique
-            var type = $gridTitle.data('type');
-
-            //already found in this grid, keep it here
-            //has to also be a featured title
-            if (gridGk === currentGk && type === 'feature') {
-                foundInGrid = true;
-                $gridTitle.data('active', 1);
-            }
-        }
-
-        if (!foundInGrid) {
-            AddTitle(currentGk);
-        }
+        //dont try and find preexisting, just wipe it out and start over
+        AddTitle(collection.gks[i]);
     }
 
     //remove anything from the grid not found
@@ -55,6 +36,12 @@ var Populate = function(collection) {
             _titlesGrid.isotope('remove', gridTitles[k]);
         }
     }
+
+    //restore to original collection sort
+    _titlesGrid.isotope({
+        sortBy: 'original-order',
+        sortAscending: true
+    });
 
     _Tooltips.Any();
 };
@@ -214,6 +201,11 @@ this.Sync = new (function() {
                 id: _Compression.Compress.string(item.name),
                 name: item.name
             };
+
+            for (var j = 0; j < item.gks.length; ++j) {
+                var gameKey = _Compression.Decompress.gamekey(item.gks[j]);
+                console.log(gameKey.title);
+            }
         }
 
         PopulateCollections();

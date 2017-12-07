@@ -86,11 +86,11 @@ module.exports = new (function() {
         });
     };
 
-    this.GetCollectionTitles = function(collectionId, callback) {
+    this.GetCollectionTitles = function(userId, collectionId, callback) {
 
         //joins with users_titles
         var countSubQuery = '(SELECT COUNT(save_id) FROM saves WHERE saves.file_id=users_titles.active_file AND saves.user_id=users_titles.user_id)';
-        pool.query('SELECT users_titles.*, ' + countSubQuery + ' AS save_count FROM collections_titles INNER JOIN users_titles ON collections_titles.title_id=users_titles.title_id WHERE collections_titles.collection_id=$1', [collectionId], (err, result) => {
+        pool.query('SELECT users_titles.*, ' + countSubQuery + ' AS save_count FROM collections_titles INNER JOIN users_titles ON collections_titles.title_id=users_titles.title_id WHERE collections_titles.collection_id=$1 AND users_titles.user_id=$2', [collectionId, userId], (err, result) => {
             if (err) { return callback(err); }
             callback(null, result.rows); //ensure we always return an array, 0 length or not
         });

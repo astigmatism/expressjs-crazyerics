@@ -228,6 +228,7 @@ var cesCollections = (function(_Compression, _Preferences, _BoxArt, _Sync, _Tool
                 var gridTitles = _titlesGrid.isotope('getItemElements');
                 var gks = [];
                 for (var i = 0, len = gridTitles.length; i < len; ++i) {
+                    //console.log($(gridTitles[i]).data('name') + ' ' + $(gridTitles[i]).data('gk'));
                     gks.push($(gridTitles[i]).data('gk'));
                 }
 

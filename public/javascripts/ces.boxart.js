@@ -21,7 +21,7 @@ var cesBoxArt = (function(_config, _Compression) {
                     opt_customErrorhandler(this);
                 }
             });
-            this.src = BuildErrorUrl(gameKey, size);
+            img.src = BuildErrorUrl(gameKey, size);
         });
         return $(img);
     };
@@ -46,7 +46,7 @@ var cesBoxArt = (function(_config, _Compression) {
                     opt_customErrorhandler(this);
                 }
             });
-            this.src = BuildErrorUrl(gameKey, size);
+            img.src = BuildErrorUrl(gameKey, size);
         });
 
         return img;

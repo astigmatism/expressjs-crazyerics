@@ -829,6 +829,37 @@ div.slidingpanel {
 	-o-transition:All 200ms ease-in;
 }
 
+#slidericons {
+	padding: 0px;
+	margin: 10px 0 0 0;
+	list-style-type: none;
+	overflow: hidden;
+}
+
+#slidericons li {
+	display: inline-block;
+	height: 20px;
+	width: 20px;
+	margin-right: 10px;
+	cursor: pointer;
+}
+
+#slidericons .info {
+	background: url("http://cdn.crazyerics.com/images/info.png") center center no-repeat;
+}
+
+#slidericons .controls {
+	background: url("http://cdn.crazyerics.com/images/controls.png") center center no-repeat;
+}
+
+#slidericons .screenshots {
+	background: url("http://cdn.crazyerics.com/images/screenshot.png") center center no-repeat;
+}
+
+#slidericons .saves {
+	background: url("http://cdn.crazyerics.com/images/saves.png") center center no-repeat;
+}
+
 /* grids */
 
 .grid:after {
