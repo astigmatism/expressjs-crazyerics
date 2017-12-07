@@ -34,12 +34,17 @@ var cesCollections = (function(_Compression, _Preferences, _BoxArt, _Sync, _Tool
         });
     };
 
-    this.TitleCount = function() {
-        return _activeCollectionTitles.length;
+    //do we meet the conditions for which the user has no games in their collection? (new user, etc)
+    this.IsEmpty = function() {
+        return _activeCollectionTitles.length === 0 && _collectionNames.length === 1; //there will always be one name (the default)
     };
 
-    this.CollectionCount = function() {
-        return _collectionNames.length;
+    //asked for by the featured component
+    this.GetGrids = function() {
+        return {
+            collections: _collectionsGrid,
+            titles: _titlesGrid
+        };
     };
 
     this.SetCurrentGameLoading = function(gameKey) {
@@ -48,6 +53,11 @@ var cesCollections = (function(_Compression, _Preferences, _BoxArt, _Sync, _Tool
 
     this.RemoveCurrentGameLoading = function() {
         _currentLoadingGame = null;
+    };
+
+    //is allows the featured component to override any currently selected personal collection
+    this.SetActiveCollectionId = function(id) {
+        _activeCollectionId = id; 
     };
     
     var RemoveTitle = function(activeTitle, onRemoveComplete) {
@@ -103,13 +113,16 @@ var cesCollections = (function(_Compression, _Preferences, _BoxArt, _Sync, _Tool
             var activeTitle = _activeCollectionTitles[i];
 
             //does this title already exist in the grid?
+            //we only care about keeping the existing title in the grid if it is a personal collection title, 
+            //that way we understand it has the structure to update it
             var foundInGrid = false;
             for (var j = 0, jlen = gridTitles.length; j < jlen; ++j) {
 
                 var $gridTitle = $(gridTitles[j]);
                 var gridGk = $gridTitle.data('gk');      //take the gk from the element for comparison. will be unique
+                var type = $gridTitle.data('type');      //to recognize personal collection from featured collection
 
-                if (gridGk === activeTitle.gameKey.gk) {
+                if (gridGk === activeTitle.gameKey.gk && type == 'personal') {
                     foundInGrid = true;
                     $gridTitle.data('active', 1);
 
@@ -146,11 +159,12 @@ var cesCollections = (function(_Compression, _Preferences, _BoxArt, _Sync, _Tool
         var $griditem = $('<div class="grid-item" />');
 
         //place sorting data on grid item
-        $griditem.attr('data-gk', activeTitle.gameKey.gk);
-        $griditem.attr('data-lastPlayed', activeTitle.lastPlayed); //store as epoch time for sorting
-        $griditem.attr('data-name', activeTitle.gameKey.title);
-        $griditem.attr('data-system', activeTitle.gameKey.system);
-        $griditem.attr('data-playCount', activeTitle.playCount);
+        $griditem.data('gk', activeTitle.gameKey.gk);
+        $griditem.data('lastPlayed', activeTitle.lastPlayed); //store as epoch time for sorting
+        $griditem.data('name', activeTitle.gameKey.title);
+        $griditem.data('system', activeTitle.gameKey.system);
+        $griditem.data('playCount', activeTitle.playCount);
+        $griditem.data('type', 'personal'); //to denote collection type (personal/featured)
 
         $griditem.append(activeTitle.gameLink.GetDOM()); //add all visual content from gamelink to grid
 
@@ -173,6 +187,9 @@ var cesCollections = (function(_Compression, _Preferences, _BoxArt, _Sync, _Tool
 
         var gridCollections = _collectionsGrid.isotope('getItemElements');
         
+        //remove select
+        _collectionsGrid.find('.grid-item').removeClass('on');
+
         //go through all collection names in cache
         for (var i = 0, len = _collectionNames.length; i < len; ++i) {
 
@@ -193,9 +210,6 @@ var cesCollections = (function(_Compression, _Preferences, _BoxArt, _Sync, _Tool
 
             if (_activeCollectionId === collection.id) {
                 collection.gridItem.addClass('on');
-            }
-            else {
-                collection.gridItem.removeClass('on');
             }
 
             //generate new toolips content
@@ -358,7 +372,7 @@ var cesCollections = (function(_Compression, _Preferences, _BoxArt, _Sync, _Tool
                 
                         $input.focus();
             
-                        _Tooltips.Any($input);
+                        _Tooltips.Any();
                     });
 
                     _collectionsGrid.isotope('layout');
@@ -549,10 +563,9 @@ var cesCollections = (function(_Compression, _Preferences, _BoxArt, _Sync, _Tool
             _self.PopulateCollections();
 
             //dont show default collection when no titles (new user)
-            if (payload.collections.length === 1 && payload.titles.length === 0) {
+            if (_self.IsEmpty()) {
                 $collectionNamesWrapper.addClass('hidden');
-            }
-            else {
+            } else {
                 $collectionNamesWrapper.removeClass('hidden');
             }
         };
