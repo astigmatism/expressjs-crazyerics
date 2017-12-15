@@ -2,12 +2,12 @@
 	//commented out urls are drop-ins for when primary is disrupted
 	"imagepath": "http://cdn.crazyerics.com/images",
 	"texturepath": "http://cdn.crazyerics.com/textures",
-	"shaderpath": "http://cdn.crazyerics.com/shaders/07-13-2017", //"http://d1f1bmv0ctqnvi.cloudfront.net/07-13-2017",
+	"shaderpath": "http://cdn.crazyerics.com:81/shaders/07-13-2017", //"http://d1f1bmv0ctqnvi.cloudfront.net/07-13-2017",
 	"boxpath": "http://cdn.crazyerics.com/boxes", //"http://d34dk2ur98gem2.cloudfront.net",
-	"rompath": "http://cdn.crazyerics.com/roms",
+	"rompath": "http://cdn.crazyerics.com:81/roms",
 	"emuextentionspath": "emulatorextentions/",
-	"emupath": "http://cdn.crazyerics.com/emulators", //"http://d15urfrvwzi8iz.cloudfront.net",
-	"supportpath": "http://cdn.crazyerics.com/support", //"https://dl.dropboxusercontent.com/u/1433808/crazyerics/support",
+	"emupath": "http://cdn.crazyerics.com:81/emulators", //"http://d15urfrvwzi8iz.cloudfront.net",
+	"supportpath": "http://cdn.crazyerics.com:81/support", //"https://dl.dropboxusercontent.com/u/1433808/crazyerics/support",
 	"maxSavesPerGame": 40,
 	"defaultCollection": "My Collection",
 	"db": {
