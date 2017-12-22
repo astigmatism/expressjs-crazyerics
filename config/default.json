@@ -79,13 +79,14 @@
 			"shortname": "Famicom Disk System",
 			"live": true,
 			"supportfilesize": 210501, //9201,
-			"boxcdnversion": "2017-12-21",
+			"boxcdnversion": "2017-12-22",
 			"romcdnversion": "FDS-1.0",
 			"collection": "",
 			"emuextention": "1.6.7-stable",
 			"emuscript": "nestopia_libretro.js",
 			"recommendedshaders": [],
 			"screenshotaspectratio": 1.142857142857143,
+			"suggestionThreshold": 250,
 			"notes": "The rom collection is not official. Find the set I build specifically for ces on your Synology in Unsorted Collections. I put great effort into naming the files correctly ;P"
 		},
 		"gb": {
