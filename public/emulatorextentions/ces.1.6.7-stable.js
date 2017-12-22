@@ -312,9 +312,9 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _gameKey) {
     
                 //emulator support, all files must go into system dir (BIOS files at least, what i'm using this for)
                 this.FS_createFolder('/', 'system', true, true);
-                if (compressedSupprtData && compressedSupprtData.f) {
-                    for (var supportFile in compressedSupprtData.f) {
-                        var content = _Compression.Unzip.bytearray(compressedSupprtData.f[supportFile]);
+                if (compressedSupprtData) {
+                    for (var supportFile in compressedSupprtData) {
+                        var content = _Compression.Unzip.bytearray(compressedSupprtData[supportFile]);
                         var filename = _Compression.Unzip.string(supportFile);
                         try {
                             this.FS_createDataFile('/system', filename, content, true, true);

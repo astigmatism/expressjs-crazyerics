@@ -314,6 +314,14 @@ p {
 	border-radius: 1px;
 }
 
+.boxlabel-fds {
+	width: 77px;
+	height: 35px;
+	top: 84px;
+	left: 21px;
+	border-radius: 1px;
+}
+
 .gamelink .statebutton {
 	cursor: pointer;	
 }

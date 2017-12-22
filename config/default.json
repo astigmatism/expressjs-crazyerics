@@ -27,9 +27,9 @@
 			"name": "Sega 32x",
 			"shortname": "Sega 32x",
 			"live": true,
-			"supportfilesize": true,
-			"boxcdnversion": "2.0.1",
-			"romcdnversion": "2.0.1",
+			"supportfilesize": 3417,
+			"boxcdnversion": "2017-12-20",
+			"romcdnversion": "GoodGen-3.14",
 			"emuextention": "2017-03-27",
 			"collection": "1.6.7-stable",
 			"screenshotaspectratio": 1.333333333333333,
@@ -73,6 +73,20 @@
 			"recommendedshaders": [],
 			"screenshotaspectratio": 1.714,
 			"suggestionThreshold": 180
+		},
+		"fds": {
+			"name": "Famicom Disk System",
+			"shortname": "Famicom Disk System",
+			"live": true,
+			"supportfilesize": 210501, //9201,
+			"boxcdnversion": "2017-12-21",
+			"romcdnversion": "FDS-1.0",
+			"collection": "",
+			"emuextention": "1.6.7-stable",
+			"emuscript": "nestopia_libretro.js",
+			"recommendedshaders": [],
+			"screenshotaspectratio": 1.142857142857143,
+			"notes": "The rom collection is not official. Find the set I build specifically for ces on your Synology in Unsorted Collections. I put great effort into naming the files correctly ;P"
 		},
 		"gb": {
 			"name": "Nintendo Game Boy",
@@ -137,8 +151,8 @@
 			"shortname": "Sega Genesis",
 			"live": true,
 			"supportfilesize": 0,
-			"boxcdnversion": "2017-11-20",
-			"romcdnversion": "GoodGen-3.14",
+			"boxcdnversion": "2017-12-20",
+			"romcdnversion": "GoodGen-3.14-a",
 			"emuextention": "2017-03-27",
 			"collection": "GoodGen 3.21",
 			"screenshotaspectratio": 1.333333333333333,
@@ -423,7 +437,7 @@
 			"live": true,
 			"supportfilesize": 0,
 			"collection": "GoodWSx 3.27",
-			"boxcdnversion": "2017-11-20",
+			"boxcdnversion": "2017-12-20",
 			"romcdnversion": "GoodWsx-3.27",
 			"suggestionThreshold": 250,
 			"emuextention": "1.6.7-stable",
@@ -439,6 +453,11 @@
 	},
 	//color for each face is "dominant unless specified
 	"loadingBoxRecipes": {
+		"fds": {
+			"faces": {
+				"back": "texture"
+			}
+		},
 		"nes": {
 			"faces": {
 				"back": "combine",
