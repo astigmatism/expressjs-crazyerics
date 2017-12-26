@@ -30,10 +30,11 @@
 			"supportfilesize": 3417,
 			"boxcdnversion": "2017-12-20",
 			"romcdnversion": "GoodGen-3.14",
-			"emuextention": "2017-03-27",
-			"collection": "1.6.7-stable",
+			"emuextention": "1.7.0-stable",
+			"collection": "",
 			"screenshotaspectratio": 1.333333333333333,
-			"emuscript": "picodrive_libretro.js"
+			"emuscript": "picodrive_libretro.js",
+			"notes": "Collection is just GoodGen 3.21 with all 32x content separated"
 		},
 		"a2600": {
 			"name": "Atari 2600",
@@ -43,7 +44,7 @@
 			"collection": "Good2600 1.0.0",
 			"boxcdnversion": "2017-12-08",
 			"romcdnversion": "Good2600-1.00",
-			"emuextention": "1.6.7-stable",
+			"emuextention": "1.6.9-stable",
 			"emuscript": "stella_libretro.js",
 			"recommendedshaders": [],
 			"screenshotaspectratio": 1.2,
@@ -56,7 +57,7 @@
 			"supportfilesize": 0,
 			"boxcdnversion": "2.0.0",
 			"romcdnversion": "2.0.0",
-			"emuextention": "1.6.7-stable",
+			"emuextention": "1.6.9-stable",
 			"emuscript": "prosystem_libretro.js",
 			"recommendedshaders": []
 		},
@@ -68,7 +69,7 @@
 			"romcdnversion": "",
 			"supportfilesize": 0,
 			"collection": "Good7800 3.28",
-			"emuextention": "1.6.7-stable",
+			"emuextention": "1.6.9-stable",
 			"emuscript": "prosystem_libretro.js",
 			"recommendedshaders": [],
 			"screenshotaspectratio": 1.714,
@@ -82,7 +83,7 @@
 			"boxcdnversion": "2017-12-22",
 			"romcdnversion": "FDS-1.0",
 			"collection": "",
-			"emuextention": "1.6.7-stable",
+			"emuextention": "1.6.9-stable",
 			"emuscript": "nestopia_libretro.js",
 			"recommendedshaders": [],
 			"screenshotaspectratio": 1.142857142857143,
@@ -97,7 +98,7 @@
 			"boxcdnversion": "2017-11-20",
 			"romcdnversion": "GoodGbx-3.14",
 			"collection": "GoodGBx 3.14",
-			"emuextention": "1.6.7-stable",
+			"emuextention": "1.6.9-stable",
 			"emuscript": "gambatte_libretro.js",
 			"screenshotaspectratio": 1.11,
 			"recommendedshaders": [
@@ -126,7 +127,7 @@
 			"boxcdnversion": "2017-11-20",
 			"romcdnversion": "GoodGba-3.23",
 			"collection": "GoodGba3.23",
-			"emuextention": "1.6.7-stable",
+			"emuextention": "1.6.9-stable",
 			"emuscript": "vba_next_libretro.js",
 			"screenshotaspectratio": 1.5,
 			"recommendedshaders": [
@@ -213,7 +214,7 @@
 			"supportfilesize": 0,
 			"boxcdnversion": "2017-11-20",
 			"romcdnversion": "GoodJag-2.01",
-			"emuextention": "1.6.7-stable",
+			"emuextention": "1.6.9-stable",
 			"emuscript": "virtualjaguar_libretro.js",
 			"recommendedshaders": [],
 			"screenshotaspectratio": 1.428571428571429
@@ -226,7 +227,7 @@
 			"collection":"GoodLynx 2.01",
 			"boxcdnversion": "2017-11-20",
 			"romcdnversion": "GoodLynx-2.01",
-			"emuextention": "1.6.7-stable",
+			"emuextention": "1.6.9-stable",
 			"emuscript": "handy_libretro.js",
 			"recommendedshaders": [],
 			"screenshotaspectratio": 1.57
@@ -239,7 +240,7 @@
 			"collection": "GoodN64 3.27",
 			"boxcdnversion": "2017-11-20",
 			"romcdnversion": "GoodN64-3.27",
-			"emuextention": "1.6.7-stable",
+			"emuextention": "1.6.9-stable",
 			"emuscript": "parallel_n64_libretro.js",
 			"screenshotaspectratio": 1.142857143,
 			"retroarch": {
@@ -283,7 +284,7 @@
 			"supportfilesize": 0,
 			"boxcdnversion": "2.0.1",
 			"romcdnversion": "nes6600",
-			"emuextention": "1.6.7-stable",
+			"emuextention": "1.6.9-stable",
 			"emuscript": "desmume_libretro.js",
 			"recommendedshaders": [],
 			"screenshotaspectratio": 1.33
@@ -296,7 +297,7 @@
 			"boxcdnversion": "2017-12-12",
 			"romcdnversion": "GoodNes-3.23b",
 			"collection": "GoodNES 3.23b",
-			"emuextention": "1.6.7-stable",
+			"emuextention": "1.6.9-stable",
 			"emuscript": "nestopia_libretro.js",
 			"recommendedshaders": [],
 			"screenshotaspectratio": 1.142857142857143
@@ -308,7 +309,7 @@
 			"supportfilesize": 0,
 			"boxcdnversion": "2.0.0",
 			"romcdnversion": "2.0.0",
-			"emuextention": "1.6.7-stable",
+			"emuextention": "1.6.9-stable",
 			"emuscript": "mednafen_ngp_libretro.js",
 			"recommendedshaders": [],
 			"screenshotaspectratio": 1.05
@@ -321,7 +322,7 @@
 			"boxcdnversion": "2017-11-20",
 			"romcdnversion": "GoodPce-1.09a",
 			"collection": "GoodPCE 1.09a GoodMerged",
-			"emuextention": "1.6.7-stable",
+			"emuextention": "1.6.9-stable",
 			"emuscript": "mednafen_pce_fast_libretro.js",
 			"recommendedshaders": [],
 			"screenshotaspectratio": 1.142857142857143
@@ -333,7 +334,7 @@
 			"supportfilesize": 1185249,
 			"boxcdnversion": "2.0.0",
 			"romcdnversion": "test",
-			"emuextention": "1.6.7-stable",
+			"emuextention": "1.6.9-stable",
 			"emuscript": "mednafen_psx_libretro.js",
 			"recommendedshaders": [],
 			"screenshotaspectratio": 1.33
@@ -345,7 +346,7 @@
 			"supportfilesize": 435277,
 			"boxcdnversion": "2.0.2",
 			"romcdnversion": "test",
-			"emuextention": "1.6.7-stable",
+			"emuextention": "1.6.9-stable",
 			"screenshotaspectratio": 1.333333333333333,
 			"emuscript": "genesis_plus_gx_libretro.js"
 		},
@@ -356,7 +357,7 @@
 			"supportfilesize": 0,
 			"boxcdnversion": "2017-12-08",
 			"romcdnversion": "GoodSms-3.20",
-			"emuextention": "2017-03-27",
+			"emuextention": "1.6.9-stable",
 			"emuscript": "genesis_plus_gx_libretro.js",
 			"screenshotaspectratio": 1.333333333333333,
 			"recommendedshaders": [
@@ -385,7 +386,7 @@
 			"boxcdnversion": "2017-12-12",
 			"romcdnversion": "GoodSnes-3.23",
 			"collection": "GoodSNES 3.23",
-			"emuextention": "1.6.7-stable",
+			"emuextention": "1.6.9-stable",
 			"emuscript": "snes9x2005_libretro.js",
 			"screenshotaspectratio": 1.142857142857143,
 			"recommendedshaders": [
@@ -414,7 +415,7 @@
 			"collection": "GoodVBoy 3.1415",
 			"boxcdnversion": "2017-11-20",
 			"romcdnversion": "GoodVboy-3.1415",
-			"emuextention": "1.6.7-stable",
+			"emuextention": "1.6.9-stable",
 			"emuscript": "mednafen_vb_libretro.js",
 			"recommendedshaders": [],
 			"screenshotaspectratio": 1.5
@@ -427,7 +428,7 @@
 			"collection": "GoodVect 1.06",
 			"boxcdnversion": "2017-11-20",
 			"romcdnversion": "GoodVect-1.06",
-			"emuextention": "1.6.7-stable",
+			"emuextention": "1.6.9-stable",
 			"emuscript": "vecx_libretro.js",
 			"recommendedshaders": [],
 			"screenshotaspectratio": 0.8
@@ -441,7 +442,7 @@
 			"boxcdnversion": "2017-12-20",
 			"romcdnversion": "GoodWsx-3.27",
 			"suggestionThreshold": 250,
-			"emuextention": "1.6.7-stable",
+			"emuextention": "1.6.9-stable",
 			"emuscript": "mednafen_wswan_libretro.js",
 			"recommendedshaders": [],
 			"screenshotaspectratio": 1.56
@@ -676,8 +677,11 @@
 		"video_windowed_fullscreen": false
 	},
 	"emulators": {
+		"1.7.0-stable":{"2048_libretro.js":{"s":3705991},"4do_libretro.js":{"s":3908096},"81_libretro.js":{"s":4014690},"bluemsx_libretro.js":{"s":5900252},"craft_libretro.js":{"s":5296242},"desmume_libretro.js":{"s":7193603},"dosbox_libretro.js":{"s":6936250},"embed.js":{"s":12219},"fbalpha2012_cps1_libretro.js":{"s":5331600},"fbalpha2012_cps2_libretro.js":{"s":5097458},"fbalpha2012_libretro.js":{"s":16973924},"fbalpha2012_neogeo_libretro.js":{"s":5565634},"fceumm_libretro.js":{"s":4370622},"gambatte_libretro.js":{"s":4427992},"genesis_plus_gx_libretro.js":{"s":5898812},"gme_libretro.js":{"s":3688544},"gpsp_libretro.js":{"s":5047390},"gw_libretro.js":{"s":4190681},"handy_libretro.js":{"s":3968053},"lutro_libretro.js":{"s":4130190},"mame2000_libretro.js":{"s":13465189},"mednafen_lynx_libretro.js":{"s":3896284},"mednafen_ngp_libretro.js":{"s":4221851},"mednafen_pce_fast_libretro.js":{"s":4595108},"mednafen_pcfx_libretro.js":{"s":4918109},"mednafen_psx_libretro.js":{"s":9098640},"mednafen_snes_libretro.js":{"s":4877605},"mednafen_vb_libretro.js":{"s":3941074},"mednafen_wswan_libretro.js":{"s":3981495},"mupen64plus_libretro.js":{"s":5583045},"nestopia_libretro.js":{"s":6137692},"np2kai_libretro.js":{"s":5170976},"nxengine_libretro.js":{"s":4356189},"o2em_libretro.js":{"s":3781306},"parallel_n64_libretro.js":{"s":6290309},"picodrive_libretro.js":{"s":3897334},"prboom_libretro.js":{"s":4779825},"prosystem_libretro.js":{"s":3754685},"quicknes_libretro.js":{"s":3947284},"snes9x2002_libretro.js":{"s":4667170},"snes9x2005_libretro.js":{"s":4650108},"snes9x2010_libretro.js":{"s":6880194},"snes9x_libretro.js":{"s":7758455},"stella_libretro.js":{"s":4574906},"tgbdual_libretro.js":{"s":3862860},"tyrquake_libretro.js":{"s":4957082},"vba_next_libretro.js":{"s":4786761},"vecx_libretro.js":{"s":3795119},"virtualjaguar_libretro.js":{"s":5076848}},
+		"1.6.9-stable":{"2048_libretro.js":{"s":3689360},"4do_libretro.js":{"s":3890070},"81_libretro.js":{"s":3998666},"bluemsx_libretro.js":{"s":5882947},"craft_libretro.js":{"s":5279331},"desmume_libretro.js":{"s":7177062},"dosbox_libretro.js":{"s":6918636},"embed.js":{"s":12219},"fbalpha2012_cps1_libretro.js":{"s":5315569},"fbalpha2012_cps2_libretro.js":{"s":5080063},"fbalpha2012_libretro.js":{"s":16955453},"fbalpha2012_neogeo_libretro.js":{"s":5548316},"fceumm_libretro.js":{"s":4353655},"gambatte_libretro.js":{"s":4410275},"genesis_plus_gx_libretro.js":{"s":5880860},"gme_libretro.js":{"s":3671911},"gpsp_libretro.js":{"s":5029548},"gw_libretro.js":{"s":4168776},"handy_libretro.js":{"s":3951434},"lutro_libretro.js":{"s":4112785},"mame2000_libretro.js":{"s":13447776},"mednafen_lynx_libretro.js":{"s":3880175},"mednafen_ngp_libretro.js":{"s":4217500},"mednafen_pce_fast_libretro.js":{"s":4589521},"mednafen_pcfx_libretro.js":{"s":4494122},"mednafen_psx_libretro.js":{"s":7148646},"mednafen_snes_libretro.js":{"s":4861068},"mednafen_vb_libretro.js":{"s":3938015},"mednafen_wswan_libretro.js":{"s":3977405},"mupen64plus_libretro.js":{"s":5565650},"nestopia_libretro.js":{"s":6121064},"np2kai_libretro.js":{"s":5153345},"nxengine_libretro.js":{"s":4339208},"o2em_libretro.js":{"s":3764490},"parallel_n64_libretro.js":{"s":6272889},"picodrive_libretro.js":{"s":3879773},"prboom_libretro.js":{"s":4762341},"prosystem_libretro.js":{"s":3734784},"quicknes_libretro.js":{"s":3930336},"snes9x2002_libretro.js":{"s":4650606},"snes9x2005_libretro.js":{"s":4633562},"snes9x2010_libretro.js":{"s":6863905},"snes9x_libretro.js":{"s":7741230},"stella_libretro.js":{"s":4558208},"tgbdual_libretro.js":{"s":3846179},"tyrquake_libretro.js":{"s":4940616},"vba_next_libretro.js":{"s":4770305},"vecx_libretro.js":{"s":3778426},"virtualjaguar_libretro.js":{"s":5057379}},
 		"1.6.7-stable":{"2048_libretro.js":{"s":3628957},"4do_libretro.js":{"s":3831433},"81_libretro.js":{"s":3937526},"bluemsx_libretro.js":{"s":5799168},"craft_libretro.js":{"s":5217347},"desmume_libretro.js":{"s":7120517},"dosbox_libretro.js":{"s":6876325},"embed.js":{"s":12219},"fbalpha2012_cps1_libretro.js":{"s":5254357},"fbalpha2012_cps2_libretro.js":{"s":5018378},"fbalpha2012_libretro.js":{"s":16936040},"fbalpha2012_neogeo_libretro.js":{"s":5488496},"fceumm_libretro.js":{"s":4290479},"gambatte_libretro.js":{"s":4349920},"genesis_plus_gx_libretro.js":{"s":5520074},"gme_libretro.js":{"s":3611537},"gpsp_libretro.js":{"s":4969943},"gw_libretro.js":{"s":4106378},"handy_libretro.js":{"s":3890874},"lutro_libretro.js":{"s":4023833},"mame2000_libretro.js":{"s":13382303},"mednafen_lynx_libretro.js":{"s":3819127},"mednafen_ngp_libretro.js":{"s":4162456},"mednafen_pce_fast_libretro.js":{"s":4529487},"mednafen_pcfx_libretro.js":{"s":4431736},"mednafen_psx_libretro.js":{"s":6940170},"mednafen_snes_libretro.js":{"s":4798354},"mednafen_vb_libretro.js":{"s":3875606},"mednafen_wswan_libretro.js":{"s":3918515},"mupen64plus_libretro.js":{"s":5509321},"nestopia_libretro.js":{"s":6057831},"nxengine_libretro.js":{"s":4277270},"o2em_libretro.js":{"s":3704151},"parallel_n64_libretro.js":{"s":6221373},"picodrive_libretro.js":{"s":5179445},"prboom_libretro.js":{"s":4700489},"prosystem_libretro.js":{"s":3673116},"quicknes_libretro.js":{"s":3869761},"snes9x2002_libretro.js":{"s":4598192},"snes9x2005_libretro.js":{"s":4581720},"snes9x2010_libretro.js":{"s":6822987},"snes9x_libretro.js":{"s":7964247},"stella_libretro.js":{"s":4494309},"tgbdual_libretro.js":{"s":3785572},"tyrquake_libretro.js":{"s":4877261},"vba_next_libretro.js":{"s":4715207},"vecx_libretro.js":{"s":3716613},"virtualjaguar_libretro.js":{"s":4999020}},
-		"2017-03-27":{"2048_libretro.js":{"s":3465086},"4do_libretro.js":{"s":3576553},"bluemsx_libretro.js":{"s":5187648},"craft_libretro.js":{"s":6582858},"desmume_libretro.js":{"s":6949677},"dosbox_libretro.js":{"s":6701017},"embed.js":{"s":12222},"fbalpha2012_cps1_libretro.js":{"s":5091543},"fbalpha2012_cps2_libretro.js":{"s":4852181},"fbalpha2012_libretro.js":{"s":16724889},"fbalpha2012_neogeo_libretro.js":{"s":5069933},"fceumm_libretro.js":{"s":4030843},"gambatte_libretro.js":{"s":4103547},"genesis_plus_gx_libretro.js":{"s":6113512},"gme_libretro.js":{"s":3447368},"gpsp_libretro.js":{"s":4803476},"handy_libretro.js":{"s":3664512},"mame2000_libretro.js":{"s":11211908},"mednafen_lynx_libretro.js":{"s":3654870},"mednafen_ngp_libretro.js":{"s":3893879},"mednafen_pce_fast_libretro.js":{"s":3871937},"mednafen_pcfx_libretro.js":{"s":4102472},"mednafen_psx_libretro.js":{"s":6965981},"mednafen_snes_libretro.js":{"s":4634715},"mednafen_vb_libretro.js":{"s":3675818},"mednafen_wswan_libretro.js":{"s":3702742},"mupen64plus_libretro.js":{"s":5338319},"nestopia_libretro.js":{"s":5095525},"nxengine_libretro.js":{"s":3961169},"o2em_libretro.js":{"s":3526251},"parallel_n64_libretro.js":{"s":5341252},"picodrive_libretro.js":{"s":5015041},"prboom_libretro.js":{"s":4354315},"prosystem_libretro.js":{"s":3522168},"quicknes_libretro.js":{"s":3633528},"snes9x2002_libretro.js":{"s":4424993},"snes9x2005_libretro.js":{"s":4588998},"snes9x2010_libretro.js":{"s":5869160},"snes9x_libretro.js":{"s":8547532},"stella_libretro.js":{"s":4341953},"tgbdual_libretro.js":{"s":3619063},"tyrquake_libretro.js":{"s":4427057},"vba_next_libretro.js":{"s":4541092},"vecx_libretro.js":{"s":3553232},"virtualjaguar_libretro.js":{"s":4257120}}
+		"2017-03-27":{"2048_libretro.js":{"s":3465086},"4do_libretro.js":{"s":3576553},"bluemsx_libretro.js":{"s":5187648},"craft_libretro.js":{"s":6582858},"desmume_libretro.js":{"s":6949677},"dosbox_libretro.js":{"s":6701017},"embed.js":{"s":12222},"fbalpha2012_cps1_libretro.js":{"s":5091543},"fbalpha2012_cps2_libretro.js":{"s":4852181},"fbalpha2012_libretro.js":{"s":16724889},"fbalpha2012_neogeo_libretro.js":{"s":5069933},"fceumm_libretro.js":{"s":4030843},"gambatte_libretro.js":{"s":4103547},"genesis_plus_gx_libretro.js":{"s":6113512},"gme_libretro.js":{"s":3447368},"gpsp_libretro.js":{"s":4803476},"handy_libretro.js":{"s":3664512},"mame2000_libretro.js":{"s":11211908},"mednafen_lynx_libretro.js":{"s":3654870},"mednafen_ngp_libretro.js":{"s":3893879},"mednafen_pce_fast_libretro.js":{"s":3871937},"mednafen_pcfx_libretro.js":{"s":4102472},"mednafen_psx_libretro.js":{"s":6965981},"mednafen_snes_libretro.js":{"s":4634715},"mednafen_vb_libretro.js":{"s":3675818},"mednafen_wswan_libretro.js":{"s":3702742},"mupen64plus_libretro.js":{"s":5338319},"nestopia_libretro.js":{"s":5095525},"nxengine_libretro.js":{"s":3961169},"o2em_libretro.js":{"s":3526251},"parallel_n64_libretro.js":{"s":5341252},"picodrive_libretro.js":{"s":5015041},"prboom_libretro.js":{"s":4354315},"prosystem_libretro.js":{"s":3522168},"quicknes_libretro.js":{"s":3633528},"snes9x2002_libretro.js":{"s":4424993},"snes9x2005_libretro.js":{"s":4588998},"snes9x2010_libretro.js":{"s":5869160},"snes9x_libretro.js":{"s":8547532},"stella_libretro.js":{"s":4341953},"tgbdual_libretro.js":{"s":3619063},"tyrquake_libretro.js":{"s":4427057},"vba_next_libretro.js":{"s":4541092},"vecx_libretro.js":{"s":3553232},"virtualjaguar_libretro.js":{"s":4257120}},
+		"notes-1.7.0": "lots of audio glitches (tested nes, snes)"
 	},
 	"shaders": {
 		"3dfx-shaders-old-3dfx_4x1": {

@@ -12,8 +12,8 @@ router.get('/three', function(req, res, next) {
 
 router.get('/emulatorprep', function(req, res, next) {
 
-    var EMULATOR_VERSION = '2017-03-27';
-    var SOURE_PATH = __dirname + '/../workspace/2017-03-27_RetroArch/';
+    var EMULATOR_VERSION = '1.6.9-stable';
+    var SOURE_PATH = __dirname + '/../workspace/RetroArch-stable-1.6.9/';
     
     var writeMemFileToDestination = true;
     
