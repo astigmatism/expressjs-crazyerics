@@ -284,9 +284,8 @@ module.exports = new (function() {
                     configdata.systemdetails[system].cannedSuggestion = true;
                 }
 
-                //optional
-                configdata.systemdetails[system]['recommendedshaders'] = systems[system].recommendedshaders || [];
-                configdata.systemdetails[system]['autocapture'] = systems[system].autocapture || {};
+                //defined or use default values
+                configdata.systemdetails[system]['recommendedshaders'] = systems[system].recommendedshaders || systems.default.recommendedshaders;
             }
         }
 

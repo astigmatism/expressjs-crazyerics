@@ -533,18 +533,27 @@ var cesMain = (function() {
                                                                 $('#emulatorwrapperoverlay').hide();
                                                             });
 
-                                                        //reveal emulator
-                                                        _Emulator.Show(); //control is game is given at this step
+                                                        
+                                                        //so I've found that tapping the fast forward key prevents the weird race condition on start.
+                                                        //keep this until it seems disruptive
+                                                        _PubSub.Mute('notification');
+                                                        _Emulator._InputHelper.Keypress('fastforward', function() {
+                                                            _PubSub.Unmute('notification');
+                                                            
+                                                            //reveal emulator
 
-                                                        $('#emulator').focus(); //give focus (also calls resume game, I took care of the oddities :P)
+                                                            _Emulator.Show(); //control is game is given at this step
 
-                                                        //inform instances that game is starting (for those that care)
-                                                        _Collections.RemoveCurrentGameLoading();
-
-                                                        //with all operations complete, callback
-                                                        if (callback) {
-                                                            callback();
-                                                        }
+                                                            $('#emulator').focus(); //give focus (also calls resume game, I took care of the oddities :P)
+                                                            
+                                                            //inform instances that game is starting (for those that care)
+                                                            _Collections.RemoveCurrentGameLoading();
+    
+                                                            //with all operations complete, callback
+                                                            if (callback) {
+                                                                callback();
+                                                            }
+                                                        });
                                                     });
                                                 });
                                             });
@@ -715,7 +724,7 @@ var cesMain = (function() {
         //     }));
         // }
 
-        $('#shaderselectlist').append($('<li class="zoom" data-shader=""><h3>No Processing</h3><img class="tada" src="' + _config.paths.images + '/shaders/' + system + '/pixels.png" /></li>').on('click', function(e) {
+        $('#shaderselectlist').append($('<li class="zoom" data-shader=""><h3>No Processing</h3><img src="' + _config.paths.images + '/shaders/all/pixels.png" /></li>').on('click', function(e) {
             onFinish($(this).attr('data-shader'));
         }));
 
@@ -723,7 +732,7 @@ var cesMain = (function() {
 
             var key = recommended[i];
 
-            $('#shaderselectlist').append($('<li class="zoom" data-shader="' + key.shader + '"><h3>' + key.title + '</h3><img src="' + _config.paths.images + '/shaders/' + system + '/' + i + '.png" /></li>').on('click', function(e) {
+            $('#shaderselectlist').append($('<li class="zoom" data-shader="' + key.shader + '"><h3>' + key.title + '</h3><img src="' + _config.paths.images + '/shaders/all/' + key.shader + '.png" /></li>').on('click', function(e) {
                 onFinish($(this).attr('data-shader'));
             }));
         }

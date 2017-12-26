@@ -2,7 +2,7 @@
 	"paths": {
 		"images": "http://cdn.crazyerics.com/images",
 		"textures": "http://cdn.crazyerics.com/textures",
-		"shaders": "http://cdn.crazyerics.com:81/shaders/07-13-2017",
+		"shaders": "http://cdn.crazyerics.com:81/shaders/07-13-2017", /* shader image previews at https://buildbot.libretro.com/.docs/shader/introduction/ */
 		"boxes": "http://cdn.crazyerics.com/boxes",
 		"roms": "http://cdn.crazyerics.com:81/roms",
 		"emulator_extensions": "emulatorextentions/",
@@ -107,21 +107,14 @@
 			"screenshotaspectratio": 1.11,
 			"recommendedshaders": [
 				{
-					"title": "Game Boy Advance",
-					"shader": "handheld-lcd_cgwg-lcd-grid-v2-gba-color"
+					"title": "Game Boy Pocket",
+					"shader": "handheld-gameboy-gb-pocket-shader"
 				},
 				{
-					"title": "Smooth",
+					"title": "Smoothed",
 					"shader": "xbr-xbr-hybrid"
 				}
-			],
-			"autocapture": {
-				"title": "Wario Land - Super Mario Land 3",
-				"file": "Wario Land - Super Mario Land 3 (W) [!].gb",
-				"shaders": [
-					"crt-easymode", "", "crt-easymode", "xbr-xbr-hybrid"
-				]
-			}
+			]
 		},
 		"gba": {
 			"name": "Nintendo Game Boy Advance",
@@ -137,20 +130,13 @@
 			"recommendedshaders": [
 				{
 					"title": "Game Boy Advance",
-					"shader": "borders-gameboy-player-gameboy-player-gba-color"
+					"shader": "handheld-lcd3x"
 				},
 				{
-					"title": "Smooth",
+					"title": "Smoothed",
 					"shader": "xbr-xbr-hybrid"
 				}
-			],
-			"autocapture": {
-				"title": "Advance Wars",
-				"file": "Advance Wars (U) (V1.1) [!].gba",
-				"shaders": [
-					"", "lcd-grid-gba-color", "xbr-xbr-hybrid"
-				]
-			}
+			]
 		},
 		"gen": {
 			"name": "Sega Genesis / Mega Drive",
@@ -201,14 +187,7 @@
 					"title": "Smooth",
 					"shader": "xbr-xbr-hybrid"
 				}
-			],
-			"autocapture": {
-				"title": "Crystal Warriors",
-				"file": "Crystal Warriors (UE).gg",
-				"shaders": [
-					"", "lcd-shader", "xbr-xbr-hybrid"
-				]
-			}
+			]
 		},
 		"jag": {
 			"name": "Atari Jaguar",
@@ -262,23 +241,6 @@
 				"input_player1_r_x_minus": "j",
 				"input_player1_r_y_plus": "k",
 				"input_player1_r_y_minus": "i"
-			},
-			"recommendedshaders": [
-				{
-					"title": "Vintage Television",
-					"shader": "crt-crt-easymode"
-				},
-				{
-					"title": "Smooth",
-					"shader": "xbr-xbr-hybrid"
-				}
-			],
-			"autocapture": {
-				"title": "Kirby 64 - The Crystal Shards",
-				"file": "Kirby 64 - The Crystal Shards (U) [!].z64",
-				"shaders": [
-					"", "crt-easymode", "xbr-xbr-hybrid"
-				]
 			}
 		},
 		"nds": {
@@ -363,24 +325,7 @@
 			"romcdnversion": "GoodSms-3.20",
 			"emuextention": "1.6.9-stable",
 			"emuscript": "genesis_plus_gx_libretro.js",
-			"screenshotaspectratio": 1.333333333333333,
-			"recommendedshaders": [
-				{
-					"title": "Vintage Television",
-					"shader": "crt-crt-easymode"
-				},
-				{
-					"title": "Smooth",
-					"shader": "xbr-xbr-hybrid"
-				}
-			],
-			"autocapture": {
-				"title": "Alex Kidd in Miracle World",
-				"file": "Alex Kidd in Miracle World (UEB) (V1.1) [!].sms",
-				"shaders": [
-					"crt-easymode", "", "crt-easymode", "xbr-xbr-hybrid"
-				]
-			}
+			"screenshotaspectratio": 1.333333333333333
 		},
 		"snes": {
 			"name": "Super Nintendo Entermainment System",
@@ -402,14 +347,7 @@
 					"title": "Smoothed",
 					"shader": "xbr-xbr-hybrid"
 				}
-			],
-			"autocapture": {
-				"title": "Pocky & Rocky",
-				"file": "Pocky & Rocky (U) [!].smc",
-				"shaders": [
-					"", "crt-easymode", "xbr-xbr-hybrid"
-				]
-			}
+			]
 		},
 		"vb": {
 			"name": "Nintendo Virtual Boy",
@@ -450,6 +388,18 @@
 			"emuscript": "mednafen_wswan_libretro.js",
 			"recommendedshaders": [],
 			"screenshotaspectratio": 1.56
+		},
+		"default": {
+			"recommendedshaders": [
+				{
+					"title": "Vintage Television",
+					"shader": "crt-crt-easymode"
+				},
+				{
+					"title": "Smoothed",
+					"shader": "xbr-xbr-hybrid"
+				}
+			]
 		}
 	},
 	"search": {
@@ -676,7 +626,7 @@
 		"input_frame_advance": "nul",
 		"video_force_aspect": true,
 		"video_hard_sync": false,
-		"video_scale": 5, 						/* at 5, games show perfect pixels */
+		"video_scale": 8, 						/* at 5, games show perfect pixels */
 		"video_fullscreen": false,
 		"video_windowed_fullscreen": false
 	},
