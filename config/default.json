@@ -130,7 +130,7 @@
 			"recommendedshaders": [
 				{
 					"title": "Game Boy Advance",
-					"shader": "handheld-lcd3x"
+					"shader": "handheld-lcd-shader-lcd-shader"
 				},
 				{
 					"title": "Smoothed",
@@ -619,14 +619,15 @@
 		"input_player1_select": "shift",
 		"input_cheat_toggle": "u",
 		"video_vsync": true,					/* when false, fps dropped big time */
-		"audio_latency": 96,
+		"audio_latency": 128,
+		"audio_out_rate": 44100, //48000 default
 		"video_font_size": 32,
 		"video_smooth": false,
 		"rewind_enable": true,
 		"input_frame_advance": "nul",
 		"video_force_aspect": true,
 		"video_hard_sync": false,
-		"video_scale": 8, 						/* at 5, games show perfect pixels */
+		"video_scale": 5, 						/* at 5, games show perfect pixels */
 		"video_fullscreen": false,
 		"video_windowed_fullscreen": false
 	},
