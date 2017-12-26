@@ -9,7 +9,7 @@ module.exports = new (function() {
 
     var _self = this;
     var _savesCache = new Cache('saves.user.$1.file.$2');
-    var maxSavesPerGame = parseInt(config.get('maxSavesPerGame'), 10);
+    var maxSavesPerGame = parseInt(config.get('defaults.maxSavesPerGame'), 10);
 
     this.NewSave = function(userId, eGameKey, timestamp, screenData, stateData, type, callback) {
                 

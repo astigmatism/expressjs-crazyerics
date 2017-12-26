@@ -1,4 +1,4 @@
-var cesCollections = (function(_Compression, _Preferences, _BoxArt, _Sync, _Tooltips, _PlayGameHandler, $collectionTitlesWrapper, $collectionNamesWrapper, _initialSyncPackage, _OnRemoveHandler) {
+var cesCollections = (function(_Compression, _Preferences, _BoxArt, _Sync, _Tooltips, _PlayGameHandler, $collectionTitlesWrapper, $collectionNamesWrapper, _initialSyncPackage, copyToFeatured, _OnRemoveHandler) {
 		
     //private members
     var _self = this;
@@ -8,7 +8,7 @@ var cesCollections = (function(_Compression, _Preferences, _BoxArt, _Sync, _Tool
     var _currentLoadingGame = null;
     var _baseUrl = '/collections';
     var _featureUrl = '/featured';
-    var _copyToFeaturedButton = false;   //DISABLE FOR PROD. dont worry, end point protects on server too
+    var _copyToFeaturedButton = copyToFeatured;   //DISABLE FOR PROD. dont worry, end point protects on server too
 
     var _activeCollectionId = null;
     var _activeCollectionName = null;

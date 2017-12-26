@@ -317,7 +317,7 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _gameKey) {
                         var content = _Compression.Unzip.bytearray(compressedSupprtData[supportFile]);
                         var filename = _Compression.Unzip.string(supportFile);
                         try {
-                            //this.FS_createDataFile('/system', filename, content, true, true);
+                            this.FS_createDataFile('/system', filename, content, true, true);
                         } catch (e) {
                             //an error on file write.
                         }

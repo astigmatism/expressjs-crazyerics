@@ -619,7 +619,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _gameKey,
     var LoadEmulatorScript = function(_ProgressBar, system, module, filesize, deffered) {
 
         //the path is made of three sections, 1) cdn or local 2) the extention name is the folder where they are stored 3) the file itself
-        var scriptPath = _config.emupath + '/' + _config.systemdetails[system].emuextention + '/' + _config.systemdetails[system].emuscript;
+        var scriptPath = _config.paths.emulators + '/' + _config.systemdetails[system].emuextention + '/' + _config.systemdetails[system].emuscript;
 
         var returnHelper = function(script) {
 
@@ -684,7 +684,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _gameKey,
         }
 
         //support location also includes a folder which must match the emulator version
-        var location = _config.emusupportfilespath + '/' + _config.systemdetails[system].emuextention + '/' + system;
+        var location = _config.paths.supportfiles + '/' + _config.systemdetails[system].emuextention + '/' + system;
 
         LoadResource(location,
             //onProgress Update
@@ -709,7 +709,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _gameKey,
     };
 
     /**
-     * load rom file from whatever is defined in the config "rompath" (CDN/crossdomain or local). will come in as compressed string. after unpacked will resolve deffered. loads concurrently with emulator
+     * load rom file from whatever is defined in the config "paths.roms" (CDN/crossdomain or local). will come in as compressed string. after unpacked will resolve deffered. loads concurrently with emulator
      * @param  {string} system
      * @param  {string} _gameKey.title
      * @param  {string} file
@@ -719,7 +719,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _gameKey,
     var LoadGame = function(_ProgressBar, filesize, deffered) {
         
         var filename = _Compression.Zip.string(_gameKey.title + _gameKey.file);
-        var location = _config.rompath + '/' + _gameKey.system + '/' + _config.systemdetails[_gameKey.system].romcdnversion + '/';
+        var location = _config.paths.roms + '/' + _gameKey.system + '/' + _config.systemdetails[_gameKey.system].romcdnversion + '/';
 
         //encode twice: once for the trip, the second because the files are saved that way on the CDN
         location += encodeURIComponent(encodeURIComponent(filename));
@@ -765,7 +765,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _gameKey,
             return;
         }
 
-        var location = _config.shaderpath + '/' + name;
+        var location = _config.paths.shaders + '/' + name;
 
         LoadResource(location,
             //onProgress Update

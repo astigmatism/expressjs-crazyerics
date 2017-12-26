@@ -89,7 +89,7 @@ var cesMain = (function() {
         _Preferences = new cesPreferences(_Compression, _PubSub, clientdata.components.p);
         _Sync.RegisterComponent('p', _Preferences.Sync);
 
-        _Collections = new cesCollections(_Compression, _Preferences, _BoxArt, _Sync, _Tooltips, PlayGame, $('#openCollectionGrid'), $('#collectionsGrid'), clientdata.components.c, null);
+        _Collections = new cesCollections(_Compression, _Preferences, _BoxArt, _Sync, _Tooltips, PlayGame, $('#openCollectionGrid'), $('#collectionsGrid'), clientdata.components.c, _config.defaults.copyToFeatured, null);
         _Sync.RegisterComponent('c', _Collections.Sync);
 
         _Featured = new cesFeatured(_Compression, _Preferences, _BoxArt, _Sync, _Tooltips, PlayGame, _Collections, clientdata.components.f, null);
@@ -440,8 +440,10 @@ var cesMain = (function() {
                         var filesize = gameDetails.size;
 
                         //add this bail for when bulding featured collections
-                        // _preventLoadingGame = false;
-                        // return;
+                        if (_config.defaults.copyToFeatured) {
+                            _preventLoadingGame = false;
+                            return;
+                        }
 
                         //_ProgressBar.AddBucket('done', filesize * 0.05); //this represents the final work I need to do before the game starts (prevents bar from showing 1 until totally done)
 
@@ -623,7 +625,7 @@ var cesMain = (function() {
         var emuExtentionFileName = 'ces.' + emuExtention + '.js';
 
         //get emulator extention file
-        $.getScript(_config.emuextentionspath + '/' + emuExtentionFileName).done(function(script, textStatus) {
+        $.getScript(_config.paths.emulator_extensions + '/' + emuExtentionFileName).done(function(script, textStatus) {
 
                 //ui handles for the emulator class (add as needed, we want to only referece jquery in main if possible)
                 var ui = {
@@ -713,7 +715,7 @@ var cesMain = (function() {
         //     }));
         // }
 
-        $('#shaderselectlist').append($('<li class="zoom" data-shader=""><h3>No Processing</h3><img class="tada" src="' + _config.imagepath + '/shaders/' + system + '/pixels.png" /></li>').on('click', function(e) {
+        $('#shaderselectlist').append($('<li class="zoom" data-shader=""><h3>No Processing</h3><img class="tada" src="' + _config.paths.images + '/shaders/' + system + '/pixels.png" /></li>').on('click', function(e) {
             onFinish($(this).attr('data-shader'));
         }));
 
@@ -721,7 +723,7 @@ var cesMain = (function() {
 
             var key = recommended[i];
 
-            $('#shaderselectlist').append($('<li class="zoom" data-shader="' + key.shader + '"><h3>' + key.title + '</h3><img src="' + _config.imagepath + '/shaders/' + system + '/' + i + '.png" /></li>').on('click', function(e) {
+            $('#shaderselectlist').append($('<li class="zoom" data-shader="' + key.shader + '"><h3>' + key.title + '</h3><img src="' + _config.paths.images + '/shaders/' + system + '/' + i + '.png" /></li>').on('click', function(e) {
                 onFinish($(this).attr('data-shader'));
             }));
         }
@@ -780,7 +782,7 @@ var cesMain = (function() {
             recipe = _config.loadingBoxRecipes[gameKey.system];
         }
         
-        var loadingWebGL = new cesLoadingWebGL(recipe, _Compression, _PubSub, _config.texturepath, $('#webglloader'), box, texture, gameKey.system);
+        var loadingWebGL = new cesLoadingWebGL(recipe, _Compression, _PubSub, _config.paths.textures, $('#webglloader'), box, texture, gameKey.system);
 
         //show tips on loading
         var randomizedTips = shuffle(_tips);

@@ -25,7 +25,7 @@ module.exports = new (function() {
                     components: componentdata
                 };
 
-                return callback(null, UtilitiesService.Compress.json(result));
+                return callback(null, result);
             });
         }
         else {
@@ -293,34 +293,14 @@ module.exports = new (function() {
         //default retroarch configuration
         configdata['retroarch'] = config.get('retroarch');
 
-        //roms location
-        configdata['rompath'] = config.get('rompath');
+        //paths 
+        configdata['paths'] = config.get('paths');
 
-        //emulator scripts location
-        configdata['emupath'] = config.get('emupath');
-
-        //emulator extensions scripts location
-        configdata['emuextentionspath'] = config.get('emuextentionspath');
-
-        //emulator support files location
-        configdata['emusupportfilespath'] = config.get('supportpath');
-
-        //shaders location
-        configdata['shaderpath'] = config.get('shaderpath');
-
-        //asset location
-        configdata['imagepath'] = config.get('imagepath');
-
-        //texture location
-        configdata['texturepath'] = config.get('texturepath');
-
-        //box art location
-        configdata['boxpath'] = config.get('boxpath');
+        //settings defaults for client
+        configdata['defaults'] = config.get('defaults');
 
         //loading box art recipes
         configdata['loadingBoxRecipes'] = config.get('loadingBoxRecipes');
-
-        configdata['maxSavesPerGame'] = config.get('maxSavesPerGame');
 
         return configdata;
     };

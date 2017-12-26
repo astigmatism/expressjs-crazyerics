@@ -1,15 +1,19 @@
 {
-	//commented out urls are drop-ins for when primary is disrupted
-	"imagepath": "http://cdn.crazyerics.com/images",
-	"texturepath": "http://cdn.crazyerics.com/textures",
-	"shaderpath": "http://cdn.crazyerics.com:81/shaders/07-13-2017", //"http://d1f1bmv0ctqnvi.cloudfront.net/07-13-2017",
-	"boxpath": "http://cdn.crazyerics.com/boxes", //"http://d34dk2ur98gem2.cloudfront.net",
-	"rompath": "http://cdn.crazyerics.com:81/roms",
-	"emuextentionspath": "emulatorextentions/",
-	"emupath": "http://cdn.crazyerics.com:81/emulators", //"http://d15urfrvwzi8iz.cloudfront.net",
-	"supportpath": "http://cdn.crazyerics.com:81/support", //"https://dl.dropboxusercontent.com/u/1433808/crazyerics/support",
-	"maxSavesPerGame": 40,
-	"defaultCollection": "My Collection",
+	"paths": {
+		"images": "http://cdn.crazyerics.com/images",
+		"textures": "http://cdn.crazyerics.com/textures",
+		"shaders": "http://cdn.crazyerics.com:81/shaders/07-13-2017",
+		"boxes": "http://cdn.crazyerics.com/boxes",
+		"roms": "http://cdn.crazyerics.com:81/roms",
+		"emulator_extensions": "emulatorextentions/",
+		"emulators": "http://cdn.crazyerics.com:81/emulators",
+		"supportfiles": "http://cdn.crazyerics.com:81/support"
+	},
+	"defaults": {
+		"maxSavesPerGame": 40,
+		"firstCollection": "My Collection",
+		"copyToFeatured": false
+	},
 	"db": {
 		"postgre": {
 			"host": "192.168.1.3",
@@ -185,7 +189,7 @@
 			"boxcdnversion": "2017-11-20",
 			"romcdnversion": "GoodGG-3.20",
 			"supportfilesize": 0,
-			"emuextention": "2017-03-27",
+			"emuextention": "1.6.9-stable",
 			"emuscript": "genesis_plus_gx_libretro.js",
 			"screenshotaspectratio": 1.11,
 			"recommendedshaders": [

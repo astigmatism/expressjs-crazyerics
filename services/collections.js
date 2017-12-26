@@ -172,7 +172,7 @@ module.exports = new (function() {
 
             //if here, returned value was undef, a record was not found for active collection.
             //could be user is new
-            var defaultCollectionName = config.get('defaultCollection');
+            var defaultCollectionName = config.get('defaults.firstCollection');
 
             //will create if not exist (with flag)
             CollectionsSQL.GetCollectionByName(userId, defaultCollectionName, (err, collectionRecord) => {

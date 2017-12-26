@@ -202,10 +202,10 @@ this.Sync = new (function() {
                 name: item.name
             };
 
-            for (var j = 0; j < item.gks.length; ++j) {
-                var gameKey = _Compression.Decompress.gamekey(item.gks[j]);
-                console.log(gameKey.title);
-            }
+            // for (var j = 0; j < item.gks.length; ++j) {
+            //     var gameKey = _Compression.Decompress.gamekey(item.gks[j]);
+            //     console.log(gameKey.title);
+            // }
         }
 
         PopulateCollections();

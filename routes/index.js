@@ -15,13 +15,15 @@ router.get('/', function(req, res, next) {
     //never attempt to use req.user in this route!
 
     //get general client config data
-    ApplicationService.ApplicationEntry(req, function(err, clientdata) {
+    ApplicationService.ApplicationEntry(req, function(err, data) {
         if (err) return next(err);
+
+        var compressed = UtilitiesService.Compress.json(data);
 
         res.render('index', {
             layout: 'layout',
-            clientdata: clientdata, //all data client needs. config and player data
-            imagepath: config.get('imagepath') //defined outside of client data because it is used in layout
+            data: compressed, //all data client needs. config and player data,
+            imagepath: data.config.paths.images
         });
     });
 });

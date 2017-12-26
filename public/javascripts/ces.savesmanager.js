@@ -53,10 +53,10 @@ var cesSavesManager = (function (_config, _Compression, _Sync, _gameKey, _initia
     //returns the state of how close we are to maximum saves for this game. returned as string or null
     this.MaximumSavesCheck = function() {
 
-        if (_timestamps.length >= _config.maxSavesPerGame) {
+        if (_timestamps.length >= _config.defaults.maxSavesPerGame) {
             return 'max';
         }
-        if (_timestamps.length >= (_config.maxSavesPerGame - (_config.maxSavesPerGame * 0.2))) {
+        if (_timestamps.length >= (_config.defaults.maxSavesPerGame - (_config.defaults.maxSavesPerGame * 0.2))) {
             return 'near';
         }
         return null;

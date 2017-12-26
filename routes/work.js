@@ -17,7 +17,7 @@ router.get('/emulatorprep', function(req, res, next) {
     
     var writeMemFileToDestination = true;
     
-    var emulatorAssetLocation = config.get('emupath') + '/' + EMULATOR_VERSION + '/';
+    var emulatorAssetLocation = config.get('paths.emulators') + '/' + EMULATOR_VERSION + '/';
     var destinationPath = __dirname + '/../public/emulators/' + EMULATOR_VERSION;
 
     var output = {};
