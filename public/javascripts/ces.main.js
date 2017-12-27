@@ -724,7 +724,7 @@ var cesMain = (function() {
         //     }));
         // }
 
-        $('#shaderselectlist').append($('<li class="zoom" data-shader=""><h3>No Processing</h3><img src="' + _config.paths.images + '/shaders/all/pixels.png" /></li>').on('click', function(e) {
+        $('#shaderselectlist').append($('<li class="zoom" data-shader=""><h3>No Processing</h3><img src="' + _config.paths.images + '/shaders/pixels.png" /></li>').on('click', function(e) {
             onFinish($(this).attr('data-shader'));
         }));
 
@@ -732,7 +732,7 @@ var cesMain = (function() {
 
             var key = recommended[i];
 
-            $('#shaderselectlist').append($('<li class="zoom" data-shader="' + key.shader + '"><h3>' + key.title + '</h3><img src="' + _config.paths.images + '/shaders/all/' + key.shader + '.png" /></li>').on('click', function(e) {
+            $('#shaderselectlist').append($('<li class="zoom" data-shader="' + key.shader + '"><h3>' + key.title + '</h3><img src="' + _config.paths.images + '/shaders/' + key.shader + '.png" /></li>').on('click', function(e) {
                 onFinish($(this).attr('data-shader'));
             }));
         }
