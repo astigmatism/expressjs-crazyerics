@@ -9,10 +9,15 @@ const GamesService = require('./games');
 example recipe: {
     systems: {
         nes: {
-            set: 0,
-            proportion: 20
+            set: 0,             //set is 0 = top (defined in boxart, you click it), 1 = above, 2 = above & below (basically all), 3 = below.
+            proportion: 20,
+            randomize: true,    //randomize selections for this system, otherwise taken alphabetically from system cache
+            filter: {
+                begins: 'a'
+            }
         }
     },
+    randomize: true,           //randomize all results. default is true, otherwise all systems games are grouped together.
     count: 100
 }
 */
@@ -128,6 +133,8 @@ module.exports = new (function() {
                 //system is not "all"
                 else {
 
+                    var _recipe = recipe.systems[system]; //system specific local var
+
                     switch (details.set) {
                         case 0:
                         set = caches[system].top;
@@ -144,15 +151,31 @@ module.exports = new (function() {
                     }
 
                     //shuffle the set to pull random results
-                    set = UtilitiesService.Shuffle(set);
+                    if (_recipe.randomize !== false) {
+                        set = UtilitiesService.Shuffle(set);
+                    }
 
                     //to know how many to pull, use proportion of total count needed in response
                     var limit = recipe.count * (parseInt(details.proportion, 10) / 100);
 
+                    //loop over cache, selecting results
                     for (var i = 0, len = set.length; i < len && i < limit; ++i) {
                         
                         var bestfile = caches[system].data[set[i]].b;
                         var gk = caches[system].data[set[i]].f[bestfile].gk; //looks crazy but matches the masterfile
+
+                        //respect filter
+                        if (_recipe.filter) {
+                            if (_recipe.filter.begins) {
+
+                                //title must match or continue to next
+                                var regex = new RegExp('^' + _recipe.filter.begins + '.*');
+                                if (!set[i].match(regex)) {
+                                    continue;
+                                }
+
+                            }
+                        }
 
                         result.push({
                             // system: system,
@@ -172,7 +195,10 @@ module.exports = new (function() {
                 }
 
                 //randomize (otherwise all system games are grouped together)
-                result = UtilitiesService.Shuffle(result);
+                if (recipe.randomize !== false) {
+                    result = UtilitiesService.Shuffle(result);
+                }
+                
 
                 //retain original amount (possible to go over for all the all recipe)
                 result = result.slice(0, recipe.count);

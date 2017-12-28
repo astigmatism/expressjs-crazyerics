@@ -118,7 +118,7 @@ module.exports = new (function() {
                             var systemSuggestionThreshold = config.has('systems.' + system + '.suggestionThreshold') ? config.get('systems.' + system + '.suggestionThreshold') : config.get('search').suggestionThreshold;
                             var titlesWithRating = 0;
 
-                            //ok, let's build the all.json file with the data from each file
+                            //ok, let's build caches
                             for (var title in data) {
 
                                 var bestfile = data[title].b;
@@ -172,7 +172,7 @@ module.exports = new (function() {
                                         suggestions.below.push(title);
                                         suggestions.data[title] = data[title];
 
-                                        //all suggestions not cached dont care
+                                        //these titles are not cached to all suggestions cache
                                         
                                         //increase counter
                                         ++suggestionsall.data.belowSuggestionCount;

@@ -255,23 +255,39 @@ var cesMain = (function() {
             }
         });
 
-        //for browsing with alpha characters
-        $('#suggestionswrapper a').each(function(index, item) {
-            $(item).on('click', function(e) {
-                var system = $('#search select').val();
-                var term = $(item).text();
-                _Suggestions.Load('/suggest/browse/' + system + '?term=' + term, false, function() {
-                    _Tooltips.Any();
-                });
-            });
-        });
-
         //stuff to do when at work mode is enabled
         //$('#titlebanner').hide();
 
         _Sliders = new cesSliders();
 
         _Suggestions = new cesSuggestions(_BoxArt, _Compression, PlayGame, $('#suggestionsgrid'));
+
+        //for browsing with alpha characters
+        $('#suggestionswrapper a').each(function(index, item) {
+            $(item).on('click', function(e) {
+                var system = $('#search select').val();
+                var term = $(item).text(); //takes alpha character (eg a, b, c)
+                
+                var recipe = {
+                    systems: {},
+                    count: 100,
+                    randomize: false
+                };
+                recipe.systems[system] = {
+                    proportion: 100,
+                    set: 2, //all suggestions
+                    randomize: false,
+                    filter: {
+                        begins: term
+                    }
+                };
+
+                //false says, don't continue to load more
+                _Suggestions.Load(recipe, false, function() {
+                    _Tooltips.Any();
+                });
+            });
+        });
 
         //begin by showing all console suggestions
         _Suggestions.Load('all', true, function() {
