@@ -26,7 +26,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _gameKey,
     var _displayDurationHide = 500;
     var _timeToWaitForScreenshot = 2000; //hopefully never take more than 2 sec
     var _timeToWaitForSaveState = 30000; //hopefully never more than 30 sec
-    var _timeToWaitForEmulatorInstantiation = 2500; //x2 once for global eval, again for instantiation
+    var _timeToWaitForEmulatorInstantiation = 500; //x2 once for global eval, again for instantiation
 
     //instances
     var _EmulatorInstance = null;

@@ -257,13 +257,25 @@
 		"ngpx": {
 			"name": "Neo Geo Pocket",
 			"shortname": "Neo Geo Pocket",
-			"live": false,
+			"live": true,
 			"supportfilesize": 0,
-			"boxcdnversion": "2.0.0",
-			"romcdnversion": "2.0.0",
+			"boxcdnversion": "2017-12-27",
+			"romcdnversion": "GoodNGPx-3.14",
+			"collection": "GoodNGPx 3.14",
 			"emuextention": "1.6.9-stable",
 			"emuscript": "mednafen_ngp_libretro.js",
-			"screenshotaspectratio": 1.05
+			"screenshotaspectratio": 1.05,
+			"recommendedshaders": [
+				{
+					"title": "Vintage LCD",
+					"shader": "handheld-lcd-shader"
+				},
+				{
+					"title": "Smoothed",
+					"shader": "xbr-xbr-hybrid"
+				}
+			]
+			// { "title": "Neo Geo Pocket Color", "shader": "handheld-console-border-ngpc-4x" } working, but looks like crap
 		},
 		"pce": {
 			"name": "NEC TurboGrafx-16",
@@ -367,7 +379,17 @@
 			"suggestionThreshold": 250,
 			"emuextention": "1.6.9-stable",
 			"emuscript": "mednafen_wswan_libretro.js",
-			"screenshotaspectratio": 1.56
+			"screenshotaspectratio": 1.56,
+			"recommendedshaders": [
+				{
+					"title": "Vintage LCD",
+					"shader": "handheld-lcd-shader"
+				},
+				{
+					"title": "Smoothed",
+					"shader": "xbr-xbr-hybrid"
+				}
+			]
 		},
 		"default": {
 			"recommendedshaders": [
@@ -389,6 +411,13 @@
 	},
 	//color for each face is "dominant unless specified
 	"loadingBoxRecipes": {
+		"32x": {
+			"faces": {
+				"back": "texture",
+				"left": "texture",
+				"right": "texture"
+			}
+		},
 		"fds": {
 			"faces": {
 				"back": "texture"
@@ -413,6 +442,13 @@
 		"n64": {
 			"faces": {
 				"back": "combine",
+				"left": "texture",
+				"right": "texture"
+			}
+		},
+		"ngpx": {
+			"faces": {
+				"back": "texture",
 				"left": "texture",
 				"right": "texture"
 			}
