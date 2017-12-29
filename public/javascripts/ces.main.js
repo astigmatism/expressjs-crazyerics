@@ -8,7 +8,7 @@ var cesMain = (function() {
         'Hold Space = Fast Forward',
         'F = Fullscreen',
         //'You can save your progress (or state) by pressing the 1 key, return to it anytime with the 4 key',
-        'We\'ll store all of your saves as long as you return within two weeks',
+        //'We\'ll store all of your saves as long as you return within two weeks',
         'P = Pause',
         'Select a system from the dropdown to generate a new list of suggested games',
         'Select a system from the dropdown to search for foreign or obscure titles',
