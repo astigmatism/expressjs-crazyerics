@@ -4,16 +4,19 @@ var cesMain = (function() {
     var self = this;
     var _config = {}; //the necessary server configuration data provided to the client
     var _tips = [
-        'Back out of that mistake you made by holding the R key to rewind the game',
-        'Press the Space key to fast forward through those story scenes',
-        'If your browser supports it, you can go fullscreen by pressing the F key',
+        'Hold R = Rewind',
+        'Hold Space = Fast Forward',
+        'F = Fullscreen',
         //'You can save your progress (or state) by pressing the 1 key, return to it anytime with the 4 key',
         'We\'ll store all of your saves as long as you return within two weeks',
-        'Pause your game with the P key',
+        'P = Pause',
         'Select a system from the dropdown to generate a new list of suggested games',
-        'To search for more obsurace or forgeign titles, select a system from the dropdown first',
-        'Take a screenshot with the T key. Missed that moment? Rewind with R and capture again!',
-        'Screenshots are deleted when you leave or refresh the page. Download your favorites to keep them'
+        'Select a system from the dropdown to search for foreign or obscure titles',
+        'T = Take Screenshot',
+        'H = Reset',
+        '1 = Save Progress',
+        'If you remain idle for 10 seconds, we auto-save your progress',
+        '4 = Load last progress (but use R for rewind!)'
     ];
     var _bar = null;
     var _tipsCycleRate = 4000;
