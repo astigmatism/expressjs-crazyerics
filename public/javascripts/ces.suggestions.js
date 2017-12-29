@@ -2,7 +2,7 @@
  * Object which wraps common functions related to player preferences, data that comes form the server initially but can be changed
  * @type {Object}
  */
-var cesSuggestions = (function(_BoxArt, _Compression, PlayGame, $wrapper) {
+var cesSuggestions = (function(_BoxArt, _Compression, _Tooltips, PlayGame, $grid, $wrapper) {
 
     //private members
     var self = this;
@@ -20,7 +20,7 @@ var cesSuggestions = (function(_BoxArt, _Compression, PlayGame, $wrapper) {
         _allowMore = (allowMore == true) ? true : false;
 
         if (_loading) {
-            return;
+            //return;
         }
 
         _lastRecipe = {
@@ -105,7 +105,7 @@ var cesSuggestions = (function(_BoxArt, _Compression, PlayGame, $wrapper) {
     
         for (var i = 0; i < suggestions.length; ++i) {
             
-            var gameKey = _Compression.Decompress.gamekey(suggestions[i].gk);
+            var gameKey = _Compression.Decompress.gamekey(suggestions[i]);
 
             //spawn new gamelink
             gamelink = new cesGameLink(_BoxArt, gameKey, _BOXSIZE, true, PlayGame);
@@ -137,8 +137,36 @@ var cesSuggestions = (function(_BoxArt, _Compression, PlayGame, $wrapper) {
     //constructor
     var Constructor = (function() {
 
+        var $checkbox = $wrapper.find('input');
+
+        //for browsing with alpha characters
+        $wrapper.find('a').each(function(index, item) {
+            $(item).on('click', function(e) {
+                var system = $('#search select').val();
+                var term = $(item).text(); //is also cache name (A, B, #...)
+
+                var recipe = {
+                    systems: {},
+                    randomize: false,
+                    maximum: -1
+                };
+
+                var cacheType = $checkbox.is(':checked') ? 'above' : 'all';
+
+                recipe.systems[system] = {
+                    cache: 'alpha.' + cacheType + '.' + term,
+                    randomize: false
+                };
+
+                //false says, don't continue to load more
+                self.Load(recipe, false, function() {
+                    _Tooltips.Any();
+                });
+            });
+        });
+
         //create grid
-        _grid = $wrapper.isotope({
+        _grid = $grid.isotope({
             itemSelector: '.grid-item'
         });
 

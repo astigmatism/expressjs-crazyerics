@@ -14,73 +14,61 @@
 			"recipe": {
 				"systems": {
 					"all": {
-						"proportion": 100,
-						"set": 0
+						"cache": "top"
 					}
-				},
-				"count": 50
+				}
 			},
-			"samples": 20
+			"samples": 100
 		},
 		"snes": {
 			"recipe": {
 				"systems": {
 					"snes": {
-						"proportion": 100,
-						"set": 0
+						"cache": "above"
 					}
-				},
-				"count": 50
+				}
 			},
-			"samples": 10
+			"samples": 50
 		},
 		"gb": {
 			"recipe": {
 				"systems": {
 					"gb": {
-						"proportion": 100,
-						"set": 0
+						"cache": "above"
 					}
-				},
-				"count": 50
+				}
 			},
-			"samples": 10
+			"samples": 50
 		},
 		"gba": {
 			"recipe": {
 				"systems": {
 					"gba": {
-						"proportion": 100,
-						"set": 0
+						"cache": "above"
 					}
-				},
-				"count": 50
+				}
 			},
-			"samples": 10
+			"samples": 50
 		},
 		"nes": {
 			"recipe": {
 				"systems": {
 					"nes": {
-						"proportion": 100,
-						"set": 0
+						"cache": "above"
 					}
-				},
-				"count": 50
+				}
 			},
-			"samples": 10
+			"samples": 50
 		},
 		"gen": {
 			"recipe": {
 				"systems": {
 					"gen": {
-						"proportion": 100,
-						"set": 0
+						"cache": "above"
 					}
-				},
-				"count": 30
+				}
 			},
-			"samples": 10
+			"samples": 50
 		}
 	}
 }

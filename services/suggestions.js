@@ -9,16 +9,13 @@ const GamesService = require('./games');
 example recipe: {
     systems: {
         nes: {
-            set: 0,             //set is 0 = top (defined in boxart, you click it), 1 = above, 2 = above & below (basically all), 3 = below.
-            proportion: 20,
-            randomize: true,    //randomize selections for this system, otherwise taken alphabetically from system cache
-            filter: {
-                begins: 'a'
-            }
+            cache: 0,               // default: top. top, above, below, noart, art (above + below), all, alpha.x. (for system "all" only top and above)
+            proportion: 0.2,         // default: 1. proportion relative to the total count (between 0 and 1)
+            randomize: true,        // default: true. randomize selections for this system, otherwise taken alphabetically from system cache
         }
     },
-    randomize: true,           //randomize all results. default is true, otherwise all systems games are grouped together.
-    count: 100
+    randomize: true,                // default: true. randomize all results. otherwise all systems games are grouped together.
+    maximum: 50                     // default: 50. The maximum number of results to return. -1 means there is no limit.
 }
 */
 
@@ -52,187 +49,52 @@ module.exports = new (function() {
 
         var result = [];
         var systems = config.get('systems');
+        var maximum = recipe.maximum || 50;
 
-        PullCaches(recipe, function(err, caches) {
-            if (err) {
-                return callback(err);
-            }
-
-            //loop over systems
-            async.forEachOf(recipe.systems, function(details, system, nextsystem) {
-
-                //for each system, take from defined set the proportion of the total count
-                //the resulting set will be titles only, reach into the cache data for details
-                var set = null;
-
-                //if system is "all"
-                //sorry this is complicated. the all structure differes from the systems because titles can be the same between systems
-                //as a result, we have to consider systems and titles in the cache
-                if (system == 'all') {
-
-                    var allCache = caches[system];
-                    var countForAll = recipe.count * (parseInt(details.proportion, 10) / 100); //the number of entries for "all"
-
-                    //for each system in the all cache
-                    async.each(Object.keys(allCache), function(_system, _nextsystem) {
-
-                        if (_system === 'data') {
-                            return _nextsystem();
-                        }
-
-                        //the ratio of suggestable titles of this system to all titles suggestable from all systems inside the given set
-                        var ratio;
-
-                        switch (details.set) {
-                            case 0: 
-                            set = allCache[_system].top;
-                            ratio = Math.ceil(set.length / allCache.data.topSuggestionCount);
-                            break;
-                            case 1:
-                            set = allCache[_system].above;
-                            ratio = Math.ceil(set.length / allCache.data.aboveSuggestionCount);
-                            break;
-                            case 2: 
-                            set = allCache[_system].above.concat(allCache[_system].below);
-                            ratio = Math.ceil(set.length / (allCache.data.aboveSuggestionCount + allCache.data.belowSuggestionCount));
-                            break;
-                            case 3:
-                            set = allCache[_system].below;
-                            ratio = Math.ceil(set.length / allCache.data.belowSuggestionCount);
-                            break;
-                        }
-
-                        //how many of the items to suggest overall should be from this system?
-                        var tosuggest = (ratio * countForAll);
-
-                        //shuffle the set to pull random results
-                        set = UtilitiesService.Shuffle(set);
-
-                        for (var i = 0, len = set.length; i < len && i < tosuggest; ++i) {
-                            
-                            var bestfile = allCache[_system].data[set[i]].b;
-                            var gk = allCache[_system].data[set[i]].f[bestfile].gk;
-
-                            result.push({
-                                gk: gk,
-                                rating: parseFloat(allCache[_system].data[set[i]].thegamesdbrating) || 0
-                            });
-                        }
-
-                        _nextsystem();
-
-                    }, function(err) {
-                        if (err) {
-                            return nextsystem(err);
-                        }
-                        nextsystem();
-                    });
-                        
-                }
-
-                //system is not "all"
-                else {
-
-                    var _recipe = recipe.systems[system]; //system specific local var
-
-                    switch (details.set) {
-                        case 0:
-                        set = caches[system].top;
-                        break;
-                        case 1:
-                        set = caches[system].above;
-                        break;
-                        case 2: 
-                        set = caches[system].above.concat(caches[system].below);
-                        break;
-                        case 3:
-                        set = caches[system].below;
-                        break;
-                    }
-
-                    //shuffle the set to pull random results
-                    if (_recipe.randomize !== false) {
-                        set = UtilitiesService.Shuffle(set);
-                    }
-
-                    //to know how many to pull, use proportion of total count needed in response
-                    var limit = recipe.count * (parseInt(details.proportion, 10) / 100);
-
-                    //loop over cache, selecting results
-                    for (var i = 0, len = set.length; i < len && i < limit; ++i) {
-                        
-                        var bestfile = caches[system].data[set[i]].b;
-                        var gk = caches[system].data[set[i]].f[bestfile].gk; //looks crazy but matches the masterfile
-
-                        //respect filter
-                        if (_recipe.filter) {
-                            if (_recipe.filter.begins) {
-
-                                //title must match or continue to next
-                                var regex = new RegExp('^' + _recipe.filter.begins + '.*');
-                                if (!set[i].match(regex)) {
-                                    continue;
-                                }
-
-                            }
-                        }
-
-                        result.push({
-                            // system: system,
-                            // title: set[i],
-                            // file: bestfile,
-                            gk: gk,
-                            rating: parseFloat(caches[system].data[set[i]].thegamesdbrating) || 0
-                        });
-                    }
-
-                    nextsystem();
-                }
-
-            }, function(err) {
-                if (err) {
-                    return callback(err);
-                }
-
-                //randomize (otherwise all system games are grouped together)
-                if (recipe.randomize !== false) {
-                    result = UtilitiesService.Shuffle(result);
-                }
-                
-
-                //retain original amount (possible to go over for all the all recipe)
-                result = result.slice(0, recipe.count);
-
-                callback(null, result);
-            });
-
-        });
-    };
-
-    var PullCaches = function(recipe, callback) {
-
-        var caches = {};
-
-        //pull cache for each system
+        //loop over system definitions in recipe
         async.forEachOf(recipe.systems, function(details, system, nextsystem) {
 
-            FileService.Get('suggestions.' + system, function(err, cache) {
-                if (err) {
-                    return nextsystem(err);
-                }
-                caches[system] = cache;
+            //get cache (cache is an array of gk's)
+            var cacheType = details.cache || 'top';
+            var proportion = details.proportion || 1; //100% unless defined otherwise
 
+            FileService.Get('suggestions.' + system + '.' + cacheType, (err, cache) => {
+                if (err) return nextsystem(err);
+
+                //randomze the result for this system?
+                if (details.randomize !== false) {
+                    cache = UtilitiesService.Shuffle(cache);
+                }
+
+                var numberToSelect = maximum * proportion;
+                
+                //when maximum -1, doesn't restrict results, pulls from entire cache length
+                if (maximum < 0) {
+                    numberToSelect = cache.length;
+                }
+                for (var i = 0, len = cache.length; i < len && i < numberToSelect; ++i) {
+
+                    result.push(cache[i]);
+                }
                 nextsystem();
             });
 
-        }, function(err) {
-            if (err) {
-                return callback(err);
+        }, (err) => {
+            if (err) return callback(err);
+
+            //randomize (otherwise all system games are grouped together)
+            if (recipe.randomize !== false) {
+                result = UtilitiesService.Shuffle(result);
             }
-            callback(null, caches);
+            
+            //retain original amount (possible to go over with ratios)
+            if (maximum >= 0) {
+                result = result.slice(0, maximum);
+            }
+
+            callback(null, result);
         });
     };
-    
 
     this.CreateCanned = function(callback) {
 

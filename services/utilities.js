@@ -108,4 +108,11 @@ module.exports = new (function() {
         return undefined;
     }
 
+    this.CreatePropertyIfNotThere = function(object, name, defaultValue) {
+        if (!object.hasOwnProperty(name)) {
+            object[name] = defaultValue;
+        }
+        return object;
+    };
+
 })();

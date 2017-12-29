@@ -1052,6 +1052,11 @@ div.slidingpanel {
 	text-decoration: none;
 }
 
+#alphabar div, #alphabar input {
+	padding: 0px 5px;
+	display: inline-block;
+}
+
 #suggestionswrapper ul {
 	width: 120px;
 	display: inline-block;

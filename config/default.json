@@ -405,7 +405,7 @@
 		}
 	},
 	"search": {
-		"searchAllThreshold": 400,
+		"searchAllThreshold": 400, //250-400 = foreign, 400+ US only
 		"suggestionThreshold": 400,
 		"foreignMixPerc": 0
 	},
@@ -541,80 +541,68 @@
 			"recipe": {
 				"systems": {
 					"all": {
-						"proportion": 100,
-						"set": 0
+						"cache": "top"
 					}
-				},
-				"count": 50
+				}
 			},
-			"samples": 2
+			"samples": 100
 		},
 		"snes": {
 			"recipe": {
 				"systems": {
 					"snes": {
-						"proportion": 100,
-						"set": 0
+						"cache": "above"
 					}
-				},
-				"count": 50
+				}
 			},
-			"samples": 1
+			"samples": 40
 		},
 		"gb": {
 			"recipe": {
 				"systems": {
 					"gb": {
-						"proportion": 100,
-						"set": 0
+						"cache": "above"
 					}
-				},
-				"count": 50
+				}
 			},
-			"samples": 1
+			"samples": 40
 		},
 		"gba": {
 			"recipe": {
 				"systems": {
 					"gba": {
-						"proportion": 100,
-						"set": 0
+						"cache": "above"
 					}
-				},
-				"count": 50
+				}
 			},
-			"samples": 1
+			"samples": 40
 		},
 		"nes": {
 			"recipe": {
 				"systems": {
 					"nes": {
-						"proportion": 100,
-						"set": 0
+						"cache": "above"
 					}
-				},
-				"count": 50
+				}
 			},
-			"samples": 1
+			"samples": 40
 		},
 		"gen": {
 			"recipe": {
 				"systems": {
 					"gen": {
-						"proportion": 100,
-						"set": 0
+						"cache": "above"
 					}
-				},
-				"count": 30
+				}
 			},
-			"samples": 1
+			"samples": 40
 		}
 	},
 	"retroarch": {
 		"system_directory": "/system",
 		"input_menu_toggle":  "f1",
 		"savestate_directory": "/states",
-		"video_message_pos_y": -100, 			/* retroarch emulator messages, negative value is off-screen */
+		"video_font_enable": false,				// # Enable usage of OSD messages.
 		"video_shader_enable": true,
 		"input_shader_next": "rightbracket",
 		"input_shader_prev": "leftbracket",
@@ -634,20 +622,21 @@
 		"input_hold_fast_forward": "space",
 		"input_player1_select": "shift",
 		"input_cheat_toggle": "u",
-		"video_vsync": true,					/* when false, fps dropped big time */
-		"audio_latency": 64,
-		"audio_out_rate": 22050, 				//48000 default. Got better perf when lower, less crackling
-		"video_font_size": 32,
-		"video_smooth": false,
+		"audio_latency": 16,
+		"audio_sync": true,
+		"audio_out_rate": 44100, 				//48000 default. Got better perf when lower, less crackling
 		"rewind_enable": true,
 		"rewind_buffer_size": 100,
 		"input_frame_advance": "nul",
 		"video_force_aspect": true,
-		"video_hard_sync": false,
-		"video_scale": 5, 						/* at 5, games show perfect pixels */
+		"video_vsync": true,				// (when false, fps dropped noticibly)
+		"video_hard_sync": false,			//# Attempts to hard-synchronize CPU and GPU. Can reduce latency at cost of performance. (Seems to have no effect when true)
+		"video_scale": 5, 					// (above 5 i have best looking image, effects some shaders)
 		"video_fullscreen": false,
-		"video_windowed_fullscreen": false, //# If fullscreen, prefer using a windowed fullscreen mode. Note. I had better luck with false
-		"autosave_interval": 10 //# Autosaves the non-volatile SRAM at a regular interval. This is disabled by default unless set otherwise. Note, didn't seem to do anything
+		"video_windowed_fullscreen": false, //# If fullscreen, prefer using a windowed fullscreen mode. (I had better luck with false)
+		"video_smooth": false,
+		"fastforward_ratio": 5.0,
+		"show_hidden_files": true
 	},
 	"emulators": {
 		"1.7.0-stable":{"2048_libretro.js":{"s":3705991},"4do_libretro.js":{"s":3908096},"81_libretro.js":{"s":4014690},"bluemsx_libretro.js":{"s":5900252},"craft_libretro.js":{"s":5296242},"desmume_libretro.js":{"s":7193603},"dosbox_libretro.js":{"s":6936250},"embed.js":{"s":12219},"fbalpha2012_cps1_libretro.js":{"s":5331600},"fbalpha2012_cps2_libretro.js":{"s":5097458},"fbalpha2012_libretro.js":{"s":16973924},"fbalpha2012_neogeo_libretro.js":{"s":5565634},"fceumm_libretro.js":{"s":4370622},"gambatte_libretro.js":{"s":4427992},"genesis_plus_gx_libretro.js":{"s":5898812},"gme_libretro.js":{"s":3688544},"gpsp_libretro.js":{"s":5047390},"gw_libretro.js":{"s":4190681},"handy_libretro.js":{"s":3968053},"lutro_libretro.js":{"s":4130190},"mame2000_libretro.js":{"s":13465189},"mednafen_lynx_libretro.js":{"s":3896284},"mednafen_ngp_libretro.js":{"s":4221851},"mednafen_pce_fast_libretro.js":{"s":4595108},"mednafen_pcfx_libretro.js":{"s":4918109},"mednafen_psx_libretro.js":{"s":9098640},"mednafen_snes_libretro.js":{"s":4877605},"mednafen_vb_libretro.js":{"s":3941074},"mednafen_wswan_libretro.js":{"s":3981495},"mupen64plus_libretro.js":{"s":5583045},"nestopia_libretro.js":{"s":6137692},"np2kai_libretro.js":{"s":5170976},"nxengine_libretro.js":{"s":4356189},"o2em_libretro.js":{"s":3781306},"parallel_n64_libretro.js":{"s":6290309},"picodrive_libretro.js":{"s":3897334},"prboom_libretro.js":{"s":4779825},"prosystem_libretro.js":{"s":3754685},"quicknes_libretro.js":{"s":3947284},"snes9x2002_libretro.js":{"s":4667170},"snes9x2005_libretro.js":{"s":4650108},"snes9x2010_libretro.js":{"s":6880194},"snes9x_libretro.js":{"s":7758455},"stella_libretro.js":{"s":4574906},"tgbdual_libretro.js":{"s":3862860},"tyrquake_libretro.js":{"s":4957082},"vba_next_libretro.js":{"s":4786761},"vecx_libretro.js":{"s":3795119},"virtualjaguar_libretro.js":{"s":5076848}},

@@ -16,7 +16,7 @@ var cesMain = (function() {
         'H = Reset',
         '1 = Save Progress',
         'If you remain idle for 10 seconds, we auto-save your progress',
-        '4 = Load last progress (but use R for rewind!)'
+        '4 = Load last progress'
     ];
     var _bar = null;
     var _tipsCycleRate = 4000;
@@ -157,12 +157,10 @@ var cesMain = (function() {
                 else {
 
                     var recipe = {
-                        systems: {},
-                        count: 100
+                        systems: {}
                     };
                     recipe.systems[system] = {
-                        proportion: 100,
-                        set: (system === 'all') ? 0 : 1
+                        cache: 'above'
                     };
 
                     _Suggestions.Load(recipe, true, function() {
@@ -263,34 +261,7 @@ var cesMain = (function() {
 
         _Sliders = new cesSliders();
 
-        _Suggestions = new cesSuggestions(_BoxArt, _Compression, PlayGame, $('#suggestionsgrid'));
-
-        //for browsing with alpha characters
-        $('#suggestionswrapper a').each(function(index, item) {
-            $(item).on('click', function(e) {
-                var system = $('#search select').val();
-                var term = $(item).text(); //takes alpha character (eg a, b, c)
-                
-                var recipe = {
-                    systems: {},
-                    count: 100,
-                    randomize: false
-                };
-                recipe.systems[system] = {
-                    proportion: 100,
-                    set: 2, //all suggestions
-                    randomize: false,
-                    filter: {
-                        begins: term
-                    }
-                };
-
-                //false says, don't continue to load more
-                _Suggestions.Load(recipe, false, function() {
-                    _Tooltips.Any();
-                });
-            });
-        });
+        _Suggestions = new cesSuggestions(_BoxArt, _Compression, _Tooltips, PlayGame, $('#suggestionsgrid'), $('#suggestionswrapper'));
 
         //begin by showing all console suggestions
         _Suggestions.Load('all', true, function() {
@@ -827,7 +798,7 @@ var cesMain = (function() {
                 var tip = randomizedTips[tipIndex];
 
                 if (!$('#gameloading').is(':animated')) {
-                    $('#tip').empty().append('Tip: ' + tip).fadeIn(500);
+                    $('#tip').empty().append(tip).fadeIn(500);
                 }
 
             });
