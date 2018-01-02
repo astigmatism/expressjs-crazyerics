@@ -259,6 +259,20 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _gameKey) {
     
                 var i;
                 var content;
+
+                //emulator support, all files must go into system dir (BIOS files at least, what i'm using this for)
+                this.FS_createFolder('/', 'system', true, true);
+                if (compressedSupprtData) {
+                    for (var supportFile in compressedSupprtData) {
+                        var content = _Compression.Unzip.bytearray(compressedSupprtData[supportFile]);
+                        var filename = _Compression.Unzip.string(supportFile);
+                        try {
+                            this.FS_createDataFile('/system', filename, content, true, true);
+                        } catch (e) {
+                            //an error on file write.
+                        }
+                    }
+                }
     
                 this.FS_createFolder('/', 'games', true, true);
     
@@ -308,20 +322,6 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _gameKey) {
                     this.arguments = ['-v', '-f', '/games/' + fileToLoad];
                 } else {
                     this.arguments = ['-v', '--menu'];
-                }
-    
-                //emulator support, all files must go into system dir (BIOS files at least, what i'm using this for)
-                this.FS_createFolder('/', 'system', true, true);
-                if (compressedSupprtData) {
-                    for (var supportFile in compressedSupprtData) {
-                        var content = _Compression.Unzip.bytearray(compressedSupprtData[supportFile]);
-                        var filename = _Compression.Unzip.string(supportFile);
-                        try {
-                            this.FS_createDataFile('/system', filename, content, true, true);
-                        } catch (e) {
-                            //an error on file write.
-                        }
-                    }
                 }
     
                 //shaders

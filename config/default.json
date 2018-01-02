@@ -77,6 +77,18 @@
 			"screenshotaspectratio": 1.714,
 			"suggestionThreshold": 180
 		},
+		"arcade": {
+			"name": "Arcade",
+			"shortname": "Arcade",
+			"live": false,
+			"boxcdnversion": "",
+			"romcdnversion": "test",
+			"supportfilesize": 0,
+			"collection": "Mame 0.78",
+			"emuextention": "1.6.9-stable",
+			"emuscript": "mame2000_libretro.js",
+			"screenshotaspectratio": 1
+		},
 		"fds": {
 			"name": "Famicom Disk System",
 			"shortname": "Famicom Disk System",
@@ -212,7 +224,7 @@
 			"boxcdnversion": "2017-11-20",
 			"romcdnversion": "GoodN64-3.27",
 			"emuextention": "1.6.9-stable",
-			"emuscript": "parallel_n64_libretro.js",
+			"emuscript": "mupen64plus_libretro.js",
 			"screenshotaspectratio": 1.142857143,
 			"retroarch": {
 				"video_aspect_ratio": 1.142857143,
@@ -234,10 +246,10 @@
 		"nds": {
 			"name": "Nintendo DS",
 			"shortname": "Nintendo DS",
-			"live": false,
+			"live": true,
 			"supportfilesize": 0,
 			"boxcdnversion": "2.0.1",
-			"romcdnversion": "nes6600",
+			"romcdnversion": "nds",
 			"emuextention": "1.6.9-stable",
 			"emuscript": "desmume_libretro.js",
 			"screenshotaspectratio": 1.33
