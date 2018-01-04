@@ -259,7 +259,7 @@ var cesMain = (function() {
         //stuff to do when at work mode is enabled
         //$('#titlebanner').hide();
 
-        _Sliders = new cesSliders();
+        _Sliders = new cesSliders($('#slidericons'));
 
         _Suggestions = new cesSuggestions(_BoxArt, _Compression, _Tooltips, PlayGame, $('#suggestionsgrid'), $('#suggestionswrapper'));
 

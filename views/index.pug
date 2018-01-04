@@ -80,23 +80,14 @@ block content
                             span#gametitle
                         div#gametitlecaption
                         div#sliderwrapper
-                            ul#slidericons(class="hide")
-                                li(class="controls tooltip", title="Controls")
+                            ul#slidericons
+                                li(class="controls tooltip", data-slider="controls", title="Controls")
                                 li(class="screenshots tooltip", title="Screenshots")
                                 li(class="saves tooltip", title="Saves")
-                                li(class="info tooltip", title="Info")
-                        //- sliding panels
-                        //- div#controlsslider(class="slidingpanel closed")
-                        //- div#screenshotsslider(class="slidingpanel closed")
-                        //-     div(class="slidercontainer")
-                        //-         p Click a screenshot to download. Screenshots are deleted when you close or refresh this page.
-                        //-         p(class="screenshothelper") Take a screenshot by pressing T during play.
-                        //- //- corresponding list of togglers for sliders
-                        //- ul#gamecontrolslist(class="closed")
-                        //-     li(class="controlsslider", data-click-state="0")
-                        //-         img(class="tooltip",src="#{imagepath}/images/gamepad.png", title="View Controls")
-                        //-     li(class="screenshotsslider", data-click-state="0")
-                        //-         img(class="tooltip",src="#{imagepath}/images/screenshot.png", title="View Screenshots")
+                                li(class="info tooltip", data-slider="info", title="Info")
+                            //- sliding panels
+                            div#controls-slider(class="slidingpanel closed")
+                            div#info-slider(class="slidingpanel closed")
                     div#gamedetailsboxfront
 
     div#collectionsWrapper
