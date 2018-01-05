@@ -29,7 +29,8 @@ var cesInputHelper = (function(_Emulator, _ui) {
         'reverse': 82,          //r
         'slowmotion': 69,       //e
         'fastforward': 32,      //space
-        'reset': 72             //h
+        'reset': 72,            //h
+        'exit': 27              //esc  
     };
 
     var _keysWhichHaveFunctionalityInTheBrowserWeWantToPrevent = {
@@ -37,7 +38,7 @@ var cesInputHelper = (function(_Emulator, _ui) {
         13: "enter",
         16: "shift",
         18: "alt",
-        27: "esc",
+        //27: "esc",
         33: "rePag",
         34: "avPag",
         35: "end",
