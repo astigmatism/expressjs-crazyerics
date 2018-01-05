@@ -94,7 +94,7 @@
 			"shortname": "Famicom Disk System",
 			"live": true,
 			"supportfilesize": 210501, //9201,
-			"boxcdnversion": "2017-12-22",
+			"boxcdnversion": "2018-1-2",
 			"romcdnversion": "FDS-1.0",
 			"collection": "",
 			"emuextention": "1.6.9-stable",
@@ -252,7 +252,17 @@
 			"romcdnversion": "nds",
 			"emuextention": "1.6.9-stable",
 			"emuscript": "desmume_libretro.js",
-			"screenshotaspectratio": 1.33
+			"screenshotaspectratio": 1.33,
+			"recommendedshaders": [
+				{
+					"title": "Vintage LCD",
+					"shader": "handheld-lcd-shader"
+				},
+				{
+					"title": "Smoothed",
+					"shader": "xbr-xbr-hybrid"
+				}
+			]
 		},
 		"nes": {
 			"name": "Nintendo Entermainment System",
@@ -435,13 +445,6 @@
 				"back": "texture"
 			}
 		},
-		"nes": {
-			"faces": {
-				"back": "combine",
-				"left": "combine",
-				"right": "combine"
-			}
-		},
 		"snes": {
 			"faces": {
 				"back": "texture",
@@ -449,6 +452,19 @@
 				"bottom": "texture",
 				"left": "texture",
 				"right": "texture"
+			}
+		},
+		"nes": {
+			"faces": {
+				"back": "combine",
+				"left": "combine",
+				"right": "combine"
+			}
+		},
+		"nds": {
+			"faces": {
+				"back": "texture",
+				"left": "texture"
 			}
 		},
 		"n64": {

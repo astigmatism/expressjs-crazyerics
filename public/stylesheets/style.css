@@ -322,6 +322,14 @@ p {
 	border-radius: 1px;
 }
 
+.boxlabel-nds {
+	width: 96px;
+	height: 102px;
+	top: 8px;
+	left: 12px;
+	border-radius: 5px;
+}
+
 .gamelink .statebutton {
 	cursor: pointer;	
 }
