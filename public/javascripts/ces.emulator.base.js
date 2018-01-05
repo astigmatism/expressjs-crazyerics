@@ -284,7 +284,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _gameKey,
                 //EXIT!
                 self._InputHelper.Keypress('exit', function() {
 
-                    _PubSub.UnMute('notification');
+                    _PubSub.Unmute('notification');
                 });
             }); 
         });
