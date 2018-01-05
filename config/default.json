@@ -623,7 +623,7 @@
 		"savefile_directory": "/saves",
 		"input_screenshot": "t",
 		"video_gpu_screenshot": false,
-		"input_exit_emulator": "end",
+		"input_exit_emulator": "escape",
 		"input_save_state": "num1",
 		"input_load_state": "num4",
 		"input_state_slot_increase": "num3",

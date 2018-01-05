@@ -21,7 +21,7 @@ var cesMain = (function() {
     var _bar = null;
     var _tipsCycleRate = 4000;
     var _preventLoadingGame = false;
-    var _preventGamePause = false; //condition for blur event of emulator, sometimes we don't want it to pause when we're giving it back focus
+    //var _preventGamePause = false; //condition for blur event of emulator, sometimes we don't want it to pause when we're giving it back focus
     var _minimumGameLoadingTime = 6000; //minimum amount of time to display the title loading. artificially longer for tips
     var _minimumSaveLoadingTime = 3000; //minimum amount of time to display the state loading screenshot
     var _delayToLoadStateAfterEmulatorStarts = 1000; //I was originally simulating keypresses before the emulator was running :P changed with 11-14 set
@@ -278,6 +278,12 @@ var cesMain = (function() {
             _Notifications.Enqueue(message, priority, hold, icon, topic);
         });
 
+        //pubsub for when window is reloaded/closed
+        $(window).unload(function() {
+            //_PubSub.Publish('onbeforeunload');
+            console.log('exiting');
+        });
+
         //incoming params to open game now?
         // var openonload = _Preferences.Get('openonload') || {};
         // if ('system' in openonload && 'title' in openonload && 'file' in openonload) {
@@ -289,30 +295,36 @@ var cesMain = (function() {
 
     /* private methods */
 
-    var CleanUpEmulator = function(callback) {
+    //run this 
+    var CloseEmulator = function(callback) {
 
         if (_Emulator) {
 
-            //hide emulator, input is taken away
-            _Emulator.Hide(null, function() {   
+            //close game context, no callbacks needed
+            HideGameContext();
 
-                //close game context, no callbacks needed
-                HideGameContext();
+            //emulator is running, exit gracefully to save sram
+            _Emulator.ExitGracefully(null, function() {
 
-                //clean up attempts to remove all events, frees memory (yeah I wish)
-                _Emulator.CleanUp(function() {
+                _Emulator = null;
 
-                    _Emulator = null;
-
-                    if (callback) {
-                        callback();
-                    }
-                });
-                
+                if (callback) {
+                    callback();
+                }
             });
         } 
         //no emulator, just callback
         else {
+            if (callback) {
+                callback();
+            }
+        }   
+    };
+
+    var ForceCloseEmulator = function() {
+        if (_Emulator) {
+            _Emulator.CleanUp(); //bypass the graceful exit routine and simply wipe it out
+        } else {
             if (callback) {
                 callback();
             }
@@ -334,12 +346,12 @@ var cesMain = (function() {
         }
 
         _preventLoadingGame = true; //prevent loading any other games until this flag is lifted
-        _preventGamePause = false;
+        //_preventGamePause = false;
 
         window.scrollTo(0, 0); //will bring scroll to top of page (if case they clicked a suggestion, no need to scroll back up)
 
         //will clear up existing emulator if it exists
-        CleanUpEmulator(function() {
+        CloseEmulator(function() {
             
             $('#emulatorcanvas').empty(); //ensure empty (there can be a canvas here if the user bailed during load)
 
@@ -507,34 +519,19 @@ var cesMain = (function() {
 
                                                     //enlarge dialog area for emulator
                                                     _Dialogs.SetHeight($('#emulatorwrapper').outerHeight(), function() {
-
-                                                        //assign focus to emulator canvas
-                                                        $('#emulator')
-                                                            .blur(function(event) {
-                                                                if (!_preventGamePause) {
-
-                                                                    _Emulator.PauseGame();
-                                                                    $('#emulatorwrapperoverlay').fadeIn();
-                                                                }
-                                                            })
-                                                            .focus(function() {
-                                                                window.scrollTo(0, 0); //bring attention back up top
-                                                                _Emulator.ResumeGame();
-                                                                $('#emulatorwrapperoverlay').hide();
-                                                            });
-
                                                         
                                                         //so I've found that tapping the fast forward key prevents the weird race condition on start.
                                                         //keep this until it seems disruptive
                                                         _PubSub.Mute('notification');
                                                         _Emulator._InputHelper.Keypress('fastforward', function() {
+                                                            
                                                             _PubSub.Unmute('notification');
                                                             
-                                                            //reveal emulator
+                                                            //reveal emulator, control is game is given at this step
+                                                            _Emulator.ReadyPlayerOne(function() {
 
-                                                            _Emulator.Show(); //control is game is given at this step
-
-                                                            $('#emulator').focus(); //give focus (also calls resume game, I took care of the oddities :P)
+                                                                window.scrollTo(0,0); //bring attention back up top
+                                                            });
                                                             
                                                             //inform instances that game is starting (for those that care)
                                                             _Collections.RemoveCurrentGameLoading();
@@ -606,7 +603,7 @@ var cesMain = (function() {
 
     var ShowErrorDialog = function(message, e) {
 
-        CleanUpEmulator(function() {
+        ForceCloseEmulator(function() {
 
             _preventLoadingGame = false; //in case it failed during start
             //_RecentlyPlayed.RemoveCurrentGameLoading();

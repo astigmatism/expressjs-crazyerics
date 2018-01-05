@@ -200,9 +200,16 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _gameKey,
         }
     };
 
-    this.Show = function (duration, callback) {
+    this.Focus = function() {
+        _ui.canvas.focus();
+    };
+
+    //emulator is revealed, control is given to player
+    this.ReadyPlayerOne = function (duration, callback) {
 
         duration = duration || _displayDurationShow;
+
+        self.Focus(); //give focus (also calls resume game, I took care of the oddities :P)
 
         $(_ui.wrapper).fadeIn(_displayDurationShow, function() {
 
@@ -213,22 +220,73 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _gameKey,
 
             _gameBeganPlaying = Date.now();
 
+            //subscribe to when user leaves, refreshes
+            _PubSub.SubscribeOnce('onbeforeunload', function() {
+                console.log('onbeforeunload, initiate graceful emulator exit');
+            });
+
+            //assign focus to emulator canvas
+            _ui.canvas
+                .blur(function(event) {
+                    self.PauseGame();
+                    $('#emulatorwrapperoverlay').fadeIn();
+                })
+                .focus(function() {
+                    self.ResumeGame();
+                    $('#emulatorwrapperoverlay').hide();
+                });
+
             if (callback) {
                 callback();
             }
         });
     };
 
-    this.Hide = function (duration, callback) {
+    //moved to ExitGracefully
+    // this.Hide = function (duration, callback) {
+
+    //     duration = duration || _displayDurationHide;
+
+    //     self.GiveEmulatorControlOfInput(false);
+    //     $(_ui.wrapper).fadeOut(_displayDurationHide, function() {
+            
+    //         if (callback) {
+    //             callback();
+    //         }
+    //     });
+    // };
+
+    //ok, to exit gracefully, the game is likely already paused because the user clicked elsewhere, triggering it to be paused
+    this.ExitGracefully = function(duration, callback) {
 
         duration = duration || _displayDurationHide;
 
+        //revoke input from player
         self.GiveEmulatorControlOfInput(false);
+
+        //hide
         $(_ui.wrapper).fadeOut(_displayDurationHide, function() {
             
-            if (callback) {
-                callback();
+           //the emulator must be active to gracefully exit
+            if (_isPaused) {
+                self.ResumeGame();
             }
+            _PubSub.Mute('notification');
+            self._InputHelper.Keypress('mute', function() {
+
+                //CRAZY! this is the key to successful emulator exit. We MUST get the final file write from a graceful exit to properly finish cleaning up
+                //CHECK THIS WHEN UPGRADING EMAULTOR VERSIONS!
+                _PubSub.SubscribeOnce('retroArchGracefulExit', self, function() {
+
+                    return self.CleanUp(callback);
+                });
+
+                //EXIT!
+                self._InputHelper.Keypress('exit', function() {
+
+                    _PubSub.UnMute('notification');
+                });
+            }); 
         });
     };
 
@@ -256,7 +314,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _gameKey,
 
         if (_Module) {
 
-            //also unbinds events from document and window
+            //also unbinds events from document and window. this may have been done already through exit gracefully, but keep it as a sanity check
             self.GiveEmulatorControlOfInput(false);
 
             try {
@@ -281,9 +339,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _gameKey,
                 _EmulatorInstance = null;
             }
 
-            if (self._InputHelper) {
-                self._InputHelper = null;
-            }
+            self._InputHelper = null;            
             
             $(_ui.canvas).remove(); //kill all events attached (keyboard, focus, etc)
         }
@@ -311,6 +367,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _gameKey,
 
         var statematch = filename.match(/\.state(\d*)$/); //match .state or .statex where x is a digit (although hoping they dont use slots :P)
         var screenshotmatch = filename.match(/\.bmp$|\.png$/);
+        var srammatch = filename.match(/\.srm$/);
 
         // match will return an array when match was successful, our capture group with the slot value, its 1 index
         if (statematch) {
@@ -328,8 +385,19 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _gameKey,
             return;
         }
 
+        if (srammatch) {
+
+            console.log('emulator is outing save file!');
+            return;
+        }
+
         if (filename === 'retroarch.cfg') {
             _PubSub.Publish('retroArchConfigWritten', [contents]);
+            return;
+        }
+
+        if (filename === 'retroarch-core-options.cfg') {
+            _PubSub.Publish('retroArchGracefulExit', [contents]);
             return;
         }
     };
@@ -741,7 +809,6 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _gameKey,
                     return;
                 }
 
-                console.log('game done');
                 deffered.resolve(null, response);
             },
             //onFailure
