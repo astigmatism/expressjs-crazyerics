@@ -6,7 +6,7 @@
 		"boxes": "http://cdn.crazyerics.com/boxes",
 		"roms": "http://cdn.crazyerics.com:81/roms",
 		"emulator_extensions": "emulatorextentions/",
-		"emulators": "http://cdn.crazyerics.com:81/emulators",
+		"emulators": "http://cdn.crazyerics.com/emulators",
 		"supportfiles": "http://cdn.crazyerics.com:81/support"
 	},
 	"defaults": {
