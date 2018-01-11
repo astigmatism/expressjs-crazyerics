@@ -493,6 +493,12 @@ p {
     width: 100%;
 }
 
+/* select another game dialog */
+
+#selectanother {
+	height: 110px;
+}
+
 /* shader select dialog */
 
 #systemshaderseletor {

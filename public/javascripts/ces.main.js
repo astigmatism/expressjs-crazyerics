@@ -63,6 +63,7 @@ var cesMain = (function() {
         _Dialogs = new cesDialogs($('#dialogs'), {
             'welcomefirst': $('#welcomemessage'),
             'welcomeback': $('#welcomeback'),
+            'blank': $('#blank'),
             'shaderselector': $('#systemshaderseletor'),
             'savedgameselector': $('#savedgameselector'),
             'gameloading': $('#gameloading'),
@@ -85,9 +86,6 @@ var cesMain = (function() {
         _Sync = new cesSync(_config, _Compression);
 
         _BoxArt = new cesBoxArt(_config, _Compression);
-
-        //auto capture trigger. comment out to avoid build
-        //self._autoCaptureHarness('n64', _config.autocapture['n64'].shaders, 7000, 1, 10000);
 
         _Preferences = new cesPreferences(_Compression, _PubSub, clientdata.components.p);
         _Sync.RegisterComponent('p', _Preferences.Sync);
@@ -279,66 +277,61 @@ var cesMain = (function() {
         });
 
         //pubsub for when window is reloaded/closed
-        $(window).unload(function() {
-            //_PubSub.Publish('onbeforeunload');
-            console.log('exiting');
+        // $(window).unload(function() {
+        //     //_PubSub.Publish('onbeforeunload');
+        //     console.log('exiting');
+        // });
+        $(window).bind('beforeunload', function() {
+            CloseEmulator(function() {
+                return true;
+            });
         });
-
-        //incoming params to open game now?
-        // var openonload = _Preferences.Get('openonload') || {};
-        // if ('system' in openonload && 'title' in openonload && 'file' in openonload) {
-        //     PlayGame(openonload.system, openonload.title, openonload.file);
-        // }
     });
 
     /* public methods */
 
     /* private methods */
-
-    //run this 
+    
     var CloseEmulator = function(callback) {
 
         if (_Emulator) {
 
-            //close game context, no callbacks needed
-            HideGameContext();
+            _Emulator.Hide(null, function() {
 
-            //emulator is running, exit gracefully to save sram
-            _Emulator.ExitGracefully(null, function() {
+                HideGameContext(); //sliders, title, etc
 
-                _Emulator = null;
+                _Dialogs.ShowDialog('emulatorcleanup', null, function() {
 
-                if (callback) {
-                    callback();
-                }
+                    //emulator is running, exit gracefully to save sram
+                    _Emulator.ExitGracefully(function() {
+
+                        _Emulator = null;
+                        return callback();
+                    });
+                });
             });
         } 
         //no emulator, just callback
         else {
-            if (callback) {
-                callback();
-            }
+            return callback();
         }   
     };
 
     var ForceCloseEmulator = function() {
         if (_Emulator) {
             _Emulator.CleanUp(); //bypass the graceful exit routine and simply wipe it out
-        } else {
-            if (callback) {
-                callback();
-            }
-        }   
+            return callback();
+        }
+        return callback();
     };
 
     /**
      * Prepare layout etc. for running a game! cleans up current too
      * @param  {GameKey} gameKey    required. see ces.compression for definition. members: system, title, file, gk
-     * @param  {number} state       optional. restore a saved state with the slot value (0, 1, 2, etc)
      * @param  {string} shader      optional. preselected shader. if supplied, will skip the shader selection
      * @return {undef}
      */
-    var PlayGame = function (gameKey, slot, shader, callback) {
+    var PlayGame = function (gameKey, shader, callback) {
 
         //bail if attempted to load before current has finished
         if (_preventLoadingGame) {
@@ -368,7 +361,7 @@ var cesMain = (function() {
                 $('#emulatorcanvas').append('<canvas tabindex="0" id="emulator" oncontextmenu="event.preventDefault()"></canvas>');
 
                 //call bootstrap
-                RetroArchBootstrap(gameKey, slot, shader, function() {
+                RetroArchBootstrap(gameKey, shader, function() {
 
                     _preventLoadingGame = false;
 
@@ -387,7 +380,7 @@ var cesMain = (function() {
      * @param  {string} shader      optional. preselected shader. if supplied, will skip the shader selection
      * @return {undef}
      */
-    var RetroArchBootstrap = function(gameKey, slot, shader, callback) {
+    var RetroArchBootstrap = function(gameKey, shader, callback) {
 
         //var box = cesGetBoxFront(_config, gameKey.system, gameKey.title, 170, true); //preload loading screen box
         _Collections.SetCurrentGameLoading(gameKey); //inform collections what the current game is so that they don't attempt to delete it during load
@@ -484,13 +477,11 @@ var cesMain = (function() {
                                 //lets ensure a minimum time has passed (see private vars)
                                 setTimeout(function() {
 
-                                    //_ProgressBar.Update('done', 1); //complete the progress bar here
-
                                     // load state? bails if not set
                                     _Emulator.WriteSaveData(selectedSaveTimeStamp, function(stateToLoad) { //if save not set, bails on null
 
                                         //begin game, callback is function which handles expections for any emulator error
-                                        _Emulator.BeginGame(function(e) {
+                                        _Emulator.StartEmulator(function(e) {
                                             clearInterval(tipInterval);
                                             _PubSub.Publish('error', ['There was an error with the emulator:', e]);
                                         });
@@ -532,6 +523,13 @@ var cesMain = (function() {
 
                                                                 window.scrollTo(0,0); //bring attention back up top
                                                             });
+
+                                                            //pubsub for closing emulator from the top-level
+                                                            _PubSub.SubscribeOnce('closeEmulator', self, function() {
+                                                                CloseEmulator(function() {
+                                                                    _Dialogs.ShowDialog('blank', 150);
+                                                                });
+                                                            }, true); //exclusive meaning this is the only subscriber
                                                             
                                                             //inform instances that game is starting (for those that care)
                                                             _Collections.RemoveCurrentGameLoading();
@@ -940,7 +938,6 @@ var cesMain = (function() {
         var time = delay;
 
         $('.screenshotthumb').each(function(index) {
-
 
             setTimeout(function() {
                 $(self)[0].click();

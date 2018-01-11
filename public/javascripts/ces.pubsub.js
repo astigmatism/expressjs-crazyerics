@@ -59,6 +59,23 @@ var cesPubSub = (function() {
         return Subscribe(topic, context, handler, 1);
     };
 
+    //for this, maintain a subscription for a given time and then destory it. handler will take boolean if topic was published or not
+    this.SubscribeOnceWithTimer = function(topic, context, handler, failureHandler, exclusive, ttl) {
+
+        var removeFunc = self.SubscribeOnce(topic, context, handler, exclusive);
+
+        setTimeout(function() {
+            
+            //if function returns true, it indicates the topic was just removed meaning the topic was never published
+            //if false, then it indicates that the topic was removed at the time it was published (since this is a subscribe once)
+            if (removeFunc()) {
+                failureHandler();
+            }
+        }, ttl);
+
+        return removeFunc;
+    };
+
     this.Unsubscribe = function(topic) {
 
         if (!_topics.hasOwnProperty(topic)) {
@@ -93,23 +110,27 @@ var cesPubSub = (function() {
             _topics[topic] = [];
         }
 
-        //add a new handler to the topic
+        //add a new handler to the topic, push returns new length of array, index is -1
         var index = _topics[topic].push({
             handler: handler,
             context: context,
             countdown: countdown
         });
+        --index;
 
         //we can use this to allow a sub to remove itself, check first since I could have removed it through unsub
         return function() {
 
             if (!_topics.hasOwnProperty(topic)) {
-                return;
+                
+                return false; //false indicating not found, previously deleted
             }
             if (_topics[topic].hasOwnProperty(index)) {
+                
                 delete _topics[topic][index];
+                return true; //true indicating the topic was deleted from this function
             }
-            return;
+            return null;
         };
     };
 

@@ -17,7 +17,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _gameKey,
     var _isSavingState = false;
     var _isLoadingState = false;
     var _hasStateToLoad = false; //flag for whether it is possible to load state
-    var _gameBeganPlaying = false;
+    var _hasEmulationBegin = false; //flags true when emulation has started (player is playing!)
     var _cacheEmulatorScripts = true; //do we want to use _ClientCache to store emulator script responses (in raw form before globalEval)
     var _cacheName = _gameKey.system + '.script';
     var _loadPriority = 'emulator'; //emulator first, game first or null for simultanious
@@ -27,6 +27,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _gameKey,
     var _timeToWaitForScreenshot = 2000; //hopefully never take more than 2 sec
     var _timeToWaitForSaveState = 30000; //hopefully never more than 30 sec
     var _timeToWaitForEmulatorInstantiation = 500; //x2 once for global eval, again for instantiation
+    var _timeToWaitForSrmFileOnExit = 3000;
 
     //instances
     var _EmulatorInstance = null;
@@ -52,7 +53,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _gameKey,
      * Calls the start function of the emulator script
      * @param {Function} callback the function to handle exceptions thrown by the emulator script
      */
-    this.BeginGame = function(callback) {
+    this.StartEmulator = function(callback) {
 
         try {
             _Module.callMain(_Module.arguments);
@@ -218,12 +219,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _gameKey,
             //attach operation handlers
             AttachOperationHandlers();
 
-            _gameBeganPlaying = Date.now();
-
-            //subscribe to when user leaves, refreshes
-            _PubSub.SubscribeOnce('onbeforeunload', function() {
-                console.log('onbeforeunload, initiate graceful emulator exit');
-            });
+            _hasEmulationBegin = true;
 
             //assign focus to emulator canvas
             _ui.canvas
@@ -242,22 +238,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _gameKey,
         });
     };
 
-    //moved to ExitGracefully
-    // this.Hide = function (duration, callback) {
-
-    //     duration = duration || _displayDurationHide;
-
-    //     self.GiveEmulatorControlOfInput(false);
-    //     $(_ui.wrapper).fadeOut(_displayDurationHide, function() {
-            
-    //         if (callback) {
-    //             callback();
-    //         }
-    //     });
-    // };
-
-    //ok, to exit gracefully, the game is likely already paused because the user clicked elsewhere, triggering it to be paused
-    this.ExitGracefully = function(duration, callback) {
+    this.Hide = function(duration, callback) {
 
         duration = duration || _displayDurationHide;
 
@@ -266,28 +247,51 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _gameKey,
 
         //hide
         $(_ui.wrapper).fadeOut(_displayDurationHide, function() {
-            
-           //the emulator must be active to gracefully exit
-            if (_isPaused) {
-                self.ResumeGame();
+
+            if (callback) {
+                return callback();
             }
-            _PubSub.Mute('notification');
-            self._InputHelper.Keypress('mute', function() {
+        });
+    };
 
-                //CRAZY! this is the key to successful emulator exit. We MUST get the final file write from a graceful exit to properly finish cleaning up
-                //CHECK THIS WHEN UPGRADING EMAULTOR VERSIONS!
-                _PubSub.SubscribeOnce('retroArchGracefulExit', self, function() {
+    //ok, to exit gracefully, the game is likely already paused because the user clicked elsewhere, triggering it to be paused
+    this.ExitGracefully = function(callback) {
 
+        if (!_hasEmulationBegin) {
+            return self.CleanUp(callback);
+        }
+
+        //the emulator must be active to gracefully exit
+        if (_isPaused) {
+            self.ResumeGame();
+        }
+        _PubSub.Mute('notification');
+        self._InputHelper.Keypress('mute', function() {
+
+            //make a final auto save before exiting
+            self.MakeAutoSave(function(err) {
+
+                //for graceful exit to complete we will wait _timeToWaitForSrmFileOnExit secs for a srm file to be written, if not, then clean up anyway
+                
+                _PubSub.SubscribeOnceWithTimer('retroArchGracefulExit', self, function() {
+
+                    //success handler, means srm file was written
                     return self.CleanUp(callback);
-                });
+                }, function() {
+                    
+                    //timeout handler, does the same thing really
+                    return self.CleanUp(callback);
+
+                }, true, _timeToWaitForSrmFileOnExit);
 
                 //EXIT!
                 self._InputHelper.Keypress('exit', function() {
 
                     _PubSub.Unmute('notification');
-                });
-            }); 
-        });
+                
+                }, [true]); //true argument says to allow the emulator to process the input
+            });
+        }); 
     };
 
     this.CleanUp = function(callback) {
@@ -396,6 +400,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _gameKey,
             return;
         }
 
+        //when this file is written, its the final thing retroarch does on graneful shutdown
         if (filename === 'retroarch-core-options.cfg') {
             _PubSub.Publish('retroArchGracefulExit', [contents]);
             return;
@@ -417,7 +422,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _gameKey,
     this.OnInputIdle = function() {
 
         //the keys are idle while the game runs! let's auto save
-        MakeAutoSave();
+        self.MakeAutoSave();
     };
 
     /* exposed saves manager functionality */
@@ -452,14 +457,21 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _gameKey,
                 return;
             }
 
-            saveType = 'user';
+            //the default save type is the player triggered it
+            var saveType = 'user';
+
+            //the default callback is to print any error
+            var callback = function(err) {
+                if (err) console.log(err);
+            };  
 
             //the savetype can come in on args (auto)
-            if (args && args.length && args[0]) {
+            if (args) {
                 saveType = args[0];
+                callback = args[1];
             }
 
-            CreateNewSave(saveType, proceed);
+            CreateNewSave(saveType, proceed, callback);
         });
 
         //screen
@@ -523,6 +535,25 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _gameKey,
             proceed(true);
         });
 
+        //exit (close emulator).
+
+        self._InputHelper.RegisterKeydownOperationHandler('exit', function(event, proceed, args) {
+            
+            var wasPublished = false;
+
+            if (args) {
+                wasPublished = args[0];
+            }
+            
+            if (wasPublished) {
+                proceed(true);
+                return;    
+            }
+
+            _PubSub.Publish('closeEmulator'); //publish this request since the process to unload the emulator begins in main. 
+            proceed(false);
+        });
+
         //condensing the simple keydown and keyup operations
         var DownUpHandlers = function(operation, message, topic) {
 
@@ -560,18 +591,20 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _gameKey,
         }
     };
 
-    var MakeAutoSave = function() {
+    this.MakeAutoSave = function(callback) {
 
         if (self._InputHelper) {
-            self._InputHelper.Keypress('statesave', null, ['auto']);
+            self._InputHelper.Keypress('statesave', null, ['auto', callback]);
         }
     };
 
-    var CreateNewSave = function(saveType, proceedCallback) {
+    //buttonPressProceed tells emulator to continue original operation (the button to save state). this is only allowed when we have a successful screenshot capture
+    //callback will pass null for success or a string if an error occurred.
+    var CreateNewSave = function(saveType, buttonPressProceed, callback) {
 
         //bail if already working
         if (_isSavingState) {
-            proceedCallback(false);
+            callback('Save state is already being generated');
             return;
         }
 
@@ -585,58 +618,54 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _gameKey,
             _PubSub.Publish('notification', ['Auto Saving Game Progress...', 3, true, true]);
         }
 
-        //before state save, perform a screen capture
-        var removeScreenshotSubscription = _PubSub.SubscribeOnce('screenshotWritten', self, function(filename, contents, screenDataUnzipped, system, title) {
+        //ok, for state saving, we need to capture a screenshot first and then a state second. Both will need a timeout in case the file is not returned.
 
-            clearTimeout(screenshotTimeout);
+        _PubSub.SubscribeOnceWithTimer('screenshotWritten', self, function(filename, contents, screenDataUnzipped, system, title) {
 
+            //success handler, means screenshot was written
+            //ok, now we capture state
             if (screenDataUnzipped) {
 
-                //it can take a while too, sucks
-                var removeStateSubscription = _PubSub.SubscribeOnce('stateWritten', self, function(filename, stateDataUnzipped) {
+                _PubSub.SubscribeOnceWithTimer('stateWritten', self, function(filename, stateDataUnzipped) {
 
-                    clearTimeout(saveStateTimeout);
-
+                    //success handler, means state was written
                     //ok, to publish a new save is ready, we require screen and state data
-                    if (stateDataUnzipped && screenDataUnzipped) {
+                    if (stateDataUnzipped) {
 
                         //will also close the notification
                         _PubSub.Publish('saveready', [saveType, screenDataUnzipped, stateDataUnzipped]);
+
+                        _isSavingState = false;
+                        _hasStateToLoad = true;
+
+                        return callback(); //success
+                    }
+                    else {
+                        return callback('Save state data not included in file?');
                     }
 
-                    _isSavingState = false;
-                    _hasStateToLoad = true;
+                }, function() {
+                    //timeout handler, screenshot was not written
+                    return callback('State timeout was reached, file was seemingly never written');
+        
+                }, true, _timeToWaitForSaveState); //suboncewith time: exclusive flag, time to wait
 
-                }, true); //SubscribeOnce exclusive flag
-
-                //just like with screenshots, create a timer to remove the subscription in case we never hear back
-                var saveStateTimeout = setTimeout(function() {
-
-                    removeStateSubscription();
-                    _isSavingState = false;
-
-                }, _timeToWaitForSaveState);
-
-                
-                proceedCallback(true); //allow original function to exe now that we have prepared our filesystem
-
-            } else {
-
-                proceedCallback(false);
+                buttonPressProceed(true); //continue by allowing the original button press to proceed.
             }
-        }, true); //sub once, exclusive flag
+            else {
+                
+                buttonPressProceed(false);
+                return callback('Screenshot data not included in capture');
+            }
 
-        //if I never hear back about a new screenshot, then remove this sub
-        var screenshotTimeout = setTimeout(function() {
-            
-            removeScreenshotSubscription();
-            _isSavingState = false;
+        }, function() {
+            //timeout handler, screenshot was not written
+            return callback('Screenshot timeout was reached, file was seemingly never written');
 
-        }, _timeToWaitForScreenshot);
+        }, true, _timeToWaitForScreenshot); //suboncewith time: exclusive flag, time to wait
 
         //press key to begin screenshot capture
         self._InputHelper.Keypress('screenshot');
-
     };
 
     var OnNewSaveSubscription = function(saveType, screenDataUnzipped, stateDataUnzipped) {
@@ -696,7 +725,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _gameKey,
 
             var emulatorScriptInstance = new cesRetroArchEmulator(module);
             
-            console.log('emulator ready');
+            //console.log('emulator ready');
 
             //this timeout is important, it gives the previous steps (globalEval, instantiation) enough time
             //to sort themselves out. without this timeout, I get errors 

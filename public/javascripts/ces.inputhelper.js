@@ -38,7 +38,7 @@ var cesInputHelper = (function(_Emulator, _ui) {
         13: "enter",
         16: "shift",
         18: "alt",
-        //27: "esc",
+        27: "esc",
         33: "rePag",
         34: "avPag",
         35: "end",
@@ -95,7 +95,12 @@ var cesInputHelper = (function(_Emulator, _ui) {
 
                 //perform original handler function
                 if (proceed) {
-                    _originalEmulatorKeydownHandlerFunctions[target](event);
+
+                    try {
+                        _originalEmulatorKeydownHandlerFunctions[target](event);
+                    } catch (e) {
+                        console.log('Emulator throw an error on keydown event: ' + event, e);
+                    }
                 }
             }, args);
         };
