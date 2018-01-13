@@ -61,16 +61,18 @@ var cesMain = (function() {
         
         //ui handles for the dialog class (add as needed, we want to only referece jquery in main if possible)
         _Dialogs = new cesDialogs($('#dialogs'), {
-            'welcomefirst': $('#welcomemessage'),
-            'welcomeback': $('#welcomeback'),
-            'blank': $('#blank'),
-            'shaderselector': $('#systemshaderseletor'),
-            'savedgameselector': $('#savedgameselector'),
-            'gameloading': $('#gameloading'),
-            'emulatorexception': $('#emulatorexception'),
-            'saveloading': $('#saveloading'),
-            'emulatorcleanup': $('#emulatorcleanup')
+            // 'welcomefirst': $('#welcomemessage'),
+            // 'welcomeback': $('#welcomeback'),
+            // 'blank': $('#blank'),
+            // 'shaderselector': $('#systemshaderseletor'),
+            // 'savedgameselector': $('#savedgameselector'),
+            // 'gameloading': $('#gameloading'),
+            // 'emulatorexception': $('#emulatorexception'),
+            // 'saveloading': $('#saveloading'),
+            // 'emulatorcleanup': $('#emulatorcleanup')
         });
+
+        _Dialogs.Register('WelcomeBack', $('#welcomeback'));
 
         _Tooltips = new cesTooltips(_config, '.tooltip', '.tooltip-content');
 
@@ -97,9 +99,10 @@ var cesMain = (function() {
 
         //show welcome dialog
         if (_Collections.IsEmpty()) {
-            _Dialogs.ShowDialog('welcomefirst', 150);
+            //_Dialogs.ShowDialog('welcomefirst', 150);
         } else {
-            _Dialogs.ShowDialog('welcomeback', 150);
+            //_Dialogs.ShowDialog('welcomeback', 150);
+            _Dialogs.Open('WelcomeBack');
         }
 
         // TODO remove. for building icons
