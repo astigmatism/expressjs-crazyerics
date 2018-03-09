@@ -11,30 +11,32 @@ block content
         
         div#dialogs(class="darkgrad")
             div(class="dialogwrapper")
-                div#welcomemessage
+                div(class="Welcome")
                     h2 Welcome!
                     p Get started by searching for a game or selecting a suggestion below
             div(class="dialogwrapper")
-                div#welcomeback(class="dialog hide close")
+                div(class="WelcomeBack")
                     h2 Welcome Back
                     p Continue playing, search for, or select a game suggestion below
             div(class="dialogwrapper")
-                div#blank(class="dialog hide close")
+                div(class="PlayAgain")
+                    h2 Play Again
+                    p Continue playing, search for, or select a game suggestion below
             div(class="dialogwrapper")
-                div#systemshaderseletor(class="dialog hide close")
+                div(class="ShaderSelection")
                     h2 How do you want your game to appear?
                     ul#shaderselectlist
                     input#shaderselectcheckbox(type="checkbox") 
                     label Save this choice for all future #[span] games. You can reset this later.
             div(class="dialogwrapper")
-                div#savedgameselector(class="dialog hide close")
+                div(class="SaveSelection")
                     h2 Load recent saved progress?
                     ul#savesselectlist
                     h3#loadnosaves(class="zoom") No
                     p(class="hide max") * You have reached the maximum number of saves allowed for this game. New saves will now replace the oldest saves.
                     p(class="hide near") * You are nearing the maximum number of saves allowed for this game. Delete some later to avoid new saves replacing the oldest saves. Unless that doesn't bother you.
             div(class="dialogwrapper")
-                div#gameloading(class="dialog hide close")
+                div(class="GameLoading")
                     h2 Now Loading
                     //- div#gameloadingimage
                     //-     img(class="tada")
@@ -43,17 +45,17 @@ block content
                     div#loadingprogressbar
                     p#tip Did you know that you rewind that mistake by holding the R key?
             div(class="dialogwrapper")
-                div#emulatorexception(class="dialog hide close")
+                div(class="Exception")
                     h2 Game Error
                     p We can't realisticly expect every game to always work. Perhaps you can try again or refresh this page.
                     p#emulatorexceptiondetails
             div(class="dialogwrapper")
-                div#saveloading(class="dialog hide close")
+                div(class="SaveLoading")
                     h2 Loading Saved Progress
                     div#saveloadingimage
                         img(class="tada")
             div(class="dialogwrapper")
-                div#emulatorcleanup(class="dialog hide close")
+                div(class="EmulatorCleanup")
                     h2 Cleaning Up
                     p Please wait while we cleanup this game and prepare for the next
                         

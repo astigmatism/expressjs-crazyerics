@@ -1,4 +1,4 @@
-var cesDialogsWelcomeBack = (function(_config, $el, $wrapper, args) {
+var cesDialogsPlayAgain = (function(_config, $el, $wrapper, args) {
 
     this.OnOpen = function(args) {
     };

@@ -2,7 +2,7 @@
  * Object which wraps common functions related to player preferences, data that comes form the server initially but can be changed
  * @type {Object}
  */
-var cesDialogs = (function($wrapper) {
+var cesDialogs = (function(_config, $wrapper) {
 
     //private members
     var self = this;
@@ -12,9 +12,9 @@ var cesDialogs = (function($wrapper) {
     var _inTransition = false;
     // var dialogOperational = false;
     // var currentOpenDialog = null;
-    // var maxHeight = 600;
-    // var defaultHeightChangeDuration = 600;
-    // var defaultHeightChangeEasing = 'easeInOutSine'; // see more http://easings.net/#
+    var _maxDialogHeight = 600;
+    var defaultHeightChangeDuration = 600;
+    var defaultHeightChangeEasing = 'easeInOutSine'; // see more http://easings.net/#
     // var cssTransition = 200; //see css file for .dialog transition:
 
     var registry = {};
@@ -23,42 +23,83 @@ var cesDialogs = (function($wrapper) {
 
     //public methods
 
-    this.Register = function(name, $el, args) {
+    this.Register = function(name, height, args) {
 
         if (!window.hasOwnProperty('cesDialogs' + name)) {
             return;
         }
-        var module = new window['cesDialogs' + name]($el, args);
+        
+        var $el = $('#dialogs').find('.' + name);
+        var module = new window['cesDialogs' + name](_config, $el, $wrapper, args);
+        
         $el.addClass('dialog hide close');
 
         registry[name] = {
             'element': $el,
-            'module': module
+            'module': module,
+            'height': height
         }
     };
 
-    this.Open = function(name) {
+    this.Open = function(name, args, closeOnCallback, callback) {
 
         if (!registry.hasOwnProperty(name)) {
             return;
         }
-        _transitionQueue.push({
-            'action': 'open',
-            'dialog': registry[name]
-        });
-        ProcessQueue();
+
+        var addOpen = function() {
+            _transitionQueue.push({
+                'name': name,
+                'action': 'open',
+                'dialog': registry[name],
+                'args': args,
+                'closeOnCallback': closeOnCallback,
+                'callback': callback
+            });
+
+            ProcessQueue();
+        }
+
+        //if dialog is already open, lets setup to close it first
+        if (_currentDialog) {
+            PriorityClose(function() {
+                addOpen();
+            });
+
+            ProcessQueue();
+        }
+        else {
+            addOpen();
+        }
     };
 
-    this.Close = function(name) {
-        if (!registry.hasOwnProperty(name)) {
+    this.Close = function(callback) {
+
+        if (!registry.hasOwnProperty(_currentDialog)) {
+            if (callback) {
+                callback();
+            }
             return;
         }
         _transitionQueue.push({
+            'name': _currentDialog,
             'action': 'close',
-            'dialog': registry[name]
+            'dialog': registry[_currentDialog],
+            'callback': callback
         });
         ProcessQueue();
     }
+
+    var PriorityClose = function(callback) {
+
+        _transitionQueue.unshift({
+            'name': _currentDialog,
+            'action': 'close',
+            'dialog': registry[_currentDialog],
+            'callback': callback
+        });
+        ProcessQueue();
+    };
 
     //process the next action in the queue
     var ProcessQueue = function() {
@@ -69,35 +110,99 @@ var cesDialogs = (function($wrapper) {
 
             _inTransition = true;
             var item = _transitionQueue.shift();
-            Transition(item.action, item.dialog);
+            Transition(item);
         }
     };
 
-    var Transition = function(action, dialog) {
+    var Transition = function(item) {
+
+console.log('transition', item);
+
+        var action = item.action;
+        var name = item.name;
+        var dialog = item.dialog;
+        var callback = item.callback;
+
+        //at the end of each case, be sure to call
+        var onTransitionComplete = function() {
+            _inTransition = false;
+            ProcessQueue();
+        };
         
         switch(action) {
             case 'open':
+
+                var args = item.args;
+                var closeOnCallback = item.closeOnCallback;
 
                 //if openning current dialog, don't care, go to next
                 if (_currentDialog === name) {
                     break;
                 }
+                _currentDialog = name;
 
-                dialog.element.removeClass('close');
+                dialog.element.removeClass('hide');
 
+                dialog.module.OnOpen(args, function(result) {
+
+                    //close dialog when player makes selection
+                    if (closeOnCallback && callback) {
+
+                        //wait for close dialog before returning selection
+                        PriorityClose(function() {
+                            return ($.isArray(result)) ? callback.apply(null, result) : callback(result);
+                        });
+                    }
+                    else if (callback) {
+                        return ($.isArray(result)) ? callback.apply(null, result) : callback(result);
+                    }
+                });
+
+                //animate to ideal height
+                self.SetHeight(dialog.height, function() {
+
+                    dialog.element.removeClass('close');
+                    onTransitionComplete();
+                });
                 break;
             case 'close':
 
-                //only allow closing the currently open dialog
-                if (name !== _currentDialog) {
-                    break;
-                }
+                dialog.element.addClass('close');
 
+                //wait for css animation
+                setTimeout(function() {
+
+                    dialog.module.OnClose(function(result) {
+
+                        dialog.element.addClass('hide');
+
+                        _currentDialog = null;
+                        onTransitionComplete(); 
+
+                        //callback could be optional for close
+                        if (callback) {
+                            callback(result);
+                        }
+                    });
+
+                }, _cssTranstionTime);
                 break;
         }
-        
-        _inTransition = false;
-        ProcessQueue();
+    };
+
+    this.SetHeight = function(height, callback, duration, easing) {
+
+        //duration and easing optional
+        duration = duration || defaultHeightChangeDuration;
+        easing = easing || defaultHeightChangeEasing;
+
+        $wrapper.animate({
+            height: height + 'px'
+        }, duration, easing, function() {
+            if (callback) {
+                callback();
+            }
+        });
     };
 
     var Constructor = function() {

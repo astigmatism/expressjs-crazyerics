@@ -458,6 +458,7 @@ p {
 	position: relative;
 	margin: 0;
 	width: 100%;
+	height: 150px;
 
 	transition:All 200ms ease-in;
 	-webkit-transition:All 200ms ease-in;
@@ -592,12 +593,11 @@ p {
 
 /* game loading dialog */
 
-#gameloading, #saveloading {
-
-	height: 600px;
+#dialogs div.GameLoading {
+	height: 500px;
 }
 
-#gameloadingimage img {
+#dialogs div.GameLoading img {
 	width: 130px;
 }
 
@@ -606,7 +606,7 @@ p {
 	width: 100%;
 }
 
-#gameloadingimage img, #saveloadingimage img {
+/* #gameloadingimage img, #saveloadingimage img {
 	display: none;
 
 	-webkit-animation-duration: 5s; 
@@ -615,9 +615,9 @@ p {
     animation-fill-mode: both; 
     animation-iteration-count:infinite; 
     -webkit-animation-iteration-count:infinite;
-}
+} */
 
-#gameloading h2, #saveloading h2 {
+#dialogs div.GameLoading h2{
 	position: absolute;
 	text-align: center;
 	width: 100%;
@@ -657,6 +657,36 @@ p {
   	height: 10px;
 }
 
+/* save selection dialog */
+
+#dialogs div.SaveSelection {
+	height: 400px;
+}
+
+/* #dialogs div.SaveSelection h2{
+	position: absolute;
+	text-align: center;
+	width: 100%;
+	top: 100px;
+} */
+
+/* save loading dialog */
+
+#dialogs div.SaveLoading {
+	height: 400px;
+}
+
+#dialogs div.SaveLoading img {
+	display: none;
+
+	-webkit-animation-duration: 5s; 
+    animation-duration: 5s; 
+    -webkit-animation-fill-mode: both; 
+    animation-fill-mode: both; 
+    animation-iteration-count:infinite; 
+    -webkit-animation-iteration-count:infinite;
+}
+
 /* emulator exception dialog */
 
 #emulatorexception p {
@@ -666,7 +696,8 @@ p {
 
 #emulatorexceptiondetails {
 	color: red;
-	height: 100px;
+	height: 200px;
+	padding: 0px 50px;
 	overflow: scroll;
 	text-align: left;
 	font-family: monospace;

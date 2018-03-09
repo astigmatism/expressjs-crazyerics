@@ -316,6 +316,8 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _gameKey,
         _SavesManager = null;
         _Sync.DeregisterComponent('s');
 
+        $('#emulatorwrapperoverlay').hide(); //ensure pause is hidden for next game
+
         if (_Module) {
 
             //also unbinds events from document and window. this may have been done already through exit gracefully, but keep it as a sanity check

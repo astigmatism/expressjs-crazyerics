@@ -3,23 +3,7 @@ var cesMain = (function() {
     // private members
     var self = this;
     var _config = {}; //the necessary server configuration data provided to the client
-    var _tips = [
-        'Hold R = Rewind',
-        'Hold Space = Fast Forward',
-        'F = Fullscreen',
-        //'You can save your progress (or state) by pressing the 1 key, return to it anytime with the 4 key',
-        //'We\'ll store all of your saves as long as you return within two weeks',
-        'P = Pause',
-        'Select a system from the dropdown to generate a new list of suggested games',
-        'Select a system from the dropdown to search for foreign or obscure titles',
-        'T = Take Screenshot',
-        'H = Reset',
-        '1 = Save Progress',
-        'If you remain idle for 10 seconds, we auto-save your progress',
-        '4 = Load last progress'
-    ];
     var _bar = null;
-    var _tipsCycleRate = 4000;
     var _preventLoadingGame = false;
     //var _preventGamePause = false; //condition for blur event of emulator, sometimes we don't want it to pause when we're giving it back focus
     var _minimumGameLoadingTime = 6000; //minimum amount of time to display the title loading. artificially longer for tips
@@ -57,33 +41,20 @@ var cesMain = (function() {
         
         _Compression = new cesCompression();
 
-        _PubSub = new cesPubSub();
-        
-        //ui handles for the dialog class (add as needed, we want to only referece jquery in main if possible)
-        _Dialogs = new cesDialogs($('#dialogs'), {
-            // 'welcomefirst': $('#welcomemessage'),
-            // 'welcomeback': $('#welcomeback'),
-            // 'blank': $('#blank'),
-            // 'shaderselector': $('#systemshaderseletor'),
-            // 'savedgameselector': $('#savedgameselector'),
-            // 'gameloading': $('#gameloading'),
-            // 'emulatorexception': $('#emulatorexception'),
-            // 'saveloading': $('#saveloading'),
-            // 'emulatorcleanup': $('#emulatorcleanup')
-        });
+        //unpack client data
+        var clientdata = _Compression.Out.json(c20); //this name is only used for obfiscation
 
-        _Dialogs.Register('WelcomeBack', $('#welcomeback'));
+        _config = clientdata.config;
+
+        _PubSub = new cesPubSub();
+
+        _Dialogs = new cesDialogs(_config, $('#dialogs'));
 
         _Tooltips = new cesTooltips(_config, '.tooltip', '.tooltip-content');
 
         _ProgressBar = new cesProgressBar(loadingprogressbar);
 
         _Notifications = new cesNotifications(_config, _Compression, _PubSub, $('#notificationwrapper'));
-
-        //unpack client data
-        var clientdata = _Compression.Out.json(c20); //this name is only used for obfiscation
-
-        _config = clientdata.config;
 
         _Sync = new cesSync(_config, _Compression);
 
@@ -97,11 +68,21 @@ var cesMain = (function() {
 
         _Featured = new cesFeatured(_Compression, _Preferences, _BoxArt, _Sync, _Tooltips, PlayGame, _Collections, clientdata.components.f, null);
 
+        //register dialogs after setting up components
+        _Dialogs.Register('Welcome', 150);
+        _Dialogs.Register('WelcomeBack', 150);
+        _Dialogs.Register('ShaderSelection', 500, [_Preferences]);
+        _Dialogs.Register('GameLoading', 500, [_BoxArt, _Compression, _PubSub]);
+        _Dialogs.Register('SaveSelection', 500);
+        _Dialogs.Register('SaveLoading', 500);
+        _Dialogs.Register('Exception', 500);
+        _Dialogs.Register('EmulatorCleanup', 300);
+        _Dialogs.Register('PlayAgain', 150);
+
         //show welcome dialog
         if (_Collections.IsEmpty()) {
-            //_Dialogs.ShowDialog('welcomefirst', 150);
+            _Dialogs.Open('Welcome');
         } else {
-            //_Dialogs.ShowDialog('welcomeback', 150);
             _Dialogs.Open('WelcomeBack');
         }
 
@@ -271,7 +252,10 @@ var cesMain = (function() {
 
         //pubsub for any error
         _PubSub.Subscribe('error', self, function(message, error) {
-            ShowErrorDialog(message, error);
+            _Dialogs.Open("Exception", [message, error]);
+            ForceCloseEmulator(function() {
+                _preventLoadingGame = false; //in case it failed during start
+            });
         });
 
         //pubsub for notifications
@@ -303,7 +287,7 @@ var cesMain = (function() {
 
                 HideGameContext(); //sliders, title, etc
 
-                _Dialogs.ShowDialog('emulatorcleanup', null, function() {
+                _Dialogs.Open("EmulatorCleanup", [], false, function() {
 
                     //emulator is running, exit gracefully to save sram
                     _Emulator.ExitGracefully(function() {
@@ -320,10 +304,21 @@ var cesMain = (function() {
         }   
     };
 
-    var ForceCloseEmulator = function() {
+    var ForceCloseEmulator = function(callback) {
+        
         if (_Emulator) {
-            _Emulator.CleanUp(); //bypass the graceful exit routine and simply wipe it out
-            return callback();
+
+            _Emulator.Hide(null, function() {
+
+                HideGameContext(); //sliders, title, etc
+
+                //bypass the graceful exit routine and simply wipe it out
+                _Emulator.CleanUp(function() { 
+
+                    _Emulator = null;
+                    return callback();
+                });
+            });
         }
         return callback();
     };
@@ -352,26 +347,25 @@ var cesMain = (function() {
             $('#emulatorcanvas').empty(); //ensure empty (there can be a canvas here if the user bailed during load)
 
             //close any dialogs
-            _Dialogs.CloseDialog(null, function() {
+            //_Dialogs.Close();
 
-                //close any sliders
-                //_Sliders.Closeall();
+            //close any sliders
+            //_Sliders.Closeall();
 
-                //close any notifications
-                _Notifications.Reset();
+            //close any notifications
+            _Notifications.Reset();
 
-                //create new canvas (canvas must exist before call to get emulator (expects to find it right away))
-                $('#emulatorcanvas').append('<canvas tabindex="0" id="emulator" oncontextmenu="event.preventDefault()"></canvas>');
+            //create new canvas (canvas must exist before call to get emulator (expects to find it right away))
+            $('#emulatorcanvas').append('<canvas tabindex="0" id="emulator" oncontextmenu="event.preventDefault()"></canvas>');
 
-                //call bootstrap
-                RetroArchBootstrap(gameKey, shader, function() {
+            //call bootstrap
+            RetroArchBootstrap(gameKey, shader, function() {
 
-                    _preventLoadingGame = false;
+                _preventLoadingGame = false;
 
-                    if(callback) {
-                        callback();
-                    }
-                });
+                if(callback) {
+                    callback();
+                }
             });
         });
     };
@@ -405,7 +399,7 @@ var cesMain = (function() {
             _preventLoadingGame = false; //during shader select, allow other games to load
 
             //show shader selector. returns an object with shader details
-            ShowShaderSelection(gameKey.system, shader, function(shaderselection) {
+            _Dialogs.Open('ShaderSelection', [gameKey.system, shader], true, function(shaderSelection) {
 
                 _preventLoadingGame = true; //lock loading after shader select
                 var gameLoadingStart = Date.now();
@@ -413,10 +407,10 @@ var cesMain = (function() {
                 _ProgressBar.Reset(); //before loading dialog, reset progress bar from previous
 
                 //game load dialog show
-                ShowGameLoading(gameKey, function(tipInterval) {
+                _Dialogs.Open('GameLoading', [gameKey], false, function(tipInterval) {
 
                     var optionsToSendToServer = {
-                        shader: shaderselection.shader,  //name of shader file
+                        shader: shaderSelection.shader,  //name of shader file
                     };
 
                     //this call is a POST. Unlike the others, it is destined for the mongo instance (MY DOMAIN not a cdn). we send user preference data to the server in addition to getting game details.
@@ -448,7 +442,7 @@ var cesMain = (function() {
                         //begin loading all content. I know it seems like some of these (game, emulator, etc) could load while the user
                         //is viewing the shader select, but I found that when treated as background tasks, it interfere with the performance
                         //of the shader selection ui. I think its best to wait until the loading animation is up to perform all of these
-                        _Emulator.Load(_Emulator.createModule(), _ProgressBar, filesize, shaderselection.shader, shaderFileSize, supportFileSize, emulatorLoadComplete);
+                        _Emulator.Load(_Emulator.createModule(), _ProgressBar, filesize, shaderSelection.shader, shaderFileSize, supportFileSize, emulatorLoadComplete);
 
                         //when all deffered calls are ready
                         $.when(emulatorLoadComplete).done(function(emulatorLoaded) {
@@ -464,10 +458,10 @@ var cesMain = (function() {
                             _preventLoadingGame = false; //during save select, allow other games to load
 
                             //are there saves to load? Let's show a dialog to chose from, if not - will go straight to start
-                            _SaveSelection = new cesSaveSelection(_config, _Dialogs, _Emulator, gameKey.system, $('#savedgameselector'), function(err, selectedSaveTimeStamp, selectedSavescreenshot) {
+                            _Dialogs.Open('SaveSelection',[_Emulator, gameKey.system], true, function(err, selectedSaveTimeStamp, selectedSavescreenshot) {
                                 
                                 if (selectedSaveTimeStamp) {
-                                    ShowSaveLoading(gameKey.system, selectedSavescreenshot);
+                                    _Dialogs.Open('SaveLoading', [gameKey.system, selectedSavescreenshot]);
                                 }
 
                                 _preventLoadingGame = true;
@@ -500,27 +494,28 @@ var cesMain = (function() {
                                             LoadEmulatorState(gameKey.system, stateToLoad, function() {
 
                                                 //close all dialogs (save loading or game loading), game begins!
-                                                _Dialogs.CloseDialog(false, function() {
+                                                _Dialogs.Close(function() {
 
                                                     //stop rolling tips
                                                     $('#tips').stop().hide();
                                                     clearInterval(tipInterval);
 
-                                                    //handle title and content fadein steps
-                                                    DisplayGameContext(gameKey, function() {
-
-                                                    });
-
-                                                    //enlarge dialog area for emulator
-                                                    _Dialogs.SetHeight($('#emulatorwrapper').outerHeight(), function() {
+                                                    //so I've found that tapping the fast forward key prevents the weird race condition on start.
+                                                    //keep this until it seems disruptive
+                                                    _PubSub.Mute('notification');
+                                                    _Emulator._InputHelper.Keypress('fastforward', function() {
                                                         
-                                                        //so I've found that tapping the fast forward key prevents the weird race condition on start.
-                                                        //keep this until it seems disruptive
-                                                        _PubSub.Mute('notification');
-                                                        _Emulator._InputHelper.Keypress('fastforward', function() {
-                                                            
-                                                            _PubSub.Unmute('notification');
-                                                            
+                                                        _PubSub.Unmute('notification');
+
+                                                        //enlarge dialog area for emulator
+                                                        _Dialogs.SetHeight($('#emulatorwrapper').outerHeight(), function() {
+
+                                                            //handle title and content fadein steps
+                                                            //wait until height change before they appear
+                                                            DisplayGameContext(gameKey, function() {
+
+                                                            });  
+                                                                    
                                                             //reveal emulator, control is game is given at this step
                                                             _Emulator.ReadyPlayerOne(function() {
 
@@ -530,7 +525,8 @@ var cesMain = (function() {
                                                             //pubsub for closing emulator from the top-level
                                                             _PubSub.SubscribeOnce('closeEmulator', self, function() {
                                                                 CloseEmulator(function() {
-                                                                    _Dialogs.ShowDialog('blank', 150);
+
+                                                                    _Dialogs.Open("PlayAgain");
                                                                 });
                                                             }, true); //exclusive meaning this is the only subscriber
                                                             
@@ -602,20 +598,6 @@ var cesMain = (function() {
         });
     };
 
-    var ShowErrorDialog = function(message, e) {
-
-        ForceCloseEmulator(function() {
-
-            _preventLoadingGame = false; //in case it failed during start
-            //_RecentlyPlayed.RemoveCurrentGameLoading();
-
-            $('#emulatorexceptiondetails').text(message + '\r\n' + e);
-            console.error(e);
-
-            _Dialogs.ShowDialog('emulatorexception');
-        });
-    };
-
     var EmulatorFactory = function(gameKey, callback) {
 
         var emuExtention = _config.systemdetails[gameKey.system].emuextention;
@@ -671,143 +653,6 @@ var cesMain = (function() {
     };
 
     /**
-     * this functio handles showing the shader selection before a game is loaded
-     * @param  {string}   system
-     * @param  {string}   preselectedShader if a shader is predefined in the bootstap, it is passed along here
-     * @param  {Function} callback
-     * @return {undef}
-     */
-    var ShowShaderSelection = function(system, preselectedShader, callback) {
-
-        $('#systemshaderseletor span').text(_config.systemdetails[system].shortname); //fix text on shader screen
-        $('#shaderselectlist').empty(); //clear all previous content
-
-        //bail early: check if shader already defined for this system (an override value passed in)
-        if (typeof preselectedShader !== 'undefined') {
-            callback({
-                'shader': preselectedShader
-            });
-            return;
-        }
-
-        //bail early: check if user checked to use a shader for this system everytime
-        //if they saved "No Processing" its an empty string
-        var userpreference = _Preferences.Get('systems.' + system + '.shader');
-        if (userpreference || userpreference == "") {
-            callback({
-                'shader': userpreference
-            });
-            return;
-        }
-
-        //get the recommended shaders list
-        var recommended = _config.systemdetails[system].recommendedshaders;
-        var shaderfamilies = _config.shaders;
-        var i = 0;
-
-        //suggest all (for debugging), remove when the ability to test all shaders is present
-        // for (i; i < shaderfamilies.length; ++i) {
-        //     $('#shaderselectlist').append($('<div style="display:block;padding:0px 5px;" data-shader="' + shaderfamilies[i] + '">' + shaderfamilies[i] + '</div>').on('click', function(e) {
-        //         onFinish($(this).attr('data-shader'));
-        //     }));
-        // }
-
-        $('#shaderselectlist').append($('<li class="zoom" data-shader=""><h3>No Processing</h3><img src="' + _config.paths.images + '/shaders/pixels.png" /></li>').on('click', function(e) {
-            onFinish($(this).attr('data-shader'));
-        }));
-
-        for (i; i < recommended.length; ++i) {
-
-            var key = recommended[i];
-
-            $('#shaderselectlist').append($('<li class="zoom" data-shader="' + key.shader + '"><h3>' + key.title + '</h3><img src="' + _config.paths.images + '/shaders/' + key.shader + '.png" /></li>').on('click', function(e) {
-                onFinish($(this).attr('data-shader'));
-            }));
-        }
-
-        /**
-         * when shader has been selected
-         * @param  {string} shader
-         * @return {undef}
-         */
-        var onFinish = function(shader) {
-            $('#systemshaderseletorwrapper').addClass('close');
-            
-            var playerPreferencesToSave = {};
-            var saveselection = false;
-
-            //get result of checkbox
-            if ($('#shaderselectcheckbox').is(':checked')) {
-                saveselection = true;
-                _Preferences.Set('systems.' + system + '.shader', shader); //we set a flag in pref when update to go out over the next request
-            }
-
-            setTimeout(function() {
-                $('#systemshaderseletorwrapper').hide();
-                callback({
-                    'shader': shader
-                });
-            }, 250);
-        };
-
-        //show dialog
-        _Dialogs.ShowDialog('shaderselector');
-    };
-
-    var ShowSaveLoading = function(system, screenshotData) {
-
-        var $image = $(BuildScreenshot(_config, system, screenshotData, null, 200));
-        $image.addClass('tada');
-        $image.load(function() {
-            $(this).fadeIn(200);
-        });
-
-        $('#saveloadingimage').empty().addClass('centered').append($image);
-
-        _Dialogs.ShowDialog('saveloading');
-    };
-
-    var ShowGameLoading = function(gameKey, callback) {
-
-        $('#tip').hide();
-        $('#gameloadingname').show().text(gameKey.title);
-
-        var box = _BoxArt.Get(gameKey, 200);
-        var texture = _BoxArt.Get(gameKey, '256x256');
-        var recipe = {};
-        if (_config.loadingBoxRecipes[gameKey.system]) {
-            recipe = _config.loadingBoxRecipes[gameKey.system];
-        }
-        
-        var loadingWebGL = new cesLoadingWebGL(recipe, _Compression, _PubSub, _config.paths.textures, $('#webglloader'), box, texture, gameKey.system);
-
-        //show tips on loading
-        var randomizedTips = shuffle(_tips);
-        var tipIndex = -1;
-        var tipInterval = setInterval(function() {
-            $('#gameloadingname').fadeOut(500);
-            $('#tip').fadeOut(500, function() {
-                
-                ++tipIndex;
-                if (tipIndex >= randomizedTips.length) {
-                    tipIndex = 0;
-                }
-
-                var tip = randomizedTips[tipIndex];
-
-                if (!$('#gameloading').is(':animated')) {
-                    $('#tip').empty().append(tip).fadeIn(500);
-                }
-
-            });
-        }, _tipsCycleRate); //show tip for this long
-
-        _Dialogs.ShowDialog('gameloading', null, function() {
-            callback(tipInterval);
-        }); 
-    };
-
-    /**
      * build content area underneath emulator canvas
      * @param  {string}   system
      * @param  {string}   title
@@ -858,6 +703,7 @@ var cesMain = (function() {
         //fade out game details
         $('#gamedetailsboxfront img').addClass('close');
         $('#gamedetailswrapper').fadeOut();
+        $('#gametitlecaption').empty();
         $('#gamedetailsbackground').animate({
             height: 0
         }, 1000, function() {
