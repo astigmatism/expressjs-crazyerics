@@ -45,6 +45,16 @@ ALTER TABLE public.sessions
 
 ----------------------------------
 
+CREATE SEQUENCE public.users_user_id_seq
+    INCREMENT 1
+    START 1
+;
+
+ALTER SEQUENCE public.users_user_id_seq
+    OWNER TO postgres;
+
+----------------------------------
+
 -- Table: public.users
 
 -- DROP TABLE public.users;
@@ -68,7 +78,7 @@ ALTER TABLE public.users
 
 GRANT ALL ON TABLE public.users TO crazyerics;
 
-GRANT ALL ON SEQUENCE public.users_userid_seq TO crazyerics;
+GRANT ALL ON SEQUENCE public.users_user_id_seq TO crazyerics;
 
 INSERT INTO users (user_id, user_name) VALUES (0, 'application');
 
@@ -192,6 +202,16 @@ ALTER TABLE public.files
 
 ----------------------------------
 
+CREATE SEQUENCE public.saves_save_id_seq
+    INCREMENT 1
+    START 1
+;
+
+ALTER SEQUENCE public.saves_save_id_seq
+    OWNER TO postgres;
+
+----------------------------------
+
 -- Table: public.saves
 
 -- DROP TABLE public.saves;
@@ -229,6 +249,16 @@ ALTER TABLE public.saves
 GRANT ALL ON TABLE public.saves TO crazyerics;
 
 GRANT ALL ON TABLE public.saves TO postgres;
+
+----------------------------------
+
+CREATE SEQUENCE public.collections_collection_id_seq
+    INCREMENT 1
+    START 1
+;
+
+ALTER SEQUENCE public.collections_collection_id_seq
+    OWNER TO postgres;
 
 ----------------------------------
 
