@@ -950,6 +950,11 @@ div.slidingpanel {
 	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#000000', endColorstr='#00000000',GradientType=0 ); /* IE6-9 */
 }
 
+#collectionsWrapper.new-user {
+	visibility: hidden;
+	position: absolute;
+}
+
 .tooltip-content-wrapper {
 	display: none;
 }

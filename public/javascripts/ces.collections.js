@@ -555,11 +555,12 @@ var cesCollections = (function(_Compression, _Preferences, _BoxArt, _Sync, _Tool
             _self.PopulateTitles();
             _self.PopulateCollections();
 
-            //dont show default collection when no titles (new user)
+            //dont show default collection when no titles (new user experience)
             if (_self.IsEmpty()) {
-                $collectionNamesWrapper.addClass('hidden');
+                $collectionNamesWrapper.parent().addClass('new-user');
             } else {
-                $collectionNamesWrapper.removeClass('hidden');
+                $collectionNamesWrapper.parent().removeClass('new-user');
+                _collectionsGrid.isotope('layout'); //reapply layout
             }
         };
 

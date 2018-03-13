@@ -469,8 +469,12 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _gameKey,
 
             //the savetype can come in on args (auto)
             if (args) {
-                saveType = args[0];
-                callback = args[1];
+                if (args[0]) {
+                    saveType = args[0];
+                }
+                if (args[1]) {
+                    callback = args[1];
+                }
             }
 
             CreateNewSave(saveType, proceed, callback);
