@@ -29,6 +29,7 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _gameKey) {
         var _module = this;
 
         this.noInitialRun = true;
+        this.arguments = [],
         this.preRun = [];
         this.postRun = [];
         this.canvas = document.getElementById('emulator');
@@ -206,7 +207,7 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _gameKey) {
 
         this.cesWriteFile = function(parent, filename, contents, callback) {
 
-            var result = this.FS_createDataFile(parent, filename, contents, true, true);
+            var result = this.FS.writeFile(parent + '/' + filename, contents, { encoding: 'binary' });
 
             if (callback) {
                 callback(result);
@@ -260,7 +261,9 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _gameKey) {
             var i;
             var content;
 
-            this.FS_createFolder('/', 'games', true, true);
+            debugger;
+
+            this.FS.mkdir('/games');
 
             var fileToLoad = _gameKey.file;
 
@@ -299,7 +302,7 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _gameKey) {
                     }
 
                     //write uncompressed game data to emu file system
-                    this.FS_createDataFile('/games', filename, gamedata, true, true);
+                    this.FS.writeFile('/games/' + filename, gamedata, { encoding: 'binary' });
                 }
             }
 
@@ -311,7 +314,7 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _gameKey) {
             }
 
             //emulator support, all files must go into system dir (BIOS files at least, what i'm using this for)
-            this.FS_createFolder('/', 'system', true, true);
+            this.FS.mkdir('/system');
             if (compressedSupprtData) {
                 for (var supportFile in compressedSupprtData) {
                     var content = _Compression.Unzip.bytearray(compressedSupprtData[supportFile]);
@@ -325,7 +328,7 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _gameKey) {
             }
 
             //shaders
-            this.FS_createFolder('/', 'shaders', true, true);
+            this.FS.mkdir('/shaders');
             var shaderPresetToLoad = null;
 
             //shader files, will be null if none used
@@ -337,7 +340,7 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _gameKey) {
 
                     //write to emaultor
                     try {
-                        this.FS_createDataFile('/shaders', filename, content, true, true);
+                        this.FS.writeFile('/shaders/' + filename, content);
                     } catch (e) {
                         //an error on file write.
                     }
@@ -351,10 +354,10 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _gameKey) {
 
             //config, must be after shader
             //wrap folder creation in catch since error is thrown if exists
-            try { this.FS_createFolder('/', 'home', true, true); } catch (e) {}
-            try { this.FS_createFolder('/home', 'web_user', true, true); } catch (e) {}
-            try { this.FS_createFolder('/home/web_user/', 'retroarch', true, true); } catch (e) {}
-            try { this.FS_createFolder('/home/web_user/retroarch', 'userdata', true, true); } catch (e) {}
+            try { this.FS.mkdir('/home'); } catch (e) {}
+            try { this.FS.mkdir('/home/web_user'); } catch (e) {}
+            try { this.FS.mkdir('/home/web_user/retroarch'); } catch (e) {}
+            try { this.FS.mkdir('/home/web_user/retroarch/userdata'); } catch (e) {}
 
             if (_config.retroarch) {
 
@@ -378,17 +381,17 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _gameKey) {
                     configString +=  configItem + ' = ' + retroArchConfig[configItem] + '\n';
                 }
 
-                this.FS_createDataFile('/home/web_user/retroarch/userdata', 'retroarch.cfg', configString, true, true);
+                this.FS.writeFile('/home/web_user/retroarch/userdata/retroarch.cfg', configString);
             }
 
             //screenshots
-            this.FS_createFolder('/', 'screenshots', true, true);
+            this.FS.mkdir('/screenshots');
 
             //state save location
-            this.FS_createFolder('/', 'states', true, true);
+            this.FS.mkdir('/states');
 
             //save file location
-            this.FS_createFolder('/', 'saves', true, true);
+            this.FS.mkdir('/saves');
         };
 
         return this;
