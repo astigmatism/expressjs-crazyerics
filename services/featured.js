@@ -96,6 +96,7 @@ module.exports = new (function() {
 
         KeysCache.Get([], (err, keys) => {
             if (err) return callback(err);
+            if (!keys) return callback();
             
             var random = Math.floor(Math.random() * keys.length);
             _self.GetNext(random, opt_quantity, callback);

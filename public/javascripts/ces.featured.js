@@ -191,6 +191,10 @@ this.Sync = new (function() {
 
     this.Incoming = function(payload) {
 
+        if (!payload) {
+            return;
+        }
+
         for (var i = 0, len = payload.length; i < len; ++i) {
 
             //store by name internally, will update local cache
@@ -236,6 +240,8 @@ this.Sync = new (function() {
  * @param  {} function(
  */
 var Constructor = (function() {
+
+    if (!_initialSyncPackage) return;
 
     //parse the incoming sync data from server
     _self.Sync.Incoming(_initialSyncPackage);

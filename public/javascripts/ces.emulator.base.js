@@ -201,16 +201,10 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _gameKey,
         }
     };
 
-    this.Focus = function() {
-        _ui.canvas.focus();
-    };
-
     //emulator is revealed, control is given to player
     this.ReadyPlayerOne = function (duration, callback) {
 
         duration = duration || _displayDurationShow;
-
-        self.Focus(); //give focus (also calls resume game, I took care of the oddities :P)
 
         $(_ui.wrapper).fadeIn(_displayDurationShow, function() {
 
@@ -221,7 +215,10 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _gameKey,
 
             _hasEmulationBegin = true;
 
-            //assign focus to emulator canvas
+            //give focus
+            _ui.canvas.focus();
+
+            //define operations on blur/focus next
             _ui.canvas
                 .blur(function(event) {
                     self.PauseGame();

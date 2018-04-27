@@ -30,7 +30,7 @@
 		"32x": {
 			"name": "Sega 32x",
 			"shortname": "Sega 32x",
-			"live": true,
+			"live": false,
 			"supportfilesize": 3417,
 			"boxcdnversion": "2017-12-20",
 			"romcdnversion": "GoodGen-3.14",
@@ -43,7 +43,7 @@
 		"a2600": {
 			"name": "Atari 2600",
 			"shortname": "Atari 2600",
-			"live": true,
+			"live": false,
 			"supportfilesize": 0,
 			"collection": "Good2600 1.0.0",
 			"boxcdnversion": "2017-12-08",
@@ -68,14 +68,14 @@
 			"name": "Atari 7800",
 			"shortname": "Atari 7800",
 			"live": false,
-			"boxcdnversion": "",
-			"romcdnversion": "",
+			"boxcdnversion": "2018-04-25",
+			"romcdnversion": "Good7800-3.28",
 			"supportfilesize": 0,
 			"collection": "Good7800 3.28",
 			"emuextention": "1.6.9-stable",
 			"emuscript": "prosystem_libretro.js",
 			"screenshotaspectratio": 1.714,
-			"suggestionThreshold": 180
+			"suggestionThreshold": 400
 		},
 		"arcade": {
 			"name": "Arcade",
@@ -92,7 +92,7 @@
 		"fds": {
 			"name": "Famicom Disk System",
 			"shortname": "Famicom Disk System",
-			"live": true,
+			"live": false,
 			"supportfilesize": 210501, //9201,
 			"boxcdnversion": "2018-1-2",
 			"romcdnversion": "FDS-1.0",
@@ -109,7 +109,7 @@
 			"live": true,
 			"supportfilesize": 0,
 			"boxcdnversion": "2017-11-20",
-			"romcdnversion": "GoodGbx-3.14",
+			"romcdnversion": "GoodGbx-3.14-2018-04-26",
 			"collection": "GoodGBx 3.14",
 			"emuextention": "1.6.9-stable",
 			"emuscript": "gambatte_libretro.js",
@@ -120,15 +120,38 @@
 					"shader": "handheld-console-border-dmg-4x"
 				},
 				{
+					"title": "Smoothed",
+					"shader": "xbrz-4xbrz-linear"
+				}
+			],
+			"notes": "Collection is devided between gb and gbc and decompression step"
+		},
+		"gbc": {
+			"name": "Nintendo Game Boy Color",
+			"shortname": "Game Boy Color",
+			"live": true,
+			"supportfilesize": 0,
+			"boxcdnversion": "2017-11-20",
+			"romcdnversion": "GoodGbx-3.14-2018-04-26",
+			"collection": "GoodGBx 3.14",
+			"emuextention": "1.6.9-stable",
+			"emuscript": "gambatte_libretro.js",
+			"screenshotaspectratio": 1.11,
+			"recommendedshaders": [
+				{
 					"title": "Game Boy Color",
 					"shader": "handheld-console-border-gbc-4x"
+				},
+				{
+					"title": "Smoothed",
+					"shader": "xbrz-4xbrz-linear"
 				}
 			]
 		},
 		"gba": {
 			"name": "Nintendo Game Boy Advance",
 			"shortname": "Game Boy Advance",
-			"live": true,
+			"live": false,
 			"supportfilesize": 0,
 			"boxcdnversion": "2017-11-20",
 			"romcdnversion": "GoodGba-3.23",
@@ -143,14 +166,14 @@
 				},
 				{
 					"title": "Smoothed",
-					"shader": "xbr-xbr-hybrid"
+					"shader": "xbrz-4xbrz-linear"
 				}
 			]
 		},
 		"gen": {
 			"name": "Sega Genesis / Mega Drive",
 			"shortname": "Sega Genesis",
-			"live": true,
+			"live": false,
 			"supportfilesize": 0,
 			"boxcdnversion": "2017-12-20",
 			"romcdnversion": "GoodGen-3.14-a",
@@ -162,7 +185,7 @@
 		"gg": {
 			"name": "Sega Game Gear",
 			"shortname": "Sega Game Gear",
-			"live": true,
+			"live": false,
 			"collection": "GoodGG 3.20",
 			"boxcdnversion": "2017-11-20",
 			"romcdnversion": "GoodGG-3.20",
@@ -177,7 +200,7 @@
 				},
 				{
 					"title": "Smoothed",
-					"shader": "xbr-xbr-hybrid"
+					"shader": "xbrz-4xbrz-linear"
 				}
 			]
 		},
@@ -185,7 +208,7 @@
 			"name": "Atari Jaguar",
 			"shortname": "Atari Jaguar",
 			"collection":"GoodJag 2.01",
-			"live": true,
+			"live": false,
 			"supportfilesize": 0,
 			"boxcdnversion": "2017-11-20",
 			"romcdnversion": "GoodJag-2.01",
@@ -196,7 +219,7 @@
 		"lynx": {
 			"name": "Atari Lynx",
 			"shortname": "Atari Lynx",
-			"live": true,
+			"live": false,
 			"supportfilesize": 0,
 			"collection":"GoodLynx 2.01",
 			"boxcdnversion": "2017-11-20",
@@ -211,14 +234,14 @@
 				},
 				{
 					"title": "Smoothed",
-					"shader": "xbr-xbr-hybrid"
+					"shader": "xbrz-4xbrz-linear"
 				}
 			]
 		},
 		"n64": {
 			"name": "Nintendo 64",
 			"shortname": "Nintendo 64",
-			"live": true,
+			"live": false,
 			"supportfilesize": 0,
 			"collection": "GoodN64 3.27",
 			"boxcdnversion": "2017-11-20",
@@ -246,7 +269,7 @@
 		"nds": {
 			"name": "Nintendo DS",
 			"shortname": "Nintendo DS",
-			"live": true,
+			"live": false,
 			"supportfilesize": 0,
 			"boxcdnversion": "2.0.1",
 			"romcdnversion": "nds",
@@ -260,14 +283,14 @@
 				},
 				{
 					"title": "Smoothed",
-					"shader": "xbr-xbr-hybrid"
+					"shader": "xbrz-4xbrz-linear"
 				}
 			]
 		},
 		"nes": {
 			"name": "Nintendo Entermainment System",
 			"shortname": "Nintendo",
-			"live": true,
+			"live": false,
 			"supportfilesize": 0,
 			"boxcdnversion": "2017-12-12",
 			"romcdnversion": "GoodNes-3.23b",
@@ -279,7 +302,7 @@
 		"ngpx": {
 			"name": "Neo Geo Pocket",
 			"shortname": "Neo Geo Pocket",
-			"live": true,
+			"live": false,
 			"supportfilesize": 0,
 			"boxcdnversion": "2017-12-27",
 			"romcdnversion": "GoodNGPx-3.14",
@@ -294,7 +317,7 @@
 				},
 				{
 					"title": "Smoothed",
-					"shader": "xbr-xbr-hybrid"
+					"shader": "xbrz-4xbrz-linear"
 				}
 			]
 			// { "title": "Neo Geo Pocket Color", "shader": "handheld-console-border-ngpc-4x" } working, but looks like crap
@@ -302,7 +325,7 @@
 		"pce": {
 			"name": "NEC TurboGrafx-16",
 			"shortname": "TurboGrafx-16",
-			"live": true,
+			"live": false,
 			"supportfilesize": 0,
 			"boxcdnversion": "2017-11-20",
 			"romcdnversion": "GoodPce-1.09a",
@@ -336,7 +359,7 @@
 		"sms": {
 			"name": "Sega Master System / SG-1000 / SC-3000 / Mark III",
 			"shortname": "Sega Master System",
-			"live": true,
+			"live": false,
 			"supportfilesize": 0,
 			"boxcdnversion": "2017-12-08",
 			"romcdnversion": "GoodSms-3.20",
@@ -347,7 +370,7 @@
 		"snes": {
 			"name": "Super Nintendo Entermainment System",
 			"shortname": "Super Nintendo",
-			"live": true,
+			"live": false,
 			"supportfilesize": 0,
 			"boxcdnversion": "2017-12-12",
 			"romcdnversion": "GoodSnes-3.23",
@@ -359,7 +382,7 @@
 		"vb": {
 			"name": "Nintendo Virtual Boy",
 			"shortname": "Virtual Boy",
-			"live": true,
+			"live": false,
 			"supportfilesize": 0,
 			"collection": "GoodVBoy 3.1415",
 			"boxcdnversion": "2017-11-20",
@@ -374,14 +397,14 @@
 				},
 				{
 					"title": "Smoothed",
-					"shader": "xbr-xbr-hybrid"
+					"shader": "xbrz-4xbrz-linear"
 				}
 			]
 		},
 		"vect": {
 			"name": "Vectrex",
 			"shortname": "Vectrex",
-			"live": true,
+			"live": false,
 			"supportfilesize": 0,
 			"collection": "GoodVect 1.06",
 			"boxcdnversion": "2017-11-20",
@@ -393,7 +416,7 @@
 		"wsx": {
 			"name": "Bandai WonderSwan",
 			"shortname": "WonderSwan",
-			"live": true,
+			"live": false,
 			"supportfilesize": 0,
 			"collection": "GoodWSx 3.27",
 			"boxcdnversion": "2017-12-20",
@@ -409,7 +432,7 @@
 				},
 				{
 					"title": "Smoothed",
-					"shader": "xbr-xbr-hybrid"
+					"shader": "xbrz-4xbrz-linear"
 				}
 			]
 		},
@@ -421,7 +444,7 @@
 				},
 				{
 					"title": "Smoothed",
-					"shader": "xbr-xbr-hybrid"
+					"shader": "xbrz-4xbrz-linear"
 				}
 			]
 		}
@@ -482,6 +505,13 @@
 			}
 		},
 		"gb": {
+			"faces": {
+				"back": "combine",
+				"left": "combine",
+				"right": "combine"
+			}
+		},
+		"gbc": {
 			"faces": {
 				"back": "combine",
 				"left": "combine",
@@ -605,6 +635,16 @@
 			},
 			"samples": 40
 		},
+		"gbc": {
+			"recipe": {
+				"systems": {
+					"gbc": {
+						"cache": "above"
+					}
+				}
+			},
+			"samples": 40
+		},
 		"nes": {
 			"recipe": {
 				"systems": {
@@ -675,6 +715,6 @@
 		"notes-1.7.0": "lots of audio glitches (tested nes, snes)"
 	},
 	"shaders": {
-		"3dfx-3dfx_4x1":{"s":6384},"anti-aliasing-aa-shader-4.0-level2":{"s":8888},"anti-aliasing-aa-shader-4.0":{"s":6820},"anti-aliasing-advanced-aa":{"s":3256},"anti-aliasing-fxaa":{"s":4416},"-bilinear":{"s":956},"borders-bigblur":{"s":5956},"borders-color-grid":{"s":2892},"borders-gameboy-player-gameboy-player-crt-easymode":{"s":37728},"borders-gameboy-player-gameboy-player-crt-royale":{"s":2035668},"borders-gameboy-player-gameboy-player-tvout":{"s":40280},"borders-gameboy-player-gameboy-player":{"s":34360},"borders-imgborder-imgborder-1080p":{"s":5476},"borders-imgborder-imgborder-1440p":{"s":5536},"borders-imgborder-imgborder-2160p":{"s":5780},"borders-imgborder-imgborder-2560x1600":{"s":5652},"borders-mudlord":{"s":3004},"borders-sgb-sgb-crt-easymode":{"s":8936},"borders-sgb-sgb-crt-royale":{"s":2006868},"borders-sgb-sgb-tvout+interlacing":{"s":13112},"borders-sgb-sgb":{"s":5564},"borders-shiny-iterations":{"s":3468},"borders-snow":{"s":3456},"borders-voronoi":{"s":3344},"borders-water":{"s":2740},"crt-crt-aperture":{"s":2668},"crt-crt-caligari":{"s":2696},"crt-crt-cgwg-fast":{"s":2576},"crt-crt-easymode-halation":{"s":8352},"crt-crt-easymode":{"s":3512},"crt-crt-geom":{"s":6300},"crt-crt-hyllian-multipass":{"s":5616},"crt-crt-hyllian":{"s":3916},"crt-crt-interlaced-halation":{"s":10868},"crt-crt-lottes-multipass":{"s":8008},"crt-crt-lottes":{"s":4296},"crt-crt-nes-mini":{"s":1348},"crt-crt-pi-vertical":{"s":3944},"crt-crt-pi":{"s":3828},"crt-crt-royale-fake-bloom-intel":{"s":1444112},"crt-crt-royale-fake-bloom":{"s":1543940},"crt-crt-royale":{"s":2001472},"crt-crtglow_gauss":{"s":8452},"crt-crtglow_gauss_ntsc_3phase":{"s":11872},"crt-crtglow_lanczos":{"s":8496},"crt-crtsim":{"s":19764},"crt-fakelottes":{"s":3192},"crt-gtu-famicom":{"s":10412},"crt-gtuv50":{"s":5160},"crt-metacrt":{"s":757476},"crt-phosphorlut":{"s":19368},"cubic-cubic-gamma-correct":{"s":2416},"cubic-cubic":{"s":1400},"ddt-ddt":{"s":2676},"deblur-sedi":{"s":2644},"deblur-simoneT-3d-2d-mixed":{"s":4908},"denoisers-crt-fast-bilateral-super-xbr":{"s":22592},"denoisers-fast-bilateral-super-2xbr-3d-3p":{"s":17520},"denoisers-fast-bilateral-super-xbr-4p":{"s":14624},"denoisers-fast-bilateral-super-xbr-6p":{"s":18884},"denoisers-fast-bilateral-super-xbr-natural-vision":{"s":20328},"denoisers-fast-bilateral-super-xbr":{"s":18796},"denoisers-fast-bilateral":{"s":2640},"denoisers-slow-bilateral":{"s":1680},"dithering-bayer-matrix-dithering":{"s":2108},"dithering-cbod_v1":{"s":4500},"dithering-gdapt":{"s":3500},"dithering-gendither":{"s":1952},"dithering-mdapt":{"s":8880},"eagle-super-eagle":{"s":3236},"film-technicolor":{"s":179068},"handheld-console-border-dmg-2x":{"s":1689560},"handheld-console-border-dmg-3x":{"s":1689552},"handheld-console-border-dmg-4x":{"s":1689552},"handheld-console-border-dmg-5x":{"s":1689556},"handheld-console-border-dmg-6x":{"s":1689556},"handheld-console-border-gb-pocket-2x":{"s":1262132},"handheld-console-border-gb-pocket-3x":{"s":1262116},"handheld-console-border-gb-pocket-4x":{"s":1262120},"handheld-console-border-gb-pocket-5x":{"s":1262120},"handheld-console-border-gb-pocket-6x":{"s":1262120},"handheld-console-border-gba-2x":{"s":1107844},"handheld-console-border-gba-3x":{"s":1107844},"handheld-console-border-gba-4x":{"s":1107844},"handheld-console-border-gba-5x":{"s":1107844},"handheld-console-border-gba-6x":{"s":1107848},"handheld-console-border-gbc-2x":{"s":1347956},"handheld-console-border-gbc-3x":{"s":1347956},"handheld-console-border-gbc-4x":{"s":1347956},"handheld-console-border-gbc-5x":{"s":1347956},"handheld-console-border-gbc-6x":{"s":1347956},"handheld-console-border-gg-2x":{"s":2106168},"handheld-console-border-gg-3x":{"s":2106044},"handheld-console-border-gg-4x":{"s":2106044},"handheld-console-border-gg-5x":{"s":2106044},"handheld-console-border-gg-6x":{"s":2106048},"handheld-console-border-ngpc-2x":{"s":2992132},"handheld-console-border-ngpc-3x":{"s":2992132},"handheld-console-border-ngpc-4x":{"s":2992128},"handheld-console-border-ngpc-5x":{"s":2992132},"handheld-console-border-ngpc-6x":{"s":2992132},"handheld-console-border-psp-2x":{"s":1115800},"handheld-console-border-psp-3x":{"s":1116828},"handheld-console-border-psp-4x":{"s":1116824},"handheld-console-border-psp-5x":{"s":1116828},"handheld-console-border-psp-6x":{"s":1116824},"handheld-dot":{"s":1844},"handheld-gameboy-light":{"s":652748},"handheld-gameboy-pocket":{"s":652892},"handheld-gameboy":{"s":748824},"handheld-gba-color":{"s":1812},"handheld-lcd-grid-v2-gba-color-motionblur":{"s":5892},"handheld-lcd-grid-v2-gba-color":{"s":4484},"handheld-lcd-grid-v2-nds-color-motionblur":{"s":5740},"handheld-lcd-grid-v2-nds-color":{"s":4332},"handheld-lcd-grid-v2-palm-color-motionblur":{"s":5740},"handheld-lcd-grid-v2-palm-color":{"s":4332},"handheld-lcd-grid-v2-psp-color-motionblur":{"s":5748},"handheld-lcd-grid-v2-psp-color":{"s":4336},"handheld-lcd-grid-v2-vba-color-motionblur":{"s":5888},"handheld-lcd-grid-v2-vba-color":{"s":4480},"handheld-lcd-grid-v2":{"s":2604},"handheld-lcd-grid":{"s":2012},"handheld-lcd-shader-gba-color":{"s":13044},"handheld-lcd-shader-nds-color":{"s":12852},"handheld-lcd-shader-palm-color":{"s":12892},"handheld-lcd-shader-psp-color":{"s":12900},"handheld-lcd-shader-vba-color":{"s":13000},"handheld-lcd-shader":{"s":11328},"handheld-lcd3x":{"s":1372},"handheld-nds-color":{"s":1660},"handheld-nds":{"s":6904},"handheld-palm-color":{"s":1660},"handheld-psp-color":{"s":1668},"handheld-shaders-lcd-shader-backup-2-lcd-shader":{"s":8260},"handheld-shaders-lcd-shader-backup-3-lcd-shader":{"s":6616},"handheld-vba-color":{"s":1808},"hqx-hq2x-halphon":{"s":4292},"hqx-hq2x":{"s":8204},"hqx-hq3x":{"s":10304},"hqx-hq4x":{"s":19024},"hqx-single-pass-hq2x":{"s":7684},"hqx-single-pass-hq3x":{"s":9792},"hqx-single-pass-hq4x":{"s":18496},"misc-cardboard-vr":{"s":1792},"motionblur-braid-rewind":{"s":1440},"motionblur-motionblur-simple":{"s":1552},"-nearest":{"s":956},"nedi-fast-bilateral-nedi":{"s":15688},"nedi-nedi":{"s":13172},"nnedi3-nnedi3-nns16-2x-luma":{"s":33104},"nnedi3-nnedi3-nns16-2x-rgb":{"s":27016},"nnedi3-nnedi3-nns16-4x-luma":{"s":33176},"nnedi3-nnedi3-nns32-2x-rgb-nns32-4x-luma":{"s":88456},"nnedi3-nnedi3-nns32-4x-rgb":{"s":42828},"nnedi3-nnedi3-nns64-2x-nns32-4x-nns16-8x-rgb":{"s":130552},"nnedi3-nnedi3-nns64-2x-nns32-4x-rgb":{"s":109868},"ntsc-artifact-colors":{"s":8120},"ntsc-ntsc-256px-gauss-scanline":{"s":6700},"ntsc-ntsc-256px-svideo-gauss-scanline":{"s":6708},"ntsc-ntsc-256px-svideo":{"s":4592},"ntsc-ntsc-256px":{"s":4584},"ntsc-ntsc-320px-gauss-scanline":{"s":7016},"ntsc-ntsc-320px-svideo-gauss-scanline":{"s":6992},"ntsc-ntsc-320px-svideo":{"s":4904},"ntsc-ntsc-320px":{"s":4924},"ntsc-ntsc-nes":{"s":8184},"ntsc-ntsc-svideo":{"s":6672},"ntsc-ntsc-vcr":{"s":464836},"ntsc-ntsc-xot":{"s":4052},"ntsc-ntsc":{"s":6660},"omniscale-omniscale-legacy":{"s":3276},"omniscale-omniscale":{"s":3996},"pal-pal-r57shell":{"s":2624},"pal-pal":{"s":4648},"presets-c64-monitor":{"s":12256},"presets-crt-royale-kurozumi":{"s":2002220},"presets-crtsim-grungy":{"s":22432},"presets-nes-color-decoder+colorimetry+pixellate":{"s":9600},"presets-nes-color-decoder+pixellate":{"s":6104},"presets-retro-v2+gba-color":{"s":3764},"presets-retro-v2+image-adjustment":{"s":5180},"presets-retro-v2+nds-color":{"s":3612},"presets-retro-v2+psp-color":{"s":3620},"presets-retro-v2+vba-color":{"s":3760},"presets-tvout-gtu-famicom-240p":{"s":9636},"presets-tvout-gtuv50-240p":{"s":6052},"presets-tvout-tvout+cbod":{"s":596},"presets-tvout-tvout+gdapt":{"s":604},"presets-tvout-tvout+mdapt":{"s":684},"presets-tvout-tvout+nes-color-decoder":{"s":9808},"presets-tvout-tvout+ntsc-256px-composite":{"s":10480},"presets-tvout-tvout+ntsc-256px-svideo":{"s":10472},"presets-tvout-tvout+ntsc-2phase-composite":{"s":10780},"presets-tvout-tvout+ntsc-2phase-svideo":{"s":10744},"presets-tvout-tvout+ntsc-320px-composite":{"s":10792},"presets-tvout-tvout+ntsc-320px-svideo":{"s":10756},"presets-tvout-tvout+ntsc-3phase-composite":{"s":10468},"presets-tvout-tvout+ntsc-3phase-svideo":{"s":10464},"presets-tvout-tvout+ntsc-nes":{"s":14120},"presets-tvout-tvout-jinc-sharpen":{"s":10852},"presets-tvout-tvout-pixelsharp":{"s":6940},"presets-tvout-tvout":{"s":6088},"presets-tvout+interlacing-gtu-famicom-240p+interlacing":{"s":11272},"presets-tvout+interlacing-gtuv50-240p+interlacing":{"s":7684},"presets-tvout+interlacing-tvout+cbod+interlacing":{"s":640},"presets-tvout+interlacing-tvout+gdapt+interlacing":{"s":640},"presets-tvout+interlacing-tvout+interlacing":{"s":7716},"presets-tvout+interlacing-tvout+mdapt+interlacing":{"s":708},"presets-tvout+interlacing-tvout+nes-color-decoder+interlacing":{"s":11440},"presets-tvout+interlacing-tvout+ntsc-256px-composite+interlacing":{"s":12120},"presets-tvout+interlacing-tvout+ntsc-256px-svideo+interlacing":{"s":12116},"presets-tvout+interlacing-tvout+ntsc-2phase-composite+interlacing":{"s":12424},"presets-tvout+interlacing-tvout+ntsc-2phase-svideo+interlacing":{"s":12384},"presets-tvout+interlacing-tvout+ntsc-320px-composite+interlacing":{"s":12436},"presets-tvout+interlacing-tvout+ntsc-320px-svideo+interlacing":{"s":12396},"presets-tvout+interlacing-tvout+ntsc-3phase-composite+interlacing":{"s":12112},"presets-tvout+interlacing-tvout+ntsc-3phase-svideo+interlacing":{"s":12108},"presets-tvout+interlacing-tvout+ntsc-nes+interlacing":{"s":15752},"presets-tvout+interlacing-tvout-jinc-sharpen+interlacing":{"s":10876},"presets-xsoft+scalefx-level2aa+sharpsmoother":{"s":27052},"presets-xsoft+scalefx-level2aa":{"s":21716},"reshade-bsnes-gamma-ramp":{"s":2044},"reshade-gba":{"s":28168},"reshade-halftone-print":{"s":14332},"reshade-lut":{"s":5324},"reshade-nds":{"s":27336},"reshade-vba":{"s":22700},"retro-aann":{"s":3104},"retro-bevel":{"s":1992},"retro-pixellate":{"s":2368},"retro-quilez":{"s":1216},"retro-retro-v2":{"s":2004},"retro-sharp-bilinear-2x-prescale":{"s":1028},"retro-sharp-bilinear-scanlines":{"s":2168},"retro-sharp-bilinear-simple":{"s":1656},"retro-sharp-bilinear":{"s":1664},"retro-smootheststep":{"s":1472},"sabr-sabr-hybrid-deposterize":{"s":6408},"sabr-sabr":{"s":4760},"scalefx-scalefx-hybrid":{"s":17708},"scalefx-scalefx":{"s":16948},"scalehq-2xScaleHQ":{"s":2244},"scalehq-4xScaleHQ":{"s":2424},"scalenx-scale2x":{"s":2848},"scalenx-scale2xSFX":{"s":3516},"scalenx-scale2xplus":{"s":2572},"scalenx-scale3x":{"s":3112},"sharpen-adaptive-sharpen-multipass":{"s":9988},"sharpen-adaptive-sharpen":{"s":5028},"sharpen-super-xbr-super-res":{"s":25740},"test-potatoshader-crt-bp-cool":{"s":5900},"test-potatoshader-crt-bp-warm":{"s":5900},"windowed-jinc2-sharp":{"s":3172},"windowed-jinc2-sharper":{"s":3168},"windowed-jinc2":{"s":3140},"windowed-lanczos2-sharp":{"s":3172},"xbr-2xBR-lv1-multipass":{"s":4256},"xbr-super-2xbr-3d-2p":{"s":11608},"xbr-super-2xbr-3d-3p-smoother":{"s":15308},"xbr-super-4xbr-3d-4p":{"s":20512},"xbr-super-4xbr-3d-6p-smoother":{"s":26576},"xbr-super-8xbr-3d-6p":{"s":29060},"xbr-super-xbr-2p-small-details":{"s":12280},"xbr-super-xbr-2p":{"s":12228},"xbr-super-xbr-3p-smoother-small-details":{"s":16524},"xbr-super-xbr-3p-smoother":{"s":16472},"xbr-super-xbr-6p-adaptive":{"s":20788},"xbr-super-xbr-6p-small-details":{"s":20800},"xbr-super-xbr-6p":{"s":20716},"xbr-super-xbr-deposterize":{"s":20940},"xbr-xbr-hybrid":{"s":6468},"xbr-xbr-lv2-3d":{"s":5724},"xbr-xbr-lv2":{"s":4892},"xbr-xbr-lv3-multipass":{"s":7920},"xbr-xbr-lv3":{"s":5144},"xbr-xbr-mlv4-multipass":{"s":17544},"xbrz-4xbrz-linear":{"s":6700},"xbrz-5xbrz-linear":{"s":6996},"xbrz-6xbrz-linear":{"s":7300},"xsal-2xsal-level2-crt":{"s":4240},"xsal-2xsal":{"s":2652},"xsal-4xsal-level2-crt":{"s":5880},"xsal-4xsal-level2-hq":{"s":4880},"xsal-4xsal-level2":{"s":4668},"xsoft-4xsoft":{"s":2580},"xsoft-4xsoftSdB":{"s":2904}
+		"3dfx-3dfx_4x1":{"s":6384},"anti-aliasing-aa-shader-4.0-level2":{"s":8888},"anti-aliasing-aa-shader-4.0":{"s":6820},"anti-aliasing-advanced-aa":{"s":3256},"anti-aliasing-fxaa":{"s":4416},"-bilinear":{"s":956},"borders-bigblur":{"s":5956},"borders-color-grid":{"s":2892},"borders-gameboy-player-gameboy-player-crt-easymode":{"s":37728},"borders-gameboy-player-gameboy-player-crt-royale":{"s":2035668},"borders-gameboy-player-gameboy-player-tvout":{"s":40280},"borders-gameboy-player-gameboy-player":{"s":34360},"borders-imgborder-imgborder-1080p":{"s":5476},"borders-imgborder-imgborder-1440p":{"s":5536},"borders-imgborder-imgborder-2160p":{"s":5780},"borders-imgborder-imgborder-2560x1600":{"s":5652},"borders-mudlord":{"s":3004},"borders-sgb-sgb-crt-easymode":{"s":8936},"borders-sgb-sgb-crt-royale":{"s":2006868},"borders-sgb-sgb-tvout+interlacing":{"s":13112},"borders-sgb-sgb":{"s":5564},"borders-shiny-iterations":{"s":3468},"borders-snow":{"s":3456},"borders-voronoi":{"s":3344},"borders-water":{"s":2740},"crt-crt-aperture":{"s":2668},"crt-crt-caligari":{"s":2696},"crt-crt-cgwg-fast":{"s":2576},"crt-crt-easymode-halation":{"s":8352},"crt-crt-easymode":{"s":3512},"crt-crt-geom":{"s":6300},"crt-crt-hyllian-multipass":{"s":5616},"crt-crt-hyllian":{"s":3916},"crt-crt-interlaced-halation":{"s":10868},"crt-crt-lottes-multipass":{"s":8008},"crt-crt-lottes":{"s":4296},"crt-crt-nes-mini":{"s":1348},"crt-crt-pi-vertical":{"s":3944},"crt-crt-pi":{"s":3828},"crt-crt-royale-fake-bloom-intel":{"s":1444112},"crt-crt-royale-fake-bloom":{"s":1543940},"crt-crt-royale":{"s":2001472},"crt-crtglow_gauss":{"s":8452},"crt-crtglow_gauss_ntsc_3phase":{"s":11872},"crt-crtglow_lanczos":{"s":8496},"crt-crtsim":{"s":19764},"crt-fakelottes":{"s":3192},"crt-gtu-famicom":{"s":10412},"crt-gtuv50":{"s":5160},"crt-metacrt":{"s":757476},"crt-phosphorlut":{"s":19368},"cubic-cubic-gamma-correct":{"s":2416},"cubic-cubic":{"s":1400},"ddt-ddt":{"s":2676},"deblur-sedi":{"s":2644},"deblur-simoneT-3d-2d-mixed":{"s":4908},"denoisers-crt-fast-bilateral-super-xbr":{"s":22592},"denoisers-fast-bilateral-super-2xbr-3d-3p":{"s":17520},"denoisers-fast-bilateral-super-xbr-4p":{"s":14624},"denoisers-fast-bilateral-super-xbr-6p":{"s":18884},"denoisers-fast-bilateral-super-xbr-natural-vision":{"s":20328},"denoisers-fast-bilateral-super-xbr":{"s":18796},"denoisers-fast-bilateral":{"s":2640},"denoisers-slow-bilateral":{"s":1680},"dithering-bayer-matrix-dithering":{"s":2108},"dithering-cbod_v1":{"s":4500},"dithering-gdapt":{"s":3500},"dithering-gendither":{"s":1952},"dithering-mdapt":{"s":8880},"eagle-super-eagle":{"s":3236},"film-technicolor":{"s":179068},"handheld-console-border-dmg-2x":{"s":1689560},"handheld-console-border-dmg-3x":{"s":1689552},"handheld-console-border-dmg-4x":{"s":1689552},"handheld-console-border-dmg-5x":{"s":1689556},"handheld-console-border-dmg-6x":{"s":1689556},"handheld-console-border-gb-pocket-2x":{"s":1262132},"handheld-console-border-gb-pocket-3x":{"s":1262116},"handheld-console-border-gb-pocket-4x":{"s":1262120},"handheld-console-border-gb-pocket-5x":{"s":1262120},"handheld-console-border-gb-pocket-6x":{"s":1262120},"handheld-console-border-gba-2x":{"s":1107844},"handheld-console-border-gba-3x":{"s":1107844},"handheld-console-border-gba-4x":{"s":1107844},"handheld-console-border-gba-5x":{"s":1107844},"handheld-console-border-gba-6x":{"s":1107848},"handheld-console-border-gbc-2x":{"s":1347956},"handheld-console-border-gbc-3x":{"s":1347956},"handheld-console-border-gbc-4x":{"s":1347956},"handheld-console-border-gbc-5x":{"s":1347956},"handheld-console-border-gbc-6x":{"s":1347956},"handheld-console-border-gg-2x":{"s":2106168},"handheld-console-border-gg-3x":{"s":2106044},"handheld-console-border-gg-4x":{"s":2106044},"handheld-console-border-gg-5x":{"s":2106044},"handheld-console-border-gg-6x":{"s":2106048},"handheld-console-border-ngpc-2x":{"s":2992132},"handheld-console-border-ngpc-3x":{"s":2992132},"handheld-console-border-ngpc-4x":{"s":2992128},"handheld-console-border-ngpc-5x":{"s":2992132},"handheld-console-border-ngpc-6x":{"s":2992132},"handheld-console-border-psp-2x":{"s":1115800},"handheld-console-border-psp-3x":{"s":1116828},"handheld-console-border-psp-4x":{"s":1116824},"handheld-console-border-psp-5x":{"s":1116828},"handheld-console-border-psp-6x":{"s":1116824},"handheld-dot":{"s":1844},"handheld-gameboy-light":{"s":652748},"handheld-gameboy-pocket":{"s":652892},"handheld-gameboy":{"s":748824},"handheld-gba-color":{"s":1812},"handheld-lcd-grid-v2-gba-color-motionblur":{"s":5892},"handheld-lcd-grid-v2-gba-color":{"s":4484},"handheld-lcd-grid-v2-nds-color-motionblur":{"s":5740},"handheld-lcd-grid-v2-nds-color":{"s":4332},"handheld-lcd-grid-v2-palm-color-motionblur":{"s":5740},"handheld-lcd-grid-v2-palm-color":{"s":4332},"handheld-lcd-grid-v2-psp-color-motionblur":{"s":5748},"handheld-lcd-grid-v2-psp-color":{"s":4336},"handheld-lcd-grid-v2-vba-color-motionblur":{"s":5888},"handheld-lcd-grid-v2-vba-color":{"s":4480},"handheld-lcd-grid-v2":{"s":2604},"handheld-lcd-grid":{"s":2012},"handheld-lcd-shader-gba-color":{"s":13044},"handheld-lcd-shader-nds-color":{"s":12852},"handheld-lcd-shader-palm-color":{"s":12892},"handheld-lcd-shader-psp-color":{"s":12900},"handheld-lcd-shader-vba-color":{"s":13000},"handheld-lcd-shader":{"s":11328},"handheld-lcd3x":{"s":1372},"handheld-nds-color":{"s":1660},"handheld-nds":{"s":6904},"handheld-palm-color":{"s":1660},"handheld-psp-color":{"s":1668},"handheld-shaders-lcd-shader-backup-2-lcd-shader":{"s":8260},"handheld-shaders-lcd-shader-backup-3-lcd-shader":{"s":6616},"handheld-vba-color":{"s":1808},"hqx-hq2x-halphon":{"s":4292},"hqx-hq2x":{"s":8204},"hqx-hq3x":{"s":10304},"hqx-hq4x":{"s":19024},"hqx-single-pass-hq2x":{"s":7684},"hqx-single-pass-hq3x":{"s":9792},"hqx-single-pass-hq4x":{"s":18496},"misc-cardboard-vr":{"s":1792},"motionblur-braid-rewind":{"s":1440},"motionblur-motionblur-simple":{"s":1552},"-nearest":{"s":956},"nedi-fast-bilateral-nedi":{"s":15688},"nedi-nedi":{"s":13172},"nnedi3-nnedi3-nns16-2x-luma":{"s":33104},"nnedi3-nnedi3-nns16-2x-rgb":{"s":27016},"nnedi3-nnedi3-nns16-4x-luma":{"s":33176},"nnedi3-nnedi3-nns32-2x-rgb-nns32-4x-luma":{"s":88456},"nnedi3-nnedi3-nns32-4x-rgb":{"s":42828},"nnedi3-nnedi3-nns64-2x-nns32-4x-nns16-8x-rgb":{"s":130552},"nnedi3-nnedi3-nns64-2x-nns32-4x-rgb":{"s":109868},"ntsc-artifact-colors":{"s":8120},"ntsc-ntsc-256px-gauss-scanline":{"s":6700},"ntsc-ntsc-256px-svideo-gauss-scanline":{"s":6708},"ntsc-ntsc-256px-svideo":{"s":4592},"ntsc-ntsc-256px":{"s":4584},"ntsc-ntsc-320px-gauss-scanline":{"s":7016},"ntsc-ntsc-320px-svideo-gauss-scanline":{"s":6992},"ntsc-ntsc-320px-svideo":{"s":4904},"ntsc-ntsc-320px":{"s":4924},"ntsc-ntsc-nes":{"s":8184},"ntsc-ntsc-svideo":{"s":6672},"ntsc-ntsc-vcr":{"s":464836},"ntsc-ntsc-xot":{"s":4052},"ntsc-ntsc":{"s":6660},"omniscale-omniscale-legacy":{"s":3276},"omniscale-omniscale":{"s":3996},"pal-pal-r57shell":{"s":2624},"pal-pal":{"s":4648},"presets-c64-monitor":{"s":12256},"presets-crt-royale-kurozumi":{"s":2002220},"presets-crtsim-grungy":{"s":22432},"presets-nes-color-decoder+colorimetry+pixellate":{"s":9600},"presets-nes-color-decoder+pixellate":{"s":6104},"presets-retro-v2+gba-color":{"s":3764},"presets-retro-v2+image-adjustment":{"s":5180},"presets-retro-v2+nds-color":{"s":3612},"presets-retro-v2+psp-color":{"s":3620},"presets-retro-v2+vba-color":{"s":3760},"presets-tvout-gtu-famicom-240p":{"s":9636},"presets-tvout-gtuv50-240p":{"s":6052},"presets-tvout-tvout+cbod":{"s":596},"presets-tvout-tvout+gdapt":{"s":604},"presets-tvout-tvout+mdapt":{"s":684},"presets-tvout-tvout+nes-color-decoder":{"s":9808},"presets-tvout-tvout+ntsc-256px-composite":{"s":10480},"presets-tvout-tvout+ntsc-256px-svideo":{"s":10472},"presets-tvout-tvout+ntsc-2phase-composite":{"s":10780},"presets-tvout-tvout+ntsc-2phase-svideo":{"s":10744},"presets-tvout-tvout+ntsc-320px-composite":{"s":10792},"presets-tvout-tvout+ntsc-320px-svideo":{"s":10756},"presets-tvout-tvout+ntsc-3phase-composite":{"s":10468},"presets-tvout-tvout+ntsc-3phase-svideo":{"s":10464},"presets-tvout-tvout+ntsc-nes":{"s":14120},"presets-tvout-tvout-jinc-sharpen":{"s":10852},"presets-tvout-tvout-pixelsharp":{"s":6940},"presets-tvout-tvout":{"s":6088},"presets-tvout+interlacing-gtu-famicom-240p+interlacing":{"s":11272},"presets-tvout+interlacing-gtuv50-240p+interlacing":{"s":7684},"presets-tvout+interlacing-tvout+cbod+interlacing":{"s":640},"presets-tvout+interlacing-tvout+gdapt+interlacing":{"s":640},"presets-tvout+interlacing-tvout+interlacing":{"s":7716},"presets-tvout+interlacing-tvout+mdapt+interlacing":{"s":708},"presets-tvout+interlacing-tvout+nes-color-decoder+interlacing":{"s":11440},"presets-tvout+interlacing-tvout+ntsc-256px-composite+interlacing":{"s":12120},"presets-tvout+interlacing-tvout+ntsc-256px-svideo+interlacing":{"s":12116},"presets-tvout+interlacing-tvout+ntsc-2phase-composite+interlacing":{"s":12424},"presets-tvout+interlacing-tvout+ntsc-2phase-svideo+interlacing":{"s":12384},"presets-tvout+interlacing-tvout+ntsc-320px-composite+interlacing":{"s":12436},"presets-tvout+interlacing-tvout+ntsc-320px-svideo+interlacing":{"s":12396},"presets-tvout+interlacing-tvout+ntsc-3phase-composite+interlacing":{"s":12112},"presets-tvout+interlacing-tvout+ntsc-3phase-svideo+interlacing":{"s":12108},"presets-tvout+interlacing-tvout+ntsc-nes+interlacing":{"s":15752},"presets-tvout+interlacing-tvout-jinc-sharpen+interlacing":{"s":10876},"presets-xsoft+scalefx-level2aa+sharpsmoother":{"s":27052},"presets-xsoft+scalefx-level2aa":{"s":21716},"reshade-bsnes-gamma-ramp":{"s":2044},"reshade-gba":{"s":28168},"reshade-halftone-print":{"s":14332},"reshade-lut":{"s":5324},"reshade-nds":{"s":27336},"reshade-vba":{"s":22700},"retro-aann":{"s":3104},"retro-bevel":{"s":1992},"retro-pixellate":{"s":2368},"retro-quilez":{"s":1216},"retro-retro-v2":{"s":2004},"retro-sharp-bilinear-2x-prescale":{"s":1028},"retro-sharp-bilinear-scanlines":{"s":2168},"retro-sharp-bilinear-simple":{"s":1656},"retro-sharp-bilinear":{"s":1664},"retro-smootheststep":{"s":1472},"sabr-sabr-hybrid-deposterize":{"s":6408},"sabr-sabr":{"s":4760},"scalefx-scalefx-hybrid":{"s":17708},"scalefx-scalefx":{"s":16948},"scalehq-2xScaleHQ":{"s":2244},"scalehq-4xScaleHQ":{"s":2424},"scalenx-scale2x":{"s":2848},"scalenx-scale2xSFX":{"s":3516},"scalenx-scale2xplus":{"s":2572},"scalenx-scale3x":{"s":3112},"sharpen-adaptive-sharpen-multipass":{"s":9988},"sharpen-adaptive-sharpen":{"s":5028},"sharpen-super-xbr-super-res":{"s":25740},"test-potatoshader-crt-bp-cool":{"s":5900},"test-potatoshader-crt-bp-warm":{"s":5900},"windowed-jinc2-sharp":{"s":3172},"windowed-jinc2-sharper":{"s":3168},"windowed-jinc2":{"s":3140},"windowed-lanczos2-sharp":{"s":3172},"xbr-2xBR-lv1-multipass":{"s":4256},"xbr-super-2xbr-3d-2p":{"s":11608},"xbr-super-2xbr-3d-3p-smoother":{"s":15308},"xbr-super-4xbr-3d-4p":{"s":20512},"xbr-super-4xbr-3d-6p-smoother":{"s":26576},"xbr-super-8xbr-3d-6p":{"s":29060},"xbr-super-xbr-2p-small-details":{"s":12280},"xbr-super-xbr-2p":{"s":12228},"xbr-super-xbr-3p-smoother-small-details":{"s":16524},"xbr-super-xbr-3p-smoother":{"s":16472},"xbr-super-xbr-6p-adaptive":{"s":20788},"xbr-super-xbr-6p-small-details":{"s":20800},"xbr-super-xbr-6p":{"s":20716},"xbr-super-xbr-deposterize":{"s":20940},"xbrz-4xbrz-linear":{"s":6468},"xbr-xbr-lv2-3d":{"s":5724},"xbr-xbr-lv2":{"s":4892},"xbr-xbr-lv3-multipass":{"s":7920},"xbr-xbr-lv3":{"s":5144},"xbr-xbr-mlv4-multipass":{"s":17544},"xbrz-4xbrz-linear":{"s":6700},"xbrz-5xbrz-linear":{"s":6996},"xbrz-6xbrz-linear":{"s":7300},"xsal-2xsal-level2-crt":{"s":4240},"xsal-2xsal":{"s":2652},"xsal-4xsal-level2-crt":{"s":5880},"xsal-4xsal-level2-hq":{"s":4880},"xsal-4xsal-level2":{"s":4668},"xsoft-4xsoft":{"s":2580},"xsoft-4xsoftSdB":{"s":2904}
 	}
 }
