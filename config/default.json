@@ -117,7 +117,7 @@
 			"recommendedshaders": [
 				{
 					"title": "Game Boy",
-					"shader": "handheld-console-border-dmg-4x"
+					"shader": "handheld-console-border-dmg-3x"
 				},
 				{
 					"title": "Smoothed",
@@ -140,7 +140,7 @@
 			"recommendedshaders": [
 				{
 					"title": "Game Boy Color",
-					"shader": "handheld-console-border-gbc-4x"
+					"shader": "handheld-console-border-gbc-3x"
 				},
 				{
 					"title": "Smoothed",
@@ -151,7 +151,7 @@
 		"gba": {
 			"name": "Nintendo Game Boy Advance",
 			"shortname": "Game Boy Advance",
-			"live": false,
+			"live": true,
 			"supportfilesize": 0,
 			"boxcdnversion": "2017-11-20",
 			"romcdnversion": "GoodGba-3.23",
@@ -162,7 +162,7 @@
 			"recommendedshaders": [
 				{
 					"title": "Game Boy Advance",
-					"shader": "handheld-console-border-gba-4x"
+					"shader": "handheld-console-border-gba-3x"
 				},
 				{
 					"title": "Smoothed",
@@ -196,7 +196,7 @@
 			"recommendedshaders": [
 				{
 					"title": "Game Gear",
-					"shader": "handheld-console-border-gg-4x"
+					"shader": "handheld-console-border-gg-3x"
 				},
 				{
 					"title": "Smoothed",

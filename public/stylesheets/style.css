@@ -53,7 +53,7 @@ p {
 #container {
 	margin: 0 auto;
 	position: relative;
-	width: 800px;
+	width: 1060px;
 	min-height:100% !important; /* browser fill */
     height: auto;                /*content fill */
 }
@@ -63,7 +63,7 @@ p {
 	margin: 0 auto;
     position: absolute;
     left: 0px;
-	width: 800px;
+	width: 1060px;
 	background-color: #101921;
 	min-height:100% !important; /* browser fill */
     height: auto;                /*content fill */
@@ -395,13 +395,25 @@ p {
 	cursor: pointer;
 }
 
-#search {
+#toolbar {
 	height: 40px;
 	font-size: 14px;
 	color: #333;
 	background: #f0f0f0;
 	position: relative;
 
+}
+
+#toolbar div {
+	overflow: hidden;
+	height: 40px;
+	display: inline-block;
+	padding: 0;
+	margin-right: 5px;
+}
+
+#toolbar .systemfilter {
+	width: 195px;
 }
 
 #selectordie {
@@ -417,34 +429,27 @@ p {
 	box-shadow: none;
 }
 
-#search div {
-	overflow: hidden;
-	height: 40px;
-	position: absolute;
-	top: 0px;
-	left: 200px;
-	width: 600px;
-}
-
-#search input {
-	position: absolute;
-	top: 0px;
-	left: 0px;
+#toolbar .search input {
+	height: 100%;
 	padding: 0px 10px;
-	height: 40px;
 	border-radius: 0px;
 	background: none;
 	border: 0;
 	box-shadow: none;
-	display: inline-block;
 	font-size: 12px;
     text-align: left;
-	width: 580px;
+	width: 790px;
   	outline: none;
   	background: #fff;
   	color: #444444;
     outline: 0;
     outline-offset: -2px;
+}
+
+#toolbar .gamepad {
+	height: 40px;
+	width: 40px;
+	background-color: #fff;
 }
 
 #content {
@@ -515,7 +520,7 @@ p {
 	margin: 40px auto;
 	list-style: none;
 	padding: 0;
-	width: 800px;
+	width: 1060px;
 }
 
 #shaderselectlist li {
@@ -562,7 +567,7 @@ p {
 	margin: 40px auto;
 	list-style: none;
 	padding: 0;
-	width: 800px;
+	width: 1060px;
 }
 
 #savesselectlist li {
