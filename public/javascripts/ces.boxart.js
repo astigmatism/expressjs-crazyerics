@@ -12,7 +12,7 @@ var cesBoxArt = (function(_config, _Compression) {
         img.addEventListener('error', function() {
     
             //on error, set a new load listener and load the error image
-            this.addEventListener('load', function() {    
+            this.addEventListener('load', function() {  
                 
                 if (this.height) {
                     this.setAttribute('height', this.height + 'px');

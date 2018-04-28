@@ -707,6 +707,19 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _gameKey,
         //shader data is compressed from server, unpack later
         var compressedShaderData = (shader && shader[1]) ? shader[1] : null; //if not defined, not shader used
 
+        //adjust play area for available client screen size
+        
+
+        if ($(window).height() < 1000) {
+            _ui.canvas.addClass('limited');
+            _ui.helper.addClass('limited');
+        }
+        else {
+            _ui.canvas.removeClass('limited');
+            _ui.helper.removeClass('limited');
+        }
+        
+
         _Module.BuildLocalFileSystem(compressedGameData, compressedSupprtData, compressedShaderData);
     };
 

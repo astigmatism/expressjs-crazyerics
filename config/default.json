@@ -290,12 +290,12 @@
 		"nes": {
 			"name": "Nintendo Entermainment System",
 			"shortname": "Nintendo",
-			"live": false,
+			"live": true,
 			"supportfilesize": 0,
 			"boxcdnversion": "2017-12-12",
 			"romcdnversion": "GoodNes-3.23b",
 			"collection": "GoodNES 3.23b",
-			"emuextention": "1.7.1-stable",
+			"emuextention": "1.6.9-stable",
 			"emuscript": "nestopia_libretro.js",
 			"screenshotaspectratio": 1.142857142857143
 		},
@@ -370,7 +370,7 @@
 		"snes": {
 			"name": "Super Nintendo Entermainment System",
 			"shortname": "Super Nintendo",
-			"live": false,
+			"live": true,
 			"supportfilesize": 0,
 			"boxcdnversion": "2017-12-12",
 			"romcdnversion": "GoodSnes-3.23",

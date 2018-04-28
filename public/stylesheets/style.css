@@ -53,7 +53,7 @@ p {
 #container {
 	margin: 0 auto;
 	position: relative;
-	width: 1060px;
+	width: 1280px;
 	min-height:100% !important; /* browser fill */
     height: auto;                /*content fill */
 }
@@ -63,7 +63,7 @@ p {
 	margin: 0 auto;
     position: absolute;
     left: 0px;
-	width: 1060px;
+	width: 1280px;
 	background-color: #101921;
 	min-height:100% !important; /* browser fill */
     height: auto;                /*content fill */
@@ -87,7 +87,7 @@ p {
 
 	position: relative;
 	color: #fff;
-	height: 112px;
+	height: 130px;
 	width: 100%;
 	/* background - see layout.jade. a random number defines bg */
 	background-repeat: no-repeat;
@@ -520,7 +520,7 @@ p {
 	margin: 40px auto;
 	list-style: none;
 	padding: 0;
-	width: 1060px;
+	width: 1280px;
 }
 
 #shaderselectlist li {
@@ -567,7 +567,7 @@ p {
 	margin: 40px auto;
 	list-style: none;
 	padding: 0;
-	width: 1060px;
+	width: 1280px;
 }
 
 #savesselectlist li {
@@ -599,7 +599,7 @@ p {
 /* game loading dialog */
 
 #dialogs div.GameLoading {
-	height: 500px;
+	height: 600px;
 }
 
 #dialogs div.GameLoading img {
@@ -739,9 +739,26 @@ p {
 	vertical-align: middle;
 }
 
+#emulatorpositionhelper {
+	padding-left: 0;
+    padding-right: 0;
+    margin-left: auto;
+    margin-right: auto;
+	display: block;
+	width: 1280px;
+}
+
+#emulatorpositionhelper.limited {
+	width: 800px;
+}
+
 #emulator {
 	outline: none;
-	width: 100%;
+	width: 1280px;
+}
+
+#emulator.limited {
+	width: 800px;
 }
 
 /* notifications */

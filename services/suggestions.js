@@ -15,7 +15,7 @@ example recipe: {
         }
     },
     randomize: true,                // default: true. randomize all results. otherwise all systems games are grouped together.
-    maximum: 50                     // default: 50. The maximum number of results to return. -1 means there is no limit.
+    maximum: 80                     // default: 80, as grid is 8 across. The maximum number of results to return. -1 means there is no limit.
 }
 */
 
@@ -49,7 +49,7 @@ module.exports = new (function() {
 
         var result = [];
         var systems = config.get('systems');
-        var maximum = recipe.maximum || 50;
+        var maximum = recipe.maximum || 80;
 
         //loop over system definitions in recipe
         async.forEachOf(recipe.systems, function(details, system, nextsystem) {

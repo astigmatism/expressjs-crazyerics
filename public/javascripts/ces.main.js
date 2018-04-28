@@ -9,7 +9,6 @@ var cesMain = (function() {
     var _minimumGameLoadingTime = 6000; //minimum amount of time to display the title loading. artificially longer for tips
     var _minimumSaveLoadingTime = 3000; //minimum amount of time to display the state loading screenshot
     var _delayToLoadStateAfterEmulatorStarts = 1000; //I was originally simulating keypresses before the emulator was running :P changed with 11-14 set
-    var _defaultSuggestions = 60;
     var _suggestionsLoading = false;
     var _toolbars = {}; //handles to elements in the toolbar ui (select, search, etc)
 
@@ -72,11 +71,11 @@ var cesMain = (function() {
         //register dialogs after setting up components
         _Dialogs.Register('Welcome', 150);
         _Dialogs.Register('WelcomeBack', 150);
-        _Dialogs.Register('ShaderSelection', 500, [_Preferences]);
-        _Dialogs.Register('GameLoading', 500, [_BoxArt, _Compression, _PubSub]);
-        _Dialogs.Register('SaveSelection', 500);
-        _Dialogs.Register('SaveLoading', 500);
-        _Dialogs.Register('Exception', 500);
+        _Dialogs.Register('ShaderSelection', 600, [_Preferences]);
+        _Dialogs.Register('GameLoading', 600, [_BoxArt, _Compression, _PubSub]);
+        _Dialogs.Register('SaveSelection', 600);
+        _Dialogs.Register('SaveLoading', 600);
+        _Dialogs.Register('Exception', 600);
         _Dialogs.Register('EmulatorCleanup', 300);
         _Dialogs.Register('PlayAgain', 150);
 
@@ -355,7 +354,7 @@ var cesMain = (function() {
         //will clear up existing emulator if it exists
         CloseEmulator(function() {
             
-            $('#emulatorcanvas').empty(); //ensure empty (there can be a canvas here if the user bailed during load)
+            $('#emulatorpositionhelper').empty(); //ensure empty (there can be a canvas here if the user bailed during load)
 
             //close any dialogs
             //_Dialogs.Close();
@@ -367,7 +366,7 @@ var cesMain = (function() {
             _Notifications.Reset();
 
             //create new canvas (canvas must exist before call to get emulator (expects to find it right away))
-            $('#emulatorcanvas').append('<canvas tabindex="0" id="emulator" oncontextmenu="event.preventDefault()"></canvas>');
+            $('#emulatorpositionhelper').append('<canvas tabindex="0" id="emulator" oncontextmenu="event.preventDefault()"></canvas>');
 
             //call bootstrap
             RetroArchBootstrap(gameKey, shader, function() {
@@ -620,7 +619,8 @@ var cesMain = (function() {
                 //ui handles for the emulator class (add as needed, we want to only referece jquery in main if possible)
                 var ui = {
                     'wrapper': $('#emulatorwrapper'),
-                    'canvas': $('#emulator')
+                    'canvas': $('#emulator'),
+                    'helper': $('#emulatorpositionhelper')
                 };
 
                 //the class extention process: on the prototype of the ext, create using the base class.
