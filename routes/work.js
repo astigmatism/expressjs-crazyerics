@@ -280,9 +280,9 @@ router.get('/emulatorprep171', function(req, res, next) {
                         content = content.replace(re, '');
 
                         //set the memory file location
-                        re = /memoryInitializer="(.*\.mem)"/;
+                        re = /wasmBinaryFile="(.*\.wasm)"/;
                         console.log('memory file location found ---> ' + re.test(content));
-                        content = content.replace(re, 'memoryInitializer="' + emulatorAssetLocation + '$1"');
+                        content = content.replace(re, 'wasmBinaryFile="' + emulatorAssetLocation + '$1"');
 
                         //getting window and document returns canvas
                         // re = /return document;/

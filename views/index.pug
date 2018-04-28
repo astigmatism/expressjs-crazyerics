@@ -1,11 +1,13 @@
 extends layout
 
 block content
-    div#search
-        select(title="Filter your search to a specific system")
+    div#toolbar
+        div(class="systemfilter")
+            select(title="Filter your search to a specific system")
             option(value='all') All Consoles
-        div
+        div(class="search")
             input(class="tooltip" title="Begin typing a name to see a list of results. Select a system for foreign or unofficial titles." type='text', name='search', data-hotkey='q', placeholder='Search')
+        div(class="gamepad")
 
     div#content
         

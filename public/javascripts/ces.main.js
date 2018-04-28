@@ -11,6 +11,7 @@ var cesMain = (function() {
     var _delayToLoadStateAfterEmulatorStarts = 1000; //I was originally simulating keypresses before the emulator was running :P changed with 11-14 set
     var _defaultSuggestions = 60;
     var _suggestionsLoading = false;
+    var _toolbars = {}; //handles to elements in the toolbar ui (select, search, etc)
 
     // instances/libraries
     var _Sync = null;
@@ -79,6 +80,9 @@ var cesMain = (function() {
         _Dialogs.Register('EmulatorCleanup', 300);
         _Dialogs.Register('PlayAgain', 150);
 
+        _toolbars.select = $('#toolbar .systemfilter select');
+        _toolbars.search = $('#toolbar .search input');
+
         //show welcome dialog
         if (_Collections.IsEmpty()) {
             _Dialogs.Open('Welcome');
@@ -113,14 +117,14 @@ var cesMain = (function() {
         });
         var shortnamesl = shortnames.length;
         for (var i = 0; i < shortnamesl; i++) {
-            $('#search select').append('<option value="' + shortnames[i].id + '">' + shortnames[i].shortname + '</option>');
+            _toolbars.select.append('<option value="' + shortnames[i].id + '">' + shortnames[i].shortname + '</option>');
         }
 
         //loading dial
         $('.dial').knob();
 
         //console select
-        $('#search select').selectOrDie({
+        _toolbars.select.selectOrDie({
             customID: 'selectordie',
             customClass: 'tooltip',
             /**
@@ -160,7 +164,7 @@ var cesMain = (function() {
         });
 
         //search field
-        $('#search input').autoComplete({
+        _toolbars.search.autoComplete({
             minChars: 3,
             cache: false,
             delay: 300,
@@ -171,7 +175,7 @@ var cesMain = (function() {
              * @return {undef}
              */
             source: function(term, response) {
-                var system = $('#search select').val();
+                var system = _toolbars.select.val();
                 $.getJSON('/search/' + system + '/' + term, function(data) {
                     response(_Compression.Out.json(data));
                 });
@@ -273,6 +277,13 @@ var cesMain = (function() {
                 return true;
             });
         });
+
+        //gamepad
+        window.addEventListener('gamepadconnected', function(e) {
+            console.log('Gamepad connected at index %d: %s. %d buttons, %d axes.',
+              e.gamepad.index, e.gamepad.id,
+              e.gamepad.buttons.length, e.gamepad.axes.length);
+          });
     });
 
     /* public methods */

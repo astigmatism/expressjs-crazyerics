@@ -54,12 +54,19 @@ module.exports = new (function() {
         //loop over system definitions in recipe
         async.forEachOf(recipe.systems, function(details, system, nextsystem) {
 
+            //skip building systems which are disabled currently
+            if (system !== 'all' && !systems[system].live) {
+                return nextsystem();
+            }
+
             //get cache (cache is an array of gk's)
             var cacheType = details.cache || 'top';
             var proportion = details.proportion || 1; //100% unless defined otherwise
 
             FileService.Get('suggestions.' + system + '.' + cacheType, (err, cache) => {
-                if (err) return nextsystem(err);
+                if (err) {
+                    return nextsystem(err);
+                }
 
                 //randomze the result for this system?
                 if (details.randomize !== false) {
