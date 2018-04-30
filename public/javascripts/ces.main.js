@@ -71,11 +71,11 @@ var cesMain = (function() {
         //register dialogs after setting up components
         _Dialogs.Register('Welcome', 150);
         _Dialogs.Register('WelcomeBack', 150);
-        _Dialogs.Register('ShaderSelection', 600, [_Preferences]);
-        _Dialogs.Register('GameLoading', 600, [_BoxArt, _Compression, _PubSub]);
-        _Dialogs.Register('SaveSelection', 600);
-        _Dialogs.Register('SaveLoading', 600);
-        _Dialogs.Register('Exception', 600);
+        _Dialogs.Register('ShaderSelection', 500, [_Preferences]);
+        _Dialogs.Register('GameLoading', 500, [_BoxArt, _Compression, _PubSub]);
+        _Dialogs.Register('SaveSelection', 500);
+        _Dialogs.Register('SaveLoading', 500);
+        _Dialogs.Register('Exception', 500);
         _Dialogs.Register('EmulatorCleanup', 300);
         _Dialogs.Register('PlayAgain', 150);
 

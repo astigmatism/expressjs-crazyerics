@@ -708,7 +708,12 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _gameKey,
         var compressedShaderData = (shader && shader[1]) ? shader[1] : null; //if not defined, not shader used
 
         //adjust play area for available client screen size
-        
+        self.AdjustPlayArea();
+
+        _Module.BuildLocalFileSystem(compressedGameData, compressedSupprtData, compressedShaderData);
+    };
+
+    this.AdjustPlayArea = function(toggle) {
 
         if ($(window).height() < 1000) {
             _ui.canvas.addClass('limited');
@@ -718,10 +723,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _gameKey,
             _ui.canvas.removeClass('limited');
             _ui.helper.removeClass('limited');
         }
-        
-
-        _Module.BuildLocalFileSystem(compressedGameData, compressedSupprtData, compressedShaderData);
-    };
+    }
 
     /**
      * ajax call to load layout and script of emulator and load it within frame, resolves deffered when loaded

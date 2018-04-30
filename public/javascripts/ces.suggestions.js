@@ -7,7 +7,7 @@ var cesSuggestions = (function(_BoxArt, _Compression, _Tooltips, PlayGame, $grid
     //private members
     var self = this;
     var _grid = null;
-    var _BOXSIZE = 120;
+    var _BOXSIZE = 116;
     var _lastRecipe = null;
     var _currentGameLinks = [];
     var _loading = false;
