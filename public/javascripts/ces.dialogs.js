@@ -7,15 +7,14 @@ var cesDialogs = (function(_config, $wrapper) {
     //private members
     var self = this;
     var _currentDialog = null;
-    var _cssTranstionTime = 200;    //magic number. see #dialogs definition in css
+    var _cssTranstionTime = 300;    //magic number. see #dialogs definition in css
     var _transitionQueue = [];
     var _inTransition = false;
     // var dialogOperational = false;
     // var currentOpenDialog = null;
     var _maxDialogHeight = 600;
-    var defaultHeightChangeDuration = 600;
-    var defaultHeightChangeEasing = 'easeInOutSine'; // see more http://easings.net/#
-    // var cssTransition = 200; //see css file for .dialog transition:
+    var defaultHeightChangeDuration = 400;
+    var defaultHeightChangeEasing = 'easeInOutQuad'; // see more http://easings.net/#
 
     var registry = {};
 
@@ -23,7 +22,7 @@ var cesDialogs = (function(_config, $wrapper) {
 
     //public methods
 
-    this.Register = function(name, height, args) {
+    this.Register = function(name, height, args, _initialDialog) {
 
         if (!window.hasOwnProperty('cesDialogs' + name)) {
             return;
@@ -32,12 +31,22 @@ var cesDialogs = (function(_config, $wrapper) {
         var $el = $('#dialogs').find('.' + name);
         var module = new window['cesDialogs' + name](_config, $el, $wrapper, args);
         
-        $el.addClass('dialog hide close');
-
+        //all dialogs start with these (and close below if not init)
+        $el.addClass('dialog hide');
+        
         registry[name] = {
             'element': $el,
             'module': module,
             'height': height
+        }
+
+        //if flagged as initial, open now
+        //dont put close on the initial dialog as the animation out will run
+        if (_initialDialog) {
+            self.Open(name);
+        }
+        else {
+            $el.addClass('close');
         }
     };
 
@@ -116,7 +125,7 @@ var cesDialogs = (function(_config, $wrapper) {
 
     var Transition = function(item) {
 
-console.log('transition', item);
+        console.log('transition', item); //debugger
 
         var action = item.action;
         var name = item.name;
@@ -143,6 +152,7 @@ console.log('transition', item);
 
                 dialog.element.removeClass('hide');
 
+                //result is selection result from dialog
                 dialog.module.OnOpen(args, function(result) {
 
                     //close dialog when player makes selection
@@ -197,106 +207,24 @@ console.log('transition', item);
         easing = easing || defaultHeightChangeEasing;
 
         $wrapper.animate({
-            height: height + 'px'
-        }, duration, easing, function() {
-            if (callback) {
-                callback();
+            height: height
+        },{
+            duration: duration, 
+            easing: easing, 
+            done: function() {
+                if (callback) {
+                    callback();
+                }
             }
+            // progress: function(animation, progress, remaining) {
+            //     console.log(remaining + ' ' + $(this).height());
+            // }
         });
     };
 
     var Constructor = function() {
 
     }();
-    
-    // this.AddDialog = function(name, element) {
-    //     $(element).addClass('close');
-    //     ui[name] = element;
-    // };
-
-    // this.ShowDialog = function(name, height, callback) {
-
-    //     height = parseInt(height || maxHeight, 10);
-
-    //     if (dialogOperational) {
-    //         if (callback) {
-    //             callback();
-    //         }
-    //         return;
-    //     }
-
-    //     dialogOperational = true;
-
-    //     //if currently open dialog
-    //     this.CloseDialog(false, function() {
-
-    //         currentOpenDialog = name;
-
-    //         self.SetHeight(height, function() {
-
-    //             $(ui[name]).removeClass('hide');
-    //             setTimeout(function() {
-
-    //                 $(ui[name]).removeClass('close');
-
-    //                 dialogOperational = false;
-
-    //                 if (callback) {
-    //                     callback();
-    //                 }
-
-    //             }, cssTransition);
-    //         });
-    //     });
-    // };
-
-    // this.CloseDialog = function(alsoCloseWrapper, callback) {
-
-    //     alsoCloseWrapper = alsoCloseWrapper || false;
-
-    //     if (currentOpenDialog) {
-
-    //         $(ui[currentOpenDialog]).addClass('close');
-
-    //         setTimeout(function() {
-
-    //             $(ui[currentOpenDialog]).addClass('hide');
-
-    //             //if we also collapse the wrapper, do so
-    //             if (alsoCloseWrapper) {
-    //                 self.SetHeight(0, callback);
-    //             } else {
-                    
-    //                 if (callback) {
-    //                     callback();
-    //                 }
-    //             }
-
-    //         }, cssTransition);
-    //     } else {
-    //         if (callback) {
-    //             callback();
-    //         }
-    //     }
-    // };
-
-    // this.SetHeight = function(height, callback, duration, easing) {
-
-    //     height = parseInt(height || maxHeight, 10);
-    //     duration = duration || defaultHeightChangeDuration;
-
-    //     //if the height is already in the set position, no need to animate, callback
-    //     if ($(wrapper).height() == height) {
-    //         if (callback) {
-    //             callback();
-    //         }
-    //         return;
-    //     }
-
-    //     $(wrapper).animate({
-    //         'height': height + 'px'
-    //     }, duration, defaultHeightChangeEasing, callback);
-    // };
 
     return this;
 

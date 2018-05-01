@@ -18,12 +18,6 @@ var cesDialogsSaveSelection = (function(_config, $el, $wrapper, args) {
 
         _Emulator = Emulator;
         _system = system;
-
-        //handle bail
-        if ($.isEmptyObject(_Emulator.GetMostRecentSaves(1))) {
-            _openCallback('There are no recent saves to display');
-            return;
-        }
         
         $('#savesselectlist').empty(); //clear from last time
 

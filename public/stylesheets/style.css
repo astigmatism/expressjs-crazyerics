@@ -464,11 +464,6 @@ p {
 	margin: 0;
 	width: 100%;
 	height: 150px;
-
-	transition:All 200ms ease-in;
-	-webkit-transition:All 200ms ease-in;
-	-moz-transition:All 200ms ease-in;
-	-o-transition:All 200ms ease-in;
 }
 
 .centered {
@@ -486,10 +481,10 @@ p {
 	height: auto;
 	text-align: center;
 
-	transition:All 200ms ease-in;
-	-webkit-transition:All 200ms ease-in;
-	-moz-transition:All 200ms ease-in;
-	-o-transition:All 200ms ease-in;
+	transition:All 300ms ease-in;
+	-webkit-transition:All 300ms ease-in;
+	-moz-transition:All 300ms ease-in;
+	-o-transition:All 300ms ease-in;
 }
 
 .dialogwrapper {
@@ -657,9 +652,9 @@ p {
 
 	position: absolute;
 	bottom: 130px;
-	left: 326px;
-	width: 150px;
-  	height: 10px;
+	left: 490px;
+	width: 300px;
+  	height: 12px;
 }
 
 /* save selection dialog */

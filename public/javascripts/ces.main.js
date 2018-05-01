@@ -4,6 +4,7 @@ var cesMain = (function() {
     var self = this;
     var _config = {}; //the necessary server configuration data provided to the client
     var _bar = null;
+    var _maxNumberOfBanners = 8;
     var _preventLoadingGame = false;
     //var _preventGamePause = false; //condition for blur event of emulator, sometimes we don't want it to pause when we're giving it back focus
     var _minimumGameLoadingTime = 6000; //minimum amount of time to display the title loading. artificially longer for tips
@@ -69,8 +70,9 @@ var cesMain = (function() {
         _Featured = new cesFeatured(_Compression, _Preferences, _BoxArt, _Sync, _Tooltips, PlayGame, _Collections, clientdata.components.f, null);
 
         //register dialogs after setting up components
-        _Dialogs.Register('Welcome', 150);
-        _Dialogs.Register('WelcomeBack', 150);
+        var welcomeBack =  _Collections.IsEmpty() ? false : true;
+        _Dialogs.Register('Welcome', 150, [], !welcomeBack);
+        _Dialogs.Register('WelcomeBack', 150, [], welcomeBack);
         _Dialogs.Register('ShaderSelection', 500, [_Preferences]);
         _Dialogs.Register('GameLoading', 500, [_BoxArt, _Compression, _PubSub]);
         _Dialogs.Register('SaveSelection', 500);
@@ -82,12 +84,7 @@ var cesMain = (function() {
         _toolbars.select = $('#toolbar .systemfilter select');
         _toolbars.search = $('#toolbar .search input');
 
-        //show welcome dialog
-        if (_Collections.IsEmpty()) {
-            _Dialogs.Open('Welcome');
-        } else {
-            _Dialogs.Open('WelcomeBack');
-        }
+        
 
         // TODO remove. for building icons
         // var gk = {
@@ -276,6 +273,14 @@ var cesMain = (function() {
                 return true;
             });
         });
+
+        //title banner rotation easter egg
+        var _currentBanner = Math.floor((Math.random() * _maxNumberOfBanners) + 1);
+        $('#titlebanner').on('click', function() {
+            _currentBanner = _currentBanner >= _maxNumberOfBanners ? 1 : _currentBanner + 1;
+            $(this).css('background-image','url("' + _config.paths.images + '/titlebanners/' + _currentBanner + '.png")');
+        });
+        $('#titlebanner').trigger('click');
 
         //gamepad
         window.addEventListener('gamepadconnected', function(e) {
@@ -468,8 +473,10 @@ var cesMain = (function() {
                             _preventLoadingGame = false; //during save select, allow other games to load
 
                             //are there saves to load? Let's show a dialog to chose from, if not - will go straight to start
-                            _Dialogs.Open('SaveSelection',[_Emulator, gameKey.system], true, function(err, selectedSaveTimeStamp, selectedSavescreenshot) {
+                            ShowGameLoading(_Emulator, gameKey, function(err, selectedSaveTimeStamp, selectedSavescreenshot) {
                                 
+                                debugger;
+
                                 if (selectedSaveTimeStamp) {
                                     _Dialogs.Open('SaveLoading', [gameKey.system, selectedSavescreenshot]);
                                 }
@@ -559,6 +566,19 @@ var cesMain = (function() {
                     });
                 });
             });
+        });
+    };
+
+    var ShowGameLoading = function(_Emulator, gameKey, callback) {
+
+        //bail state
+        if ($.isEmptyObject(_Emulator.GetMostRecentSaves(1))) {
+            callback('There are no recent saves to display');
+            return;
+        }
+
+        _Dialogs.Open('SaveSelection',[_Emulator, gameKey.system], true, function(err, selectedSaveTimeStamp, selectedSavescreenshot) {
+            callback(err, selectedSaveTimeStamp, selectedSavescreenshot);
         });
     };
 

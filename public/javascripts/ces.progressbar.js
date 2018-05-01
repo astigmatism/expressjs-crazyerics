@@ -1,3 +1,4 @@
+//bar from: https://loading.io/progress/
 var cesProgressBar = (function(_wrapper) {
 
     //private members
@@ -63,7 +64,9 @@ var cesProgressBar = (function(_wrapper) {
 
         var percentage = (totalProgress / totalSize);
 
-        _bar.animate(percentage);
+        //console.log('bar at ' + percentage + '%');
+
+        _bar.set(percentage);
         _currentComplete = percentage;
     };
 
