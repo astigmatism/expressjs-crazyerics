@@ -13,7 +13,7 @@ var cesSuggestions = (function(_BoxArt, _Compression, _Tooltips, PlayGame, $grid
     var _loading = false;
     var _allowMore = false;
 
-    this.Load = function(recipe, allowMore, callback, opt_canned) {
+    this.Load = function(recipe, allowMore, callback, opt_canned, _opt_alphaHelper) {
 
         //are we fetching a canned result?
         opt_canned = (opt_canned == true) ? true : false;
@@ -21,6 +21,13 @@ var cesSuggestions = (function(_BoxArt, _Compression, _Tooltips, PlayGame, $grid
 
         if (_loading) {
             //return;
+        }
+
+        //if an alpha recipe, allow the functionality of the "reveal more"
+        if (_opt_alphaHelper) {
+            $('#browse-show-obscure').removeAttr("disabled");
+        } else {
+            $('#browse-show-obscure').attr("disabled", true);
         }
 
         _lastRecipe = {
@@ -137,31 +144,52 @@ var cesSuggestions = (function(_BoxArt, _Compression, _Tooltips, PlayGame, $grid
     //constructor
     var Constructor = (function() {
 
-        var $checkbox = $wrapper.find('input');
+        var $checkbox = $('#browse-show-obscure');
 
         //for browsing with alpha characters
         $wrapper.find('a').each(function(index, item) {
             $(item).on('click', function(e) {
-                var system = $('#search select').val();
+                var system = $('#toolbar select').val();
                 var term = $(item).text(); //is also cache name (A, B, #...)
-
-                var recipe = {
+                
+                var all = {
+                    systems: {},
+                    randomize: false,
+                    maximum: -1
+                };
+                var above = {
                     systems: {},
                     randomize: false,
                     maximum: -1
                 };
 
-                var cacheType = $checkbox.is(':checked') ? 'above' : 'all';
-
-                recipe.systems[system] = {
-                    cache: 'alpha.' + cacheType + '.' + term,
+                all.systems[system] = {
+                    cache: 'alpha.all.' + term,
+                    randomize: false
+                };
+                above.systems[system] = {
+                    cache: 'alpha.above.' + term,
                     randomize: false
                 };
 
-                //false says, don't continue to load more
-                self.Load(recipe, false, function() {
-                    _Tooltips.Any();
+                $checkbox.off('change');
+                $checkbox.change(function() {
+                    if($(this).is(':checked')) {
+                        self.Load(all, false, function() {
+                            _Tooltips.Any();
+                        }, false, true);
+                    }
+                    else {
+                        self.Load(above, false, function() {
+                            _Tooltips.Any();
+                        }, false, true);
+                    }
                 });
+
+                //false says, don't continue to load more
+                self.Load($checkbox.is(':checked') ? all : above, false, function() {
+                    _Tooltips.Any();
+                }, false, true); //<-- canned no but alpha helper yes :)
             });
         });
 

@@ -106,9 +106,9 @@
 		"gb": {
 			"name": "Nintendo Game Boy",
 			"shortname": "Game Boy",
-			"live": false,
+			"live": true,
 			"supportfilesize": 0,
-			"boxcdnversion": "2017-11-20",
+			"boxcdnversion": "2018-05-02",
 			"romcdnversion": "GoodGbx-3.14-2018-04-26",
 			"collection": "GoodGBx 3.14",
 			"emuextention": "1.6.9-stable",
@@ -129,9 +129,9 @@
 		"gbc": {
 			"name": "Nintendo Game Boy Color",
 			"shortname": "Game Boy Color",
-			"live": false,
+			"live": true,
 			"supportfilesize": 0,
-			"boxcdnversion": "2017-11-20",
+			"boxcdnversion": "2018-05-01",
 			"romcdnversion": "GoodGbx-3.14-2018-04-26",
 			"collection": "GoodGBx 3.14",
 			"emuextention": "1.6.9-stable",

@@ -162,10 +162,18 @@ p {
 }
 
 .boxlabel-gb {
-	width: 88px;
-	height: 77px;
-	top: 38px;
+	width: 84px;
+	height: 75px;
+	top: 37px;
 	left: 16px;
+	border-radius: 3px;	
+}
+
+.boxlabel-gbc {
+	width: 86px;
+	height: 76px;
+	top: 43px;
+	left: 15px;
 	border-radius: 3px;	
 }
 
@@ -178,10 +186,10 @@ p {
 }
 
 .boxlabel-gen {
-	width: 72px;
-	height: 67px;
-	top: 5px;
-	left: 24px;
+	width: 70px;
+	height: 65px;
+	top: 2px;
+	left: 23px;
 	border-radius: 3px;	
 }
 
@@ -194,8 +202,8 @@ p {
 }
 
 .boxlabel-gg {
-	width: 92px;
-	height: 65px;
+	width: 88px;
+	height: 61px;
 	top: 28px;
 	left: 14px;
 	border-radius: 11px 11px 0px 0px;	
@@ -211,24 +219,24 @@ p {
 }
 
 .boxlabel-snes {
-	width: 75px;
-	height: 35px;
+	width: 70px;
+	height: 34px;
 	top: 2px;
 	left: 23px;
 	border-radius: 3px;
 }
 
 .boxlabel-sms {
-	width: 105px;
-	height: 44px;
-	top: 29px;
-	left: 8px;
+	width: 102px;
+	height: 41px;
+	top: 28px;
+	left: 7px;
 	border-radius: 1px;
 }
 
 .boxlabel-nes {
-	width: 71px;
-	height: 93px;
+	width: 67px;
+	height: 90px;
 	top: 3px;
 	left: 42px;
 	border-radius: 1px;
@@ -251,9 +259,9 @@ p {
 }
 
 .boxlabel-vb {
-	width: 80px;
-	height: 64px;
-	top: 13px;
+	width: 76px;
+	height: 61px;
+	top: 14px;
 	left: 20px;
 	border-radius: 1px;
 }
@@ -1119,7 +1127,7 @@ div.slidingpanel {
 }
 
 #alphabar a {
-	padding: 0px 5px;
+	padding: 0px 8px;
 	cursor: pointer;
 	text-decoration: none;
 }
@@ -1127,6 +1135,10 @@ div.slidingpanel {
 #alphabar div, #alphabar input {
 	padding: 0px 5px;
 	display: inline-block;
+}
+
+#alphabar input {
+	margin-left: 10px;
 }
 
 #suggestionswrapper ul {
