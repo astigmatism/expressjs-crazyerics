@@ -474,8 +474,6 @@ var cesMain = (function() {
 
                             //are there saves to load? Let's show a dialog to chose from, if not - will go straight to start
                             ShowGameLoading(_Emulator, gameKey, function(err, selectedSaveTimeStamp, selectedSavescreenshot) {
-                                
-                                debugger;
 
                                 if (selectedSaveTimeStamp) {
                                     _Dialogs.Open('SaveLoading', [gameKey.system, selectedSavescreenshot]);
