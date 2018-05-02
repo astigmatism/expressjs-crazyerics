@@ -30,7 +30,7 @@ var cesDialogsGameLoading = (function(_config, $el, $wrapper, args) {
     var Open = function(gameKey) {
 
         $('#tip').hide();
-        $('#gameloadingname').show().text(gameKey.title);
+        //$('#gameloadingname').show().text(gameKey.title);
 
         var box = _BoxArt.Get(gameKey, 200);
         var texture = _BoxArt.Get(gameKey, '256x256');
@@ -56,7 +56,7 @@ var cesDialogsGameLoading = (function(_config, $el, $wrapper, args) {
                 var tip = randomizedTips[tipIndex];
 
                 if (!$('#gameloading').is(':animated')) {
-                    $('#tip').empty().append(tip).fadeIn(500);
+                   // $('#tip').empty().append(tip).fadeIn(500);
                 }
 
             });

@@ -109,6 +109,11 @@ module.exports = new (function() {
 
         async.eachOf(definitions, (definition, definitionName, nextDefinition) => {
 
+            if (config.has('systems.' + definitionName + '.live') && !config.get('systems.' + definitionName + '.live')) {
+                console.log(definitionName + ' is not live, skipping canned suggestions caching');
+                return nextDefinition();
+            }
+
             var recipe = definition.recipe;
             var samples = definition.samples;
 

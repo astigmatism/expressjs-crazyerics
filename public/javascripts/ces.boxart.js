@@ -60,7 +60,14 @@ var cesBoxArt = (function(_config, _Compression) {
         //double encode, once for the url, again for the actual file name (files saved with encoding becase they contain illegal characters without)
         title = encodeURIComponent(encodeURIComponent(_Compression.Zip.string(title)));
 
-        var src = _config.paths.boxes + '/' + system + '/' + _config.systemdetails[system].boxcdnversion + '/' + (title + (_nerfImages ? 'sofawnsay' : '')) + '/' + size + '.jpg?' + Date.now();
+        var src;
+
+        if (_config.systemdetails[system]) {
+            src = _config.paths.boxes + '/' + system + '/' + _config.systemdetails[system].boxcdnversion + '/' + (title + (_nerfImages ? 'sofawnsay' : '')) + '/' + size + '.jpg?' + Date.now();
+        }
+        else {
+            src = BuildErrorUrl(gameKey, size);
+        }
         return src;
     };
 

@@ -421,13 +421,13 @@ p {
 }
 
 #toolbar .systemfilter {
-	width: 300px;
+	width: 256px;
 }
 
 #selectordie {
 	padding: 14px 10px;
 	border: none;
-	width: 300px;
+	width: 256px;
 	text-transform: none;
 	font-size: 12px;
 	font-weight: normal;
@@ -446,7 +446,7 @@ p {
 	box-shadow: none;
 	font-size: 12px;
     text-align: left;
-	width: 790px;
+	width: 768px; /* 3/5 of 1280 */
   	outline: none;
   	background: #fff;
   	color: #444444;
@@ -767,7 +767,7 @@ p {
 /* notifications */
 
 #notificationwrapper {
-	width: 770px;
+	width: 1250px;
 	max-height: 40px;
 	position: absolute;
 	bottom: 0px;

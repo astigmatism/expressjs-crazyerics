@@ -173,7 +173,7 @@
 		"gen": {
 			"name": "Sega Genesis / Mega Drive",
 			"shortname": "Sega Genesis",
-			"live": true,
+			"live": false,
 			"supportfilesize": 0,
 			"boxcdnversion": "2018-04-30",
 			"romcdnversion": "GoodGen-3.14-a",
@@ -290,7 +290,7 @@
 		"nes": {
 			"name": "Nintendo Entermainment System",
 			"shortname": "Nintendo",
-			"live": true,
+			"live": false,
 			"supportfilesize": 0,
 			"boxcdnversion": "2018-04-28",
 			"romcdnversion": "GoodNes-3.23b",
@@ -370,7 +370,7 @@
 		"snes": {
 			"name": "Super Nintendo Entermainment System",
 			"shortname": "Super Nintendo",
-			"live": true,
+			"live": false,
 			"supportfilesize": 0,
 			"boxcdnversion": "2018-04-28",
 			"romcdnversion": "GoodSnes-3.23",
@@ -382,7 +382,7 @@
 		"vb": {
 			"name": "Nintendo Virtual Boy",
 			"shortname": "Virtual Boy",
-			"live": true,
+			"live": false,
 			"supportfilesize": 0,
 			"collection": "GoodVBoy 3.1415",
 			"boxcdnversion": "2018-04-30",
