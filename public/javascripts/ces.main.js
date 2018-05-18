@@ -130,6 +130,9 @@ var cesMain = (function() {
             onChange: function() {
                 var system = $(this).val();
 
+                //clear the search field
+                _toolbars.search.val('');
+
                 if (system === 'all' || _config.systemdetails[system].cannedSuggestion) {
                     _Suggestions.Load(system, true, function() {
                         _Tooltips.Any();
