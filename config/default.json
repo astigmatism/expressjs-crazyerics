@@ -382,10 +382,10 @@
 		"vb": {
 			"name": "Nintendo Virtual Boy",
 			"shortname": "Virtual Boy",
-			"live": false,
+			"live": true,
 			"supportfilesize": 0,
 			"collection": "GoodVBoy 3.1415",
-			"boxcdnversion": "2018-04-30",
+			"boxcdnversion": "2018-05-18",
 			"romcdnversion": "GoodVboy-3.1415",
 			"emuextention": "1.6.9-stable",
 			"emuscript": "mednafen_vb_libretro.js",
