@@ -173,9 +173,9 @@
 		"gen": {
 			"name": "Sega Genesis / Mega Drive",
 			"shortname": "Sega Genesis",
-			"live": false,
+			"live": true,
 			"supportfilesize": 0,
-			"boxcdnversion": "2018-04-30",
+			"boxcdnversion": "2018-05-18",
 			"romcdnversion": "GoodGen-3.14-a",
 			"emuextention": "2017-03-27",
 			"collection": "GoodGen 3.21",
