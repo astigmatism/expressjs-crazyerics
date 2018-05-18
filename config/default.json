@@ -325,9 +325,9 @@
 		"pce": {
 			"name": "NEC TurboGrafx-16",
 			"shortname": "TurboGrafx-16",
-			"live": false,
+			"live": true,
 			"supportfilesize": 0,
-			"boxcdnversion": "2017-11-20",
+			"boxcdnversion": "2018-05-18",
 			"romcdnversion": "GoodPce-1.09a",
 			"collection": "GoodPCE 1.09a GoodMerged",
 			"emuextention": "1.6.9-stable",

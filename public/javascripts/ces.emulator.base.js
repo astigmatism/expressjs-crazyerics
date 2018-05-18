@@ -723,7 +723,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _gameKey,
             _ui.canvas.removeClass('limited');
             _ui.helper.removeClass('limited');
         }
-    }
+    };
 
     /**
      * ajax call to load layout and script of emulator and load it within frame, resolves deffered when loaded
