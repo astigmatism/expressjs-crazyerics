@@ -80,7 +80,7 @@
 		"arcade": {
 			"name": "Arcade",
 			"shortname": "Arcade",
-			"live": true,
+			"live": false,
 			"boxcdnversion": "",
 			"romcdnversion": "2018-05-06",
 			"supportfilesize": 0,
@@ -151,9 +151,9 @@
 		"gba": {
 			"name": "Nintendo Game Boy Advance",
 			"shortname": "Game Boy Advance",
-			"live": false,
+			"live": true,
 			"supportfilesize": 0,
-			"boxcdnversion": "2017-11-20",
+			"boxcdnversion": "2018-05-18",
 			"romcdnversion": "GoodGba-3.23",
 			"collection": "GoodGba3.23",
 			"emuextention": "1.6.9-stable",
