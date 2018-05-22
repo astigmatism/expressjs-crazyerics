@@ -43,26 +43,15 @@
 		"a2600": {
 			"name": "Atari 2600",
 			"shortname": "Atari 2600",
-			"live": false,
+			"live": true,
 			"supportfilesize": 0,
 			"collection": "Good2600 1.0.0",
-			"boxcdnversion": "2017-12-08",
+			"boxcdnversion": "2018-05-22",
 			"romcdnversion": "Good2600-1.00",
 			"emuextention": "1.6.9-stable",
 			"emuscript": "stella_libretro.js",
 			"screenshotaspectratio": 1.2,
-			"suggestionThreshold": 250
-		},
-		"a5200": {
-			"name": "Atari 5200",
-			"shortname": "Atari 5200",
-			"live": false,
-			"supportfilesize": 0,
-			"boxcdnversion": "2.0.0",
-			"romcdnversion": "2.0.0",
-			"emuextention": "1.6.9-stable",
-			"emuscript": "prosystem_libretro.js",
-			"recommendedshaders": []
+			"suggestionThreshold": 300
 		},
 		"a7800": {
 			"name": "Atari 7800",
@@ -74,8 +63,7 @@
 			"collection": "Good7800 3.28",
 			"emuextention": "1.6.9-stable",
 			"emuscript": "prosystem_libretro.js",
-			"screenshotaspectratio": 1.714,
-			"suggestionThreshold": 400
+			"screenshotaspectratio": 1.714
 		},
 		"arcade": {
 			"name": "Arcade",
