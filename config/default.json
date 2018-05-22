@@ -67,8 +67,8 @@
 		"a7800": {
 			"name": "Atari 7800",
 			"shortname": "Atari 7800",
-			"live": false,
-			"boxcdnversion": "2018-04-25",
+			"live": true,
+			"boxcdnversion": "2018-05-22",
 			"romcdnversion": "Good7800-3.28",
 			"supportfilesize": 0,
 			"collection": "Good7800 3.28",
@@ -290,9 +290,9 @@
 		"nes": {
 			"name": "Nintendo Entermainment System",
 			"shortname": "Nintendo",
-			"live": false,
+			"live": true,
 			"supportfilesize": 0,
-			"boxcdnversion": "2018-04-28",
+			"boxcdnversion": "2018-05-21",
 			"romcdnversion": "GoodNes-3.23b",
 			"collection": "GoodNES 3.23b",
 			"emuextention": "1.6.9-stable",

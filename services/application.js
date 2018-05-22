@@ -191,7 +191,7 @@ module.exports = new (function() {
 
                                 //if the rank of the best playable file for the title is above the threshold for part of all-console search
                                 if (bestrank >= config.get('search').searchAllThreshold) {
-                                    all_search[titlecount] = {
+                                    all_search[totaltitles + titlecount] = {
                                         t: title,
                                         r: bestrank,
                                         gk: gk
