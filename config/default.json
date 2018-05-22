@@ -207,10 +207,10 @@
 		"lynx": {
 			"name": "Atari Lynx",
 			"shortname": "Atari Lynx",
-			"live": false,
+			"live": true,
 			"supportfilesize": 0,
 			"collection":"GoodLynx 2.01",
-			"boxcdnversion": "2017-11-20",
+			"boxcdnversion": "2018-05-22",
 			"romcdnversion": "GoodLynx-2.01",
 			"emuextention": "1.6.9-stable",
 			"emuscript": "handy_libretro.js",
