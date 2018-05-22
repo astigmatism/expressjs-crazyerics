@@ -392,10 +392,10 @@
 		"vect": {
 			"name": "Vectrex",
 			"shortname": "Vectrex",
-			"live": false,
+			"live": true,
 			"supportfilesize": 0,
 			"collection": "GoodVect 1.06",
-			"boxcdnversion": "2017-11-20",
+			"boxcdnversion": "2018-05-22",
 			"romcdnversion": "GoodVect-1.06",
 			"emuextention": "1.6.9-stable",
 			"emuscript": "vecx_libretro.js",
