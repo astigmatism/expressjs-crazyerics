@@ -47,7 +47,7 @@ module.exports = new (function() {
             above: []
             //no need to cache anything else
         }
-        var all_search = []; //all systems search will include above threshold titles only (see searchAllThreshold)
+        var all_search = []; //all systems search will include above threshold titles only
         var totaltitles = 0;
 
         async.each(Object.keys(systems), function(system, nextsystem) {
@@ -189,8 +189,8 @@ module.exports = new (function() {
                                     }
                                 }
 
-                                //if the rank of the best playable file for the title is above the threshold for part of all-console search
-                                if (bestrank >= config.get('search').searchAllThreshold) {
+                                //if the rank of the best playable file for the title is above the threshold for this system
+                                if (isAbove) {
                                     all_search[totaltitles + titlecount] = {
                                         t: title,
                                         r: bestrank,

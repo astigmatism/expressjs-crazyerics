@@ -196,9 +196,9 @@
 			"name": "Atari Jaguar",
 			"shortname": "Atari Jaguar",
 			"collection":"GoodJag 2.01",
-			"live": false,
+			"live": true,
 			"supportfilesize": 0,
-			"boxcdnversion": "2017-11-20",
+			"boxcdnversion": "2018-05-22",
 			"romcdnversion": "GoodJag-2.01",
 			"emuextention": "1.6.9-stable",
 			"emuscript": "virtualjaguar_libretro.js",
@@ -438,8 +438,7 @@
 		}
 	},
 	"search": {
-		"searchAllThreshold": 400, //250-400 = foreign, 400+ US only
-		"suggestionThreshold": 400,
+		"suggestionThreshold": 400, //default score for suggestions (generally english, translated or US. Override with each system)
 		"foreignMixPerc": 0
 	},
 	//color for each face is "dominant unless specified
