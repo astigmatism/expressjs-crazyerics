@@ -91,6 +91,18 @@
 			"suggestionThreshold": 250,
 			"notes": "The rom collection is not official. Find the set I build specifically for ces on your Synology in Unsorted Collections. I put great effort into naming the files correctly ;P"
 		},
+		"gaw": {
+			"name": "Nintendo Game & Watch",
+			"shortname": "Game & Watch",
+			"live": false,
+			"supportfilesize": 0,
+			"boxcdnversion": "test",
+			"romcdnversion": "test",
+			"collection": "",
+			"emuextention": "1.6.9-stable",
+			"emuscript": "gw_libretro.js",
+			"notes": "not finished yet :P still seeking rom set"
+		},
 		"gb": {
 			"name": "Nintendo Game Boy",
 			"shortname": "Game Boy",
