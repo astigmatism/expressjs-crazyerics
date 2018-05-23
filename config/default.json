@@ -404,10 +404,10 @@
 		"wsx": {
 			"name": "Bandai WonderSwan",
 			"shortname": "WonderSwan",
-			"live": false,
+			"live": true,
 			"supportfilesize": 0,
 			"collection": "GoodWSx 3.27",
-			"boxcdnversion": "2017-12-20",
+			"boxcdnversion": "2018-05-22",
 			"romcdnversion": "GoodWsx-3.27",
 			"suggestionThreshold": 250,
 			"emuextention": "1.6.9-stable",
