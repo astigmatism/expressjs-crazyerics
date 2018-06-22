@@ -137,7 +137,16 @@ var cesLoadingWebGL = (function(_recipe, _Compression, _PubSub, _texturePath, $w
         _scene = new THREE.Scene();
         _mesh = new THREE.Mesh( geometry, materials);
         _camera = new THREE.PerspectiveCamera( 70, _width / _height, 1, 1000 ); //fov, aspect, near, far
-        _camera.position.z = 700;
+        
+        var middle = 520;
+        var aboveorbelowratio = (height / 260) - 1; //200 determined as the middle range in height between tall (genesis) and short (snes)
+        var adjustment = 300 * aboveorbelowratio; //first value is rate of change
+        
+        console.log("height: " + height);
+        console.log("aboveorbelowratio: " + aboveorbelowratio);
+        console.log("adjustment: " + adjustment);
+        
+        _camera.position.z = middle + adjustment;
 
         _scene.add( _mesh );
         _renderer = new THREE.WebGLRenderer({ alpha: true });
@@ -364,13 +373,13 @@ var cesLoadingWebGL = (function(_recipe, _Compression, _PubSub, _texturePath, $w
         var t = THREE.Math.radToDeg(_mesh.rotation.y) % 360;
 
         //back of box
-        if (t > 90 && t < 270) {
-            _mesh.rotation.y += 0.1;
-            //_mesh.rotation.x -= 0.2;
-        }
-        else {
+        // if (t > 90 && t < 270) {
+        //     _mesh.rotation.y += 0.1;
+        //     //_mesh.rotation.x -= 0.2;
+        // }
+        // else {
             _mesh.rotation.y += 0.06;
-        }
+        //}
 
         _renderer.render( _scene, _camera );
     };

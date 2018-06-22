@@ -140,6 +140,9 @@ module.exports = new (function() {
                                 console.log(err);
                             } else {
 
+                                //see romsort project, cdnready task for file creation
+                                //var destinationFileName = Main.compress.string(title + fileorfolder);
+
                                 //the compressed file name matches the cdnready (or file uploaded to dropbox) filename
                                 var compressedFileName = UtilitiesService.Compress.string(gameKey.title + gameKey.file);
                                 var compressedFileName = encodeURIComponent(compressedFileName);

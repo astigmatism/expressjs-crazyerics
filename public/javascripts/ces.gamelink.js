@@ -39,14 +39,11 @@ var cesGameLink = (function(_BoxArt, gameKey, size, opt_tooltip, opt_PlayGame, o
             $(this)
             .removeClass('close')
             .on('mousedown', function() {
-                preventGamePause = true; //prevent current game from pausng before fadeout
-            })
-            .on('mouseup', function() {
-
+                
                 if (opt_PlayGame) {
                     opt_PlayGame(gameKey);
                 }
-            });
+            })
         });
 
         var $imagewrapper = $('<div class="box zoom close"></div>');

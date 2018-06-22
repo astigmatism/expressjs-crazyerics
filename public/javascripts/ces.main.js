@@ -204,6 +204,7 @@ var cesMain = (function() {
             onSelect: function(e, term, item) {
                 var gameKey = _Compression.Decompress.gamekey(item.data('gk'));
                 PlayGame(gameKey);
+                e.stopPropagation();
             }
         });
 
@@ -355,7 +356,6 @@ var cesMain = (function() {
         }
 
         _preventLoadingGame = true; //prevent loading any other games until this flag is lifted
-        //_preventGamePause = false;
 
         window.scrollTo(0, 0); //will bring scroll to top of page (if case they clicked a suggestion, no need to scroll back up)
 

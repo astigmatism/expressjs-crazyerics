@@ -24,7 +24,7 @@ var cesProgressBar = (function(_wrapper) {
 
         _buckets[name].progress = amount;
 
-        //console.log('Progress ' + name + ': ' + amount + '/' + _buckets[name].total);
+        console.log('Progress ' + name + ': ' + amount + '/' + _buckets[name].total + ' (' + (amount / _buckets[name].total) * 100 + '%)');
         Compute();
     };
 
