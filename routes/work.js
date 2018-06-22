@@ -211,10 +211,10 @@ router.get('/emulatorprep169', function(req, res, next) {
     });
 });
 
-router.get('/emulatorprep171', function(req, res, next) {
+router.get('/emulatorprep173', function(req, res, next) {
 
-    var EMULATOR_VERSION = '1.7.1-stable';
-    var SOURE_PATH = __dirname + '/../workspace/RetroArch-stable-1.7.1/';
+    var EMULATOR_VERSION = '1.7.3-stable';
+    var SOURE_PATH = __dirname + '/../workspace/RetroArch-stable-1.7.3/';
     
     var writeMemFileToDestination = true;
     
