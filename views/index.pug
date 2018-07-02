@@ -7,7 +7,10 @@ block content
                 option(value='all') All Consoles
         div(class="search")
             input(class="tooltip" title="Begin typing a name to see a list of results. Select a system for foreign or unofficial titles." type='text', name='search', data-hotkey='q', placeholder='Search')
-        div(class="gamepad")
+        div(class="gamepads")
+            ul
+                li#gameid0
+                li#gameid1
 
     div#content
         
@@ -24,6 +27,14 @@ block content
                 div(class="PlayAgain")
                     h2 Play Again
                     p Continue playing, search for, or select a game suggestion below
+            div(class="dialogwrapper")
+                div(class="ConfigureGamepad")
+                    h2 Configure Gamepad
+                    p The connected gamepad hasn't been configured before: #[span]
+                    ul#gamepadinputs
+                    div
+                        h3#startgamepadover(class="zoom") Start Over
+                        h3#skipgamepadconfig(class="zoom") Don't Use this Gamepad
             div(class="dialogwrapper")
                 div(class="ShaderSelection")
                     h2 How do you want your game to appear?

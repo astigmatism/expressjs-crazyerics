@@ -446,7 +446,7 @@ p {
 	box-shadow: none;
 	font-size: 12px;
     text-align: left;
-	width: 768px; /* 3/5 of 1280 */
+	width: 909px;
   	outline: none;
   	background: #fff;
   	color: #444444;
@@ -454,10 +454,38 @@ p {
     outline-offset: -2px;
 }
 
-#toolbar .gamepad {
+#toolbar .gamepads {
 	height: 40px;
+	width: 85px;
+	margin: 0;
+}
+
+#toolbar .gamepads ul {
+	height: 40px;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+#toolbar .gamepads ul li {
 	width: 40px;
-	background-color: #fff;
+	height: 40px;
+	display: inline-block;
+	margin-right: 5px;
+	background: #fff url("/images/toolbar-gamepad-disconnect.png") center center no-repeat;
+
+	transition:All 200ms ease-in;
+	-webkit-transition:All 200ms ease-in;
+	-moz-transition:All 200ms ease-in;
+	-o-transition:All 200ms ease-in;
+}
+
+#toolbar .gamepads ul li.connected {
+	background: #fff url("/images/toolbar-gamepad-connected.png") center center no-repeat;
+}
+
+#toolbar .gamepads ul li:last-child {
+	margin: 0;
 }
 
 #content {
@@ -505,6 +533,41 @@ p {
     
     height: auto;
     width: 100%;
+}
+
+/* configure gamepad dialog */
+
+#gamepadinputs {
+	display: inline-block;
+	width: 400px;
+	height: auto;
+	list-style: none;
+	font-size: 1.4em;
+}
+
+#gamepadinputs li {
+	display: inline-block;
+	width: 400px;
+}
+#gamepadinputs li .title {
+	width: 200px;
+	text-align: left;
+	display: inline-block;
+}
+#gamepadinputs li .assignment {
+	width: 200px;
+	text-align: right;
+	display: inline-block;
+}
+
+#startgamepadover {
+	cursor: pointer;
+	display: inline-block;
+}
+#skipgamepadconfig {
+	display: inline-block;
+	cursor: pointer;
+	margin-left: 30px;
 }
 
 /* select another game dialog */
@@ -1307,3 +1370,23 @@ div.slidingpanel {
     -webkit-animation-name: tada; 
     animation-name: tada; 
 }
+
+.pulsehover:hover {
+	animation: pulse 2s infinite;
+}
+
+.pulse {
+	animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+	0% {
+	  	color: #1E90FF;
+	}
+	50% {
+		color: #00BFFF;	
+	}
+	100% {
+		color: #1E90FF;
+	}
+  }

@@ -30,6 +30,7 @@ var cesMain = (function() {
     var _ProgressBar = null;
     var _Notifications = null;
     var _Tooltips= null;
+    var _Gamepad = null;
     var _ClientCache = {}; //a consistant location to store items in client memory during a non-refresh session
 
     // public members
@@ -64,6 +65,8 @@ var cesMain = (function() {
         _Preferences = new cesPreferences(_Compression, _PubSub, clientdata.components.p);
         _Sync.RegisterComponent('p', _Preferences.Sync);
 
+        _Gamepad = new cesGamePad(_config, _Compression, _PubSub, _Tooltips, _Preferences, _Dialogs, $('#gameid0'), $('#gameid1'));
+
         _Collections = new cesCollections(_Compression, _Preferences, _BoxArt, _Sync, _Tooltips, PlayGame, $('#openCollectionGrid'), $('#collectionsGrid'), clientdata.components.c, _config.defaults.copyToFeatured, null);
         _Sync.RegisterComponent('c', _Collections.Sync);
 
@@ -73,6 +76,7 @@ var cesMain = (function() {
         var welcomeBack =  _Collections.IsEmpty() ? false : true;
         _Dialogs.Register('Welcome', 150, [], !welcomeBack);
         _Dialogs.Register('WelcomeBack', 150, [], welcomeBack);
+        _Dialogs.Register('ConfigureGamepad', 600, [_Gamepad, _Compression]);
         _Dialogs.Register('ShaderSelection', 500, [_Preferences]);
         _Dialogs.Register('GameLoading', 500, [_BoxArt, _Compression, _PubSub]);
         _Dialogs.Register('SaveSelection', 500);
@@ -245,7 +249,7 @@ var cesMain = (function() {
         //stuff to do when at work mode is enabled
         //$('#titlebanner').hide();
 
-        _Sliders = new cesSliders($('#slidericons'));
+        _Sliders = new cesSliders(_config, _Compression, $('#slidericons'));
 
         _Suggestions = new cesSuggestions(_BoxArt, _Compression, _Tooltips, PlayGame, $('#suggestionsgrid'), $('#suggestionswrapper'));
 
@@ -416,152 +420,156 @@ var cesMain = (function() {
 
             _preventLoadingGame = false; //during shader select, allow other games to load
 
-            //show shader selector. returns an object with shader details
-            _Dialogs.Open('ShaderSelection', [gameKey.system, shader], true, function(shaderSelection) {
+            //configure controllers if not done so already
+            _Gamepad.Configure(function() {
 
-                _preventLoadingGame = true; //lock loading after shader select
-                var gameLoadingStart = Date.now();
+                //show shader selector. returns an object with shader details
+                _Dialogs.Open('ShaderSelection', [gameKey.system, shader], true, function(shaderSelection) {
 
-                _ProgressBar.Reset(); //before loading dialog, reset progress bar from previous
+                    _preventLoadingGame = true; //lock loading after shader select
+                    var gameLoadingStart = Date.now();
 
-                //game load dialog show
-                _Dialogs.Open('GameLoading', [gameKey], false, function(tipInterval) {
+                    _ProgressBar.Reset(); //before loading dialog, reset progress bar from previous
 
-                    var optionsToSendToServer = {
-                        shader: shaderSelection.shader,  //name of shader file
-                    };
+                    //game load dialog show
+                    _Dialogs.Open('GameLoading', [gameKey], false, function(tipInterval) {
 
-                    //this call is a POST. Unlike the others, it is destined for the mongo instance (MY DOMAIN not a cdn). we send user preference data to the server in addition to getting game details.
-                    SavePreferencesAndGetPlayerGameDetails(gameKey, optionsToSendToServer, savePreferencesAndGetPlayerGameDetailsComplete);
+                        var optionsToSendToServer = {
+                            shader: shaderSelection.shader,  //name of shader file
+                        };
 
-                    //run to my domain first to get details about the game before we retrieve it
-                    $.when(savePreferencesAndGetPlayerGameDetailsComplete).done(function(gameDetails) {
+                        //this call is a POST. Unlike the others, it is destined for the mongo instance (MY DOMAIN not a cdn). we send user preference data to the server in addition to getting game details.
+                        SavePreferencesAndGetPlayerGameDetails(gameKey, optionsToSendToServer, savePreferencesAndGetPlayerGameDetailsComplete);
 
-                        var saves = gameDetails.saves;
-                        var files = gameDetails.files;
-                        var shaderFileSize = gameDetails.shaderFileSize; //will be 0 if no shader to load
-                        var supportFileSize = _config.systemdetails[gameKey.system].supportfilesize; //will be 0 for systems without support
-                        var info = {};
-                        try {
-                            info = JSON.parse(gameDetails.info);
-                        } catch (e) {
-                            //meh
-                        }
-                        var filesize = gameDetails.size;
+                        //run to my domain first to get details about the game before we retrieve it
+                        $.when(savePreferencesAndGetPlayerGameDetailsComplete).done(function(gameDetails) {
 
-                        //add this bail for when bulding featured collections
-                        if (_config.defaults.copyToFeatured) {
-                            _preventLoadingGame = false;
-                            return;
-                        }
-
-                        //_ProgressBar.AddBucket('done', filesize * 0.05); //this represents the final work I need to do before the game starts (prevents bar from showing 1 until totally done)
-
-                        //begin loading all content. I know it seems like some of these (game, emulator, etc) could load while the user
-                        //is viewing the shader select, but I found that when treated as background tasks, it interfere with the performance
-                        //of the shader selection ui. I think its best to wait until the loading animation is up to perform all of these
-                        _Emulator.Load(_Emulator.createModule(), _ProgressBar, filesize, shaderSelection.shader, shaderFileSize, supportFileSize, emulatorLoadComplete);
-
-                        //when all deffered calls are ready
-                        $.when(emulatorLoadComplete).done(function(emulatorLoaded) {
-
-                            _Emulator.InitializeSavesManager(saves, gameKey);
-
-                            //date copmany
-                            if (info && info.Publisher && info.ReleaseDate) {
-                                var year = info.ReleaseDate.match(/(\d{4})/);
-                                $('#gametitlecaption').text(info.Publisher + ', ' +  year[0]);
+                            var saves = gameDetails.saves;
+                            var files = gameDetails.files;
+                            var shaderFileSize = gameDetails.shaderFileSize; //will be 0 if no shader to load
+                            var supportFileSize = _config.systemdetails[gameKey.system].supportfilesize; //will be 0 for systems without support
+                            var info = {};
+                            try {
+                                info = JSON.parse(gameDetails.info);
+                            } catch (e) {
+                                //meh
                             }
-                                
-                            _preventLoadingGame = false; //during save select, allow other games to load
+                            var filesize = gameDetails.size;
 
-                            //are there saves to load? Let's show a dialog to chose from, if not - will go straight to start
-                            ShowGameLoading(_Emulator, gameKey, function(err, selectedSaveTimeStamp, selectedSavescreenshot) {
+                            //add this bail for when bulding featured collections
+                            if (_config.defaults.copyToFeatured) {
+                                _preventLoadingGame = false;
+                                return;
+                            }
 
-                                if (selectedSaveTimeStamp) {
-                                    _Dialogs.Open('SaveLoading', [gameKey.system, selectedSavescreenshot]);
+                            //_ProgressBar.AddBucket('done', filesize * 0.05); //this represents the final work I need to do before the game starts (prevents bar from showing 1 until totally done)
+
+                            //begin loading all content. I know it seems like some of these (game, emulator, etc) could load while the user
+                            //is viewing the shader select, but I found that when treated as background tasks, it interfere with the performance
+                            //of the shader selection ui. I think its best to wait until the loading animation is up to perform all of these
+                            _Emulator.Load(_Emulator.createModule(), _ProgressBar, filesize, shaderSelection.shader, shaderFileSize, supportFileSize, emulatorLoadComplete);
+
+                            //when all deffered calls are ready
+                            $.when(emulatorLoadComplete).done(function(emulatorLoaded) {
+
+                                _Emulator.InitializeSavesManager(saves, gameKey);
+
+                                //date copmany
+                                if (info && info.Publisher && info.ReleaseDate) {
+                                    var year = info.ReleaseDate.match(/(\d{4})/);
+                                    $('#gametitlecaption').text(info.Publisher + ', ' +  year[0]);
                                 }
+                                    
+                                _preventLoadingGame = false; //during save select, allow other games to load
 
-                                _preventLoadingGame = true;
+                                //are there saves to load? Let's show a dialog to chose from, if not - will go straight to start
+                                ShowGameLoading(_Emulator, gameKey, function(err, selectedSaveTimeStamp, selectedSavescreenshot) {
 
-                                //calculate how long the loading screen has been up. Showing it too short looks dumb
-                                var gameLoadingDialogUptime = Math.floor(Date.now() - gameLoadingStart);
-                                var artificialDelayForLoadingScreen = gameLoadingDialogUptime > _minimumGameLoadingTime ? 0 : _minimumGameLoadingTime - gameLoadingDialogUptime;
+                                    if (selectedSaveTimeStamp) {
+                                        _Dialogs.Open('SaveLoading', [gameKey.system, selectedSavescreenshot]);
+                                    }
 
-                                //set an artificial timeout based on the amount of time the loading screen was up
-                                //lets ensure a minimum time has passed (see private vars)
-                                setTimeout(function() {
+                                    _preventLoadingGame = true;
 
-                                    // load state? bails if not set
-                                    _Emulator.WriteSaveData(selectedSaveTimeStamp, function(stateToLoad) { //if save not set, bails on null
+                                    //calculate how long the loading screen has been up. Showing it too short looks dumb
+                                    var gameLoadingDialogUptime = Math.floor(Date.now() - gameLoadingStart);
+                                    var artificialDelayForLoadingScreen = gameLoadingDialogUptime > _minimumGameLoadingTime ? 0 : _minimumGameLoadingTime - gameLoadingDialogUptime;
 
-                                        //begin game, callback is function which handles expections for any emulator error
-                                        _Emulator.StartEmulator(function(e) {
-                                            clearInterval(tipInterval);
-                                            _PubSub.Publish('error', ['There was an error with the emulator:', e]);
-                                        });
+                                    //set an artificial timeout based on the amount of time the loading screen was up
+                                    //lets ensure a minimum time has passed (see private vars)
+                                    setTimeout(function() {
 
-                                        //this is a weird one I know.
-                                        //The most reliable way I've found that the emulator is running and ready for input is when it
-                                        //attempts to write to the window title. When that occurs for the first time,
-                                        //we can begin to load a state (or not)
-                                        _PubSub.SubscribeOnce('emulatorsetwindowtitle', self, function() {
-                                            
-                                            //load state? bails if null.. if valid, will show a new save loading dialog
-                                            //and will load state. callback occurs after state has loaded
-                                            LoadEmulatorState(gameKey.system, stateToLoad, function() {
+                                        // load state? bails if not set
+                                        _Emulator.WriteSaveData(selectedSaveTimeStamp, function(stateToLoad) { //if save not set, bails on null
 
-                                                //close all dialogs (save loading or game loading), game begins!
-                                                _Dialogs.Close(function() {
+                                            //begin game, callback is function which handles expections for any emulator error
+                                            _Emulator.StartEmulator(function(e) {
+                                                clearInterval(tipInterval);
+                                                _PubSub.Publish('error', ['There was an error with the emulator:', e]);
+                                            });
 
-                                                    //stop rolling tips
-                                                    $('#tips').stop().hide();
-                                                    clearInterval(tipInterval);
+                                            //this is a weird one I know.
+                                            //The most reliable way I've found that the emulator is running and ready for input is when it
+                                            //attempts to write to the window title. When that occurs for the first time,
+                                            //we can begin to load a state (or not)
+                                            _PubSub.SubscribeOnce('emulatorsetwindowtitle', self, function() {
+                                                
+                                                //load state? bails if null.. if valid, will show a new save loading dialog
+                                                //and will load state. callback occurs after state has loaded
+                                                LoadEmulatorState(gameKey.system, stateToLoad, function() {
 
-                                                    //so I've found that tapping the fast forward key prevents the weird race condition on start.
-                                                    //keep this until it seems disruptive
-                                                    _PubSub.Mute('notification');
-                                                    _Emulator._InputHelper.Keypress('fastforward', function() {
-                                                        
-                                                        _PubSub.Unmute('notification');
+                                                    //close all dialogs (save loading or game loading), game begins!
+                                                    _Dialogs.Close(function() {
 
-                                                        //enlarge dialog area for emulator
-                                                        _Dialogs.SetHeight($('#emulatorwrapper').outerHeight(), function() {
+                                                        //stop rolling tips
+                                                        $('#tips').stop().hide();
+                                                        clearInterval(tipInterval);
 
-                                                            //handle title and content fadein steps
-                                                            //wait until height change before they appear
-                                                            DisplayGameContext(gameKey, function() {
-
-                                                            });  
-                                                                    
-                                                            //reveal emulator, control is game is given at this step
-                                                            _Emulator.ReadyPlayerOne(function() {
-
-                                                                window.scrollTo(0,0); //bring attention back up top
-                                                            });
-
-                                                            //pubsub for closing emulator from the top-level
-                                                            _PubSub.SubscribeOnce('closeEmulator', self, function() {
-                                                                CloseEmulator(function() {
-
-                                                                    _Dialogs.Open("PlayAgain");
-                                                                });
-                                                            }, true); //exclusive meaning this is the only subscriber
+                                                        //so I've found that tapping the fast forward key prevents the weird race condition on start.
+                                                        //keep this until it seems disruptive
+                                                        _PubSub.Mute('notification');
+                                                        _Emulator._InputHelper.Keypress('fastforward', function() {
                                                             
-                                                            //inform instances that game is starting (for those that care)
-                                                            _Collections.RemoveCurrentGameLoading();
-    
-                                                            //with all operations complete, callback
-                                                            if (callback) {
-                                                                callback();
-                                                            }
+                                                            _PubSub.Unmute('notification');
+
+                                                            //enlarge dialog area for emulator
+                                                            _Dialogs.SetHeight($('#emulatorwrapper').outerHeight(), function() {
+
+                                                                //handle title and content fadein steps
+                                                                //wait until height change before they appear
+                                                                DisplayGameContext(gameKey, function() {
+
+                                                                });  
+                                                                        
+                                                                //reveal emulator, control is game is given at this step
+                                                                _Emulator.ReadyPlayerOne(function() {
+
+                                                                    window.scrollTo(0,0); //bring attention back up top
+                                                                });
+
+                                                                //pubsub for closing emulator from the top-level
+                                                                _PubSub.SubscribeOnce('closeEmulator', self, function() {
+                                                                    CloseEmulator(function() {
+
+                                                                        _Dialogs.Open("PlayAgain");
+                                                                    });
+                                                                }, true); //exclusive meaning this is the only subscriber
+                                                                
+                                                                //inform instances that game is starting (for those that care)
+                                                                _Collections.RemoveCurrentGameLoading();
+        
+                                                                //with all operations complete, callback
+                                                                if (callback) {
+                                                                    callback();
+                                                                }
+                                                            });
                                                         });
                                                     });
                                                 });
-                                            });
-                                        }, true); //subscribe once, exclusive flag
-                                    });
-                                }, artificialDelayForLoadingScreen);
+                                            }, true); //subscribe once, exclusive flag
+                                        });
+                                    }, artificialDelayForLoadingScreen);
+                                });
                             });
                         });
                     });
@@ -645,9 +653,9 @@ var cesMain = (function() {
                 };
 
                 //the class extention process: on the prototype of the ext, create using the base class.
-                cesEmulator.prototype = new cesEmulatorBase(_Compression, _PubSub, _config, _Sync, gameKey, ui, _ClientCache);
+                cesEmulator.prototype = new cesEmulatorBase(_Compression, _PubSub, _config, _Sync, _Gamepad, _Preferences, gameKey, ui, _ClientCache);
 
-                var emulator = new cesEmulator(_Compression, _PubSub, _config, _Sync, gameKey);
+                var emulator = new cesEmulator(_Compression, _PubSub, _config, _Sync, _Gamepad, _Preferences, gameKey);
 
                 //KEEP IN MIND: this pattern is imperfect. only the resulting structure (var emulator and later _Emulator)
                 //will have access to data in both, cesEmulatorBase does not have knowledge of anything in cesEmulator

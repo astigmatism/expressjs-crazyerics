@@ -71,7 +71,7 @@ var cesCollections = (function(_Compression, _Preferences, _BoxArt, _Sync, _Tool
         // //maybe set a loading spinner on image here?
         activeTitle.gameLink.DisableAllEvents(); //disabled buttons on gamelink to prevent loading game or removing again
         _titlesGrid.isotope('remove', activeTitle.gridItem).isotope('layout'); //immediately remove from grid (i used to wait for response but why right?)
-        _Tooltips.Destory(activeTitle.gridItem); //destory its custom tooltip
+        _Tooltips.Destroy(activeTitle.gridItem); //destory its custom tooltip
 
         //use sync for outgoing. will update this object on response
         var url = _baseUrl + '/game?gk=' + encodeURIComponent(activeTitle.gameKey.gk);

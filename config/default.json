@@ -705,6 +705,46 @@
 		"fastforward_ratio": 5.0,
 		"show_hidden_files": true
 	},
+	"mappings": {
+		"default": {
+			"input_player1_joypad_index": 0,
+			"input_player1_up_axis": "-1",
+			"input_player1_down_axis": "+1",
+			"input_player1_left_axis": "-0",
+			"input_player1_right_axis": "+0",
+			"input_player1_a_btn": 0,
+			"input_player1_b_btn": 1,
+			"input_player1_x_btn": 3,
+			"input_player1_y_btn": 9,
+			"input_player1_start_btn": 8,
+			"input_player1_select_btn": 7,
+			"input_player1_l_btn": "+4",
+			"input_player1_r_btn": "+5",
+			
+			"input_player2_joypad_index": 1,
+			"input_player2_b_btn": 2,
+			"input_player2_a_btn": 1,
+			"input_player2_y_btn": 3,
+			"input_player2_x_btn": 0,
+			"input_player2_l_btn": 4,
+			"input_player2_r_btn": 5,
+			"input_player2_start_btn": 9,
+			"input_player2_select_btn": 8,
+
+			"input_player2_up_axis": "-1",
+			"input_player2_down_axis": "+1",
+			"input_player2_left_axis": "-0",
+			"input_player2_right_axis": "+0"
+
+			// "input_enable_hotkey_btn": 8,
+			// "input_exit_emulator_btn": 9,
+			// "input_save_state_btn": 5,
+			// "input_load_state_btn": 4,
+			// "input_menu_toggle_btn": 0,
+			// "input_state_slot_increase_axis": "+0",
+			// "input_state_slot_decrease_axis": "-0"
+		}
+	},
 	"emulators": {
 		"1.7.3-stable":{"2048_libretro.js":{"s":293218},"4do_libretro.js":{"s":293499},"81_libretro.js":{"s":293667},"bluemsx_libretro.js":{"s":294138},"browserfs.min.js":{"s":270084},"craft_libretro.js":{"s":322112},"desmume_libretro.js":{"s":307511},"dosbox_libretro.js":{"s":306135},"fbalpha2012_cps1_libretro.js":{"s":298946},"fbalpha2012_cps2_libretro.js":{"s":298940},"fbalpha2012_libretro.js":{"s":299488},"fbalpha2012_neogeo_libretro.js":{"s":298920},"fceumm_libretro.js":{"s":293226},"fmsx_libretro.js":{"s":293875},"freeintv_libretro.js":{"s":293232},"gambatte_libretro.js":{"s":296939},"genesis_plus_gx_libretro.js":{"s":293888},"gme_libretro.js":{"s":298258},"gpsp_libretro.js":{"s":293652},"gw_libretro.js":{"s":294553},"handy_libretro.js":{"s":296728},"libretro.js":{"s":8200},"lutro_libretro.js":{"s":299099},"mame2000_libretro.js":{"s":294355},"mame2003_libretro.js":{"s":295085},"mame2003_plus_libretro.js":{"s":295418},"mednafen_lynx_libretro.js":{"s":297961},"mednafen_ngp_libretro.js":{"s":298159},"mednafen_pce_fast_libretro.js":{"s":300472},"mednafen_pcfx_libretro.js":{"s":301002},"mednafen_snes_libretro.js":{"s":301155},"mednafen_vb_libretro.js":{"s":296594},"mednafen_wswan_libretro.js":{"s":298151},"nestopia_libretro.js":{"s":303095},"nxengine_libretro.js":{"s":301117},"o2em_libretro.js":{"s":293220},"parallel_n64_libretro.js":{"s":306031},"picodrive_libretro.js":{"s":294616},"prboom_libretro.js":{"s":293226},"prosystem_libretro.js":{"s":293235},"quicknes_libretro.js":{"s":297497},"snes9x2002_libretro.js":{"s":293238},"snes9x2005_libretro.js":{"s":293238},"snes9x2010_libretro.js":{"s":293238},"snes9x_libretro.js":{"s":295099},"stella_libretro.js":{"s":315156},"tgbdual_libretro.js":{"s":296946},"theodore_libretro.js":{"s":293232},"tyrquake_libretro.js":{"s":294841},"vba_next_libretro.js":{"s":295806},"vecx_libretro.js":{"s":293220},"virtualjaguar_libretro.js":{"s":293249}},
 		"1.7.1-stable":{"2048_libretro.js":{"s":292315},"4do_libretro.js":{"s":292314},"81_libretro.js":{"s":292764},"bluemsx_libretro.js":{"s":293235},"browserfs.min.js":{"s":270084},"craft_libretro.js":{"s":321209},"desmume_libretro.js":{"s":302607},"dosbox_libretro.js":{"s":305429},"fbalpha2012_cps1_libretro.js":{"s":296784},"fbalpha2012_cps2_libretro.js":{"s":296676},"fbalpha2012_libretro.js":{"s":297723},"fbalpha2012_neogeo_libretro.js":{"s":297376},"fceumm_libretro.js":{"s":292323},"fmsx_libretro.js":{"s":292968},"freeintv_libretro.js":{"s":292329},"gambatte_libretro.js":{"s":296036},"genesis_plus_gx_libretro.js":{"s":292666},"gme_libretro.js":{"s":297355},"gpsp_libretro.js":{"s":292749},"gw_libretro.js":{"s":293650},"handy_libretro.js":{"s":295823},"libretro.js":{"s":8200},"lutro_libretro.js":{"s":298196},"mame2000_libretro.js":{"s":293452},"mame2003_libretro.js":{"s":294182},"mednafen_lynx_libretro.js":{"s":297056},"mednafen_ngp_libretro.js":{"s":297254},"mednafen_pce_fast_libretro.js":{"s":299569},"mednafen_pcfx_libretro.js":{"s":300099},"mednafen_psx_libretro.js":{"s":305347},"mednafen_snes_libretro.js":{"s":300882},"mednafen_vb_libretro.js":{"s":295691},"mednafen_wswan_libretro.js":{"s":297248},"nestopia_libretro.js":{"s":302190},"nxengine_libretro.js":{"s":300214},"o2em_libretro.js":{"s":292317},"parallel_n64_libretro.js":{"s":304676},"picodrive_libretro.js":{"s":293713},"prboom_libretro.js":{"s":292323},"prosystem_libretro.js":{"s":292332},"quicknes_libretro.js":{"s":296131},"snes9x2002_libretro.js":{"s":292335},"snes9x2005_libretro.js":{"s":292335},"snes9x2010_libretro.js":{"s":292335},"snes9x_libretro.js":{"s":294196},"stella_libretro.js":{"s":314253},"tgbdual_libretro.js":{"s":296041},"tyrquake_libretro.js":{"s":293938},"vba_next_libretro.js":{"s":294903},"vecx_libretro.js":{"s":292317},"virtualjaguar_libretro.js":{"s":292346}},

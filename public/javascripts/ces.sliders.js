@@ -1,4 +1,4 @@
-var cesSliders = (function($silderIcons) {
+var cesSliders = (function(_config, _Compression, $silderIcons) {
 
     var _self = this;
     var _sliders = {};
@@ -27,7 +27,13 @@ var cesSliders = (function($silderIcons) {
             //if a data reference was found along with the dom element
             if (sliderId && $('#' + sliderId + '-slider')) {
 
-                _sliders[sliderId] = $('#' + sliderId + '-slider');
+                var module;
+
+                if (window.hasOwnProperty('cesSliders' + sliderId)) {
+                    module = new window['cesSliders' + sliderId](_config, $('#' + sliderId + '-slider'), args)
+                }
+
+                
             }
         });
 

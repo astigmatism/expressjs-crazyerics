@@ -7,13 +7,16 @@
  * @param  {string} file         Super Mario Bros. 3 (U)[!].nes
  * @return {undef}
  */
-var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _gameKey) {
+var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _GamePad, _Preferences, _gameKey) {
     
         // private members
         var self = this;
         var _fileWriteTimeout = {};
         var _fileReadTimeout = {};
         var _fileTimerDelay = 100;       //the amount of time we allow to pass in which we assume a file is no longer being written
+        
+        
+        //debugging
         var _startToMenu = false;
     
         // public/protected members (on prototytpe)
@@ -372,11 +375,26 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _gameKey) {
                         retroArchConfig.video_shader = '/shaders/' + shaderPresetToLoad;
                     }
     
-                    //convert json to string delimited list
                     var configString = '';
+    
+                    //convert json to string delimited list
                     for (configItem in retroArchConfig) {
                         configString +=  configItem + ' = ' + retroArchConfig[configItem] + '\n';
                     }
+
+                    //get input assignments
+                    configString += self._InputHelper.BuildInputConfiguration();
+
+                    //default button mappings
+                    // if (_config.mappings) {
+    
+                    //     var remapConfig = _config.mappings.default; //in json
+        
+                    //     //convert json to string delimited list
+                    //     for (var configItem in remapConfig) {
+                    //         configString +=  configItem + ' = ' + remapConfig[configItem] + '\n';
+                    //     }
+                    // }
     
                     this.FS_createDataFile('/home/web_user/retroarch/userdata', 'retroarch.cfg', configString, true, true);
                 }

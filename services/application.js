@@ -343,6 +343,9 @@ module.exports = new (function() {
         //paths 
         configdata['paths'] = config.get('paths');
 
+        //button mappings
+        configdata['mappings'] = config.get('mappings');
+
         //settings defaults for client
         configdata['defaults'] = config.get('defaults');
 

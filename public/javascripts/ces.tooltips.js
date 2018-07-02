@@ -33,8 +33,9 @@ var cesTooltips = (function(config, tooltipSelector, tooltipContentSelector) {
         $el.tooltipster('content', $content);
     };
 
-    this.Destory = function($el) {
+    this.Destroy = function($el) {
         $el.find(alreadyProcessedSelector).tooltipster('destroy');
+        $el.tooltipster('destroy');
     };
 
     //constructor

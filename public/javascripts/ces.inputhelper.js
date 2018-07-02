@@ -1,5 +1,5 @@
 
-var cesInputHelper = (function(_Emulator, _ui) {
+var cesInputHelper = (function(_Emulator, _Preferences, _Gamepad, _ui) {
 
     //private members
     var self = this;
@@ -60,6 +60,23 @@ var cesInputHelper = (function(_Emulator, _ui) {
         122: "F11",
         123: "F12"
     };
+
+    var _mappingOrder = [
+        'input_player#_up_axis',
+        'input_player#_down_axis',
+        'input_player#_left_axis',
+        'input_player#_right_axis',
+        'input_player#_a_btn',
+        'input_player#_b_btn',
+        'input_player#_x_btn',
+        'input_player#_y_btn',
+        'input_player#_start_btn',
+        'input_player#_select_btn',
+        'input_player#_l_btn',
+        'input_player#_r_btn'
+    ];
+            
+    var _defaultKeyboardMapping = ['up','down','left','right','x','z','s','a','enter','rshift','q','w'];
 
     /*
     from retroarchfig:
@@ -366,6 +383,64 @@ var cesInputHelper = (function(_Emulator, _ui) {
         }
 
         return oEvent;
+    };
+
+    this.BuildInputConfiguration = function() {
+
+        var inputConfig = '';
+        var assignemnts = _defaultKeyboardMapping; //array
+        var playerIndex = 0;
+
+        //for each game pad, get input, returns array of array of input configurations (like _defaultKeyboardMapping)
+        var mappings = _Gamepad.GetConfiguredGamepadInput();
+        for (var playerIndex; playerIndex < mappings.length; playerIndex++) {
+
+            //sanity check from config
+            if (mappings[playerIndex].length != _mappingOrder.length) {
+                continue;
+            }
+
+            inputConfig += 'input_player' + (playerIndex + 1) + '_joypad_index = ' + playerIndex + '\n';
+
+            for(var i = 0; i < _mappingOrder.length; ++i) {
+
+                //browser input to sdl2 conversion:
+                var sdl2 = {
+                    4: 9,
+                    10: 7,
+                    11: 8,
+                    6: '\"+4\"',
+                    7: '\"+5\"'
+                }
+
+                var assignment = mappings[playerIndex][i];
+                if (sdl2[assignment]) {
+                    assignment = sdl2[assignment];
+                }
+
+                inputConfig += _mappingOrder[i].replace('#', playerIndex + 1) +  ' = ' + assignment + '\n'; 
+            }
+
+        }
+
+        //ok, gamepads have been added (or not), playerIndex now equals the next available player
+
+        //get any custom saved keyboard assignments
+        var savedMappings = _Preferences.Get('mappings.keyboard');
+        if (savedMappings) {
+            assignemnts = savedMappings;
+        }
+
+        //sanity check
+        if (assignemnts.length != _mappingOrder.length) {
+            throw 'The default keyboard mapping names and assignemnts are not the same length';
+        }
+
+        for(var i = 0; i < _mappingOrder.length; ++i) {
+            inputConfig += _mappingOrder[i].replace('#', playerIndex + 1) + ' = \"' + assignemnts[i] + '\"\n'; 
+        }
+
+        return inputConfig;
     };
 
     //public members

@@ -142,9 +142,9 @@ var cesLoadingWebGL = (function(_recipe, _Compression, _PubSub, _texturePath, $w
         var aboveorbelowratio = (height / 260) - 1; //200 determined as the middle range in height between tall (genesis) and short (snes)
         var adjustment = 300 * aboveorbelowratio; //first value is rate of change
         
-        console.log("height: " + height);
-        console.log("aboveorbelowratio: " + aboveorbelowratio);
-        console.log("adjustment: " + adjustment);
+        //console.log("height: " + height);
+        //console.log("aboveorbelowratio: " + aboveorbelowratio);
+        //console.log("adjustment: " + adjustment);
         
         _camera.position.z = middle + adjustment;
 
