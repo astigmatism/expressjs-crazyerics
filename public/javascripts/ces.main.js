@@ -420,11 +420,11 @@ var cesMain = (function() {
 
             _preventLoadingGame = false; //during shader select, allow other games to load
 
-            //configure controllers if not done so already
-            _Gamepad.Configure(function() {
+            //show shader selector. returns an object with shader details
+            _Dialogs.Open('ShaderSelection', [gameKey.system, shader], true, function(shaderSelection) {
 
-                //show shader selector. returns an object with shader details
-                _Dialogs.Open('ShaderSelection', [gameKey.system, shader], true, function(shaderSelection) {
+                //configure controllers if not done so already
+                _Gamepad.Configure(gameKey, function() {
 
                     _preventLoadingGame = true; //lock loading after shader select
                     var gameLoadingStart = Date.now();
@@ -557,7 +557,7 @@ var cesMain = (function() {
                                                                 
                                                                 //inform instances that game is starting (for those that care)
                                                                 _Collections.RemoveCurrentGameLoading();
-        
+
                                                                 //with all operations complete, callback
                                                                 if (callback) {
                                                                     callback();

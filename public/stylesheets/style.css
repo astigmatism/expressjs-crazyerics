@@ -537,17 +537,31 @@ p {
 
 /* configure gamepad dialog */
 
+#gamepadwrapper {
+	margin: 25px 0;
+	background-repeat: no-repeat;
+	background-position: 25% center;
+}
+
+#gamepadvoid {
+	display: inline-block;
+	width: 400px;
+}	
+
 #gamepadinputs {
 	display: inline-block;
 	width: 400px;
 	height: auto;
 	list-style: none;
 	font-size: 1.4em;
+	padding: 0px 0px 0px 10px;
+	margin: 0;
 }
 
 #gamepadinputs li {
 	display: inline-block;
 	width: 400px;
+	line-height: 30px;
 }
 #gamepadinputs li .title {
 	width: 200px;

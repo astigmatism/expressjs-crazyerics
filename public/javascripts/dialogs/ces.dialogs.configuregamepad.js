@@ -6,31 +6,32 @@ var cesDialogsConfigureGamepad = (function(_config, $el, $wrapper, args) {
     var _delayBetweenInputDetection = 200;
     var _openCallback;
 
-    //this represents an essential set for quick play
-    var _inputAssignmentOrder = [
-        'Up',
-        'Down',
-        'Left',
-        'Right',
-        'A',
-        'B',
-        'X',
-        'Y',
-        'Start',
-        'Select',
-        'L',
-        'R'
-    ];
+    //pulled from config, an object conbining the retroarch name with a friendly label
+    var _inputAssignmentMap;
+    var _inputAssingments = {};
+
+    //arrays for iteration
+    var _retroarchInputNames = [];
+    var _inputLabels = [];
 
     this.OnOpen = function(args, callback) {
         _openCallback = callback;
         Open.apply(this, args);
     };
 
-    var Open = function(gamepad) {
+    var Open = function(_config, gamepad, gameKey) {
 
-        $el.find('span').text(gamepad.id);
+        //reset if used previously
+        _retroarchInputNames = [];
+        _inputLabels = [];
+        _inputAssingments = {};
 
+        $el.find('span.gamepadsystem').text(_config.systemdetails[gameKey.system].shortname); //title
+        $el.find('span.gamepadid').text(gamepad.id); //game pad id
+        $el.find('span.gamepadport').text(gamepad.index + 1); //game pad port (+1 as its 0 based)
+
+        $('#gamepadwrapper').css('background-image','url("' + _config.paths.images + '/gamepads/' + gameKey.system + '/400.png")');
+        
         $('#startgamepadover').off().on('mouseup', function() {
             StartOver();
             return;
@@ -41,7 +42,18 @@ var cesDialogsConfigureGamepad = (function(_config, $el, $wrapper, args) {
             return;
         });
 
-        StartOver();
+        //this was a prereq for coming here
+        _inputAssignmentMap = _config.mappings[gameKey.system];
+
+        //convert map to indexable arrays
+        var index = 0;
+        for (var retroarchInputName in _inputAssignmentMap) {
+            _retroarchInputNames[index] = retroarchInputName;
+            _inputLabels[index] = _inputAssignmentMap[retroarchInputName];
+            ++index;
+        }
+
+        StartOver(); //clear field
     };
 
     this.OnClose = function(callback) {
@@ -52,22 +64,24 @@ var cesDialogsConfigureGamepad = (function(_config, $el, $wrapper, args) {
 
         $('#gamepadinputs').empty(); //clear list
 
-        for (var i = 0; i < _inputAssignmentOrder.length; ++i) {
-            //add label to list
-            var html = $('<li><div class="title">' + _inputAssignmentOrder[i] + ':</div><div class="assignment">Not Assigned</div></li>');
+        for (var i = 0; i < _inputLabels.length; ++i) {
+            var html = $('<li><div class="title">' + _inputLabels[i] + ':</div><div class="assignment">Not Assigned</div></li>');
             $('#gamepadinputs').append(html);
         }
         
+        //make the image area the same height
+        //$('#gamepadwrapper').height($('#gamepadinputs').height());
+
         var listitems = $('#gamepadinputs').find('li');
 
-        ListenForInput(listitems, 0, [], function(config) {
+        ListenForInput(listitems, 0, function() {
             
             //config array defined, return it
-            _openCallback(_Compression.Compress.json(config));
+            _openCallback(_Compression.Compress.json(_inputAssingments));
         });
     };
 
-    var ListenForInput = function(listitems, index, config, callback) {
+    var ListenForInput = function(listitems, index, callback) {
 
         var $li = $(listitems[index]);
         $li.find('.assignment').text('Press Anything');
@@ -76,17 +90,19 @@ var cesDialogsConfigureGamepad = (function(_config, $el, $wrapper, args) {
         _Gamepad.GetNextInput(function(value, label) {
             
             $li.find('.assignment').text(label);
-            config.push(value);
             $li.removeClass('pulse');
+
+            //record assignment
+            _inputAssingments[_retroarchInputNames[index]] = value;
             
             index++;
-            if (index >= _inputAssignmentOrder.length) {
-                callback(config);
+            if (index >= _inputLabels.length) {
+                callback();
             } else {
 
                 //this timeout prevents last input from being read again instantly :p 
                 setTimeout(function() {
-                    ListenForInput(listitems, index, config, callback);
+                    ListenForInput(listitems, index, callback);
                 }, _delayBetweenInputDetection);
             }
         });

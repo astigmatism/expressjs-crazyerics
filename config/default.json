@@ -706,43 +706,165 @@
 		"show_hidden_files": true
 	},
 	"mappings": {
+		"a2600": {
+			"up_axis": "Up",
+			"down_axis": "Down",
+			"left_axis": "Left",
+			"right_axis": "Right",
+			"b_btn": "Button"
+		},
+		"gb": {
+			"up_axis": "Up",
+			"down_axis": "Down",
+			"left_axis": "Left",
+			"right_axis": "Right",
+			"a_btn": "A",
+			"b_btn": "B",
+			"start_btn": "Start",
+			"select_btn": "Select"
+		},
+		"gbc": {
+			"up_axis": "Up",
+			"down_axis": "Down",
+			"left_axis": "Left",
+			"right_axis": "Right",
+			"a_btn": "A",
+			"b_btn": "B",
+			"start_btn": "Start",
+			"select_btn": "Select"
+		},
+		"gba": {
+			"up_axis": "Up",
+			"down_axis": "Down",
+			"left_axis": "Left",
+			"right_axis": "Right",
+			"a_btn": "A",
+			"b_btn": "B",
+			"start_btn": "Start",
+			"select_btn": "Select",
+			"l_btn": "L",
+			"r_btn": "R"
+		},
+		"gg": {
+			"up_axis": "Up",
+			"down_axis": "Down",
+			"left_axis": "Left",
+			"right_axis": "Right",
+			"a_btn": "2",
+			"b_btn": "1",
+			"start_btn": "Start"
+		},
+		"gen": {
+			"up_axis": "Up",
+			"down_axis": "Down",
+			"left_axis": "Left",
+			"right_axis": "Right",
+			"y_btn": "A",
+			"b_btn": "B",
+			"a_btn": "C",
+			"start_btn": "Start",
+			"select_btn": "Select",
+			"l_btn": "X",
+			"x_btn": "Y",
+			"r_btn": "Z"
+		},
+		"lynx": {
+			"up_axis": "Up",
+			"down_axis": "Down",
+			"left_axis": "Left",
+			"right_axis": "Right",
+			"a_btn": "A",
+			"b_btn": "B",
+			"start_btn": "Start",
+			"l_btn": "Option 1",
+			"r_btn": "Option 2"
+		},
+		"nes": {
+			"up_axis": "Up",
+			"down_axis": "Down",
+			"left_axis": "Left",
+			"right_axis": "Right",
+			"a_btn": "A",
+			"b_btn": "B",
+			"start_btn": "Start",
+			"select_btn": "Select"
+		},
+		"ngpx": {
+			"up_axis": "Up",
+			"down_axis": "Down",
+			"left_axis": "Left",
+			"right_axis": "Right",
+			"a_btn": "B",
+			"b_btn": "A",
+			"start_btn": "Option"
+		},
+		"pce": {
+			"up_axis": "Up",
+			"down_axis": "Down",
+			"left_axis": "Left",
+			"right_axis": "Right",
+			"a_btn": "I",
+			"b_btn": "II",
+			"start_btn": "Run",
+			"select_btn": "Select"
+		},
+		"sms": {
+			"up_axis": "Up",
+			"down_axis": "Down",
+			"left_axis": "Left",
+			"right_axis": "Right",
+			"b_btn": "1/Start",
+			"a_btn": "2"
+		},
+		"snes": {
+			"up_axis": "Up",
+			"down_axis": "Down",
+			"left_axis": "Left",
+			"right_axis": "Right",
+			"a_btn": "A",
+			"b_btn": "B",
+			"x_btn": "X",
+			"y_btn": "Y",
+			"start_btn": "Start",
+			"select_btn": "Select",
+			"l_btn": "L",
+			"r_btn": "R"
+		},
+		"vect": {
+			"up_axis": "Up",
+			"down_axis": "Down",
+			"left_axis": "Left",
+			"right_axis": "Right",
+			"a_btn": "1",
+			"b_btn": "2",
+			"x_btn": "3",
+			"y_btn": "4"
+		},
+		"vb": {
+			"up_axis": "Up",
+			"down_axis": "Down",
+			"left_axis": "Left",
+			"right_axis": "Right",
+			"a_btn": "A",
+			"b_btn": "B",
+			"start_btn": "Start",
+			"select_btn": "Select",
+			"l_btn": "L",
+			"r_btn": "R"
+		},
 		"default": {
-			"input_player1_joypad_index": 0,
-			"input_player1_up_axis": "-1",
-			"input_player1_down_axis": "+1",
-			"input_player1_left_axis": "-0",
-			"input_player1_right_axis": "+0",
-			"input_player1_a_btn": 0,
-			"input_player1_b_btn": 1,
-			"input_player1_x_btn": 3,
-			"input_player1_y_btn": 9,
-			"input_player1_start_btn": 8,
-			"input_player1_select_btn": 7,
-			"input_player1_l_btn": "+4",
-			"input_player1_r_btn": "+5",
-			
-			"input_player2_joypad_index": 1,
-			"input_player2_b_btn": 2,
-			"input_player2_a_btn": 1,
-			"input_player2_y_btn": 3,
-			"input_player2_x_btn": 0,
-			"input_player2_l_btn": 4,
-			"input_player2_r_btn": 5,
-			"input_player2_start_btn": 9,
-			"input_player2_select_btn": 8,
-
-			"input_player2_up_axis": "-1",
-			"input_player2_down_axis": "+1",
-			"input_player2_left_axis": "-0",
-			"input_player2_right_axis": "+0"
-
-			// "input_enable_hotkey_btn": 8,
-			// "input_exit_emulator_btn": 9,
-			// "input_save_state_btn": 5,
-			// "input_load_state_btn": 4,
-			// "input_menu_toggle_btn": 0,
-			// "input_state_slot_increase_axis": "+0",
-			// "input_state_slot_decrease_axis": "-0"
+			"up_axis": "Up",
+			"down_axis": "Down",
+			"left_axis": "Left",
+			"right_axis": "Right",
+			"a_btn": "A",
+			"b_btn": "B",
+			"x_btn": "X",
+			"y_btn": "Y",
+			"start_btn": "Start",
+			"select_btn": "Select",
+			"l_btn": "L",
+			"r_btn": "R"
 		}
 	},
 	"emulators": {

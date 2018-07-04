@@ -20,9 +20,10 @@ var cesSliders = (function(_config, _Compression, $silderIcons) {
     //self execute at end of script for availiblity of everything above
     var Constructor = (function() {
 
-        $silderIcons.children().each(function() {
+        $silderIcons.children().each(function(index, $li) {
 
             var sliderId = $(this).data('slider');
+            var $panel = $('#' + sliderId + '-slider');
 
             //if a data reference was found along with the dom element
             if (sliderId && $('#' + sliderId + '-slider')) {
@@ -30,10 +31,16 @@ var cesSliders = (function(_config, _Compression, $silderIcons) {
                 var module;
 
                 if (window.hasOwnProperty('cesSliders' + sliderId)) {
-                    module = new window['cesSliders' + sliderId](_config, $('#' + sliderId + '-slider'), args)
+                    module = new window['cesSliders' + sliderId](_config, $li, $panel, args);
                 }
 
-                
+                _sliders[sliderId] = {
+                    icon: $li,
+                    panel: $panel,
+                    module: module
+                }
+
+
             }
         });
 

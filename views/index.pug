@@ -29,9 +29,11 @@ block content
                     p Continue playing, search for, or select a game suggestion below
             div(class="dialogwrapper")
                 div(class="ConfigureGamepad")
-                    h2 Configure Gamepad
-                    p The connected gamepad hasn't been configured before: #[span]
-                    ul#gamepadinputs
+                    h2 Configure Gamepad For #[span(class="gamepadsystem")]
+                    p The gamepad "#[span(class="gamepadid")]" hasn't been configured for port #[span(class="gamepadport")] on this system.
+                    div#gamepadwrapper
+                        div#gamepadvoid
+                        ul#gamepadinputs
                     div
                         h3#startgamepadover(class="zoom") Start Over
                         h3#skipgamepadconfig(class="zoom") Don't Use this Gamepad

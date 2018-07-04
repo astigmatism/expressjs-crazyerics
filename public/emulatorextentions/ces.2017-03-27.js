@@ -255,7 +255,7 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _GamePad, _Pr
          * @param  {Object} shader
          * @return {undef}
          */
-        this.BuildLocalFileSystem = function(compressedGameData, compressedSupprtData, compressedShaderData) {
+        this.BuildLocalFileSystem = function(gameKey, compressedGameData, compressedSupprtData, compressedShaderData) {
 
             var i;
             var content;

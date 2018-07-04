@@ -709,7 +709,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
         //adjust play area for available client screen size
         self.AdjustPlayArea();
 
-        _Module.BuildLocalFileSystem(compressedGameData, compressedSupprtData, compressedShaderData);
+        _Module.BuildLocalFileSystem(_gameKey, compressedGameData, compressedSupprtData, compressedShaderData);
     };
 
     this.AdjustPlayArea = function(toggle) {

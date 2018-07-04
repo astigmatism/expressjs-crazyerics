@@ -258,7 +258,7 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _GamePad, _Pr
              * @param  {Object} shader
              * @return {undef}
              */
-            this.BuildLocalFileSystem = function(compressedGameData, compressedSupprtData, compressedShaderData) {
+            this.BuildLocalFileSystem = function(gameKey, compressedGameData, compressedSupprtData, compressedShaderData) {
     
                 var i;
                 var content;
@@ -383,7 +383,7 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _GamePad, _Pr
                     }
 
                     //get input assignments
-                    configString += self._InputHelper.BuildInputConfiguration();
+                    configString += self._InputHelper.BuildInputConfiguration(gameKey);
 
                     //default button mappings
                     // if (_config.mappings) {

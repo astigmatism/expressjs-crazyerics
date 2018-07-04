@@ -15,7 +15,7 @@ var cesGamePad = (function(_config, _Compression, _PubSub, _Tooltips, _Preferenc
     var _gameLoop;
 
     //debug
-    var reconfigureEachTime = false; //when true will avoid checking preferences for saved configuration
+    var reconfigureEachTime = true; //when true will avoid checking preferences for saved configuration
 
     //these values are specific to retroarch config
 
@@ -38,61 +38,72 @@ var cesGamePad = (function(_config, _Compression, _PubSub, _Tooltips, _Preferenc
     // public methods
 
     //determine if controllers need configuration, if so, use dialog
-    this.Configure = function(callback) {
+    this.Configure = function(gameKey, callback) {
 
         if ($.isEmptyObject(_gamepads)) {
             return callback();
         }
 
-        ConfigureGamepad(0, function() {
+        ConfigureGamepad(0, gameKey, function() {
             //all gamepads configured and saved to prefs
             callback();
         });
 
     };
 
-    this.GetConfiguredGamepadInput = function() {
+    var ConfigureGamepad = function(index, gameKey, callback) {
+
+        var gamepad = _gamepads[index];
+        
+        //base case, bail
+        if (!gamepad) {
+            return callback();
+        }
+        
+        //we expect a mappings in the config to allow this system to be configured with a gamepad
+        if (_config.mappings[gameKey.system]) {
+
+
+            var compressedName = _Compression.Compress.string(gamepad.id);
+            var prefName = 'mappings.gamepad.' + gameKey.system + '.' + compressedName + '.' + index;
+            var savedMappings = _Preferences.Get(prefName);
+
+            //if we found preferences for the gamepad already, no need to configure, try next gamepad until no more
+            if (savedMappings && !reconfigureEachTime) {
+                return ConfigureGamepad(index+1, gameKey, callback); //configure next gamepad
+            }
+
+            _Dialogs.Open('ConfigureGamepad', [_config, gamepad, gameKey], false, function(compressedInputConfig) {
+                
+                //if the dialog is returning a successful configuration, let's save it
+                if (compressedInputConfig) {
+                    _Preferences.Set(prefName, compressedInputConfig);
+                }
+                
+                return ConfigureGamepad(index+1, gameKey, callback); //configure next gamepad
+            });
+        }
+        else {
+            return callback();
+        }
+    };
+
+    this.GetConfiguredGamepadInput = function(gameKey) {
 
         var mappings = [];
         for (var index in _gamepads) {
 
             var gamepad = _gamepads[index];
             var compressedName = _Compression.Compress.string(gamepad.id);
-            var savedMappings = _Preferences.Get('mappings.gamepad.' + index + '.' + compressedName); //a unique name includes the port plugged into (for dulcaite gamepads on all ports)
+            var prefname = 'mappings.gamepad.' + gameKey.system + '.' + compressedName + '.' + index;
+            var savedMappings = _Preferences.Get(prefname); //a unique name includes the port plugged into (for dulcaite gamepads on all ports)
+            
             if (savedMappings) {
                 var decompressedConfig = _Compression.Decompress.json(savedMappings);
                 mappings.push(decompressedConfig);
             }
         }
         return mappings;
-    };
-
-    var ConfigureGamepad = function(index, callback) {
-
-        var gamepad = _gamepads[index];
-
-        //base case, bail
-        if (!gamepad) {
-            return callback();
-        }
-
-        var compressedName = _Compression.Compress.string(gamepad.id);
-        var savedMappings = _Preferences.Get('mappings.gamepad.' + index + '.' + compressedName);
-
-        //if we found preferences for the gamepad already, no need to configure, try next gamepad until no more
-        if (savedMappings && !reconfigureEachTime) {
-            return ConfigureGamepad(index+1, callback); //configure next gamepad
-        }
-
-        _Dialogs.Open('ConfigureGamepad', [gamepad], false, function(compressedInputConfig) {
-            
-            //if the dialog is returning a successful configuration, let's save it
-            if (compressedInputConfig) {
-                _Preferences.Set('mappings.gamepad.' + index + '.' + compressedName, compressedInputConfig);
-            }
-            
-            return ConfigureGamepad(index+1, callback); //configure next gamepad
-        });
     };
 
     this.GetNextInput = function(callback) {
