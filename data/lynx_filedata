@@ -1,1 +1,1706 @@
-{"eJwzMjVTcM7PyS9ScEnNzVdIqlRwSiwuyUzMUwhOzshMzlbQMLS0NNdU0Ahw0dTLyasAAGsGDoQ=":{"s":5553},"eJwzMjVTcM7PyS9ScEnNzVdIqlRwSiwuyUzMUwhOzshMzlbQMLS0NNdU0Ahw0VSITjSM1cvJqwAAtbAP7g==":{"s":5477},"eJwzMjVTcM7PyS9S8E3MS0nNSSrKL1FwSc3NV0iqVHBKLC7JTMxTCE7OyEzOVtAwtLS00FTQCHDR1MvJqwAAQfgSrQ==":{"s":6337},"eJwzMjVTcM7PyS9S8E3MS0nNSSrKL1FwSc3NV0iqVHBKLC7JTMxTCE7OyEzOVtAwtLS00FTQCHDRVIhONIzVy8mrAAChbxQX":{"s":6313},"eJxzDHBS0FVwzMlRCMjPzCspVnAqzclJLcnMU9AwtLQ00FTQCNXUy8mrAAD0kgvg":{"s":304393},"eJxzDHBS0FVwzMlRCMjPzCspVnAqzclJLcnMU9AwtLQ00FSITjKMVdAI1dTLyasAADPsDUs=":{"s":310821},"eJxzzMlMzVMIK1YIKEpNSSzJL1LQCCjKL8kvqSxI1VTQMLS0NNZUiFaMVdAI1dTLyasAAIdaDwE=":{"s":282877},"eJxzLE8tzs9NVXDPz0lT0DC0tDTUVNAI1dTLyasAAHeqCAU=":{"s":331301},"eJxzLE8tzs9NVXDPz0lT0DC0tDTUVIhOMoxV0AjV1MvJqwAAo64JcA==":{"s":343485},"eJxzCvJWCE4tKkstUvDMKy5JzMkBspIqFZwSi0syE/MUgpMzMpOzFTQMLS3NNBU0Alw09XLyKgD23hFm":{"s":837},"eJxzCvJWCE4tKkstUvDMKy5JzMkBspIqFZwSi0syE/MUgpMzMpOzFTQMLS3NNBU0Alw0FaITDWP1cvIqAFABEtA=":{"s":909},"eJxzSixOTUrMyVHwSC3KTy1W0DC0tDTUVNAI1dTLyasAAJdCCSg=":{"s":118069},"eJxzSixOTUrMyVHwSC3KTy1W0DC0tDTUVIhOMoxV0AjV1MvJqwAAyPUKkw==":{"s":254749},"eJxzSizOTi1JKkosz1HQMLS0NNJU0AjV1MvJqwAAc7kH/w==":{"s":154693},"eJxzSizOTi1JKkosz1HQMLS0NNJUiE40jFXQCNXUy8mrAACflAlp":{"s":151777},"eJxzSizOTi1JKkosz1HQMLS0NNJUiE4yjFXQCNXUy8mrAACfnwlq":{"s":303269},"eJxzSizJTcxTCEotKS3KK1bQMLS0NNJU0AjV1MvJqwAAjwQI8w==":{"s":283585},"eJxzSizJTcxTCEotKS3KK1bQMLS0NNJUiE4yjFXQCNXUy8mrAAC/rgpe":{"s":301601},"eJxzSiwpyUlVCM9ITc0pVtAwtLQ01lTQcEqtzM9LUXBPzE0t1lSIzjeMVdAI1dTLyasAAHHcDsk=":{"s":149949},"eJxzSiwpyUlVCM9ITc0pVtAwtLQ01lTQCNXUy8mrAACCJAhy":{"s":146469},"eJxzSiwpyUmtys9LVTAyMDBQ0DC0tDTTVNAI1dTLyasAAI7wCIs=":{"s":229953},"eJxzyszJUVBTCElNUS9WcK1ITs3JSc0rUXBMKQNSpUWpChqGlpaGmgoaoZp6OXkVAGrGDr4=":{"s":238977},"eJxzyszJUVBTCElNUS9WcK1ITs3JSc0rUXBMKQNSpUWpChqGlpaGmgrRSYaxChqhmno5eRUAuGcQKQ==":{"s":259025},"eJxzyslPzlbwLy1R0DC0tDTQVNAI1dTLyasAAFgkBs4=":{"s":47153},"eJxzyslPzlbwLy1R0DC0tDTQVIjON4xV0AjV1MvJqwAAfqQIRg==":{"s":48693},"eJxzyilNVfDJTM8oycvMS1fQMLS0sNRU0AjV1MvJqwAAjOoI3w==":{"s":145481},"eJxzyilNVfDJTM8oycvMS1fQMLS0sNRUiE40jFXQCNXUy8mrAAC9JQpJ":{"s":148401},"eJxzyilNVfDJTM8oycvMS1dwSc3NV9AwtLSw1FTQCNXUy8mrAADEPgqE":{"s":145009},"eJxzyilNVfDJTM8oycvMS1dwSc3NV9AwtLSw1FSIzjeMVdAI1dTLyasAAP1MC/w=":{"s":148105},"eJxzys/MS1dwSc3NV9AwtLSs0FTQCHDR1MvJqwAAak8Hpg==":{"s":4197},"eJxzys/MS1dwSc3NV9AwtLSs0FTQCHDRVIhONIzVy8mrAACSowkQ":{"s":5421},"eJxzys/MS1dwSc3NV9AwtLSs0FTQCHDRVIhONIrVy8mrAACSqQkR":{"s":4769},"eJxzys/MS1dwSc3NV9AwtLSs0FTQCHDRVIhONI7Vy8mrAACSrwkS":{"s":5277},"eJxzKk1KyklVcMoHU2F6Rgouqbn5ChqGlpYVmgoaAS6aejl5FQDlkgs/":{"s":7245},"eJxzKk1KyklVCCnKLwXRGoaWluaaChohqTmp6Ym5qcVAdqimXk5eBQAVEAzj":{"s":189721},"eJxzNjNV0FVwSc3NN1DQMLS0tNBU0Ahw0dTLyasAAFcLBqI=":{"s":25001},"eJxzNjNV0FVwSc3NN1DQMLS0tNBU0Ahw0VSITjSM1cvJqwAAeksIDA==":{"s":24997},"eJxzNjNV0FVwSc3NN1TQMLS0tNBU0Ahw0dTLyasAAFccBqM=":{"s":3121},"eJxzNjNV0FVwSc3NN1TQMLS0tNBU0Ahw0VSITjSM1cvJqwAAemEIDQ==":{"s":3129},"eJxzNjNV0FVwSc3NN1LQMLS0tNBU0Ahw0dTLyasAAFctBqQ=":{"s":3269},"eJxzNjNV0FVwSc3NN1LQMLS0tNBU0Ahw0VSITjSM1cvJqwAAencIDg==":{"s":3253},"eJxzNjNV0FVwSc3NN1bQMLS0tNBU0Ahw0dTLyasAAFc+BqU=":{"s":3765},"eJxzNjNV0FVwSc3NN1bQMLS0tNBU0Ahw0VSITjSM1cvJqwAAeo0IDw==":{"s":3789},"eJxzNjNV0FVwd4sISS0uUdAwtLS00FTQCHDR1MvJqwAAaiwHcg==":{"s":3597},"eJxzNjNV0FVwT6soSS0uUdAwtLS00FTQCHDRVIhONIzVy8mrAACbPAk8":{"s":3625},"eJxzNjNV0FXwTcxLSc1JKsovUdAwtLS00FTQCHDR1MvJqwAAkcsI9Q==":{"s":3197},"eJxzNjNV0FXwTcxLSc1JKsovUdAwtLS00FTQCHDRVIhONIzVy8mrAADAqgpf":{"s":3249},"eJxzNjNV0FXwTaxKTUnNzVfQMLS0tNBU0Ahw0dTLyasAAHreCB8=":{"s":3549},"eJxzNjNV0FXwTaxKTUnNzVfQMLS0tNBU0Ahw0VSITjSM1cvJqwAApY8JiQ==":{"s":3577},"eJxzNjNV0FXwzczLzE3MUdAwtLS00FTQCHDR1MvJqwAAb/YHtA==":{"s":5497},"eJxzNjNV0FXwzczLzE3MUdAwtLS00FTQCHDRVIhONIzVy8mrAACYkAke":{"s":5141},"eJxzNjNV0FUILijKLElV0DC0tLTQVNAIcNHUy8mrAABnfAdk":{"s":3609},"eJxzNjNV0FUILijKLElV0DC0tLTQVNAIcNFUiE40jNXLyasAAI6GCM4=":{"s":3601},"eJxzTszJTMsvystMVHBPzE0tVtAwtLQ01FTQCNXUy8mrAACkuQmR":{"s":172013},"eJxzTszJTMsvystMVHBPzE0tVtAwtLQ01FSIzjeMVdAI1dTLyasAANkICwk=":{"s":174417},"eJxzTiwqKc7IL1dIqlTwTSwpychMLFZwyc/NzFPQMLS0tNBU0Ahw0dTLyasAADnrDYo=":{"s":5169},"eJxzTs0rySxITUlV0Agoyi/JL6ksSNVU0DC0tDAHUsEZiSn55cX5aSVATqimXk5eBQCclQ/8":{"s":15481},"eJxzzkhNzlZwdQ0I8vdVSKpUcEosLslMzFMITs7IBEpoGFpammkqaAS4aOrl5FUAAFKlDeg=":{"s":5137},"eJxzzkhNzlZwdQ0I8vdVSKpUcEosLslMzFMITs7IBEpoGFpammkqaAS4aCpEJxrG6uXkVQAAmkMPUg==":{"s":5137},"eJxzzkhNzk4tSk1RcMtJTFfQMLS0NNRU0AjV1MvJqwAAijkIpA==":{"s":254497},"eJxzzkhNzk4tSk1RcMtJTFfQMLS0NNRUiE4yjFXQCNXUy8mrAAC5WAoP":{"s":270893},"eJxzzsgsUC9WcM5IzMlJzUtPVdAwtLSw1FTQCNXUy8mrAACcnwlU":{"s":152909},"eJxzzsgsUC9WcM5IzMlJzUtPVdAwtLSw1FSIzjeMVdAI1dTLyasAAM+9Csw=":{"s":155353},"eJxzzsgssFBwzS3NSSzJL1IISs1JTSxOVTBU0DAyMDDRVNAIcNHUy8mrAAAJEAwU":{"s":9121},"eJxzzsgssFBwzS3NSSzJL1IISs1JTSxOVTBS0DAyMDDRVNAIcNHUy8mrAAAJIQwV":{"s":9121},"eJxzzsgssFBwzS3NSSzJL1IISs1JTSxOVTBW0DAyMDDRVNAIcNHUy8mrAAAJMgwW":{"s":12653},"eJxzzsgssFBwzS3NSSzJL1IISs1JTSxOVTBR0DAyMDDRVNAIcNHUy8mrAAAJQwwX":{"s":15897},"eJxzzsgssFBwzS3NSSzJL1IISs1JTSxOVTBV0DAyMDDRVNAIcNHUy8mrAAAJVAwY":{"s":17965},"eJxzzsgssFBwzS3NSSzJL1IISs1JTSxOVTBT0DAyMDDRVNAIcNHUy8mrAAAJZQwZ":{"s":18601},"eJxzzixKzklVcClKLFcISS0uUdAwtLSs0FTQCHDR1MvJqwAAqd0J0g==":{"s":8129},"eJxzzixKzklVCCnNy0vNUUiqVHBKLC7JTMxTCE7OyEzOVtAwtLQ001TQCHDR1MvJqwAAgTUPCg==":{"s":8021},"eJxzzixKzklVSMxLUQgpzctLzVFwSc3NV9AwtLSs0FTQCHDR1MvJqwAA9ecL8g==":{"s":9365},"eJxzzslMzi5WVHBJzc1XCDNTSKpU8E0sKcnITCxWcMnPzcxT0DAyMDDUVNAIcNHUy8mrAACGMQ7y":{"s":24909},"eJxzzslMzi5WVEiqVPBNLCnJyEwsVnDJz83MU9AwMjAw1FTQCHDR1MvJqwAAGT4MoQ==":{"s":19113},"eJxzzs8rLE0tLlHIT1OIyi9X0DC0tDTTVNAI1dTLyasAAJozCTg=":{"s":143049},"eJxzLqosLknMUfDNzEstVvD0VNAwtLQ00FTQCNXUy8mrAACfwAk7":{"s":147081},"eJxzLqosLknMUfDNzEstVvD0VNAwtLQ00FSIzjeMVdAI1dTLyasAANJhCrM=":{"s":149653},"eJxzSc3NVzBUSKpUcEosLslMzFMITs7ITM5W0DC0tDTTVNAIcNHUy8mrAAD+Wgv4":{"s":949},"eJxzSc3NVzBSSKpUcEosLslMzFMITs7ITM5W0DC0tDTTVNAIcNHUy8mrAAD+fQv5":{"s":3173},"eJxzSc3NVzBWSKpUcEosLslMzFMITs7ITM5W0DC0tDTTVNAIcNHUy8mrAAD+oAv6":{"s":3941},"eJxzSc3NVzBRSKpUcEosLslMzFMITs7ITM5W0DC0tDTTVNAIcNHUy8mrAAD+wwv7":{"s":4217},"eJxzSc3NVzBVSKpUcEosLslMzFMITs7ITM5W0DC0tDTTVNAIcNHUy8mrAAD+5gv8":{"s":5401},"eJxzSc3NVzBTSKpUcEosLslMzFMITs7ITM5W0DC0tDTTVNAIcNHUy8mrAAD/CQv9":{"s":13105},"eJxzSc3NVzBTSKpUcEosLslMzFMITs7ITM5W0DC0tDTTVNAIcNFUiE40jNXLyasAAD0fDWc=":{"s":13121},"eJxzSS1OLSpRCC4pysxOVdBVCEotKS3KUyjJVyjJSFVwL81JU9AwtLQ01lTQCEnNSU1PzE0tBrJDNfVy8ioAdVcTjg==":{"s":249037},"eJxzSS1OLSpRCC4pysxOVdBVCEotKS3KUyjJVyjJSFVwL81JU9AwtLQ01lTQCEnNSU1PzE0t1lSITjKMVdAI1dTLyasAANsIFPk=":{"s":271069},"eJxzyUzPTEnNzVfQMLS0rNBU0Ahw0dTLyasAAF1UBzQ=":{"s":131393},"eJxzyUzPTEnNzVcwUtAwtLSs0FTQCHDR1MvJqwAAaSwHhg==":{"s":354457},"eJxzyczLz6nMLchMLlbQMLS0NNJU0AjV1MvJqwAAdf4IGA==":{"s":213197},"eJxzyczLz6nMLchMLlbQMLS0NNJUiE4yjFXQCNXUy8mrAACiYQmD":{"s":227285},"eJxzySwqqVTwSSwqqlTQVQhKzUtNT0xJVXDOL1DQMLS0NNJU0AjV1MvJqwAAGNUMjQ==":{"s":304181},"eJxzySwqqVTwSSwqqlTQVQhKzUtNT0xJVXDOL1DQMLS0NNJUiE4yjFXQCNXUy8mrAABbgQ34":{"s":321421},"eJxzyS9NyklVcClKTM/PU9AwtLQ01lTQCEnNSU1PzE0tBrJDNfVy8ioAA0oMbA==":{"s":289565},"eJxzyS9NyklVcClKTM/PU9AwtLQ01lTQCEnNSU1PzE0t1lSITjKMVdAI1dTLyasAAEVRDdc=":{"s":311309},"eJxzKUpMLs1JVNBVCMlIVQjNS0lNTFHQMLS0NNRU0AjV1MvJqwAAwowKRw==":{"s":289221},"eJxzKUpMLs1JVNBVCMlIVQjNS0lNTFHQMLS0NNRUiE4yjFXQCNXUy8mrAAD52guy":{"s":306489},"eJxzKUpMz0stUdAwtLQ01VTQCNXUy8mrAABLlAZV":{"s":352933},"eJxzKUosL0ktLlFIqlRwSiwuyUzMUwhOzshMzlbQMLS0rNBU0Ahw0dTLyasAADpeDbI=":{"s":12457},"eJxzKc1LT83P01EIyUhVCNMzqFBIqlTwTSwpychMLFZwyc/NzFPQMLS0NNdU0Ahw0dTLyasAAK0cD8c=":{"s":41941},"eJxzKc1LT83P01EIyUhVCNMzNFRIqlTwTSwpychMLFZwyc/NzFPQMLS0tNBU0Ahw0dTLyasAAKOWD4I=":{"s":45013},"eJxzKc1LT83P01EIyUhVCNMzNFJIqlTwTSwpychMLFZwyc/NzFPQMLS0tNBU0Ahw0dTLyasAAKO5D4M=":{"s":45021},"eJxzdQ0I8vdVCEktLlHwNHJW0DC0tKzQVNAIcNHUy8mrAACHuAh4":{"s":4965},"eJxzzUlNLinKT84vUNAwtLSw1FTQCNXUy8mrAABqCAej":{"s":157561},"eJxzzUlNLinKT84vUNAwtLSw1FSIzjeMVdAI1dTLyasAAJSxCRs=":{"s":160201},"eJxzLS3KL0hNzFMIzk9OTi1ScM5IzMlJzUtPVdAwtLQ01lTQCEnNSU1PzE0tBrJDNfVy8ioA1mwQ9w==":{"s":132929},"eJxzLS3KL0hNzFMIzk9OTi1ScM5IzMlJzUtPVdAwtLQ01lTQCEnNSU1PzE0t1lSIzjeMVdAI1dTLyasAAC/IEm8=":{"s":136277},"eJxzrUxVyE9TKMlIVXBKzcjPSUktUtAIKMovyS+pLEjVVNAwtLQ0AFJ+pW4RQCpUUy8nrwIA05kQYg==":{"s":110017},"eJxzSyxRcMpPSqpU0DC0tDTXVNAISc1JTU/MTS0GskM19XLyKgDD9QrD":{"s":216749},"eJxzy0xJzcksqVQIzSnJzE0sSVVwzkgtLgaSiTk5qXnpqQoahpaWhpoKGiGpOanpibmpxUB2qKZeTl4FAH5eE+w=":{"s":72185},"eJxzy0xJzcksqVQIzSnJzE0sSVVwzkgtLgaSiTk5qXnpqQoahpaWhpoKGiGpOanpibmpxZoK0fmGsQoaoZp6OXkVAOZ0FWQ=":{"s":74449},"eJxzy0zPKEktUgjTM1JwSc3NV9AwMjAw0FTQCHDR1MvJqwAAnCUI/Q==":{"s":44329},"eJxzyyxKVdBwSy1LLdJUcEnNzVdIqlRwSiwuyUzMUwhOzshMzlbQMLS0NNdU0Ahw0dTLyasAAKggD7c=":{"s":7241},"eJxzy88rUQhJLS5RMFJIqlRwSiwuyUzMUwhOzshMzlbQMLS0rNBU0Ahw0dTLyasAAE+IDg0=":{"s":2673},"eJxzy88rUQhJLS5RMFJIqlRwSiwuyUzMUwhOzshMzlbQMLS0rNBU0Ahw0VSITjSM1cvJqwAAl98Pdw==":{"s":2665},"eJxzTyxJLVbIT1OISs1LyU/Oz9NRCMlIVdAwtLSw1FTQCNXUy8mrAADk5QtJ":{"s":149033},"eJxzTyxJLVbIT1OISs1LyU/Oz9NRCMlIVdAwtLSw1FSIzjeMVdAI1dTLyasAACHbDME=":{"s":151577},"eJxzTyzNK8lJLVHQVQjJSAXizKIUBde85HygcGqRgoahpaWBpoJGqKZeTl4FAFplDks=":{"s":160073},"eJxzTyzNK8lJLVHQVQjJSAXizKIUBde85HygcGqRgoahpaWBpkJ0vmGsgkaopl5OXgUAplYPww==":{"s":162565},"eJxzz8gvzSlWUM9TV3DPyC8uKVYIyCktVgjTM1JwSc3NV9AwtLSs0FTQCHDR1MvJqwAAZYcONw==":{"s":14445},"eJxzzy9KyVcwNDBT0FUIyUhV8C0tSSxJTVHwSUxS8M3Py06tVNAwtLQ01lTQCNXUy8mrAABxBA6E":{"s":344805},"eJxzzy9KyVcwNDBT0FUIyUhV8C0tSSxJTVHwSUxS8M3Py06tVNAwtLQ01lSITjKMVdAI1dTLyasAAL2DD+8=":{"s":361561},"eJxzzy9KyVcwNDBT0FUIyUhV8C0tSSxJTVHwSUxS8M3Py06tVNAwtLQ01lSITjKKVdAI1dTLyasAAL2ND/A=":{"s":345177},"eJzzSCxKUXApyizLzFNX0DC0tDTWVNAI1dTLyasAAHGFB8A=":{"s":121209},"eJzzSCxKUXApyizLzFNX0DC0tDTWVIjON4xV0AjV1MvJqwAAnL8JOA==":{"s":123717},"eJzzyE/OTq1U0DC0tDTSVNAI1dTLyasAAEMRBfA=":{"s":241333},"eJzzyE/OTq1U0DC0tDTSVIhOMoxV0AjV1MvJqwAAZKwHWw==":{"s":252033},"eJzzqEwpSlTQMLS0NNJU0AjV1MvJqwAAOp0FhQ==":{"s":270005},"eJzzqEwpSlTQMLS0NNJUiE4yjFXQCNXUy8mrAABaIQbw":{"s":281865},"eJzzNHJWcHUNCPL3VQhJLS5RSKpUcEosLslMzFMITs7ITM5W0DC0tDTTVNAIcNHUy8mrAABt8g6I":{"s":4877},"eJzzDApUCEktLlFIqlRwSiwuyUzMUwhOzshMzlbQMLS0tNBU0Ahw0dTLyasAAB7PDNA=":{"s":853},"eJzzDApUCEktLlFIqlRwSiwuyUzMUwhOzshMzlbQMLS0tNBU0Ahw0VSITjSM1cvJqwAAYPUOOg==":{"s":877},"eJzzzCtOLSpRcE/MTVUITi5KTc1TSKpUcEosLslMzAOKZGQmZytoGFpaVmgqaAS4aOrl5FUAANjJEPM=":{"s":1025},"eJzzLM7ITMlX0FUIyUhVCE+sVMhPUygBMoNL8vNSixU0DC0tDTUVNEI19XLyKgBJFA29":{"s":171545},"eJzzLM7ITMlX0FUIyUhVCE+sVMhPUygBMoNL8vNSixU0DC0tDTUVovMNYxU0QjX1cvIqAJI/DzU=":{"s":173845},"eJzzyszNrVRwzs/LSy0qVghJzcvLLFbQMLS0NNRU0AjV1MvJqwAA1nsLGw==":{"s":534333},"eJzzyszNrVRwzs/LSy0qVghJzcvLLFbQMLS0NNRUiE4yjFXQCNXUy8mrAAAR/AyG":{"s":574317},"eJzzyszNrVRwzs/LSy0qVghJzcvLLFbQMLS0NNRUiE4yilXQCNXUy8mrAAASBgyH":{"s":536149},"eJzzyi8tLlHQMLS0NNZU0AjPzMnJTMwtBjJDNfVy8ioAk8UJVg==":{"s":129729},"eJzzyi8tLlHQMLS0NNZU0AjPzMnJTMwt1lSIzjeMVdAI1dTLyasAAMbtCs4=":{"s":132777},"eJzzzkmsUNAwtLQ00FTQCNXUy8mrAAAyXQUb":{"s":303865},"eJzzzkmsUNAwtLQ00FSITjKMVdAI1dTLyasAAE/PBoY=":{"s":312857},"eJzzLkqsqlRwTE5V8M3MSywpLUpVcM/PSVPQMLS0NNdU0AhJzUlNT8xNLQayQzX1cvIqAKGuD+E=":{"s":119369},"eJzzLkqsqlRwTE5V8M3MSywpLUpVcM/PSVPQMLS0NNdU0AhJzUlNT8xNLdZUiE4yjFXQCNXUy8mrAAD0/hFM":{"s":119361},"eJzzLkqsqlRwTE5V8M3MSywpLUpVcM/PSVPQMLS0NNdU0AhJzUlNT8xNLdZUiE4yilXQCNXUy8mrAAD1CBFN":{"s":119249},"eJzzLkqsqlRwTE5V8M3MSywpLUpVcM/PSVPQMLS0NNdU0AhJzUlNT8xNLdZUiE4yjlXQCNXUy8mrAAD1EhFO":{"s":26665},"eJzzLs1LV3DLz09R0DC0tDTSVNAI1dTLyasAAFftBso=":{"s":266477},"eJzzLs1LV3DLz09R0DC0tDTSVIhOMoxV0AjV1MvJqwAAfcoINQ==":{"s":284229},"eJzzSc3NzcxLL1bQMLS0NNZU0AjV1MvJqwAAVeoGyg==":{"s":388333},"eJzzSc3NzcxLL1bQMLS0NNZUiE4yjFXQCNXUy8mrAAB7xwg1":{"s":392261},"eJzzSa3ILFbQMLS0tNRU0AjOz0tPyixKATJDNfVy8ioAkhMJQg==":{"s":246645},"eJzzySxJVdBwSy1LLdJUSKpUcEosLslMzFMITs7ITM5W0DC0tDTXVNAIcNHUy8mrAABZyg4a":{"s":13481},"eJzzyU9JVQgqzctLLVLQMLS0NNNU0PAuLSpR8M8pTs0DckI19XLyKgDwuQvn":{"s":44881},"eJzzyU/Pz1NIqlRwSiwuyUzMUwhOzshMzlbQMLS0NNNU0Ahw0dTLyasAAAKQDCE=":{"s":5957},"eJzzyU/Pz1NIqlRwSiwuyUzMUwhOzshMzlbQMLS0NNNU0Ahw0VSITjSM1cvJqwAAQUsNiw==":{"s":5929},"eJzzyc8vqFLQCCjKL8kvqSxI1VTQMLS0NAJSHol5KbmJKakKwflpJeWJRSCpUE29nLwKAMSWENY=":{"s":188949},"eJzzqcyrUHBOLM7My1fQMLS0NNJU0AjV1MvJqwAAbfsHtQ==":{"s":228093},"eJzzqcyrUHBOLM7My1fQMLS0NNJUiE4yjFXQCNXUy8mrAACYbwkg":{"s":246345},"eJzzqcyrUHDJTEzPyy8uyUxWcE4sKlEIM9AzMFLQMLS0sNRU0AjV1MvJqwAAGVoMQw==":{"s":27769},"eJzzqcyrUPDJTFIISS0uUQgoyk8vSsxVSKpU8E0sKcnITCxWcMnPzcxT0DC0tDTXVNAIcNHUy8mrAAAPwBHY":{"s":3945},"eJzzTczJTCpVcMrMzszLVAjLz8lJrUxKzMlR0DC0tDTWVNAI1dTLyasAAAxhDJQ=":{"s":288605},"eJzzTczJTCpVcMrMzszLVAjLz8lJrUxKzMlR0DC0tDTWVIhOMoxV0AjV1MvJqwAATzAN/w==":{"s":303129},"eJzzTcxLSc1xKsovUXBJzc1XSKpUcEosLslMzFMITs7ITM5W0DC0tDTTVNAIcNHUy8mrAACiLg+v":{"s":6053},"eJzzTcxLSc1xKsovUXBJzc1XSKpUcEosLslMzFMITs7ITM5W0DC0tDTTVNAIcNFUiE40jNXLyasAAPKvERk=":{"s":6061},"eJzzTSxKyklV8E1MyUstLlZIqgQyS0oyMhOLFVzyczPzFDQMLS3NNRU0Alw09XLyKgCULw98":{"s":11389},"eJzzTSxKyklV8E1MyUstLlZIqgQyS0oyMhOLFVzyczPzFDQMLS0tNRU0Alw09XLyKgCURQ9+":{"s":30685},"eJzzTSzKzFcIyCktVnBJzc1X0DC0tKzQVNAIcNHUy8mrAACelglz":{"s":10561},"eJzzTSzKScovyldwz1dU0Agoyi/JL6ksSNVU0DC0tDQGUi6Z6ZkliTkKnrmJ6SDhUE29nLwKAPDSETw=":{"s":97837},"eJzzTU1PVPBNzFMIyCktVnBJzc1X0DC0tKzQVNAIcNHUy8mrAAC4Wgox":{"s":11553},"eJzzzUwuyldwy88rUXBJLElUSKpUcEosLslMzFMITs7ITM5W0DC0tLTUVNAIcNHUy8mrAACXgw9w":{"s":1077},"eJzzzUwuyldwy88rUXApzS1ILVJIqlRwSiwuyUzMUwhOzshMzlbQMLS0rNBU0Ahw0dTLyasAAMbHEKI=":{"s":4389},"eJzzzcxLLVYwUkiqVHBKLC7JTMxTCE7OyEzOVtAwtLQ001TQCHDR1MvJqwAAEW0McA==":{"s":6105},"eJzzzczLVHBJzc1XMDBUSKpUcEosLslMzFMITs7ITM5W0DC0tLTQVNAIcNHUy8mrAABRAA3X":{"s":961},"eJzzzczLVHBJzc1XMDBSSKpUcEosLslMzFMITs7ITM5W0DC0tLTQVNAIcNHUy8mrAABRIw3Y":{"s":3177},"eJzzzczLVHBJzc1XMDBWSKpUcEosLslMzFMITs7ITM5W0DC0tLTQVNAIcNHUy8mrAABRRg3Z":{"s":3965},"eJzzzczLVHBJzc1XMDBRSKpUcEosLslMzFMITs7ITM5W0DC0tLTQVNAIcNHUy8mrAABRaQ3a":{"s":4233},"eJzzzczLVHBJzc1XMDBVSKpUcEosLslMzFMITs7ITM5W0DC0tLTQVNAIcNHUy8mrAABRjA3b":{"s":5425},"eJzzzczLVHBJzc1XMDBTSKpUcEosLslMzFMITs7ITM5W0DC0tLTQVNAIcNHUy8mrAABRrw3c":{"s":15385},"eJzzLdZTCEhM1vVNzFPQMLS0NNBU0AjV1MvJqwAAXioG9g==":{"s":72793},"eJzzLdZTCEhM1vVNzFPQMLS0NNBUiE40jFXQCNXUy8mrAACE2Ahg":{"s":75185},"eJzzLdZTCEhM1vVNzFPQMLS0NNBUiE4yjFXQCNXUy8mrAACE4whh":{"s":72905},"eJzzc/NRcMvPL0lKzMlR0DC0tDTQVNAI1dTLyasAAG8QB74=":{"s":217705},"eJzzc/NRcMvPL0lKzMlR0DC0tDTQVIhOMoxV0AjV1MvJqwAAmbEJKQ==":{"s":236425},"eJzzy8zLSlRwT8xMSc1T0DC0tDTQVNAI1dTLyasAAHQjB+M=":{"s":282905},"eJzzy8zLSlRwT8xMSc1T0DC0tDTQVIhOMoxV0AjV1MvJqwAAn30JTg==":{"s":293969},"eJzzy8zLSlRwT8xMSc1T8PT0VNBVCMlIVXDMS85MzStRCM7ILFDIT1Nwyc/PVdAwtLQ01lTQCNXUy8mrAAAc3BGp":{"s":420481},"eJzzy8zLSlRwT8xMSc1T8PT0VNBVCMlIVXDMS85MzStRCM7ILFDIT1Nwyc/PVdAwtLQ01lSITjKMVdAI1dTLyasAAHkUExQ=":{"s":161269},"eJzzy8zLSlRwT8xMSc1T8PT0VNBVCMlIVXDMS85MzStRCM7ILFDIT1Nwyc/PVdAwtLQ01lSITjKKVdAI1dTLyasAAHkeExU=":{"s":509265},"eJwLSEzW9UnMS1HQMLS0NNRU0AjV1MvJqwAATH4GTA==":{"s":162525},"eJwLSEzW9UnMS1HQMLS0NNRUiM43jFXQCNXUy8mrAABwdAfE":{"s":166337},"eJwLSCxILUrKr1TQMLS0NNBU0AjV1MvJqwAAVioGzQ==":{"s":98125},"eJwLSCxILUrKr1TQMLS0NNBUiM43jFXQCNXUy8mrAAB8pQhF":{"s":100957},"eJwLSCxKVPBJzc1UVCgzMDBU0DC0tDTXVNAIcNHUy8mrAACJAQhE":{"s":4609},"eJwLSCxKVPBJzc1UVCgzMDBS0DC0tDTXVNAIcNHUy8mrAACJEghF":{"s":3805},"eJwLSCxKVPBJzc1UVCgzMDBW0DC0tDTXVNAIcNHUy8mrAACJIwhG":{"s":4261},"eJwLSCxKVPBJzc1UVCgzMDBR0DC0tDTXVNAIcNHUy8mrAACJNAhH":{"s":5433},"eJwLSCxKVPBJzc1UVCgzMDBV0DC0tDTXVNAIcNHUy8mrAACJRQhI":{"s":8209},"eJwLyMxLSszJUfBKzFXQMLS0NNJU0AjV1MvJqwAAa1QHhw==":{"s":341481},"eJwLyMxLSszJUfBKzFXQMLS0NNJUiE4yjFXQCNXUy8mrAACU4gjy":{"s":352553},"eJwLyCxRcMtMzyhJLVLQVQjJSFUIzSnJzE0sSVVwzs8tSC3JLMnMz1PQMLS0NNJU0AjV1MvJqwAA4+MRQQ==":{"s":535257},"eJwLyCxRcMtMzyhJLVLQVQjJSFUIzSnJzE0sSVVwzs8tSC3JLMnMz1PQMLS0NNJUiE4yjFXQCNXUy8mrAAA+IhKs":{"s":559457},"eJwLyEmsVAjOL81LUQhOzC3ISVVIqlRwSiwuyUzMUwhOzshMzlbQMLS0NNNU0Ahw0dTLyasAAMTVEGM=":{"s":2597},"eJwLyM9LN1VIqlRwTizKUXDLL8pIzFPQMLS0NNdU0Ahw0dTLyasAAM9kCrU=":{"s":3945},"eJwLyM9LN1VIqlRwTizKUXDLL8pIzFPQMLS0NNdU0Ahw0VSITjSM1cvJqwAABxIMHw==":{"s":3925},"eJwLyC9PLVJwS0wuyS9S0DC0tDTSVNAI1dTLyasAAHh8CBk=":{"s":250025},"eJwLyC9PLVJwS0wuyS9S0DC0tDTSVIhOMoxV0AjV1MvJqwAApOQJhA==":{"s":269253},"eJwLKK2qykktUjAyMDBQ0HDMLFJwcvfVVNAwtLS0AFIBLpp6OXkVANJnCjM=":{"s":9329},"eJwLKK2qykktUjAyMDBQ0HDNK0ktKknMzAOKOLn7aipoGFpaWgCpABdNvZy8CgBTVA2Y":{"s":9489},"eJwLKK2qykktUjAyMDBQ0PDMK0vNKzE0VnBy99VU0DC0tLQAUgEumno5eRUAF04L7w==":{"s":9977},"eJwLKK2qykktUjAyMDBQCNMzMVbQcCxNVzAy01TQMLS0tABSAS6aejl5FQD1WwrR":{"s":96185},"eJwLKK2qykktUjAyMDBQCNMzqVDQcCxNVzA01VTQMLS0tABSAS6aejl5FQD8OAsU":{"s":5469},"eJwLKK2qykktUjAyMDBQCDPQM1JwSc3NV9AwtLS00FTQCHDR1MvJqwAA08gKWw==":{"s":5529},"eJwLzKxQ0DC0tDTUVNAISc1JTU/MTS0GskM19XLyKgCByAjG":{"s":123681},"eJwLzKxQ0DC0tDTUVNAISc1JTU/MTS3WVIjON4xV0AjV1MvJqwAAsiAKPg==":{"s":125929},"eJwLSsxMSc1T0DC0tDTXVNAISc1JTU/MTS0GskM19XLyKgCmZgnt":{"s":180933},"eJwLSswtSExPVdAwtLQ01FTQCNXUy8mrAABLHgZJ":{"s":240241},"eJwLSswtSExPVdAwtLQ01FSITjKMVdAI1dTLyasAAG52B7Q=":{"s":259093},"eJwLSswtSCwqUdAwtLQ01FTQCNXUy8mrAABMyQZj":{"s":317553},"eJwLSswtSCwqUdAwtLQ01FSITjKMVdAI1dTLyasAAHCjB84=":{"s":330373},"eJwLSixXSKpUcEosLslMzFMITs7ITM5W0DC0tDTXVNAIcNHUy8mrAADitgtN":{"s":4801},"eJwLSixXSKpUcEosLslMzFMITs7ITM5W0DC0tDTXVNAIcNFUiE40jNXLyasAAB1cDLc=":{"s":4761},"eJwLSixXSKpUcEosLslMzFMITs7ITM5W0DC0tDTXVNAIcNFUiE40itXLyasAAB1iDLg=":{"s":4805},"eJwLSqxMTiwuUXDOLyrKTMkvUkiqVPBNLCnJyEwsVnDJz83MU9AwtLS00FTQCHDR1MvJqwAAw4sQeg==":{"s":4809},"eJwLSs3NS8wrUQjIScxLLFIITywqVjB2UXBKLUlU0DAyMDDQVNAIcNHUy8mrAAA1aAz8":{"s":28673},"eJwLyk9MUQjKzC9RMAl3UdBwSi1J1FTQMLS0NAFSoZp6OXkVALahCa8=":{"s":272721},"eJwLyk9MccpJLC5JLSpW0DC0tDTQVNAI1dTLyasAAHyvCFE=":{"s":332033},"eJwLyk9MccpJLC5JLSpW0DC0tDTQVIhOMoxV0AjV1MvJqwAAqi8JvA==":{"s":339801},"eJwLyk/K1w0uLE0szlDQMLS0NNBU0AjV1MvJqwAAbsMHvw==":{"s":113753},"eJwLyk/K1w0uLE0szlDQMLS0NNBUiM43jFXQCNXUy8mrAACZ+Ak3":{"s":115993},"eJwLyk/KLynKz1MwMrAwUdAwtLQ01FTQCM/MyclMzC0GMkM19XLyKgDoLwuC":{"s":142737},"eJwLqkxPLFLQVfBJTU/NS0ksqlQITywqyswvUtAwtLQ00FTQCNXUy8mrAAAQKwye":{"s":206293},"eJwLqkxPLFLQVfBJTU/NS0ksqlQITywqyswvUtAwtLQ00FSITjKMVdAI1dTLyasAAFMsDgk=":{"s":221077},"eJwL1gvRC9Xz01MIKs3LSy1S0DC0tDTUVNAI1dTLyasAAH09CCg=":{"s":347097},"eJwL1gvRC9Xz01MIKs3LSy1S0DC0tDTUVIhOMoxV0AjV1MvJqwAAqfAJkw==":{"s":351825},"eJwLTi5KLKhMLEpRcMlPV9AwtLQ01FTQCNXUy8mrAACDvghv":{"s":293549},"eJwLTi5KLKhMLEpRcMlPV9AwtLQ01FSITjKMVdAI1dTLyasAALHUCdo=":{"s":302877},"eJwLzkhMyS9XyE9TKMlIVXBKTSwuUdAwtLQ00lTQCNXUy8mrAADBIApY":{"s":309157},"eJwLzkhMyS9XyE9TKMlIVXBKTSwuUdAwtLQ00lSITjKMVdAI1dTLyasAAPjDC8M=":{"s":319989},"eJwLzkjMS89IzFTQMLS0NNBU0AjV1MvJqwAAVC8Grg==":{"s":114689},"eJwLzkjMS89IzFTQMLS0NNBUiM43jFXQCNXUy8mrAAB6Dwgm":{"s":117041},"eJwLzsgvV/DOzEtXCCktUUiqVHBKLC7JTMxTCE7OyEzOVtAwtLQ001TQCHDR1MvJqwAAd3kOyQ==":{"s":11085},"eJwLzsgvV/DOzEtXCCktUUiqVHBKLC7JTMxTCE7OyEzOVtAwtLQ001TQCHDRVIhONIzVy8mrAADDfBAz":{"s":6729},"eJwLzkvMTk2qLElVSKpU8E0sKcnITCxWcMnPzcxT0DC0tLTQVNAIcNHUy8mrAABJtw3l":{"s":14961},"eJwLzi/NS1FwSc3NV0iqVHBKLC7JTMxTCE7OyEzOVtAwtLQ011TQCHDR1MvJqwAASnQN0Q==":{"s":5653},"eJwLzi/NS1FwSc3NV0iqVHBKLC7JTMxTCE7OyEzOVtAwtLQ011TQCHDRVIhONIzVy8mrAACRnw87":{"s":5625},"eJwLLijKLElVcE1RSKpUcEosLslMzFMITs7ITM5W0DC0tDTTVNAIcNHUy8mrAAA4og1i":{"s":6617},"eJwLLijKLElVcE1RSKpUcEosLslMzFMITs7ITM5W0DC0tDTTVNAIcNFUiE40jNXLyasAAH2iDsw=":{"s":6621},"eJwLLijKLEnVdUnNzVcwVEiqVPBNLCnJyEwsVnDJz83MU9AwMjAw0FTQCHDR1MvJqwAAdOwOoA==":{"s":3597},"eJwLLijKLEnVdUnNzVcwUkiqVPBNLCnJyEwsVnDJz83MU9AwMjAw0FTQCHDR1MvJqwAAdQ8OoQ==":{"s":3537},"eJwLLijKLEnVdUnNzVcwVkiqVPBNLCnJyEwsVnDJz83MU9AwMjAw0FTQCHDR1MvJqwAAdTIOog==":{"s":5969},"eJwLLijKLEnVdUnNzVcwUUiqVPBNLCnJyEwsVnDJz83MU9AwMjAw0FTQCHDR1MvJqwAAdVUOow==":{"s":5413},"eJwLLijKLEnVdUnNzVcwUUiqVPBNLCnJyEwsVnDJz83MU9AwMjAw0FTQCHDRVIhONIzVy8mrAADAmhAN":{"s":3913},"eJwLLijKLEnVdUnNzVcwVUiqVPBNLCnJyEwsVnDJz83MU9AwMjAw0FTQCHDR1MvJqwAAdXgOpA==":{"s":4513},"eJwLLkkscilKTcxNLVLQVXAuLSlOTs1LVdAwMjAw0lTQCHDR1MvJqwAA9fcLvA==":{"s":6137},"eJwLLkkscilKTcxNLVLQVXDJT85OTVHQMDIwMNJU0Ahw0dTLyasAANbnCsw=":{"s":18061},"eJwLLkkscilKTcxNLVLQVXDLqczMS1fQMDIwMNJU0Ahw0dTLyasAANk7Cus=":{"s":10289},"eJwLLkkscilKTcxNLVLQVXArzclRcAdyFDSMDAyMNBU0Alw09XLyKgD7aQuv":{"s":59129},"eJwLLkkscilKTcxNLVLQVfDMKynKV9AwMjAw0lTQCHDR1MvJqwAAzFUKjg==":{"s":15305},"eJwLLkksSilKTcxNLVLQMDIwMNBU0Ahw0dTLyasAAHvoCDM=":{"s":32601},"eJwLLklNzVEISczJzytW0DC0tDTUVNAI1dTLyasAAHhvCBo=":{"s":260045},"eJwLLklNzVEISczJzytW0DC0tDTUVIhOMoxV0AjV1MvJqwAApNwJhQ==":{"s":273893},"eJwLLi1ILVJwLC5JLcrPTClWUFPwzSwuzsxJVXDOz81NzEtR0DC0tDTVVNAI1dTLyasAAJaQD4g=":{"s":128561},"eJwLLi1ILVJwLC5JLcrPTClWUFPwzSwuzsxJVXDOz81NzEtR0DC0tDTVVIjON4xV0AjV1MvJqwAA6LIRAA==":{"s":133613},"eJwLLi1ILVLwT0vTDcpPTFHQMLS0NNNU0AhJzUlNT8xNLQayQzX1cvIqAAxkDJY=":{"s":198793},"eJwLLi1ILVIIzi5PTc1W0DC0tDTUVNAI1dTLyasAAHndCCU=":{"s":275101},"eJwLLi1ILVIIzi5PTc1W0DC0tDTUVIhOMoxV0AjV1MvJqwAApoEJkA==":{"s":287693},"eJwLLi1ILVIILijKzCtRCMksyUlVCE4uSk3NU3BJzc1X0DAyMDDQVNAIcNHUy8mrAAB1LA6v":{"s":10365},"eJwLLs8sSc5IyklMSVXw9FTQMLS0NNJU0AjV1MvJqwAAjRUIqQ==":{"s":179001},"eJwLLs8sSc5IyklMSVXw9FTQMLS0NNJUiE4yjFXQCNXUy8mrAAC8TQoU":{"s":193333},"eJwL0Q0pyixW0DC0tDTTVEiqVHBKLC7JTMxTCE7OyEzOVtAI1dTLyasAAOd5DAY=":{"s":16673},"eJwL0Q0pyixW0DC0tDTTVEiqVHBKLC7JTMxTCE7OyEzOVohONIxV0AjV1MvJqwAAJ4YNcA==":{"s":16541},"eJwLSS0pyixW0DC0tDTTVIhOMoxV0AjV1MvJqwAAZzkHdw==":{"s":204197},"eJwLSS0pyixW0DC0tDTTVIhOMopV0AjV1MvJqwAAZ0MHeA==":{"s":204233},"eJwLSS0pyixW0DC0tDTTVIhOMo5V0AjV1MvJqwAAZ00HeQ==":{"s":204141},"eJwLSa0o8S8tUQhJLS5RCCjKTy9KzFUwUkiqVPBNLCnJyEwsVnDJz83MU9AwtLS00FTQCHDR1MvJqwAAJ0sSJg==":{"s":4105},"eJwLyU9JUS9WcEwpS80rKS1KVcjMUwjOycxNVQjPL8pJUdAwtLQ00FTQCNXUy8mrAABvSQ63":{"s":128301},"eJwLyU9JUS9WcEwpS80rKS1KVcjMUwjOycxNVQjPL8pJUdAwtLQ00FSIzjeMVdAI1dTLyasAAL1WEC8=":{"s":131945},"eJwLyc/OVNAwtLQ00FTQCNXUy8mrAAAy+AUi":{"s":312429},"eJwLyc/OVNAwtLQ00FSITjKMVdAI1dTLyasAAFCNBo0=":{"s":325897},"eJwLyS8tykvMTc0rUXCuTEotSkrMyVEwMjA3UtAwtLQ01FTQCNXUy8mrAAAYDQxU":{"s":202821},"eJwLyS8tykvMTc0rUXCuTEotSkrMyVEwMjA3UtAwtLQ01FSITjKMVdAI1dTLyasAAFmcDb8=":{"s":211673},"eJwLKS1KylcILk1S0DC0tDTUVNAI1dTLyasAAFpSBuI=":{"s":158389},"eJwLKS1KylcILk1S0DC0tDTUVIhONIxV0AjV1MvJqwAAgJwITA==":{"s":160765},"eJwLzcvOyy/PU3BPzE1VUA/RDXINVlfQMLS0rNBUiE4yjFXQCNXUy8mrAAD7NAuh":{"s":161125},"eJwLy8zOzEtXcM7IzElR0DC0tDTUVNAI1dTLyasAAHZ6B/g=":{"s":330297},"eJwLy8zOzEtXcM7IzElR0DC0tDTUVIhOMoxV0AjV1MvJqwAAoj0JYw==":{"s":344689},"eJwLTyxKyixKKVbQMLS0NNBU0AjV1MvJqwAAVhMGyQ==":{"s":148189},"eJwLTyxKyixKKVbQMLS0NNBUiM43jFXQCNXUy8mrAAB8eghB":{"s":151765},"eJwLzy/KSVFwzkksLlYIzk9OTi1S0DC0tDTSVNAI1dTLyasAALjECio=":{"s":164473},"eJwLzy/KSVFwzkksLlYIzk9OTi1S0DC0tDTSVIhOMoxV0AjV1MvJqwAA74ELlQ==":{"s":164481},"eJwLzy/KSVFwzkksLlYIzk9OTi1S0DC0tDTSVIhOMopV0AjV1MvJqwAA74sLlg==":{"s":177301},"eJwLL00tSkvNUTBWcEnNzVfQMLS0rNBU0Ahw0dTLyasAAJBUCOQ=":{"s":9069},"eJyLSM3LL8jIT0pV0DC0tDTQVNAI1dTLyasAAGBCBzM=":{"s":162477},"eJyLSM3LL8jIT0pV0DC0tDTQVIhONIxV0AjV1MvJqwAAiCEInQ==":{"s":159185},"eJyLSM3LL8jIT0pV0DC0tDTQVIhONIpV0AjV1MvJqwAAiCsIng==":{"s":162545},"eJyLSM3LL8jIT0pV0DC0tDTQVIhONI5V0AjV1MvJqwAAiDUInw==":{"s":159073},"eJyLqEzKLylW0DC0tDTUVNAI1dTLyasAAEXzBhU=":{"s":208245},"eJyLqEzKLylW0DC0tDTUVIhOMoxV0AjV1MvJqwAAaEcHgA==":{"s":230001},"eJyLSizKyS9S8E0tSk7NSyyqVNAwtLQ00FTQCNXUy8mrAACo7gnL":{"s":186577},"eJyLSizKyS9S8E0tSk7NSyyqVNAwtLQ00FSITjKMVdAI1dTLyasAAN3QCzY=":{"s":141757},"eJyLSizKyS9S8E0tSk7NSyyqVNAwtLQ00FSIzjeMVdAI1dTLyasAAN5fC0M=":{"s":189357}}
+{
+  "eJwzMjVTcM7PyS9ScEnNzVdIqlRwSiwuyUzMUwhOzshMzlbQCHDRNCKoyNDS0lwTrFYvJ68CAHr8Gjw%3D": {
+    "f": "256 Color Demo by Bastian Schick (1997) (PD).lnx",
+    "s": 5560
+  },
+  "eJwzMjVTcM7PyS9ScEnNzVdIqlRwSiwuyUzMUwhOzshMzlbQCHDRVDAiqMrQ0tJcE6I4OtEwVi8nrwIAEsYbxg%3D%3D": {
+    "f": "256 Color Demo by Bastian Schick (1997) (PD) [a1].lnx",
+    "s": 5484
+  },
+  "eJwzMjVTcM7PyS9S8E3MS0nNSSrKL1FwSc3NV0iqVHBKLC7JTMxTCE7OyEzOVtAIcNE0IkW9oaWlhSZYm15OXgUAcUwijQ%3D%3D": {
+    "f": "256 Color Mandelbrot Demo by Bastian Schick (1998) (PD).lnx",
+    "s": 6344
+  },
+  "eJwzMjVTcM7PyS9S8E3MS0nNSSrKL1FwSc3NV0iqVHBKLC7JTMxTCE7OyEzOVtAIcNFUMCJFg6GlpYUmRF90omGsXk5eBQA4MyQX": {
+    "f": "256 Color Mandelbrot Demo by Bastian Schick (1998) (PD) [a1].lnx",
+    "s": 6320
+  },
+  "eJxzDHBS0FVwzMlRCMjPzCspVnAqzclJLcnMc8QloaBhaGlpoKmgEaqpl5NXAQCiUBQ1": {
+    "f": "APB - All Points Bulletin (1990) (U).lnx",
+    "s": 304400
+  },
+  "eJxzDHBS0FVwzMlRCMjPzCspVnAqzclJLcnMc8QloaBhaGlpoKkQnWQYq6ARqqmXk1cBAAtTFaA%3D": {
+    "f": "APB - All Points Bulletin (1990) [b1] (U).lnx",
+    "s": 310828
+  },
+  "eJxzzMlMzVMIK1YIKEpNSSzJL3JEF1DQCCjKL8kvqSxI1VTQMLS0NNZUiFaMVdAI1dTLyasAAOZOFTQ%3D": {
+    "f": "Alien Vs Predator (Prototype) (1993) [!] (U).lnx",
+    "s": 282884
+  },
+  "eJxzLE8tzs9NVXDPz0lzRGIraBhaWhpqKmiEaurl5FUAAA3GDH4%3D": {
+    "f": "Awesome Golf (1991) (U).lnx",
+    "s": 331308
+  },
+  "eJxzLE8tzs9NVXDPz0lzRGIraBhaWhpqKkQnGcYqaIRq6uXkVQAAUCcN6Q%3D%3D": {
+    "f": "Awesome Golf (1991) [b1] (U).lnx",
+    "s": 343492
+  },
+  "eJxzCvJWCE4tKkstUvDMKy5JzMkBspIqFZwSi0syE%2FMUgpMzMpOzFTQCXDSdiFRqaGlppgnWoZeTVwEAVUYgAQ%3D%3D": {
+    "f": "BRK Server Installer by Bastian Schick (1996) (PD).lnx",
+    "s": 844
+  },
+  "eJxzCvJWCE4tKkstUvDMKy5JzMkBspIqFZwSi0syE%2FMUgpMzMpOzFTQCXDQVnIhUa2hpaaYJ0RKdaBirl5NXAQANjCGL": {
+    "f": "BRK Server Installer by Bastian Schick (1996) (PD) [a1].lnx",
+    "s": 916
+  },
+  "eJxzSixOTUrMyVHwSC3KTy12QuUqaBhaWhpqKmiEaurl5FUAAGtuDsQ%3D": {
+    "f": "Baseball Heroes (1991) (U).lnx",
+    "s": 118076
+  },
+  "eJxzSixOTUrMyVHwSC3KTy12QuUqaBhaWhpqKkQnGcYqaIRq6uXkVQAAuS0QLw%3D%3D": {
+    "f": "Baseball Heroes (1991) [b1] (U).lnx",
+    "s": 254756
+  },
+  "eJxzSizOTi1JKkosz3FCMBU0DC0tjTQVNEI19XLyKgABFAxx": {
+    "f": "Basketbrawl (1992) (U).lnx",
+    "s": 154700
+  },
+  "eJxzSizOTi1JKkosz3FCMBU0DC0tjTQVohMNYxU0QjX1cvIqAEMpDds%3D": {
+    "f": "Basketbrawl (1992) [a1] (U).lnx",
+    "s": 151784
+  },
+  "eJxzSizOTi1JKkosz3FCMBU0DC0tjTQVopMMYxU0QjX1cvIqAEM0Ddw%3D": {
+    "f": "Basketbrawl (1992) [b1] (U).lnx",
+    "s": 303276
+  },
+  "eJxzSizJTcxTCEotKS3KK3ZC4SloGFpaGmkqaIRq6uXkVQAAUlgOWQ%3D%3D": {
+    "f": "Batman Returns (1992) (U).lnx",
+    "s": 283592
+  },
+  "eJxzSizJTcxTCEotKS3KK3ZC4SloGFpaGmkqRCcZxipohGrq5eRVAACeAA%2FE": {
+    "f": "Batman Returns (1992) [b1] (U).lnx",
+    "s": 301608
+  },
+  "eJxzSiwpyUlVCM9ITc0pdkLmKGgYWloaaypoOKVW5uelKLgn5qYWaypE5xvGKmiEaurl5FUAAH4WE60%3D": {
+    "f": "Battle Wheels (1993) (Beyond Games) [o1] (U).lnx",
+    "s": 149956
+  },
+  "eJxzSiwpyUlVCM9ITc0pdkLmKGgYWloaaypohGrq5eRVAAAsjg1W": {
+    "f": "Battle Wheels (1993) (U).lnx",
+    "s": 146476
+  },
+  "eJxzSiwpyUmtys9LVTAyMDBwQuUqaBhaWpppKmiEaurl5FUAAFEaDYU%3D": {
+    "f": "Battlezone 2000 (1996) (U).lnx",
+    "s": 229960
+  },
+  "eJxzyszJUVBTCElNUS9WcK1ITs3JSc0rUXBMKQNSpUWpTgTkFTQMLS0NNRU0QjX1cvIqACShGfA%3D": {
+    "f": "Bill & Ted's Excellent Adventure (1991) (U).lnx",
+    "s": 238984
+  },
+  "eJxzyszJUVBTCElNUS9WcK1ITs3JSc0rUXBMKQNSpUWpTgTkFTQMLS0NNRWikwxjFTRCNfVy8ioAqjwbWw%3D%3D": {
+    "f": "Bill & Ted's Excellent Adventure (1991) [b1] (U).lnx",
+    "s": 259032
+  },
+  "eJxzyslPzlbwLy1xgjEUNAwtLQ00FTRCNfVy8ioAtmQKEQ%3D%3D": {
+    "f": "Block Out (1990) (U).lnx",
+    "s": 47160
+  },
+  "eJxzyslPzlbwLy1xgjEUNAwtLQ00FaLzDWMVNEI19XLyKgDtMwuJ": {
+    "f": "Block Out (1990) [o1] (U).lnx",
+    "s": 48700
+  },
+  "eJxzyilNVfDJTM8oycvMS3dC4SloGFpaWGoqaIRq6uXkVQAATH0OKw%3D%3D": {
+    "f": "Blue Lightning (1989) (U).lnx",
+    "s": 145488
+  },
+  "eJxzyilNVfDJTM8oycvMS3dC4SloGFpaWGoqRCcaxipohGrq5eRVAACXNA%2BV": {
+    "f": "Blue Lightning (1989) [a1] (U).lnx",
+    "s": 148408
+  },
+  "eJxzyilNVfDJTM8oycvMS3dC4Sm4pObmK2gYWlpYaipohGrq5eRVAACeTQ%2FQ": {
+    "f": "Blue Lightning Demo (1989) (U).lnx",
+    "s": 145016
+  },
+  "eJxzyilNVfDJTM8oycvMS3dC4Sm4pObmK2gYWlpYaipE5xvGKmiEaurl5FUAAPHXEUg%3D": {
+    "f": "Blue Lightning Demo (1989) [o1] (U).lnx",
+    "s": 148112
+  },
+  "eJxzys%2FMS1dwSc3NV9AIcNF0QuIaWlpWaIJF9XLyKgAKEww%2F": {
+    "f": "Boing Demo (199x) (PD).lnx",
+    "s": 4204
+  },
+  "eJxzys%2FMS1dwSc3NV9AIcNFUcELiG1paVmhChKMTDWP1cvIqAFH%2BDck%3D": {
+    "f": "Boing Demo (199x) (PD) [a1].lnx",
+    "s": 5428
+  },
+  "eJxzys%2FMS1dwSc3NV9AIcNFUcELiG1paVmhChKMTjWL1cvIqAFIEDco%3D": {
+    "f": "Boing Demo (199x) (PD) [a2].lnx",
+    "s": 4776
+  },
+  "eJxzys%2FMS1dwSc3NV9AIcNFUcELiG1paVmhChKMTjWP1cvIqAFIKDcs%3D": {
+    "f": "Boing Demo (199x) (PD) [a3].lnx",
+    "s": 5284
+  },
+  "eJxzKk1KyklVcMoHU2F6Rgouqbn5ChoBLppOOKQMLS0rNMEq9HLyKgCY9xNx": {
+    "f": "Bubble Bobble V.2 Demo (199x) (PD).lnx",
+    "s": 7252
+  },
+  "eJxzKk1KyklVCCnKLwXSTig8BQ1DS0tzTQWNkNSc1PTE3NRiIDtUUy8nrwIAFFgSLA%3D%3D": {
+    "f": "Bubble Trouble (1997) (Telegames) (U).lnx",
+    "s": 189728
+  },
+  "eJxzNjNV0FVwSc3NN1DQCHDRdEbmG1paWmiChfVy8ioA3pUKdw%3D%3D": {
+    "f": "C65 - Demo0 (1998) (PD).lnx",
+    "s": 25008
+  },
+  "eJxzNjNV0FVwSc3NN1DQCHDRVHBGFjC0tLTQhIhHJxrG6uXkVQAAHQMMAQ%3D%3D": {
+    "f": "C65 - Demo0 (1998) (PD) [a1].lnx",
+    "s": 25004
+  },
+  "eJxzNjNV0FVwSc3NN1TQCHDRdEbmG1paWmiChfVy8ioA3scKeQ%3D%3D": {
+    "f": "C65 - Demo1 (1998) (PD).lnx",
+    "s": 3128
+  },
+  "eJxzNjNV0FVwSc3NN1TQCHDRVHBGFjC0tLTQhIhHJxrG6uXkVQAAHUAMAw%3D%3D": {
+    "f": "C65 - Demo1 (1998) (PD) [a1].lnx",
+    "s": 3136
+  },
+  "eJxzNjNV0FVwSc3NN1LQCHDRdEbmG1paWmiChfVy8ioA3vkKew%3D%3D": {
+    "f": "C65 - Demo2 (1998) (PD).lnx",
+    "s": 3276
+  },
+  "eJxzNjNV0FVwSc3NN1LQCHDRVHBGFjC0tLTQhIhHJxrG6uXkVQAAHX0MBQ%3D%3D": {
+    "f": "C65 - Demo2 (1998) (PD) [a1].lnx",
+    "s": 3260
+  },
+  "eJxzNjNV0FVwSc3NN1bQCHDRdEbmG1paWmiChfVy8ioA3ysKfQ%3D%3D": {
+    "f": "C65 - Demo3 (1998) (PD).lnx",
+    "s": 3772
+  },
+  "eJxzNjNV0FVwSc3NN1bQCHDRVHBGFjC0tLTQhIhHJxrG6uXkVQAAHboMBw%3D%3D": {
+    "f": "C65 - Demo3 (1998) (PD) [a1].lnx",
+    "s": 3796
+  },
+  "eJxzNjNV0FVwd4sISS0uUdAIcNF0RhUxtLS00ARL6OXkVQAAGzAMFw%3D%3D": {
+    "f": "C65 - GFXTest (1998) (PD).lnx",
+    "s": 3604
+  },
+  "eJxzNjNV0FVwT6soSS0uUdAIcNFUcEYVMrS0tNCEyEQnGsbq5eRVAAB9Xw5h": {
+    "f": "C65 - Gfxtest (1998) (PD) [a1].lnx",
+    "s": 3632
+  },
+  "eJxzNjNV0FXwTcxLSc1JKsovUdAIcNF0xhA0tLS00ATL6eXkVQAAmBwPHQ%3D%3D": {
+    "f": "C65 - Mandelbrot (1998) (PD).lnx",
+    "s": 3204
+  },
+  "eJxzNjNV0FXwTcxLSc1JKsovUdAIcNFUcMYQNbS0tNCESEYnGsbq5eRVAADwrBCn": {
+    "f": "C65 - Mandelbrot (1998) (PD) [a1].lnx",
+    "s": 3256
+  },
+  "eJxzNjNV0FXwTaxKTUnNzVfQCHDRdEYTMrS0tNAEy%2Bjl5FUAAE4QDXE%3D": {
+    "f": "C65 - Mazedemo (1998) (PD).lnx",
+    "s": 3556
+  },
+  "eJxzNjNV0FXwTaxKTUnNzVfQCHDRVHBGEzO0tLTQhEhFJxrG6uXkVQAAnS4O%2Bw%3D%3D": {
+    "f": "C65 - Mazedemo (1998) (PD) [a1].lnx",
+    "s": 3584
+  },
+  "eJxzNjNV0FXwzczLzE3MUdAIcNF0RhUxtLS00ARL6OXkVQAAK2gMmw%3D%3D": {
+    "f": "C65 - Minimal (1998) (PD).lnx",
+    "s": 5504
+  },
+  "eJxzNjNV0FXwzczLzE3MUdAIcNFUcEYVMrS0tNCEyEQnGsbq5eRVAAB1zQ4l": {
+    "f": "C65 - Minimal (1998) (PD) [a1].lnx",
+    "s": 5148
+  },
+  "eJxzNjNV0FUILijKLElV0Ahw0XRGETC0tLTQBIvr5eRVAAAQPQv7": {
+    "f": "C65 - Sprite (1998) (PD).lnx",
+    "s": 3616
+  },
+  "eJxzNjNV0FUILijKLElV0Ahw0VRwRhExtLS00IRIRCcaxurl5FUAAFcSDYU%3D": {
+    "f": "C65 - Sprite (1998) (PD) [a1].lnx",
+    "s": 3608
+  },
+  "eJxzTszJTMsvystMVHBPzE0tdkbjK2gYWloaaipohGrq5eRVAACSiA%2BW": {
+    "f": "California Games (1991) (U).lnx",
+    "s": 172020
+  },
+  "eJxzTszJTMsvystMVHBPzE0tdkbjK2gYWloaaipE5xvGKmiEaurl5FUAAOTwEQ4%3D": {
+    "f": "California Games (1991) [o1] (U).lnx",
+    "s": 174424
+  },
+  "eJxzTiwqKc7IL1dIqlTwTSwpychMLFZwyc%2FNzFPQCHDRdMYjbWhpaaEJVqWXk1cBALP3GEc%3D": {
+    "f": "Cartshow by Matthias Domin (1998) (PD).lnx",
+    "s": 5176
+  },
+  "eJxzTs0rySxITUl1hjEUNAKK8kvySyoLUjUVNAwtLcyBVHBGYkp%2BeXF%2BWgmQE6qpl5NXAQBc1BON": {
+    "f": "Centipede (Prototype) (1987) (Shadowsoft) (U).lnx",
+    "s": 15488
+  },
+  "eJxzzkhNzlZwdQ0I8vdVSKpUcEosLslMzFMITs7IBEpoBLhoOhNQYmhpaaYJVqmXk1cBAB2kGQU%3D": {
+    "f": "Check EEPROM by Bastian Schick (1996) (PD).lnx",
+    "s": 5144
+  },
+  "eJxzzkhNzlZwdQ0I8vdVSKpUcEosLslMzFMITs7IBEpoBLhoKjgTUGNoaWmmCVEanWgYq5eTVwEArnEajw%3D%3D": {
+    "f": "Check EEPROM by Bastian Schick (1996) (PD) [a1].lnx",
+    "s": 5144
+  },
+  "eJxzzkhNzk4tSk1RcMtJTHdG4SloGFpaGmoqaIRq6uXkVQAARIgNvA%3D%3D": {
+    "f": "Checkered Flag (1991) (U).lnx",
+    "s": 254504
+  },
+  "eJxzzkhNzk4tSk1RcMtJTHdG4SloGFpaGmoqRCcZxipohGrq5eRVAACNHw8n": {
+    "f": "Checkered Flag (1991) [b1] (U).lnx",
+    "s": 270900
+  },
+  "eJxzzsgsUC9WcM5IzMlJzUtPdUbjK2gYWlpYaipohGrq5eRVAAB9zw8V": {
+    "f": "Chip's Challenge (1989) (U).lnx",
+    "s": 152916
+  },
+  "eJxzzsgsUC9WcM5IzMlJzUtPdUbjK2gYWlpYaipE5xvGKmiEaurl5FUAAM2yEI0%3D": {
+    "f": "Chip's Challenge (1989) [o1] (U).lnx",
+    "s": 155360
+  },
+  "eJxzzsgssFBwzS3NSSzJL1IISs1JTSxOVTBU0Ahw0XTGKWlkYGCiCVajl5NXAQAVyRVw": {
+    "f": "Chip8 Emulator Release 1 (2004) (PD).lnx",
+    "s": 9128
+  },
+  "eJxzzsgssFBwzS3NSSzJL1IISs1JTSxOVTBS0Ahw0XTGKWlkYGCiCVajl5NXAQAWCBVy": {
+    "f": "Chip8 Emulator Release 2 (2004) (PD).lnx",
+    "s": 9128
+  },
+  "eJxzzsgssFBwzS3NSSzJL1IISs1JTSxOVTBW0Ahw0XTGKWlkYGCiCVajl5NXAQAWRxV0": {
+    "f": "Chip8 Emulator Release 3 (2004) (PD).lnx",
+    "s": 12660
+  },
+  "eJxzzsgssFBwzS3NSSzJL1IISs1JTSxOVTBR0Ahw0XTGKWlkYGCiCVajl5NXAQAWhhV2": {
+    "f": "Chip8 Emulator Release 4 (2004) (PD).lnx",
+    "s": 15904
+  },
+  "eJxzzsgssFBwzS3NSSzJL1IISs1JTSxOVTBV0Ahw0XTGKWlkYGCiCVajl5NXAQAWxRV4": {
+    "f": "Chip8 Emulator Release 5 (2004) (PD).lnx",
+    "s": 17972
+  },
+  "eJxzzsgssFBwzS3NSSzJL1IISs1JTSxOVTBT0Ahw0XTGKWlkYGCiCVajl5NXAQAXBBV6": {
+    "f": "Chip8 Emulator Release 6 (2004) (PD).lnx",
+    "s": 18608
+  },
+  "eJxzzixKzklVcClKLFcISS0uUdAIcNF0xhA0tLSs0ATL6eXkVQAA0mEQlw%3D%3D": {
+    "f": "Circle Draw Test (199x) (PD).lnx",
+    "s": 8136
+  },
+  "eJxzzixKzklVCCnNy0vNUUiqVHBKLC7JTMxTCE7OyEzOVtAIcNF0JqTG0NLSTBOsVC8nrwIArqkbSQ%3D%3D": {
+    "f": "Circle Tunnel by Bastian Schick (1996) (PD).lnx",
+    "s": 8028
+  },
+  "eJxzzixKzklVSMxLUQgpzctLzVFwSc3NV9AIcNF0xiFlaGlZoQlWoZeTVwEAzIIU1w%3D%3D": {
+    "f": "Circle and Tunnel Demo (199x) (PD).lnx",
+    "s": 9372
+  },
+  "eJxzzslMzi5WVHBJzc1XCDNTSKpU8E0sKcnITCxWcMnPzcxT0Ahw0XQmrMrIwMBQE6xYLyevAgDR3Rsv": {
+    "f": "Clicks! Demo V6 by Matthias Domin (2001) (PD).lnx",
+    "s": 24916
+  },
+  "eJxzzslMzi5WVEiqVPBNLCnJyEwsVnDJz83MU9AIcNF0xi1rZGBgqAlWpJeTVwEAUIIWjQ%3D%3D": {
+    "f": "Clicks! by Matthias Domin (2001) (PD).lnx",
+    "s": 19120
+  },
+  "eJxzzs8rLE0tLlHIT1OIyi93RuUqaBhaWpppKmiEaurl5FUAAHHDDt8%3D": {
+    "f": "Conquest of Zow (1996) (U).lnx",
+    "s": 143056
+  },
+  "eJxzLqosLknMUfDNzEstVvD0dEbjK2gYWloaaCpohGrq5eRVAACDUA7r": {
+    "f": "Crystal Mines II (1990) (U).lnx",
+    "s": 147088
+  },
+  "eJxzLqosLknMUfDNzEstVvD0dEbjK2gYWloaaCpE5xvGKmiEaurl5FUAANJhEGM%3D": {
+    "f": "Crystal Mines II (1990) [o1] (U).lnx",
+    "s": 149660
+  },
+  "eJxzSc3NVzBUSKpUcEosLslMzFMITs7ITM5W0Ahw0XTBKWloaWmmCVajl5NXAQD6MBUl": {
+    "f": "Demo 1 by Bastian Schick (1996) (PD).lnx",
+    "s": 956
+  },
+  "eJxzSc3NVzBSSKpUcEosLslMzFMITs7ITM5W0Ahw0XTBKWloaWmmCVajl5NXAQD6kxUn": {
+    "f": "Demo 2 by Bastian Schick (1996) (PD).lnx",
+    "s": 3180
+  },
+  "eJxzSc3NVzBWSKpUcEosLslMzFMITs7ITM5W0Ahw0XTBKWloaWmmCVajl5NXAQD69hUp": {
+    "f": "Demo 3 by Bastian Schick (1996) (PD).lnx",
+    "s": 3948
+  },
+  "eJxzSc3NVzBRSKpUcEosLslMzFMITs7ITM5W0Ahw0XTBKWloaWmmCVajl5NXAQD7WRUr": {
+    "f": "Demo 4 by Bastian Schick (1996) (PD).lnx",
+    "s": 4224
+  },
+  "eJxzSc3NVzBVSKpUcEosLslMzFMITs7ITM5W0Ahw0XTBKWloaWmmCVajl5NXAQD7vBUt": {
+    "f": "Demo 5 by Bastian Schick (1996) (PD).lnx",
+    "s": 5408
+  },
+  "eJxzSc3NVzBTSKpUcEosLslMzFMITs7ITM5W0Ahw0XTBKWloaWmmCVajl5NXAQD8HxUv": {
+    "f": "Demo 6 by Bastian Schick (1996) (PD).lnx",
+    "s": 13112
+  },
+  "eJxzSc3NVzBTSKpUcEosLslMzFMITs7ITM5W0Ahw0VRwwSlraGlppglRFJ1oGKuXk1cBAHciFrk%3D": {
+    "f": "Demo 6 by Bastian Schick (1996) (PD) [a1].lnx",
+    "s": 13128
+  },
+  "eJxzSS1OLSpRCC4pysxOVdBVCEotKS3KUyjJVyjJSFVwL81JcyGoQkHD0NLSWFNBIyQ1JzU9MTe1GMgO1dTLyasAACJOH4Y%3D": {
+    "f": "Desert Strike - Return to the Gulf (1993) (Telegames) (U).lnx",
+    "s": 249044
+  },
+  "eJxzSS1OLSpRCC4pysxOVdBVCEotKS3KUyjJVyjJSFVwL81JcyGoQkHD0NLSWFNBIyQ1JzU9MTe1WFMhOskwVkEjVFMvJ68CAMPXIPE%3D": {
+    "f": "Desert Strike - Return to the Gulf (1993) (Telegames) [b1] (U).lnx",
+    "s": 271076
+  },
+  "eJxzyUzPTEnNzVfQCHDRdIFzDC0tKzTBYno5eRUA4RILWw%3D%3D": {
+    "f": "Digidemo (199x) (PD).lnx",
+    "s": 131400
+  },
+  "eJxzyUzPTEnNzVcwUtAIcNF0QeIaWlpWaIJF9XLyKgAF7Qv%2F": {
+    "f": "Digidemo 2 (199x) (PD).lnx",
+    "s": 354464
+  },
+  "eJxzyczLz6nMLchMLnZBMBU0DC0tjTQVNEI19XLyKgAGsQyj": {
+    "f": "Dinolympics (1992) (U).lnx",
+    "s": 213204
+  },
+  "eJxzyczLz6nMLchMLnZBMBU0DC0tjTQVopMMYxU0QjX1cvIqAEnLDg4%3D": {
+    "f": "Dinolympics (1992) [b1] (U).lnx",
+    "s": 227292
+  },
+  "eJxzySwqqVTwSSwqqlTQVQhKzUtNT0xJVXDOL3DBKaOgYWhpaaSpoBGqqZeTVwEABGYVjQ%3D%3D": {
+    "f": "Dirty Larry - Renegade Cop (1992) (U).lnx",
+    "s": 304188
+  },
+  "eJxzySwqqVTwSSwqqlTQVQhKzUtNT0xJVXDOL3DBKaOgYWhpaaSpEJ1kGKugEaqpl5NXAQB0Ehb4": {
+    "f": "Dirty Larry - Renegade Cop (1992) [b1] (U).lnx",
+    "s": 321428
+  },
+  "eJxzyS9NyklVcClKTM%2FPc0HmKGgYWloaaypohKTmpKYn5qYWA9mhmno5eRUA5fURQg%3D%3D": {
+    "f": "Double Dragon (1993) (Telegames) (U).lnx",
+    "s": 289572
+  },
+  "eJxzyS9NyklVcClKTM%2FPc0HmKGgYWloaaypohKTmpKYn5qYWaypEJxnGKmiEaurl5FUAAEA5Eq0%3D": {
+    "f": "Double Dragon (1993) (Telegames) [b1] (U).lnx",
+    "s": 311316
+  },
+  "eJxzKUpMLs1JVNBVCMlIVQjNS0lNTHHBIqagYWhpaaipoBGqqZeTVwEA9HoRAg%3D%3D": {
+    "f": "Dracula - The Undead (1991) (U).lnx",
+    "s": 289228
+  },
+  "eJxzKUpMLs1JVNBVCMlIVQjNS0lNTHHBIqagYWhpaaipEJ1kGKugEaqpl5NXAQBNfhJt": {
+    "f": "Dracula - The Undead (1991) [b1] (U).lnx",
+    "s": 306496
+  },
+  "eJxzKUpMz0stcYFQChqGlpammgoaoZp6OXkVAJMaCRo%3D": {
+    "f": "Dragnet (1995) (U).lnx",
+    "s": 352940
+  },
+  "eJxzKUosL0ktLlFIqlRwSiwuyUzMUwhOzshMzlbQCHDRdMEjbWhpWaEJVqWXk1cBAK81GFc%3D": {
+    "f": "Drawtest by Bastian Schick (199x) (PD).lnx",
+    "s": 12464
+  },
+  "eJxzKc1LT83P01EIyUhVCNMzqFBIqlTwTSwpychMLFZwyc%2FNzFPQCHDRdCFGnaGlpbkmWLleTl4FAFTXHMI%3D": {
+    "f": "Dungeon, The V.0x by Matthias Domin (1997) (PD).lnx",
+    "s": 41948
+  },
+  "eJxzKc1LT83P01EIyUhVCNMzNFRIqlTwTSwpychMLFZwyc%2FNzFPQCHDRdCFGnaGlpYUmWLleTl4FADbQHDc%3D": {
+    "f": "Dungeon, The V.11 by Matthias Domin (1998) (PD).lnx",
+    "s": 45020
+  },
+  "eJxzKc1LT83P01EIyUhVCNMzNFJIqlTwTSwpychMLFZwyc%2FNzFPQCHDRdCFGnaGlpYUmWLleTl4FADc%2BHDk%3D": {
+    "f": "Dungeon, The V.12 by Matthias Domin (1998) (PD).lnx",
+    "s": 45028
+  },
+  "eJxzdQ0I8vdVCEktLlHwNHJW0Ahw0XRFFzO0tKzQBEvp5eRVAABsSg3j": {
+    "f": "EEPROM Test I2C (199x) (PD).lnx",
+    "s": 4972
+  },
+  "eJxzzUlNLinKT84vcIWzFDQMLS0sNRU0QjX1cvIqAOUiC7M%3D": {
+    "f": "Electrocop (1989) (U).lnx",
+    "s": 157568
+  },
+  "eJxzzUlNLinKT84vcIWzFDQMLS0sNRWi8w1jFTRCNfVy8ioAJCoNKw%3D%3D": {
+    "f": "Electrocop (1989) [o1] (U).lnx",
+    "s": 160208
+  },
+  "eJxzLS3KL0hNzFMIzk9OTi1ScM5IzMlJzUtPdcUloaBhaGlprKmgEZKak5qemJtaDGSHaurl5FUAADgBGlg%3D": {
+    "f": "European Soccer Challenge (1993) (Telegames) (U).lnx",
+    "s": 132936
+  },
+  "eJxzLS3KL0hNzFMIzk9OTi1ScM5IzMlJzUtPdcUloaBhaGlprKmgEZKak5qemJtarKkQnW8Yq6ARqqmXk1cBAMAzG9A%3D": {
+    "f": "European Soccer Challenge (1993) (Telegames) [o1] (U).lnx",
+    "s": 136284
+  },
+  "eJxzrUxVyE9TKMlIVXBKzcjPSUktcsUUUtAIKMovyS%2BpLEjVVNAwtLQ0AFJ%2BpW4RQCpUUy8nrwIAeasXIA%3D%3D": {
+    "f": "Eye of the Beholder (Prototype) (1990) (NuFX) (U).lnx",
+    "s": 110024
+  },
+  "eJxzSyxRcMpPSqp0gzEUNAwtLc01FTRCUnNS0xNzU4uB7FBNvZy8CgBEpA3s": {
+    "f": "Fat Bobby (1997) (Telegames) (U).lnx",
+    "s": 216756
+  },
+  "eJxzy0xJzcksqVQIzSnJzE0sSVVwzkgtLgaSiTk5qXnpqW6EFChoGFpaGmoqaISk5qSmJ%2BamFgPZoZp6OXkVADTwIEQ%3D": {
+    "f": "Fidelity Ultimate Chess Challenge (1991) (Telegames) (U).lnx",
+    "s": 72192
+  },
+  "eJxzy0xJzcksqVQIzSnJzE0sSVVwzkgtLgaSiTk5qXnpqW6EFChoGFpaGmoqaISk5qSmJ%2BamFmsqROcbxipohGrq5eRVAADaviG8": {
+    "f": "Fidelity Ultimate Chess Challenge (1991) (Telegames) [o1] (U).lnx",
+    "s": 74456
+  },
+  "eJxzy0zPKEktUgjTM1JwSc3NV9AIcNF0wxA0MjAw0ATL6eXkVQAAsLAPRg%3D%3D": {
+    "f": "Fighter V.2 Demo (2000) (PD).lnx",
+    "s": 44336
+  },
+  "eJxzyyxKVdBwSy1LLdJUcEnNzVdIqlRwSiwuyUzMUwhOzshMzlbQCHDRdCNGnaGlpbkmWLleTl4FAEhfHKI%3D": {
+    "f": "Fire (Fever) Demo by Bastian Schick (1997) (PD).lnx",
+    "s": 7248
+  },
+  "eJxzy88rUQhJLS5RMFJIqlRwSiwuyUzMUwhOzshMzlbQCHDRdMOvwtDSskITrFAvJ68CAAWdGQ0%3D": {
+    "f": "Font Test 2 by Bastian Schick (199x) (PD).lnx",
+    "s": 2680
+  },
+  "eJxzy88rUQhJLS5RMFJIqlRwSiwuyUzMUwhOzshMzlbQCHDRVHDDr8TQ0rJCE6IyOtEwVi8nrwIAllUalw%3D%3D": {
+    "f": "Font Test 2 by Bastian Schick (199x) (PD) [a1].lnx",
+    "s": 2672
+  },
+  "eJxzTyxJLVbIT1OISs1LyU%2FOz9NRCMlIdccqqqBhaGlhqamgEaqpl5NXAQBb%2FhL%2F": {
+    "f": "Gates of Zendocon, The (1989) (U).lnx",
+    "s": 149040
+  },
+  "eJxzTyxJLVbIT1OISs1LyU%2FOz9NRCMlIdccqqqBhaGlhqakQnW8Yq6ARqqmXk1cBAL9zFHc%3D": {
+    "f": "Gates of Zendocon, The (1989) [o1] (U).lnx",
+    "s": 151584
+  },
+  "eJxzTyzNK8lJLVHQVQjJSAXizKIUBde85HygcGqRO15ZBQ1DS0sDTQWNUE29nLwKAOAaGQs%3D": {
+    "f": "Gauntlet - The Third Encounter (1990) (U).lnx",
+    "s": 160080
+  },
+  "eJxzTyzNK8lJLVHQVQjJSAXizKIUBde85HygcGqRO15ZBQ1DS0sDTYXofMNYBY1QTb2cvAoAYdoagw%3D%3D": {
+    "f": "Gauntlet - The Third Encounter (1990) [o1] (U).lnx",
+    "s": 162572
+  },
+  "eJxzz8gvzSlWUM9TV3DPyC8uKVYIyCktVgjTM1JwSc3NV9AIcNF0J6TG0NKyQhOsVC8nrwIATYMZYQ%3D%3D": {
+    "f": "Ghouls 'n' Ghosts Plus V.2 Demo (199x) (PD).lnx",
+    "s": 14452
+  },
+  "eJxzzy9KyVcwNDBT0FUIyUhV8C0tSSxJTVHwSUxS8M3Py06tdCeoQkHD0NLSWFNBI1RTLyevAgA%2FdRl6": {
+    "f": "Gordo 106 - The Mutated Lab Monkey (1993) (U).lnx",
+    "s": 344812
+  },
+  "eJxzzy9KyVcwNDBT0FUIyUhV8C0tSSxJTVHwSUxS8M3Py06tdCeoQkHD0NLSWFMhOskwVkEjVFMvJ68CAMLCGuU%3D": {
+    "f": "Gordo 106 - The Mutated Lab Monkey (1993) [b1] (U).lnx",
+    "s": 361568
+  },
+  "eJxzzy9KyVcwNDBT0FUIyUhV8C0tSSxJTVHwSUxS8M3Py06tdCeoQkHD0NLSWFMhOskoVkEjVFMvJ68CAMLMGuY%3D": {
+    "f": "Gordo 106 - The Mutated Lab Monkey (1993) [b2] (U).lnx",
+    "s": 345184
+  },
+  "eJzzSCxKUXApyizLzFP3QGIraBhaWhprKmiEaurl5FUAAP4FC%2FI%3D": {
+    "f": "Hard Drivin' (1993) (U).lnx",
+    "s": 121216
+  },
+  "eJzzSCxKUXApyizLzFP3QGIraBhaWhprKkTnG8YqaIRq6uXkVQAAPkgNag%3D%3D": {
+    "f": "Hard Drivin' (1993) [o1] (U).lnx",
+    "s": 123724
+  },
+  "eJzzyE%2FOTq30AJMKGoaWlkaaChqhmno5eRUAfSEIUw%3D%3D": {
+    "f": "Hockey (1992) (U).lnx",
+    "s": 241340
+  },
+  "eJzzyE%2FOTq30AJMKGoaWlkaaCtFJhrEKGqGaejl5FQCqqwm%2B": {
+    "f": "Hockey (1992) [b1] (U).lnx",
+    "s": 252040
+  },
+  "eJzzqEwpSvQAEQoahpaWRpoKGqGaejl5FQBnvwd9": {
+    "f": "Hydra (1992) (U).lnx",
+    "s": 270012
+  },
+  "eJzzqEwpSvQAEQoahpaWRpoK0UmGsQoaoZp6OXkVAJEbCOg%3D": {
+    "f": "Hydra (1992) [b1] (U).lnx",
+    "s": 281872
+  },
+  "eJzzNHJWcHUNCPL3VQhJLS5RSKpUcEosLslMzFMITs7ITM5W0Ahw0fQkrMrQ0tJME6xYLyevAgCNVRpF": {
+    "f": "I2C EEPROM Test by Bastian Schick (1996) (PD).lnx",
+    "s": 4884
+  },
+  "eJzzDApUCEktLlFIqlRwSiwuyUzMUwhOzshMzlbQCHDR9MQjbWhpaaEJVqWXk1cBAGc5FtM%3D": {
+    "f": "IRQ Test by Bastian Schick (1998) (PD).lnx",
+    "s": 860
+  },
+  "eJzzDApUCEktLlFIqlRwSiwuyUzMUwhOzshMzlbQCHDRVPDEI29oaWmhCVEWnWgYq5eTVwEA63IYXQ%3D%3D": {
+    "f": "IRQ Test by Bastian Schick (1998) (PD) [a1].lnx",
+    "s": 884
+  },
+  "eJzzzCtOLSpRcE%2FMTVUITi5KTc1TSKpUcEosLslMzAOKZGQmZytoBLhoehKl0NDSskITrF4vJ68CANwEHtk%3D": {
+    "f": "Insert Game Screen by Bastian Schick (199x) (PD).lnx",
+    "s": 1032
+  },
+  "eJzzLM7ITMlX0FUIyUhVCE%2BsVMhPUygBMoNL8vNSiz3xyipoGFpaGmoqaIRq6uXkVQAArKwX7g%3D%3D": {
+    "f": "Ishido - The Way of the Stones (1991) (U).lnx",
+    "s": 171552
+  },
+  "eJzzLM7ITMlX0FUIyUhVCE%2BsVMhPUygBMoNL8vNSiz3xyipoGFpaGmoqROcbxipohGrq5eRVAAAo2xlm": {
+    "f": "Ishido - The Way of the Stones (1991) [o1] (U).lnx",
+    "s": 173852
+  },
+  "eJzzyszNrVRwzs%2FLSy0qVghJzcvLLPbCIqagYWhpaaipoBGqqZeTVwEALPcSqg%3D%3D": {
+    "f": "Jimmy Conners Tennis (1991) (U).lnx",
+    "s": 534340
+  },
+  "eJzzyszNrVRwzs%2FLSy0qVghJzcvLLPbCIqagYWhpaaipEJ1kGKugEaqpl5NXAQCONBQV": {
+    "f": "Jimmy Conners Tennis (1991) [b1] (U).lnx",
+    "s": 574324
+  },
+  "eJzzyszNrVRwzs%2FLSy0qVghJzcvLLPbCIqagYWhpaaipEJ1kFKugEaqpl5NXAQCOPhQW": {
+    "f": "Jimmy Conners Tennis (1991) [b2] (U).lnx",
+    "s": 536156
+  },
+  "eJzzyi8tLvECEQoahpaWxpoKGuGZOTmZibnFQGaopl5OXgUA2jwLaw%3D%3D": {
+    "f": "Joust (1993) (Williams) (U).lnx",
+    "s": 129736
+  },
+  "eJzzyi8tLvECEQoahpaWxpoKGuGZOTmZibnFmgrR%2BYaxChqhmno5eRUAF9wM4w%3D%3D": {
+    "f": "Joust (1993) (Williams) [o1] (U).lnx",
+    "s": 132784
+  },
+  "eJzzzkms8AZiBQ1DS0sDTQWNUE29nLwKAFO7Bqs%3D": {
+    "f": "Klax (1990) (U).lnx",
+    "s": 303872
+  },
+  "eJzzzkms8AZiBQ1DS0sDTYXoJMNYBY1QTb2cvAoAeP0IFg%3D%3D": {
+    "f": "Klax (1990) [b1] (U).lnx",
+    "s": 312864
+  },
+  "eJzzLkqsqlRwTE5V8M3MSywpLUpVcM%2FPSfPGLqygYWhpaa6poBGSmpOanpibWgxkh2rq5eRVAACiBhgo": {
+    "f": "Krazy Ace Minature Golf (1997) (Telegames) (U).lnx",
+    "s": 119376
+  },
+  "eJzzLkqsqlRwTE5V8M3MSywpLUpVcM%2FPSfPGLqygYWhpaa6poBGSmpOanpibWqypEJ1kGKugEaqpl5NXAQAeyBmT": {
+    "f": "Krazy Ace Minature Golf (1997) (Telegames) [b1] (U).lnx",
+    "s": 119368
+  },
+  "eJzzLkqsqlRwTE5V8M3MSywpLUpVcM%2FPSfPGLqygYWhpaa6poBGSmpOanpibWqypEJ1kFKugEaqpl5NXAQAe0hmU": {
+    "f": "Krazy Ace Minature Golf (1997) (Telegames) [b2] (U).lnx",
+    "s": 119256
+  },
+  "eJzzLkqsqlRwTE5V8M3MSywpLUpVcM%2FPSfPGLqygYWhpaa6poBGSmpOanpibWqypEJ1kHKugEaqpl5NXAQAe3BmV": {
+    "f": "Krazy Ace Minature Golf (1997) (Telegames) [b3] (U).lnx",
+    "s": 26672
+  },
+  "eJzzLs1LV3DLz0%2FxhjEUNAwtLY00FTRCNfVy8ioAtawKBw%3D%3D": {
+    "f": "Kung Food (1992) (U).lnx",
+    "s": 266484
+  },
+  "eJzzLs1LV3DLz0%2FxhjEUNAwtLY00FaKTDGMVNEI19XLyKgDrugty": {
+    "f": "Kung Food (1992) [b1] (U).lnx",
+    "s": 284236
+  },
+  "eJzzSc3NzcxLL%2FaB0goahpaWxpoKGqGaejl5FQCuVwoG": {
+    "f": "Lemmings (1993) (U).lnx",
+    "s": 388340
+  },
+  "eJzzSc3NzcxLL%2FaB0goahpaWxpoK0UmGsQoaoZp6OXkVAORgC3E%3D": {
+    "f": "Lemmings (1993) [b1] (U).lnx",
+    "s": 392268
+  },
+  "eJzzSa3ILPYBEQoahpaWlpoKGsH5eelJmUUpQGaopl5OXgUA1nALRw%3D%3D": {
+    "f": "Lexis (1999) (Songbird) (U).lnx",
+    "s": 246652
+  },
+  "eJzzySxJVdBwSy1LLdJUSKpUcEosLslMzFMITs7ITM5W0Ahw0fQhoMTQ0tJcE6xSLyevAgAylhlo": {
+    "f": "Lite (Fever) by Bastian Schick (1997) (PD).lnx",
+    "s": 13488
+  },
+  "eJzzyU9JVQgqzctLLfJBMBU0DC0tzTQVNLxLi0oU%2FHOKU%2FOAnFBNvZy8CgCo%2FhAF": {
+    "f": "Lode Runner (1996) (Kurt Olsen) (U).lnx",
+    "s": 44888
+  },
+  "eJzzyU%2FPz1NIqlRwSiwuyUzMUwhOzshMzlbQCHDR9MElZ2hpaaYJVqKXk1cBAP3NFXc%3D": {
+    "f": "Logon by Bastian Schick (1996) (PD).lnx",
+    "s": 5964
+  },
+  "eJzzyU%2FPz1NIqlRwSiwuyUzMUwhOzshMzlbQCHDRVPDBJWloaWmmCVETnWgYq5eTVwEAejwXAQ%3D%3D": {
+    "f": "Logon by Bastian Schick (1996) (PD) [a1].lnx",
+    "s": 5936
+  },
+  "eJzzyc8vqPIBEQoaAUX5JfkllQWpmgoahpaWRkDKIzEvJTcxJVUhOD%2BtpDyxCCQVqqmXk1cBADaZEuo%3D": {
+    "f": "Loopz (Prototype) (1992) (Handmade Software) (U).lnx",
+    "s": 188956
+  },
+  "eJzzqcyrUHBOLM7My%2FdBMBU0DC0tjTQVNEI19XLyKgDyWwvd": {
+    "f": "Lynx Casino (1992) (U).lnx",
+    "s": 228100
+  },
+  "eJzzqcyrUHBOLM7My%2FdBMBU0DC0tjTQVopMMYxU0QjX1cvIqADGmDUg%3D": {
+    "f": "Lynx Casino (1992) [b1] (U).lnx",
+    "s": 246352
+  },
+  "eJzzqcyrUHDJTEzPyy8uyUxWcE4sKlEIM9AzMPLBKaOgYWhpYampoBGqqZeTVwEA%2FQYU8w%3D%3D": {
+    "f": "Lynx Diagnostic Cart V0.02 (1989) (U).lnx",
+    "s": 27776
+  },
+  "eJzzqcyrUPDJTFIISS0uUQgoyk8vSsxVSKpU8E0sKcnITCxWcMnPzcxT0Ahw0fQhVq2hpaW5JliLXk5eBQCo6CDk": {
+    "f": "Lynx Lib Test Program by Matthias Domin (1997) (PD).lnx",
+    "s": 3952
+  },
+  "eJzzTczJTCpVcMrMzszLVAjLz8lJrUxKzMnxxSGuoGFoaWmsqaARqqmXk1cBANn1FZo%3D": {
+    "f": "Malibu Bikini Volleyball (1993) (U).lnx",
+    "s": 288612
+  },
+  "eJzzTczJTCpVcMrMzszLVAjLz8lJrUxKzMnxxSGuoGFoaWmsqRCdZBiroBGqqZeTVwEASfEXBQ%3D%3D": {
+    "f": "Malibu Bikini Volleyball (1993) [b1] (U).lnx",
+    "s": 303136
+  },
+  "eJzzTcxLSc1xKsovUXBJzc1XSKpUcEosLslMzFMITs7ITM5W0Ahw0fQlrMrQ0tJME6xYLyevAgAhphyT": {
+    "f": "MandelBrot Demo by Bastian Schick (1996) (PD).lnx",
+    "s": 6060
+  },
+  "eJzzTcxLSc1xKsovUXBJzc1XSKpUcEosLslMzFMITs7ITM5W0Ahw0VTwJazM0NLSTBOiOjrRMFYvJ68CAMZgHh0%3D": {
+    "f": "MandelBrot Demo by Bastian Schick (1996) (PD) [a1].lnx",
+    "s": 6068
+  },
+  "eJzzTSxKyklV8E1MyUstLlZIqgQyS0oyMhOLFVzyczPzFDQCXDR9CSoytLQ01wSr1cvJqwAA8SYcLA%3D%3D": {
+    "f": "Marble Madness by Matthias Domin (1997) (PD).lnx",
+    "s": 11396
+  },
+  "eJzzTSxKyklV8E1MyUstLlZIqgQyS0oyMhOLFVzyczPzFDQCXDR9CSoytLS01ASr1cvJqwAA8TwcLg%3D%3D": {
+    "f": "Marble Madness by Matthias Domin (1999) (PD).lnx",
+    "s": 30692
+  },
+  "eJzzTSzKzFcIyCktVnBJzc1X0Ahw0fRFFzO0tKzQBEvp5eRVAACtog%2FZ": {
+    "f": "Mario Plus Demo (199x) (PD).lnx",
+    "s": 10568
+  },
+  "eJzzTSzKScovyldwz1f0RWIraAQU5Zfkl1QWpGoqaBhaWhoDKZfM9MySxBwFz9zEdJBwqKZeTl4FAPWbFXE%3D": {
+    "f": "Marlboro Go! (Prototype) (1993) (Digital Image) (U).lnx",
+    "s": 97844
+  },
+  "eJzzTU1PVPBNzFMIyCktVnBJzc1X0Ahw0fTFImxoaVmhCZbVy8mrAAAFfRFV": {
+    "f": "Mega Man Plus Demo (199x) (PD).lnx",
+    "s": 11560
+  },
+  "eJzzzUwuyldwy88rUXBJLElUSKpUcEosLslMzFMITs7ITM5W0Ahw0fQlrMrQ0tJSE6xYLyevAgACYxwS": {
+    "f": "Micro Font Data by Bastian Schick (1999) (PD).lnx",
+    "s": 1084
+  },
+  "eJzzzUwuyldwy88rUXApzS1ILVJIqlRwSiwuyUzMUwhOzshMzlbQCHDR9CVGnaGlZYUmWLleTl4FAJ1yHjc%3D": {
+    "f": "Micro Font Dumper by Bastian Schick (199x) (PD).lnx",
+    "s": 4396
+  },
+  "eJzzzcxLLVYwUkiqVHBKLC7JTMxTCE7OyEzOVtAIcNH0xS1raGlppglWpJeTVwEAN4QWFQ%3D%3D": {
+    "f": "Mines 2 by Bastian Schick (1996) (PD).lnx",
+    "s": 6112
+  },
+  "eJzzzczLVHBJzc1XMDBUSKpUcEosLslMzFMITs7ITM5W0Ahw0fQloMTQ0tJCE6xSLyevAgAXqxjh": {
+    "f": "Mini Demo 01 by Bastian Schick (1998) (PD).lnx",
+    "s": 968
+  },
+  "eJzzzczLVHBJzc1XMDBSSKpUcEosLslMzFMITs7ITM5W0Ahw0fQloMTQ0tJCE6xSLyevAgAYFBjj": {
+    "f": "Mini Demo 02 by Bastian Schick (1998) (PD).lnx",
+    "s": 3184
+  },
+  "eJzzzczLVHBJzc1XMDBWSKpUcEosLslMzFMITs7ITM5W0Ahw0fQloMTQ0tJCE6xSLyevAgAYfRjl": {
+    "f": "Mini Demo 03 by Bastian Schick (1998) (PD).lnx",
+    "s": 3972
+  },
+  "eJzzzczLVHBJzc1XMDBRSKpUcEosLslMzFMITs7ITM5W0Ahw0fQloMTQ0tJCE6xSLyevAgAY5hjn": {
+    "f": "Mini Demo 04 by Bastian Schick (1998) (PD).lnx",
+    "s": 4240
+  },
+  "eJzzzczLVHBJzc1XMDBVSKpUcEosLslMzFMITs7ITM5W0Ahw0fQloMTQ0tJCE6xSLyevAgAZTxjp": {
+    "f": "Mini Demo 05 by Bastian Schick (1998) (PD).lnx",
+    "s": 5432
+  },
+  "eJzzzczLVHBJzc1XMDBTSKpUcEosLslMzFMITs7ITM5W0Ahw0fQloMTQ0tJCE6xSLyevAgAZuBjr": {
+    "f": "Mini Demo 06 by Bastian Schick (1998) (PD).lnx",
+    "s": 15392
+  },
+  "eJzzLdZTCEhM1vVNzPNFMBU0DC0tDTQVNEI19XLyKgDKrgph": {
+    "f": "Ms. Pac-Man (1990) (U).lnx",
+    "s": 72800
+  },
+  "eJzzLdZTCEhM1vVNzPNFMBU0DC0tDTQVohMNYxU0QjX1cvIqAAKCC8s%3D": {
+    "f": "Ms. Pac-Man (1990) [a1] (U).lnx",
+    "s": 75192
+  },
+  "eJzzLdZTCEhM1vVNzPNFMBU0DC0tDTQVopMMYxU0QjX1cvIqAAKNC8w%3D": {
+    "f": "Ms. Pac-Man (1990) [b1] (U).lnx",
+    "s": 72912
+  },
+  "eJzzc%2FNRcMvPL0lKzMnxQ2IraBhaWhpoKmiEaurl5FUAAPlFC%2FE%3D": {
+    "f": "NFL Football (1990) (U).lnx",
+    "s": 217712
+  },
+  "eJzzc%2FNRcMvPL0lKzMnxQ2IraBhaWhpoKkQnGcYqaIRq6uXkVQAAOPQNXA%3D%3D": {
+    "f": "NFL Football (1990) [b1] (U).lnx",
+    "s": 236432
+  },
+  "eJzzy8zLSlRwT8xMSc3zQ2IraBhaWhpoKmiEaurl5FUAAAU2DDs%3D": {
+    "f": "Ninja Gaiden (1990) (U).lnx",
+    "s": 282912
+  },
+  "eJzzy8zLSlRwT8xMSc3zQ2IraBhaWhpoKkQnGcYqaIRq6uXkVQAARkgNpg%3D%3D": {
+    "f": "Ninja Gaiden (1990) [b1] (U).lnx",
+    "s": 293976
+  },
+  "eJzzy8zLSlRwT8xMSc1T8PT0VNBVCMlIVXDMS85MzStRCM7ILFDIT1Nwyc%2FP9SNeqYKGoaWlsaaCRqimXk5eBQCBAh%2FE": {
+    "f": "Ninja Gaiden III - The Ancient Ship of Doom (1993) (U).lnx",
+    "s": 420488
+  },
+  "eJzzy8zLSlRwT8xMSc1T8PT0VNBVCMlIVXDMS85MzStRCM7ILFDIT1Nwyc%2FP9SNeqYKGoaWlsaZCdJJhrIJGqKZeTl4FACPQIS8%3D": {
+    "f": "Ninja Gaiden III - The Ancient Ship of Doom (1993) [b1] (U).lnx",
+    "s": 161276
+  },
+  "eJzzy8zLSlRwT8xMSc1T8PT0VNBVCMlIVXDMS85MzStRCM7ILFDIT1Nwyc%2FP9SNeqYKGoaWlsaZCdJJRrIJGqKZeTl4FACPaITA%3D": {
+    "f": "Ninja Gaiden III - The Ancient Ship of Doom (1993) [b2] (U).lnx",
+    "s": 509272
+  },
+  "eJwLSEzW9UnMSwmA0goahpaWhpoKGqGaejl5FQCXswkM": {
+    "f": "Pac-Land (1991) (U).lnx",
+    "s": 162532
+  },
+  "eJwLSEzW9UnMSwmA0goahpaWhpoK0fmGsQoaoZp6OXkVAMlpCoQ%3D": {
+    "f": "Pac-Land (1991) [o1] (U).lnx",
+    "s": 166344
+  },
+  "eJwLSCxILUrKrwyA0goahpaWBpoKGqGaejl5FQCvJQoP": {
+    "f": "Paperboy (1990) (U).lnx",
+    "s": 98132
+  },
+  "eJwLSCxILUrKrwyA0goahpaWBpoK0fmGsQoaoZp6OXkVAOXqC4c%3D": {
+    "f": "Paperboy (1990) [o1] (U).lnx",
+    "s": 100964
+  },
+  "eJwLSCxKVPBJzc1UVCgzMDBU0Ahw0QxAFzO0tDTXBEvp5eRVAAByqw28": {
+    "f": "Para Lemi! v001 (1997) (PD).lnx",
+    "s": 4616
+  },
+  "eJwLSCxKVPBJzc1UVCgzMDBS0Ahw0QxAFzO0tDTXBEvp5eRVAABy4Q2%2B": {
+    "f": "Para Lemi! v002 (1997) (PD).lnx",
+    "s": 3812
+  },
+  "eJwLSCxKVPBJzc1UVCgzMDBW0Ahw0QxAFzO0tDTXBEvp5eRVAABzFw3A": {
+    "f": "Para Lemi! v003 (1997) (PD).lnx",
+    "s": 4268
+  },
+  "eJwLSCxKVPBJzc1UVCgzMDBR0Ahw0QxAFzO0tDTXBEvp5eRVAABzTQ3C": {
+    "f": "Para Lemi! v004 (1997) (PD).lnx",
+    "s": 5440
+  },
+  "eJwLSCxKVPBJzc1UVCgzMDBV0Ahw0QxAFzO0tDTXBEvp5eRVAABzgw3E": {
+    "f": "Para Lemi! v005 (1997) (PD).lnx",
+    "s": 8216
+  },
+  "eJwLyMxLSszJUfBKzA1AMBU0DC0tjTQVNEI19XLyKgDrEwuB": {
+    "f": "Pinball Jam (1992) (U).lnx",
+    "s": 341488
+  },
+  "eJwLyMxLSszJUfBKzA1AMBU0DC0tjTQVopMMYxU0QjX1cvIqACiSDOw%3D": {
+    "f": "Pinball Jam (1992) [b1] (U).lnx",
+    "s": 352560
+  },
+  "eJwLyCxRcMtMzyhJLVLQVQjJSFUIzSnJzE0sSVVwzs8tSC3JLMnMzwsgSpWChqGlpZGmgkaopl5OXgUAuVge9Q%3D%3D": {
+    "f": "Pit Fighter - The Ultimate Competition (1992) (U).lnx",
+    "s": 535264
+  },
+  "eJwLyCxRcMtMzyhJLVLQVQjJSFUIzSnJzE0sSVVwzs8tSC3JLMnMzwsgSpWChqGlpZGmQnSSYayCRqimXk5eBQBYGyBg": {
+    "f": "Pit Fighter - The Ultimate Competition (1992) [b1] (U).lnx",
+    "s": 559464
+  },
+  "eJwLyEmsVAjOL81LUQhOzC3ISVVIqlRwSiwuyUzMUwhOzshMzlbQCHDRDCBGnaGlpZkmWLleTl4FAJzcHfs%3D": {
+    "f": "Play Sound Sample by Bastian Schick (1996) (PD).lnx",
+    "s": 2604
+  },
+  "eJwLyM9LN1VIqlRwTizKUXDLL8pIzFPQCHDRDMAqYWhpaa4JltfLyasAAFfhEp4%3D": {
+    "f": "Pong5 by Carl Forhan (1997) (PD).lnx",
+    "s": 3952
+  },
+  "eJwLyM9LN1VIqlRwTizKUXDLL8pIzFPQCHDRVAjAKmNoaWmuCVEQnWgYq5eTVwEAxDcUKA%3D%3D": {
+    "f": "Pong5 by Carl Forhan (1997) (PD) [a1].lnx",
+    "s": 3932
+  },
+  "eJwLyC9PLVJwS0wuyS8KQGIraBhaWhppKmiEaurl5FUAABBEDKU%3D": {
+    "f": "Power Factor (1992) (U).lnx",
+    "s": 250032
+  },
+  "eJwLyC9PLVJwS0wuyS8KQGIraBhaWhppKkQnGcYqaIRq6uXkVQAAU2gOEA%3D%3D": {
+    "f": "Power Factor (1992) [b1] (U).lnx",
+    "s": 269260
+  },
+  "eJwLKE3KyUxWcMnPTczMMzI1U3DOz8kvUnBJzc1XSKpUcEosLslMzFMITs7ITM5W0DC0tDTXVNAIcNFUiE40jNXLyasAANfMFMU%3D": {
+    "f": "256 Color Demo by Bastian Schick (1997) (PD) [a1].lnx",
+    "s": 5484
+  },
+  "eJwLKE3KyUxWcMnPTczMMzI1U3DOz8kvUnBJzc1XSKpUcEosLslMzFMITs7ITM5W0DC0tDTXVNAIcNHUy8mrAAB07xNb": {
+    "f": "256 Color Demo by Bastian Schick (1997) (PD).lnx",
+    "s": 5560
+  },
+  "eJwLKE3KyUxWcMnPTczMMzI1U3DOz8kvUvBNzEtJzUkqyi9RcEnNzVdIqlRwSiwuyUzMUwhOzshMzlbQMLS0tNBU0Ahw0VSITjSM1cvJqwAA%2BMgY7g%3D%3D": {
+    "f": "256 Color Mandelbrot Demo by Bastian Schick (1998) (PD) [a1].lnx",
+    "s": 6320
+  },
+  "eJwLKE3KyUxWcMnPTczMMzI1U3DOz8kvUvBNzEtJzUkqyi9RcEnNzVdIqlRwSiwuyUzMUwhOzshMzlbQMLS0tNBU0Ahw0dTLyasAAIEeF4Q%3D": {
+    "f": "256 Color Mandelbrot Demo by Bastian Schick (1998) (PD).lnx",
+    "s": 6344
+  },
+  "eJwLKE3KyUxWcMnPTczMcwryVghOLSpLLVLwzCsuSczJAbKSKhWcEotLMhPzFIKTMzKTsxU0DC0tzTQVNAJcNBWiEw1j9XLyKgCPJxen": {
+    "f": "BRK Server Installer by Bastian Schick (1996) (PD) [a1].lnx",
+    "s": 916
+  },
+  "eJwLKE3KyUxWcMnPTczMcwryVghOLSpLLVLwzCsuSczJAbKSKhWcEotLMhPzFIKTMzKTsxU0DC0tzTQVNAJcNPVy8ioAHeAWPQ%3D%3D": {
+    "f": "BRK Server Installer by Bastian Schick (1996) (PD).lnx",
+    "s": 844
+  },
+  "eJwLKE3KyUxWcMnPTczMc8rPzEtXcEnNzVfQMLS0rNBU0Ahw0VSITjSM1cvJqwAASkUN5w%3D%3D": {
+    "f": "Boing Demo (199x) (PD) [a1].lnx",
+    "s": 5428
+  },
+  "eJwLKE3KyUxWcMnPTczMc8rPzEtXcEnNzVfQMLS0rNBU0Ahw0VSITjSK1cvJqwAASksN6A%3D%3D": {
+    "f": "Boing Demo (199x) (PD) [a2].lnx",
+    "s": 4776
+  },
+  "eJwLKE3KyUxWcMnPTczMc8rPzEtXcEnNzVfQMLS0rNBU0Ahw0VSITjSO1cvJqwAASlEN6Q%3D%3D": {
+    "f": "Boing Demo (199x) (PD) [a3].lnx",
+    "s": 5284
+  },
+  "eJwLKE3KyUxWcMnPTczMc8rPzEtXcEnNzVfQMLS0rNBU0Ahw0dTLyasAAAm%2BDH0%3D": {
+    "f": "Boing Demo (199x) (PD).lnx",
+    "s": 4204
+  },
+  "eJwLKE3KyUxWcMnPTczMcypNSspJVXDKB1NhekYKLqm5%2BQoahpaWFZoKGgEumno5eRUAvxUQFg%3D%3D": {
+    "f": "Bubble Bobble V.2 Demo (199x) (PD).lnx",
+    "s": 7252
+  },
+  "eJwLKE3KyUxWcMnPTczMczYzVdBVcEnNzTdQ0DC0tLTQVNAIcNFUiE40jNXLyasAADbEDOM%3D": {
+    "f": "C65 - Demo0 (1998) (PD) [a1].lnx",
+    "s": 25004
+  },
+  "eJwLKE3KyUxWcMnPTczMczYzVdBVcEnNzTdQ0DC0tLTQVNAIcNHUy8mrAAD7Qgt5": {
+    "f": "C65 - Demo0 (1998) (PD).lnx",
+    "s": 25008
+  },
+  "eJwLKE3KyUxWcMnPTczMczYzVdBVcEnNzTdU0DC0tLTQVNAIcNFUiE40jNXLyasAADbaDOQ%3D": {
+    "f": "C65 - Demo1 (1998) (PD) [a1].lnx",
+    "s": 3136
+  },
+  "eJwLKE3KyUxWcMnPTczMczYzVdBVcEnNzTdU0DC0tLTQVNAIcNHUy8mrAAD7Uwt6": {
+    "f": "C65 - Demo1 (1998) (PD).lnx",
+    "s": 3128
+  },
+  "eJwLKE3KyUxWcMnPTczMczYzVdBVcEnNzTdS0DC0tLTQVNAIcNFUiE40jNXLyasAADbwDOU%3D": {
+    "f": "C65 - Demo2 (1998) (PD) [a1].lnx",
+    "s": 3260
+  },
+  "eJwLKE3KyUxWcMnPTczMczYzVdBVcEnNzTdS0DC0tLTQVNAIcNHUy8mrAAD7ZAt7": {
+    "f": "C65 - Demo2 (1998) (PD).lnx",
+    "s": 3276
+  },
+  "eJwLKE3KyUxWcMnPTczMczYzVdBVcEnNzTdW0DC0tLTQVNAIcNFUiE40jNXLyasAADcGDOY%3D": {
+    "f": "C65 - Demo3 (1998) (PD) [a1].lnx",
+    "s": 3796
+  },
+  "eJwLKE3KyUxWcMnPTczMczYzVdBVcEnNzTdW0DC0tLTQVNAIcNHUy8mrAAD7dQt8": {
+    "f": "C65 - Demo3 (1998) (PD).lnx",
+    "s": 3772
+  },
+  "eJwLKE3KyUxWcMnPTczMczYzVdBVcHeLCEktLlHQMLS0tNBU0Ahw0dTLyasAABggDEk%3D": {
+    "f": "C65 - GFXTest (1998) (PD).lnx",
+    "s": 3604
+  },
+  "eJwLKE3KyUxWcMnPTczMczYzVdBVcE%2BrKEktLlHQMLS0tNBU0Ahw0VSITjSM1cvJqwAAYWMOEw%3D%3D": {
+    "f": "C65 - Gfxtest (1998) (PD) [a1].lnx",
+    "s": 3632
+  },
+  "eJwLKE3KyUxWcMnPTczMczYzVdBV8E3MS0nNSSrKL1HQMLS0tNBU0Ahw0VSITjSM1cvJqwAAlVYPNg%3D%3D": {
+    "f": "C65 - Mandelbrot (1998) (PD) [a1].lnx",
+    "s": 3256
+  },
+  "eJwLKE3KyUxWcMnPTczMczYzVdBV8E3MS0nNSSrKL1HQMLS0tNBU0Ahw0dTLyasAAE5EDcw%3D": {
+    "f": "C65 - Mandelbrot (1998) (PD).lnx",
+    "s": 3204
+  },
+  "eJwLKE3KyUxWcMnPTczMczYzVdBV8E2sSk1Jzc1X0DC0tLTQVNAIcNFUiE40jNXLyasAAHCNDmA%3D": {
+    "f": "C65 - Mazedemo (1998) (PD) [a1].lnx",
+    "s": 3584
+  },
+  "eJwLKE3KyUxWcMnPTczMczYzVdBV8E2sSk1Jzc1X0DC0tLTQVNAIcNHUy8mrAAAtqQz2": {
+    "f": "C65 - Mazedemo (1998) (PD).lnx",
+    "s": 3556
+  },
+  "eJwLKE3KyUxWcMnPTczMczYzVdBV8M3My8xNzFHQMLS0tNBU0Ahw0VSITjSM1cvJqwAAXrcN9Q%3D%3D": {
+    "f": "C65 - Minimal (1998) (PD) [a1].lnx",
+    "s": 5148
+  },
+  "eJwLKE3KyUxWcMnPTczMczYzVdBV8M3My8xNzFHQMLS0tNBU0Ahw0dTLyasAAB3qDIs%3D": {
+    "f": "C65 - Minimal (1998) (PD).lnx",
+    "s": 5504
+  },
+  "eJwLKE3KyUxWcMnPTczMczYzVdBVCC4oyixJVdAwtLS00FTQCHDRVIhONIzVy8mrAABP1g2l": {
+    "f": "C65 - Sprite (1998) (PD) [a1].lnx",
+    "s": 3608
+  },
+  "eJwLKE3KyUxWcMnPTczMczYzVdBVCC4oyixJVdAwtLS00FTQCHDR1MvJqwAAEJkMOw%3D%3D": {
+    "f": "C65 - Sprite (1998) (PD).lnx",
+    "s": 3616
+  },
+  "eJwLKE3KyUxWcMnPTczMc04sKinOyC9XSKpU8E0sKcnITCwGSWXmKWgYWlpaaCpoBLho6uXkVQAAJsoSYQ%3D%3D": {
+    "f": "Cartshow by Matthias Domin (1998) (PD).lnx",
+    "s": 5176
+  },
+  "eJwLKE3KyUxWcMnPTczMc85ITc5WcHUNCPL3VUiqVHBKLC7JTMxTCE7OyARKaBhaWpppKmgEuGgqRCcaxurl5FUAALKxFCk%3D": {
+    "f": "Check EEPROM by Bastian Schick (1996) (PD) [a1].lnx",
+    "s": 5144
+  },
+  "eJwLKE3KyUxWcMnPTczMc85ITc5WcHUNCPL3VUiqVHBKLC7JTMxTCE7OyARKaBhaWpppKmgEuGjq5eRVAABS4BK%2F": {
+    "f": "Check EEPROM by Bastian Schick (1996) (PD).lnx",
+    "s": 5144
+  },
+  "eJwLKE3KyUxWcMnPTczMc87ILLBQcM0tzUksyS9SCErNSU0sTlUwVNAwMjAw0VTQCHDR1MvJqwAA7DIQ6w%3D%3D": {
+    "f": "Chip8 Emulator Release 1 (2004) (PD).lnx",
+    "s": 9128
+  },
+  "eJwLKE3KyUxWcMnPTczMc87ILLBQcM0tzUksyS9SCErNSU0sTlUwUtAwMjAw0VTQCHDR1MvJqwAA7EMQ7A%3D%3D": {
+    "f": "Chip8 Emulator Release 2 (2004) (PD).lnx",
+    "s": 9128
+  },
+  "eJwLKE3KyUxWcMnPTczMc87ILLBQcM0tzUksyS9SCErNSU0sTlUwVtAwMjAw0VTQCHDR1MvJqwAA7FQQ7Q%3D%3D": {
+    "f": "Chip8 Emulator Release 3 (2004) (PD).lnx",
+    "s": 12660
+  },
+  "eJwLKE3KyUxWcMnPTczMc87ILLBQcM0tzUksyS9SCErNSU0sTlUwUdAwMjAw0VTQCHDR1MvJqwAA7GUQ7g%3D%3D": {
+    "f": "Chip8 Emulator Release 4 (2004) (PD).lnx",
+    "s": 15904
+  },
+  "eJwLKE3KyUxWcMnPTczMc87ILLBQcM0tzUksyS9SCErNSU0sTlUwVdAwMjAw0VTQCHDR1MvJqwAA7HYQ7w%3D%3D": {
+    "f": "Chip8 Emulator Release 5 (2004) (PD).lnx",
+    "s": 17972
+  },
+  "eJwLKE3KyUxWcMnPTczMc87ILLBQcM0tzUksyS9SCErNSU0sTlUwU9AwMjAw0VTQCHDR1MvJqwAA7IcQ8A%3D%3D": {
+    "f": "Chip8 Emulator Release 6 (2004) (PD).lnx",
+    "s": 18608
+  },
+  "eJwLKE3KyUxWcMnPTczMc84sSs5JVXApSixXCEktLlHQMLS0rNBU0Ahw0dTLyasAAGZWDqk%3D": {
+    "f": "Circle Draw Test (199x) (PD).lnx",
+    "s": 8136
+  },
+  "eJwLKE3KyUxWcMnPTczMc84sSs5JVQgpzctLzVFIqlRwSiwuyUzMUwhOzshMzlbQMLS0NNNU0Ahw0dTLyasAAIZHE%2BE%3D": {
+    "f": "Circle Tunnel by Bastian Schick (1996) (PD).lnx",
+    "s": 8028
+  },
+  "eJwLKE3KyUxWcMnPTczMc84sSs5JVUjMS1EIKc3LS81RcEnNzVfQMLS0rNBU0Ahw0dTLyasAAM9qEMk%3D": {
+    "f": "Circle and Tunnel Demo (199x) (PD).lnx",
+    "s": 9372
+  },
+  "eJwLKE3KyUxWcMnPTczMcwYys4sVFVxSc%2FMVwswUkioVfBNLSjIyE4tBKjLzFDSMDAwMNRU0Alw09XLyKgCU8RPJ": {
+    "f": "Clicks! Demo V6 by Matthias Domin (2001) (PD).lnx",
+    "s": 24916
+  },
+  "eJwLKE3KyUxWcMnPTczMcwYys4sVFZIqFXwTS0oyMhOLQTKZeQoaRgYGhpoKGgEumno5eRUAAUYReA%3D%3D": {
+    "f": "Clicks! by Matthias Domin (2001) (PD).lnx",
+    "s": 19120
+  },
+  "eJwLKE3KyUxWcMnPTczMc0nNzVcwVEiqVHBKLC7JTMxTCE7OyEzOVtAwtLQ001TQCHDR1MvJqwAA4YsQzw%3D%3D": {
+    "f": "Demo 1 by Bastian Schick (1996) (PD).lnx",
+    "s": 956
+  },
+  "eJwLKE3KyUxWcMnPTczMc0nNzVcwUkiqVHBKLC7JTMxTCE7OyEzOVtAwtLQ001TQCHDR1MvJqwAA4a4Q0A%3D%3D": {
+    "f": "Demo 2 by Bastian Schick (1996) (PD).lnx",
+    "s": 3180
+  },
+  "eJwLKE3KyUxWcMnPTczMc0nNzVcwVkiqVHBKLC7JTMxTCE7OyEzOVtAwtLQ001TQCHDR1MvJqwAA4dEQ0Q%3D%3D": {
+    "f": "Demo 3 by Bastian Schick (1996) (PD).lnx",
+    "s": 3948
+  },
+  "eJwLKE3KyUxWcMnPTczMc0nNzVcwUUiqVHBKLC7JTMxTCE7OyEzOVtAwtLQ001TQCHDR1MvJqwAA4fQQ0g%3D%3D": {
+    "f": "Demo 4 by Bastian Schick (1996) (PD).lnx",
+    "s": 4224
+  },
+  "eJwLKE3KyUxWcMnPTczMc0nNzVcwVUiqVHBKLC7JTMxTCE7OyEzOVtAwtLQ001TQCHDR1MvJqwAA4hcQ0w%3D%3D": {
+    "f": "Demo 5 by Bastian Schick (1996) (PD).lnx",
+    "s": 5408
+  },
+  "eJwLKE3KyUxWcMnPTczMc0nNzVcwU0iqVHBKLC7JTMxTCE7OyEzOVtAwtLQ001TQCHDRVIhONIzVy8mrAAA4gxI%2B": {
+    "f": "Demo 6 by Bastian Schick (1996) (PD) [a1].lnx",
+    "s": 13128
+  },
+  "eJwLKE3KyUxWcMnPTczMc0nNzVcwU0iqVHBKLC7JTMxTCE7OyEzOVtAwtLQ001TQCHDR1MvJqwAA4joQ1A%3D%3D": {
+    "f": "Demo 6 by Bastian Schick (1996) (PD).lnx",
+    "s": 13112
+  },
+  "eJwLKE3KyUxWcMnPTczMc8lMz0xJzc1X0DC0tKzQVNAIcNHUy8mrAADzBgwL": {
+    "f": "Digidemo (199x) (PD).lnx",
+    "s": 131400
+  },
+  "eJwLKE3KyUxWcMnPTczMc8lMz0xJzc1XMFLQMLS0rNBU0Ahw0dTLyasAAAibDF0%3D": {
+    "f": "Digidemo 2 (199x) (PD).lnx",
+    "s": 354464
+  },
+  "eJwLKE3KyUxWcMnPTczMcylKLC9JLS5RSKpUcEosLslMzFMITs7ITM5W0DC0tKzQVNAIcNHUy8mrAAAnPRKJ": {
+    "f": "Drawtest by Bastian Schick (199x) (PD).lnx",
+    "s": 12464
+  },
+  "eJwLKE3KyUxWcMnPTczMcynNS0%2FNz9NRCMlIVQjTM6hQSKpU8E0sKcnITCwGqcnMU9AwtLQ011TQCHDR1MvJqwAAxYoUng%3D%3D": {
+    "f": "Dungeon, The V.0x by Matthias Domin (1997) (PD).lnx",
+    "s": 41948
+  },
+  "eJwLKE3KyUxWcMnPTczMcynNS0%2FNz9NRCMlIVQjTMzRUSKpU8E0sKcnITCwGqcnMU9AwtLS00FTQCHDR1MvJqwAAvAQUWQ%3D%3D": {
+    "f": "Dungeon, The V.11 by Matthias Domin (1998) (PD).lnx",
+    "s": 45020
+  },
+  "eJwLKE3KyUxWcMnPTczMcynNS0%2FNz9NRCMlIVQjTMzRSSKpU8E0sKcnITCwGqcnMU9AwtLS00FTQCHDR1MvJqwAAvCcUWg%3D%3D": {
+    "f": "Dungeon, The V.12 by Matthias Domin (1998) (PD).lnx",
+    "s": 45028
+  },
+  "eJwLKE3KyUxWcMnPTczMc3UNCPL3VQhJLS5R8DRyVtAwtLSs0FTQCHDR1MvJqwAAP1oNTw%3D%3D": {
+    "f": "EEPROM Test I2C (199x) (PD).lnx",
+    "s": 4972
+  },
+  "eJwLKE3KyUxWcMnPTczMc8tMzyhJLVII0zNScEnNzVfQMDIwMNBU0Ahw0dTLyasAAFieDdQ%3D": {
+    "f": "Fighter V.2 Demo (2000) (PD).lnx",
+    "s": 44336
+  },
+  "eJwLKE3KyUxWcMnPTczMc8ssSlXQcEstSy3SVHBJzc1XSKpUcEosLslMzFMITs7ITM5W0DC0tDTXVNAIcNHUy8mrAADAjhSO": {
+    "f": "Fire (Fever) Demo by Bastian Schick (1997) (PD).lnx",
+    "s": 7248
+  },
+  "eJwLKE3KyUxWcMnPTczMc8vPK1EISS0uUTBSSKpUcEosLslMzFMITs7ITM5W0DC0tKzQVNAIcNFUiE40jNXLyasAAKt2FE4%3D": {
+    "f": "Font Test 2 by Bastian Schick (199x) (PD) [a1].lnx",
+    "s": 2672
+  },
+  "eJwLKE3KyUxWcMnPTczMc8vPK1EISS0uUTBSSKpUcEosLslMzFMITs7ITM5W0DC0tKzQVNAIcNHUy8mrAABK7BLk": {
+    "f": "Font Test 2 by Bastian Schick (199x) (PD).lnx",
+    "s": 2680
+  },
+  "eJwLKE3KyUxWcMnPTczMc8%2FIL80pVlDPU1cAMotLihUCckqLFcL0jBRcUnPzFTQMLS0rNBU0Alw09XLyKgBqmRMO": {
+    "f": "Ghouls 'n' Ghosts Plus V.2 Demo (199x) (PD).lnx",
+    "s": 14452
+  },
+  "eJwLKE3KyUxWcMnPTczM8zRyVnB1DQjy91UISS0uUUiqVHBKLC7JTMxTCE7OyEzOVtAwtLQ001TQCHDR1MvJqwAAfLITXw%3D%3D": {
+    "f": "I2C EEPROM Test by Bastian Schick (1996) (PD).lnx",
+    "s": 4884
+  },
+  "eJwLKE3KyUxWcMnPTczM8wwKVAhJLS5RSKpUcEosLslMzFMITs7ITM5W0DC0tLTQVNAIcNFUiE40jNXLyasAAGYHExE%3D": {
+    "f": "IRQ Test by Bastian Schick (1998) (PD) [a1].lnx",
+    "s": 884
+  },
+  "eJwLKE3KyUxWcMnPTczM8wwKVAhJLS5RSKpUcEosLslMzFMITs7ITM5W0DC0tLTQVNAIcNHUy8mrAAALrhGn": {
+    "f": "IRQ Test by Bastian Schick (1998) (PD).lnx",
+    "s": 860
+  },
+  "eJwLKE3KyUxWcMnPTczM88wrTi0qUXBPzE1VCE4uSk3NU0iqVHBKLC7JTMwDimRkJmcraBhaWlZoKmgEuGjq5eRVAAD2DhXK": {
+    "f": "Insert Game Screen by Bastian Schick (199x) (PD).lnx",
+    "s": 1032
+  },
+  "eJwLKE3KyUxWcMnPTczM88ksSVXQcEstSy3SVEiqVHBKLC7JTMxTCE7OyEzOVtAwtLQ011TQCHDR1MvJqwAAWgUS8Q%3D%3D": {
+    "f": "Lite (Fever) by Bastian Schick (1997) (PD).lnx",
+    "s": 13488
+  },
+  "eJwLKE3KyUxWcMnPTczM88lPz89TSKpUcEosLslMzFMITs7ITM5W0DC0tDTTVNAIcNFUiE40jNXLyasAADfYEmI%3D": {
+    "f": "Logon by Bastian Schick (1996) (PD) [a1].lnx",
+    "s": 5936
+  },
+  "eJwLKE3KyUxWcMnPTczM88lPz89TSKpUcEosLslMzFMITs7ITM5W0DC0tDTTVNAIcNHUy8mrAADg2xD4": {
+    "f": "Logon by Bastian Schick (1996) (PD).lnx",
+    "s": 5964
+  },
+  "eJwLKE3KyUxWcMnPTczM86nMq1DwyUxSCEktLlEIKMpPL0rMVUiqVPBNLCnJyEwsBqnLzFPQMLS0NNdU0Ahw0dTLyasAADuKFq8%3D": {
+    "f": "Lynx Lib Test Program by Matthias Domin (1997) (PD).lnx",
+    "s": 3952
+  },
+  "eJwLKE3KyUxWcMnPTczM803MS0nNcSrKL1FwSc3NV0iqVHBKLC7JTMxTCE7OyEzOVtAwtLQ001TQCHDRVIhONIzVy8mrAAAZsRXw": {
+    "f": "MandelBrot Demo by Bastian Schick (1996) (PD) [a1].lnx",
+    "s": 6068
+  },
+  "eJwLKE3KyUxWcMnPTczM803MS0nNcSrKL1FwSc3NV0iqVHBKLC7JTMxTCE7OyEzOVtAwtLQ001TQCHDR1MvJqwAAsO4Uhg%3D%3D": {
+    "f": "MandelBrot Demo by Bastian Schick (1996) (PD).lnx",
+    "s": 6060
+  },
+  "eJwLKE3KyUxWcMnPTczM800sSspJVfBNTMlLLS5WSKoEMktKMjITi0EKMvMUNAwtLc01FTQCXDT1cvIqAJ4YFFM%3D": {
+    "f": "Marble Madness by Matthias Domin (1997) (PD).lnx",
+    "s": 11396
+  },
+  "eJwLKE3KyUxWcMnPTczM800sSspJVfBNTMlLLS5WSKoEMktKMjITi0EKMvMUNAwtLS01FTQCXDT1cvIqAJ4uFFU%3D": {
+    "f": "Marble Madness by Matthias Domin (1999) (PD).lnx",
+    "s": 30692
+  },
+  "eJwLKE3KyUxWcMnPTczM800sysxXCMgpLVZwSc3NV9AwtLSs0FTQCHDR1MvJqwAAVjgOSg%3D%3D": {
+    "f": "Mario Plus Demo (199x) (PD).lnx",
+    "s": 10568
+  },
+  "eJwLKE3KyUxWcMnPTczM801NT1TwTcxTCMgpLVZwSc3NV9AwtLSs0FTQCHDR1MvJqwAAfoEPCA%3D%3D": {
+    "f": "Mega Man Plus Demo (199x) (PD).lnx",
+    "s": 11560
+  },
+  "eJwLKE3KyUxWcMnPTczM881MLspXcMvPK1FwSSxJVEiqVHBKLC7JTMxTCE7OyEzOVtAwtLS01FTQCHDR1MvJqwAApkMURw%3D%3D": {
+    "f": "Micro Font Data by Bastian Schick (1999) (PD).lnx",
+    "s": 1084
+  },
+  "eJwLKE3KyUxWcMnPTczM881MLspXcMvPK1FwKc0tSC1SSKpUcEosLslMzFMITs7ITM5W0DC0tKzQVNAIcNHUy8mrAADfNRV5": {
+    "f": "Micro Font Dumper by Bastian Schick (199x) (PD).lnx",
+    "s": 4396
+  },
+  "eJwLKE3KyUxWcMnPTczM883MSy1WMFJIqlRwSiwuyUzMUwhOzshMzlbQMLS0NNNU0Ahw0dTLyasAAPlmEUc%3D": {
+    "f": "Mines 2 by Bastian Schick (1996) (PD).lnx",
+    "s": 6112
+  },
+  "eJwLKE3KyUxWcMnPTczM883My1RwSc3NVzAwVEiqVHBKLC7JTMxTCE7OyEzOVtAwtLS00FTQCHDR1MvJqwAAUTsSrg%3D%3D": {
+    "f": "Mini Demo 01 by Bastian Schick (1998) (PD).lnx",
+    "s": 968
+  },
+  "eJwLKE3KyUxWcMnPTczM883My1RwSc3NVzAwUkiqVHBKLC7JTMxTCE7OyEzOVtAwtLS00FTQCHDR1MvJqwAAUV4Srw%3D%3D": {
+    "f": "Mini Demo 02 by Bastian Schick (1998) (PD).lnx",
+    "s": 3184
+  },
+  "eJwLKE3KyUxWcMnPTczM883My1RwSc3NVzAwVkiqVHBKLC7JTMxTCE7OyEzOVtAwtLS00FTQCHDR1MvJqwAAUYESsA%3D%3D": {
+    "f": "Mini Demo 03 by Bastian Schick (1998) (PD).lnx",
+    "s": 3972
+  },
+  "eJwLKE3KyUxWcMnPTczM883My1RwSc3NVzAwUUiqVHBKLC7JTMxTCE7OyEzOVtAwtLS00FTQCHDR1MvJqwAAUaQSsQ%3D%3D": {
+    "f": "Mini Demo 04 by Bastian Schick (1998) (PD).lnx",
+    "s": 4240
+  },
+  "eJwLKE3KyUxWcMnPTczM883My1RwSc3NVzAwVUiqVHBKLC7JTMxTCE7OyEzOVtAwtLS00FTQCHDR1MvJqwAAUccSsg%3D%3D": {
+    "f": "Mini Demo 05 by Bastian Schick (1998) (PD).lnx",
+    "s": 5432
+  },
+  "eJwLKE3KyUxWcMnPTczM883My1RwSc3NVzAwU0iqVHBKLC7JTMxTCE7OyEzOVtAwtLS00FTQCHDR1MvJqwAAUeoSsw%3D%3D": {
+    "f": "Mini Demo 06 by Bastian Schick (1998) (PD).lnx",
+    "s": 15392
+  },
+  "eJwLKE3KyUxWcMnPTczMC0gsSlTwSc3NVFQoMzAwVNAwtLQ011TQCHDR1MvJqwAAQKMNGw%3D%3D": {
+    "f": "Para Lemi! v001 (1997) (PD).lnx",
+    "s": 4616
+  },
+  "eJwLKE3KyUxWcMnPTczMC0gsSlTwSc3NVFQoMzAwUtAwtLQ011TQCHDR1MvJqwAAQLQNHA%3D%3D": {
+    "f": "Para Lemi! v002 (1997) (PD).lnx",
+    "s": 3812
+  },
+  "eJwLKE3KyUxWcMnPTczMC0gsSlTwSc3NVFQoMzAwVtAwtLQ011TQCHDR1MvJqwAAQMUNHQ%3D%3D": {
+    "f": "Para Lemi! v003 (1997) (PD).lnx",
+    "s": 4268
+  },
+  "eJwLKE3KyUxWcMnPTczMC0gsSlTwSc3NVFQoMzAwUdAwtLQ011TQCHDR1MvJqwAAQNYNHg%3D%3D": {
+    "f": "Para Lemi! v004 (1997) (PD).lnx",
+    "s": 5440
+  },
+  "eJwLKE3KyUxWcMnPTczMC0gsSlTwSc3NVFQoMzAwVdAwtLQ011TQCHDR1MvJqwAAQOcNHw%3D%3D": {
+    "f": "Para Lemi! v005 (1997) (PD).lnx",
+    "s": 8216
+  },
+  "eJwLKE3KyUxWcMnPTczMC8hJrFQIzi%2FNS1EITswtyElVSKpUcEosLslMzFMITs7ITM5W0DC0tDTTVNAIcNHUy8mrAADdQxU6": {
+    "f": "Play Sound Sample by Bastian Schick (1996) (PD).lnx",
+    "s": 2604
+  },
+  "eJwLKE3KyUxWcMnPTczMC8jPSzdVSKpUcE4sylFwyy%2FKSMxT0DC0tDTXVNAIcNFUiE40jNXLyasAAO8LEPY%3D": {
+    "f": "Pong5 by Carl Forhan (1997) (PD) [a1].lnx",
+    "s": 3932
+  },
+  "eJwLKE3KyUxWcMnPTczMC8jPSzdVSKpUcE4sylFwyy%2FKSMxT0DC0tDTXVNAIcNHUy8mrAACfOQ%2BM": {
+    "f": "Pong5 by Carl Forhan (1997) (PD).lnx",
+    "s": 3952
+  },
+  "eJwLKE3KyUxWcMnPTczMCyitqspJLVIwMjAwUNBwzCxScHL31VTQMLS0tABSAS6aejl5FQCr6g8K": {
+    "f": "Puzzler 2000 (Air BGM) (1998) (PD).lnx",
+    "s": 9336
+  },
+  "eJwLKE3KyUxWcMnPTczMCyitqspJLVIwMjAwUNBwzStJLSoBCgNFnNx9NRU0DC0tLYBUgIumXk5eBQBTjxJv": {
+    "f": "Puzzler 2000 (Entertainer BGM) (1998) (PD).lnx",
+    "s": 9496
+  },
+  "eJwLKE3KyUxWcMnPTczMCyitqspJLVIwMjAwUNDwzCtLzSsxNFZwcvfVVNAwtLS0AFIBLpp6OXkVAAkEEMY%3D": {
+    "f": "Puzzler 2000 (Invent13 BGM) (1998) (PD).lnx",
+    "s": 9984
+  },
+  "eJwLKE3KyUxWcMnPTczMCyitqspJLVIwMjAwUAjTMzFW0HAsTVcwMtNU0DC0tLQAUgEumno5eRUA4joPqA%3D%3D": {
+    "f": "Puzzler 2000 V.43 (Aug 26) (1998) (PD).lnx",
+    "s": 96192
+  },
+  "eJwLKE3KyUxWcMnPTczMCyitqspJLVIwMjAwUAjTM6lQ0HAsTVcwNNVU0DC0tLQAUgEumno5eRUA6RcP6w%3D%3D": {
+    "f": "Puzzler 2000 V.4x (Aug 15) (1998) (PD).lnx",
+    "s": 5476
+  },
+  "eJwLKE3KyUxWcMnPTczMCyitqspJLVIwMjAwUAgz0DNScEnNzVfQMLS0tNBU0Ahw0dTLyasAAK1LDzI%3D": {
+    "f": "Puzzler 2000 V0.2 Demo (1998) (PD).lnx",
+    "s": 5536
+  },
+  "eJwLKE3KyUxWcMnPTczMC0osV0iqVHBKLC7JTMxTCE7OyEzOVtAwtLQ011TQCHDRVIhONIzVy8mrAAAKOxGO": {
+    "f": "Raw by Bastian Schick (1997) (PD) [a1].lnx",
+    "s": 4768
+  },
+  "eJwLKE3KyUxWcMnPTczMC0osV0iqVHBKLC7JTMxTCE7OyEzOVtAwtLQ011TQCHDRVIhONIrVy8mrAAAKQRGP": {
+    "f": "Raw by Bastian Schick (1997) (PD) [a2].lnx",
+    "s": 4812
+  },
+  "eJwLKE3KyUxWcMnPTczMC0osV0iqVHBKLC7JTMxTCE7OyEzOVtAwtLQ011TQCHDR1MvJqwAAt2IQJA%3D%3D": {
+    "f": "Raw by Bastian Schick (1997) (PD).lnx",
+    "s": 4808
+  },
+  "eJwLKE3KyUxWcMnPTczMC0qsTE4sLlFwzi8qykzJL1JIqlTwTSwpychMLAYpycxT0DC0tLTQVNAIcNHUy8mrAADXIhVR": {
+    "f": "Raycast Corridor by Matthias Domin (1998) (PD).lnx",
+    "s": 4816
+  },
+  "eJwLKE3KyUxWcMnPTczMC0rNzUvMK1EIyEnMSyxSCE8sKlYwdlFwSi1JVNAwMjAw0FTQCHDR1MvJqwAAJx4R0w%3D%3D": {
+    "f": "Remnant Planar Wars 3D Beta (2000) (PD).lnx",
+    "s": 28680
+  },
+  "eJwLKE3KyUxWcMnPTczMC87IL1fwzsxLVwgpLVFIqlRwSiwuyUzMUwhOzshMzlbQMLS0NNNU0Ahw0VSITjSM1cvJqwAA4MEVCg%3D%3D": {
+    "f": "Show King Tut by Bastian Schick (1996) (PD) [a1].lnx",
+    "s": 6736
+  },
+  "eJwLKE3KyUxWcMnPTczMC87IL1fwzsxLVwgpLVFIqlRwSiwuyUzMUwhOzshMzlbQMLS0NNNU0Ahw0dTLyasAAHyLE6A%3D": {
+    "f": "Show King Tut by Bastian Schick (1996) (PD).lnx",
+    "s": 11092
+  },
+  "eJwLKE3KyUxWcMnPTczMC85LzE5NqixJVUiqVPBNLCnJyEwsBsll5iloGFpaWmgqaAS4aOrl5FUAADttErw%3D": {
+    "f": "Snakebyte by Matthias Domin (1998) (PD).lnx",
+    "s": 14968
+  },
+  "eJwLKE3KyUxWcMnPTczMC84vzUtRcEnNzVdIqlRwSiwuyUzMUwhOzshMzlbQMLS0NNdU0Ahw0VSITjSM1cvJqwAAoF8UEg%3D%3D": {
+    "f": "Sound Demo by Bastian Schick (1997) (PD) [a1].lnx",
+    "s": 5632
+  },
+  "eJwLKE3KyUxWcMnPTczMC84vzUtRcEnNzVdIqlRwSiwuyUzMUwhOzshMzlbQMLS0NNdU0Ahw0dTLyasAAEEBEqg%3D": {
+    "f": "Sound Demo by Bastian Schick (1997) (PD).lnx",
+    "s": 5660
+  },
+  "eJwLKE3KyUxWcMnPTczMCy4oyixJVXBNUUiqVHBKLC7JTMxTCE7OyEzOVtAwtLQ001TQCHDRVIhONIzVy8mrAACHixOj": {
+    "f": "Sprite Ed by Bastian Schick (1996) (PD) [a1].lnx",
+    "s": 6628
+  },
+  "eJwLKE3KyUxWcMnPTczMCy4oyixJVXBNUUiqVHBKLC7JTMxTCE7OyEzOVtAwtLQ001TQCHDR1MvJqwAAKlgSOQ%3D%3D": {
+    "f": "Sprite Ed by Bastian Schick (1996) (PD).lnx",
+    "s": 6624
+  },
+  "eJwLKE3KyUxWcMnPTczMCy4oyixJ1XVJzc1XMFRIqlTwTSwpychMLAbJZ%2BYpaBgZGBhoKmgEuGjq5eRVAAB5%2FhN3": {
+    "f": "Sprite-Demo 1 by Matthias Domin (2000) (PD).lnx",
+    "s": 3604
+  },
+  "eJwLKE3KyUxWcMnPTczMCy4oyixJ1XVJzc1XMFJIqlTwTSwpychMLAbJZ%2BYpaBgZGBhoKmgEuGjq5eRVAAB6IRN4": {
+    "f": "Sprite-Demo 2 by Matthias Domin (2000) (PD).lnx",
+    "s": 3544
+  },
+  "eJwLKE3KyUxWcMnPTczMCy4oyixJ1XVJzc1XMFZIqlTwTSwpychMLAbJZ%2BYpaBgZGBhoKmgEuGjq5eRVAAB6RBN5": {
+    "f": "Sprite-Demo 3 by Matthias Domin (2000) (PD).lnx",
+    "s": 5976
+  },
+  "eJwLKE3KyUxWcMnPTczMCy4oyixJ1XVJzc1XMFFIqlTwTSwpychMLAbJZ%2BYpaBgZGBhoKmgEuGgqRCcaxurl5FUAAN3fFOQ%3D": {
+    "f": "Sprite-Demo 4 by Matthias Domin (2000) (PD) [a1].lnx",
+    "s": 3920
+  },
+  "eJwLKE3KyUxWcMnPTczMCy4oyixJ1XVJzc1XMFFIqlTwTSwpychMLAbJZ%2BYpaBgZGBhoKmgEuGjq5eRVAAB6ZxN6": {
+    "f": "Sprite-Demo 4 by Matthias Domin (2000) (PD).lnx",
+    "s": 5420
+  },
+  "eJwLKE3KyUxWcMnPTczMCy4oyixJ1XVJzc1XMFVIqlTwTSwpychMLAbJZ%2BYpaBgZGBhoKmgEuGjq5eRVAAB6ihN7": {
+    "f": "Sprite-Demo 5 by Matthias Domin (2000) (PD).lnx",
+    "s": 4520
+  },
+  "eJwLKE3KyUxWcMnPTczMCy5JLHIpSk3MTS1S0FVwLi0pTk7NS1XQMDIwMNJU0Ahw0dTLyasAAM96EJM%3D": {
+    "f": "StarDreamer - Cutscene (2002) (PD).lnx",
+    "s": 6144
+  },
+  "eJwLKE3KyUxWcMnPTczMCy5JLHIpSk3MTS1S0AWKJWenpihoGBkYGGkqaAS4aOrl5FUAAKa8D6M%3D": {
+    "f": "StarDreamer - Docked (2002) (PD).lnx",
+    "s": 18068
+  },
+  "eJwLKE3KyUxWcMnPTczMCy5JLHIpSk3MTS1S0FVwy6nMzEtX0DAyMDDSVNAIcNHUy8mrAACpEA%2FC": {
+    "f": "StarDreamer - Flying (2002) (PD).lnx",
+    "s": 10296
+  },
+  "eJwLKE3KyUxWcMnPTczMCy5JLHIpSk3MTS1S0FVwK83JUXAHchQ0jAwMjDQVNAJcNPVy8ioA2cMQhg%3D%3D": {
+    "f": "StarDreamer - Full Game (2002) (PD).lnx",
+    "s": 59136
+  },
+  "eJwLKE3KyUxWcMnPTczMCy5JLHIpSk3MTS1S0FXwzCspylfQMDIwMNJU0Ahw0dTLyasAAJdTD2U%3D": {
+    "f": "StarDreamer - Intro (2002) (PD).lnx",
+    "s": 15312
+  },
+  "eJwLKE3KyUxWcMnPTczMCy5JLEopSk3MTS1S0DAyMDDQVNAIcNHUy8mrAAAgLg0K": {
+    "f": "Stardreamer (2000) (PD).lnx",
+    "s": 32608
+  },
+  "eJwLKE3KyUxWcMnPTczMCy4tSC1SCC4oyswrUQjJLMlJVQhOLkpNzVNwSc3NV9AwMjAw0FTQCHDR1MvJqwAAdWcThg%3D%3D": {
+    "f": "Super Sprint Title Screen Demo (2000) (PD).lnx",
+    "s": 10372
+  },
+  "eJwLKE3KyUxWcMnPTczMC0mtKPEvLVEISS0uUQgoyk8vSsxVMFJIqlTwTSwpychMLAYpzMxT0DC0tLTQVNAIcNHUy8mrAABX7Bb9": {
+    "f": "TextOut Test Program 2 by Matthias Domin (1998) (PD).lnx",
+    "s": 4112
+  },
+  "eJwLKE3KyUxWcMnPTczMCy9NLUpLzVEwVnBJzc1X0DC0tKzQVNAIcNHUy8mrAABDHw27": {
+    "f": "Wuerfel 3 Demo (199x) (PD).lnx",
+    "s": 9076
+  },
+  "eJwLKK2qykktUjAyMDBQ0HDMLFJwcvfVVNAIcNEMwCFlaGlpAVGhl5NXAQBf3RGZ": {
+    "f": "Puzzler 2000 (Air BGM) (1998) (PD).lnx",
+    "s": 9336
+  },
+  "eJwLKK2qykktUjAyMDBQ0HDNK0ktKknMzAOKOLn7aipoBLhoBhBQYmhpaQFRqZeTVwEAE7YYYw%3D%3D": {
+    "f": "Puzzler 2000 (Entertainer BGM) (1998) (PD).lnx",
+    "s": 9496
+  },
+  "eJwLKK2qykktUjAyMDBQ0PDMK0vNKzE0VnBy99VU0Ahw0QzAJ29oaWkBUaaXk1cBAEYaFRE%3D": {
+    "f": "Puzzler 2000 (Invent13 BGM) (1998) (PD).lnx",
+    "s": 9984
+  },
+  "eJwLKK2qykktUjAyMDBQCNMzMVbQcCxNVzAy01TQCHDRDMAjbWhpaQFRpZeTVwEA1n8S1Q%3D%3D": {
+    "f": "Puzzler 2000 V.43 (Aug 26) (1998) (PD).lnx",
+    "s": 96192
+  },
+  "eJwLKK2qykktUjAyMDBQCNMzqVDQcCxNVzA01VTQCHDRDMAjbWhpaQFRpZeTVwEA7FYTWw%3D%3D": {
+    "f": "Puzzler 2000 V.4x (Aug 15) (1998) (PD).lnx",
+    "s": 5476
+  },
+  "eJwLKK2qykktUjAyMDBQCDPQM1JwSc3NV9AIcNEMwCFlaGlpoQlWoZeTVwEAZtcR6Q%3D%3D": {
+    "f": "Puzzler 2000 V0.2 Demo (1998) (PD).lnx",
+    "s": 5536
+  },
+  "eJwLzKwIzKxQ0DC0tDTUVNAISc1JTU%2FMTS0GskM19XLyKgCn5An4": {
+    "f": "Qix (1991) (Telegames) (U).lnx",
+    "s": 123688
+  },
+  "eJwLzKwIzKxQ0DC0tDTUVNAISc1JTU%2FMTS3WVIjON4xV0AjV1MvJqwAA3jYLcA%3D%3D": {
+    "f": "Qix (1991) (Telegames) [o1] (U).lnx",
+    "s": 125936
+  },
+  "eJwLSsxMSc0LApMKGoaWluaaChohqTmp6Ym5qcVAdqimXk5eBQD6%2BAxA": {
+    "f": "Raiden (1997) (Telegames) (U).lnx",
+    "s": 180940
+  },
+  "eJwLSswtSExPDYJQChqGlpaGmgoaoZp6OXkVAJIeCQY%3D": {
+    "f": "Rampage (1991) (U).lnx",
+    "s": 240248
+  },
+  "eJwLSswtSExPDYJQChqGlpaGmgrRSYaxChqhmno5eRUAwycKcQ%3D%3D": {
+    "f": "Rampage (1991) [b1] (U).lnx",
+    "s": 259100
+  },
+  "eJwLSswtSCwqCYJQChqGlpaGmgoaoZp6OXkVAJYqCTo%3D": {
+    "f": "Rampart (1991) (U).lnx",
+    "s": 317560
+  },
+  "eJwLSswtSCwqCYJQChqGlpaGmgrRSYaxChqhmno5eRUAyDcKpQ%3D%3D": {
+    "f": "Rampart (1991) [b1] (U).lnx",
+    "s": 330380
+  },
+  "eJwLSixXSKpUcEosLslMzFMITs7ITM5W0Ahw0QzCLmNoaWmuCVagl5NXAQCV3hPO": {
+    "f": "Raw by Bastian Schick (1997) (PD).lnx",
+    "s": 4808
+  },
+  "eJwLSixXSKpUcEosLslMzFMITs7ITM5W0Ahw0VQIwi5laGlprglREZ1oGKuXk1cBAAjrFVg%3D": {
+    "f": "Raw by Bastian Schick (1997) (PD) [a1].lnx",
+    "s": 4768
+  },
+  "eJwLSixXSKpUcEosLslMzFMITs7ITM5W0Ahw0VQIwi5laGlprglREZ1oFKuXk1cBAAjxFVk%3D": {
+    "f": "Raw by Bastian Schick (1997) (PD) [a2].lnx",
+    "s": 4812
+  },
+  "eJwLSqxMTiwuUXDOLyrKTMkvUkiqVPBNLCnJyEwsVnDJz83MU9AIcNEMIkKZoaWlhSZYtV5OXgUAj80eJw%3D%3D": {
+    "f": "Raycast Corridor by Matthias Domin (1998) (PD).lnx",
+    "s": 4816
+  },
+  "eJwLSs3NS8wrUQjIScxLLFIITywqVjB2UXBKLUlU0Ahw0QzCJ29kYGCgCVaml5NXAQCoORdE": {
+    "f": "Remnant Planar Wars 3D Beta (2000) (PD).lnx",
+    "s": 28680
+  },
+  "eJwLyk9MUQjKzC9RMAl3CULmKGg4pZYkaipoGFpamgCpUE29nLwKAGiiDeI%3D": {
+    "f": "Road Riot 4WD (Beta) (1994) (U).lnx",
+    "s": 272728
+  },
+  "eJwLyk9MccpJLC5JLSoOQmIraBhaWhpoKmiEaurl5FUAABt2DRc%3D": {
+    "f": "RoadBlasters (1990) (U).lnx",
+    "s": 332040
+  },
+  "eJwLyk9MccpJLC5JLSoOQmIraBhaWhpoKkQnGcYqaIRq6uXkVQAAYNQOgg%3D%3D": {
+    "f": "RoadBlasters (1990) [b1] (U).lnx",
+    "s": 339808
+  },
+  "eJwLyk%2FK1w0uLE0szghCMBU0DC0tDTQVNEI19XLyKgD0gwvz": {
+    "f": "Robo-Squash (1990) (U).lnx",
+    "s": 113760
+  },
+  "eJwLyk%2FK1w0uLE0szghCMBU0DC0tDTQVovMNYxU0QjX1cvIqADTLDWs%3D": {
+    "f": "Robo-Squash (1990) [o1] (U).lnx",
+    "s": 116000
+  },
+  "eJwLyk%2FKLynKz1MwMrAwCULmKGgYWloaaipohGfm5GQm5hYDmaGaejl5FQCwRw%2FF": {
+    "f": "Robotron 2084 (1991) (Williams) (U).lnx",
+    "s": 142744
+  },
+  "eJwLqkxPLFLQVfBJTU%2FNS0ksqlQITywqyswvCsIloaBhaGlpoKmgEaqpl5NXAQDr8hWx": {
+    "f": "Rygar - Legendary Warrior (1990) (U).lnx",
+    "s": 206300
+  },
+  "eJwLqkxPLFLQVfBJTU%2FNS0ksqlQITywqyswvCsIloaBhaGlpoKkQnWQYq6ARqqmXk1cBAFxhFxw%3D": {
+    "f": "Rygar - Legendary Warrior (1990) [b1] (U).lnx",
+    "s": 221084
+  },
+  "eJwL1gvRC9Xz01MIKs3LSy0KRuUqaBhaWhpqKmiEaurl5FUAAChkDMQ%3D": {
+    "f": "S.T.U.N. Runner (1991) (U).lnx",
+    "s": 347104
+  },
+  "eJwL1gvRC9Xz01MIKs3LSy0KRuUqaBhaWhpqKkQnGcYqaIRq6uXkVQAAbCMOLw%3D%3D": {
+    "f": "S.T.U.N. Runner (1991) [b1] (U).lnx",
+    "s": 351832
+  },
+  "eJwLTi5KLKhMLEpRcMlPD0bmKGgYWloaaipohGrq5eRVAAAvyQ1S": {
+    "f": "Scrapyard Dog (1991) (U).lnx",
+    "s": 293556
+  },
+  "eJwLTi5KLKhMLEpRcMlPD0bmKGgYWloaaipEJxnGKmiEaurl5FUAAHZODr0%3D": {
+    "f": "Scrapyard Dog (1991) [b1] (U).lnx",
+    "s": 302884
+  },
+  "eJwLzkhMyS9XyE9TKMlIVXBKTSwuCcYUUtAwtLQ00lTQCNXUy8mrAADsDREj": {
+    "f": "Shadow of the Beast (1992) (U).lnx",
+    "s": 309164
+  },
+  "eJwLzkhMyS9XyE9TKMlIVXBKTSwuCcYUUtAwtLQ00lSITjKMVdAI1dTLyasAAEW2Eo4%3D": {
+    "f": "Shadow of the Beast (1992) [b1] (U).lnx",
+    "s": 319996
+  },
+  "eJwLzkjMS89IzAyG0goahpaWBpoKGqGaejl5FQCqNwnR": {
+    "f": "Shanghai (1990) (U).lnx",
+    "s": 114696
+  },
+  "eJwLzkjMS89IzAyG0goahpaWBpoK0fmGsQoaoZp6OXkVAN%2FGC0k%3D": {
+    "f": "Shanghai (1990) [o1] (U).lnx",
+    "s": 117048
+  },
+  "eJwLzsgvV%2FDOzEtXCCktUUiqVHBKLC7JTMxTCE7OyEzOVtAIcNEMJqTG0NLSTBOsVC8nrwIAkg0axw%3D%3D": {
+    "f": "Show King Tut by Bastian Schick (1996) (PD).lnx",
+    "s": 11092
+  },
+  "eJwLzsgvV%2FDOzEtXCCktUUiqVHBKLC7JTMxTCE7OyEzOVtAIcNFUCCakyNDS0kwTojY60TBWLyevAgAstBxR": {
+    "f": "Show King Tut by Bastian Schick (1996) (PD) [a1].lnx",
+    "s": 6736
+  },
+  "eJwLzkvMTk2qLElVSKpU8E0sKcnITCxWcMnPzcxT0Ahw0QzGJ29oaWmhCVaml5NXAQDprBj9": {
+    "f": "Snakebyte by Matthias Domin (1998) (PD).lnx",
+    "s": 14968
+  },
+  "eJwLzi%2FNS1FwSc3NV0iqVHBKLC7JTMxTCE7OyEzOVtAIcNEMxqvA0NLSXBOsTi8nrwIA89YY1g%3D%3D": {
+    "f": "Sound Demo by Bastian Schick (1997) (PD).lnx",
+    "s": 5660
+  },
+  "eJwLzi%2FNS1FwSc3NV0iqVHBKLC7JTMxTCE7OyEzOVtAIcNFUCMarwtDS0lwTojA60TBWLyevAgCDbxpg": {
+    "f": "Sound Demo by Bastian Schick (1997) (PD) [a1].lnx",
+    "s": 5632
+  },
+  "eJwLLijKLElVcE1RSKpUcEosLslMzFMITs7ITM5W0Ahw0QzGJ29oaWmmCVaml5NXAQC3eBf5": {
+    "f": "Sprite Ed by Bastian Schick (1996) (PD).lnx",
+    "s": 6624
+  },
+  "eJwLLijKLElVcE1RSKpUcEosLslMzFMITs7ITM5W0Ahw0VQIxqfA0NLSTBOiLjrRMFYvJ68CAEIyGYM%3D": {
+    "f": "Sprite Ed by Bastian Schick (1996) (PD) [a1].lnx",
+    "s": 6628
+  },
+  "eJwLLijKLEnVdUnNzVcwVEiqVPBNLCnJyEwsVnDJz83MU9AIcNEMJqTGyMDAQBOsVC8nrwIAi4AajA%3D%3D": {
+    "f": "Sprite-Demo 1 by Matthias Domin (2000) (PD).lnx",
+    "s": 3604
+  },
+  "eJwLLijKLEnVdUnNzVcwUkiqVPBNLCnJyEwsVnDJz83MU9AIcNEMJqTGyMDAQBOsVC8nrwIAi%2Boajg%3D%3D": {
+    "f": "Sprite-Demo 2 by Matthias Domin (2000) (PD).lnx",
+    "s": 3544
+  },
+  "eJwLLijKLEnVdUnNzVcwVkiqVPBNLCnJyEwsVnDJz83MU9AIcNEMJqTGyMDAQBOsVC8nrwIAjFQakA%3D%3D": {
+    "f": "Sprite-Demo 3 by Matthias Domin (2000) (PD).lnx",
+    "s": 5976
+  },
+  "eJwLLijKLEnVdUnNzVcwUUiqVPBNLCnJyEwsVnDJz83MU9AIcNEMJqTGyMDAQBOsVC8nrwIAjL4akg%3D%3D": {
+    "f": "Sprite-Demo 4 by Matthias Domin (2000) (PD).lnx",
+    "s": 5420
+  },
+  "eJwLLijKLEnVdUnNzVcwUUiqVPBNLCnJyEwsVnDJz83MU9AIcNFUCCakyMjAwEATojY60TBWLyevAgAmTRwc": {
+    "f": "Sprite-Demo 4 by Matthias Domin (2000) (PD) [a1].lnx",
+    "s": 3920
+  },
+  "eJwLLijKLEnVdUnNzVcwVUiqVPBNLCnJyEwsVnDJz83MU9AIcNEMJqTGyMDAQBOsVC8nrwIAjSgalA%3D%3D": {
+    "f": "Sprite-Demo 5 by Matthias Domin (2000) (PD).lnx",
+    "s": 4520
+  },
+  "eJwLLkkscilKTcxNLVLQVXAuLSlOTs1LVdAIcNEMxiFlZGBgpAlWoZeTVwEA0%2FIUwg%3D%3D": {
+    "f": "StarDreamer - Cutscene (2002) (PD).lnx",
+    "s": 6144
+  },
+  "eJwLLkkscilKTcxNLVLQVXDJT85OTVHQCHDRDMYqYWRgYKQJltfLyasAAGxWEuI%3D": {
+    "f": "StarDreamer - Docked (2002) (PD).lnx",
+    "s": 18068
+  },
+  "eJwLLkkscilKTcxNLVLQVXDLqczMS1fQCHDRDMYqYWRgYKQJltfLyasAAHQFEyA%3D": {
+    "f": "StarDreamer - Flying (2002) (PD).lnx",
+    "s": 10296
+  },
+  "eJwLLkkscilKTcxNLVLQVXArzclRcAdyFDQCXDSDcckZGRgYaYKV6OXkVQAA5nAUqA%3D%3D": {
+    "f": "StarDreamer - Full Game (2002) (PD).lnx",
+    "s": 59136
+  },
+  "eJwLLkkscilKTcxNLVLQVfDMKynKV9AIcNEMxiZuZGBgpAmW1svJqwAASUwSZg%3D%3D": {
+    "f": "StarDreamer - Intro (2002) (PD).lnx",
+    "s": 15312
+  },
+  "eJwLLkksSilKTcxNLVLQCHDRDEbmGxkYGGiChfVy8ioARCkNsg%3D%3D": {
+    "f": "Stardreamer (2000) (PD).lnx",
+    "s": 32608
+  },
+  "eJwLLklNzVEISczJzysORmIraBhaWhpqKmiEaurl5FUAABBMDKg%3D": {
+    "f": "Steel Talons (1991) (U).lnx",
+    "s": 260052
+  },
+  "eJwLLklNzVEISczJzysORmIraBhaWhpqKkQnGcYqaIRq6uXkVQAAU38OEw%3D%3D": {
+    "f": "Steel Talons (1991) [b1] (U).lnx",
+    "s": 273900
+  },
+  "eJwLLi1ILVJwLC5JLcrPTClWUFPwzSwuzsxJVXDOz81NzEsJJqRAQcPQ0tJUU0EjVFMvJ68CAKDFG4A%3D": {
+    "f": "Super Asteroids & Missile Command (1995) (U).lnx",
+    "s": 128568
+  },
+  "eJwLLi1ILVJwLC5JLcrPTClWUFPwzSwuzsxJVXDOz81NzEsJJqRAQcPQ0tJUUyE63zBWQSNUUy8nrwIALs4c%2BA%3D%3D": {
+    "f": "Super Asteroids & Missile Command (1995) [o1] (U).lnx",
+    "s": 133620
+  },
+  "eJwLLi1ILVLwT0vTDcpPTAlG4SloGFpammkqaISk5qSmJ%2BamFgPZoZp6OXkVAP7fEZM%3D": {
+    "f": "Super Off-Road (1996) (Telegames) (U).lnx",
+    "s": 198800
+  },
+  "eJwLLi1ILVIIzi5PTc0ORmIraBhaWhpqKmiEaurl5FUAABOsDL4%3D": {
+    "f": "Super Skweek (1991) (U).lnx",
+    "s": 275108
+  },
+  "eJwLLi1ILVIIzi5PTc0ORmIraBhaWhpqKkQnGcYqaIRq6uXkVQAAV00OKQ%3D%3D": {
+    "f": "Super Skweek (1991) [b1] (U).lnx",
+    "s": 287700
+  },
+  "eJwLLi1ILVIILijKzCtRCMksyUlVCE4uSk3NU3BJzc1X0Ahw0QwmoMTIwMBAE6xSLyevAgCCIRqq": {
+    "f": "Super Sprint Title Screen Demo (2000) (PD).lnx",
+    "s": 10372
+  },
+  "eJwLLs8sSc5IyklMSVXw9AxG4SloGFpaGmkqaIRq6uXkVQAASm4NxQ%3D%3D": {
+    "f": "Switchblade II (1992) (U).lnx",
+    "s": 179008
+  },
+  "eJwLLs8sSc5IyklMSVXw9AxG4SloGFpaGmkqRCcZxipohGrq5eRVAACTMg8w": {
+    "f": "Switchblade II (1992) [b1] (U).lnx",
+    "s": 193340
+  },
+  "eJwL0Q0pyixWUEiqVHBKLC7JTMxTCE7OyEzODoFIaBhaWpppYkoraIRq6uXkVQAAoPsUmw%3D%3D": {
+    "f": "T-Tris (1996) by Bastian Schick (U).lnx",
+    "s": 16680
+  },
+  "eJwL0Q0pyixWUEiqVHBKLC7JTMxTCE7OyEzODoFIaBhaWpppYkorRCcaxipohGrq5eRVAAAL8RYF": {
+    "f": "T-Tris (1996) by Bastian Schick [a1] (U).lnx",
+    "s": 16548
+  },
+  "eJwLSS0pyiwOAZMKGoaWlmaaCtFJhrEKGqGaejl5FQCwGQny": {
+    "f": "Tetris (1996) [b1] (U).lnx",
+    "s": 204204
+  },
+  "eJwLSS0pyiwOAZMKGoaWlmaaCtFJRrEKGqGaejl5FQCwIwnz": {
+    "f": "Tetris (1996) [b2] (U).lnx",
+    "s": 204240
+  },
+  "eJwLSS0pyiwOAZMKGoaWlmaaCtFJxrEKGqGaejl5FQCwLQn0": {
+    "f": "Tetris (1996) [b3] (U).lnx",
+    "s": 204148
+  },
+  "eJwLSa0o8S8tUQhJLS5RCCjKTy9KzFUwUkiqVPBNLCnJyEwsVnDJz83MU9AIcNEMIVqxoaWlhSZYj15OXgUA9Ighfw%3D%3D": {
+    "f": "TextOut Test Program 2 by Matthias Domin (1998) (PD).lnx",
+    "s": 4112
+  },
+  "eJwLyU9JUS9WcEwpS80rKS1KVcjMUwjOycxNVQjPL8pJCcEvraBhaGlpoKmgEaqpl5NXAQAhxRnj": {
+    "f": "Todd's Adventure in Slime World (1990) (U).lnx",
+    "s": 128308
+  },
+  "eJwLyU9JUS9WcEwpS80rKS1KVcjMUwjOycxNVQjPL8pJCcEvraBhaGlpoKkQnW8Yq6ARqqmXk1cBAKeuG1s%3D": {
+    "f": "Todd's Adventure in Slime World (1990) [o1] (U).lnx",
+    "s": 131952
+  },
+  "eJwLyc%2FODAFiBQ1DS0sDTQWNUE29nLwKAFUNBrk%3D": {
+    "f": "Toki (1990) (U).lnx",
+    "s": 312436
+  },
+  "eJwLyc%2FODAFiBQ1DS0sDTYXoJMNYBY1QTb2cvAoAepUIJA%3D%3D": {
+    "f": "Toki (1990) [b1] (U).lnx",
+    "s": 325904
+  },
+  "eJwLyS8tykvMTc0rUXCuTEotSkrMyVEwMjA3CsEloaBhaGlpqKmgEaqpl5NXAQD0WRUc": {
+    "f": "Tournament Cyberball 2072 (1991) (U).lnx",
+    "s": 202828
+  },
+  "eJwLyS8tykvMTc0rUXCuTEotSkrMyVEwMjA3CsEloaBhaGlpqKkQnWQYq6ARqqmXk1cBAGHfFoc%3D": {
+    "f": "Tournament Cyberball 2072 (1991) [b1] (U).lnx",
+    "s": 211680
+  },
+  "eJwLKS1KylcILk0KgTEUNAwtLQ01FTRCNfVy8ioAu2EKOA%3D%3D": {
+    "f": "Turbo Sub (1991) (U).lnx",
+    "s": 158396
+  },
+  "eJwLKS1KylcILk0KgTEUNAwtLQ01FaITDWMVNEI19XLyKgDyWQui": {
+    "f": "Turbo Sub (1991) [a1] (U).lnx",
+    "s": 160772
+  },
+  "eJwLzcvOyy%2FPU3BPzE1VUA%2FRDXINVg%2FFIqagYWhpWaGpEJ1kGKugEaqpl5NXAQBFKRIE": {
+    "f": "Unknown Game 'T-RES' (199x) [b1] (U).lnx",
+    "s": 161132
+  },
+  "eJwLy8zOzEtXcM7IzEkJQ2IraBhaWhpqKmiEaurl5FUAAArKDGQ%3D": {
+    "f": "Viking Child (1991) (U).lnx",
+    "s": 330304
+  },
+  "eJwLy8zOzEtXcM7IzEkJQ2IraBhaWhpqKkQnGcYqaIRq6uXkVQAATKkNzw%3D%3D": {
+    "f": "Viking Child (1991) [b1] (U).lnx",
+    "s": 344696
+  },
+  "eJwLTyxKyixKKQ6H0goahpaWBpoKGqGaejl5FQCu1woH": {
+    "f": "Warbirds (1990) (U).lnx",
+    "s": 148196
+  },
+  "eJwLTyxKyixKKQ6H0goahpaWBpoK0fmGsQoaoZp6OXkVAOV0C38%3D": {
+    "f": "Warbirds (1990) [o1] (U).lnx",
+    "s": 151772
+  },
+  "eJwLzy%2FKSVFwzkksLlYIzk9OTi0KxxBR0DC0tDTSVNAI1dTLyasAANFOEMc%3D": {
+    "f": "World Class Soccer (1992) (U).lnx",
+    "s": 164480
+  },
+  "eJwLzy%2FKSVFwzkksLlYIzk9OTi0KxxBR0DC0tDTSVIhOMoxV0AjV1MvJqwAAKSsSMg%3D%3D": {
+    "f": "World Class Soccer (1992) [b1] (U).lnx",
+    "s": 164488
+  },
+  "eJwLzy%2FKSVFwzkksLlYIzk9OTi0KxxBR0DC0tDTSVIhOMopV0AjV1MvJqwAAKTUSMw%3D%3D": {
+    "f": "World Class Soccer (1992) [b2] (U).lnx",
+    "s": 177308
+  },
+  "eJwLL00tSkvNUTBWcEnNzVfQCHDRDEcTMrS0rNAEy%2Bjl5FUAAIAbDrs%3D": {
+    "f": "Wuerfel 3 Demo (199x) (PD).lnx",
+    "s": 9076
+  },
+  "eJyLSM3LL8jIT0qNgDEUNAwtLQ00FTRCNfVy8ioAyi0K2w%3D%3D": {
+    "f": "Xenophobe (1990) (U).lnx",
+    "s": 162484
+  },
+  "eJyLSM3LL8jIT0qNgDEUNAwtLQ00FaITDWMVNEI19XLyKgAEYwxF": {
+    "f": "Xenophobe (1990) [a1] (U).lnx",
+    "s": 159192
+  },
+  "eJyLSM3LL8jIT0qNgDEUNAwtLQ00FaITjWIVNEI19XLyKgAEbQxG": {
+    "f": "Xenophobe (1990) [a2] (U).lnx",
+    "s": 162552
+  },
+  "eJyLSM3LL8jIT0qNgDEUNAwtLQ00FaITjWMVNEI19XLyKgAEdwxH": {
+    "f": "Xenophobe (1990) [a3] (U).lnx",
+    "s": 159080
+  },
+  "eJyLqEzKLymOAJMKGoaWloaaChqhmno5eRUAg9MIng%3D%3D": {
+    "f": "Xybots (1991) (U).lnx",
+    "s": 208252
+  },
+  "eJyLqEzKLymOAJMKGoaWloaaCtFJhrEKGqGaejl5FQCy1AoJ": {
+    "f": "Xybots (1991) [b1] (U).lnx",
+    "s": 230008
+  },
+  "eJyLSizKyS9S8E0tSk7NSyyqjELjK2gYWloaaCpohGrq5eRVAACerBAL": {
+    "f": "Zarlor Mercenary (1990) (U).lnx",
+    "s": 186584
+  },
+  "eJyLSizKyS9S8E0tSk7NSyyqjELjK2gYWloaaCpEJxnGKmiEaurl5FUAAPLOEXY%3D": {
+    "f": "Zarlor Mercenary (1990) [b1] (U).lnx",
+    "s": 141764
+  },
+  "eJyLSizKyS9S8E0tSk7NSyyqjELjK2gYWloaaCpE5xvGKmiEaurl5FUAAPNdEYM%3D": {
+    "f": "Zarlor Mercenary (1990) [o1] (U).lnx",
+    "s": 189364
+  }
+}

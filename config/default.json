@@ -109,7 +109,7 @@
 			"live": true,
 			"supportfilesize": 0,
 			"boxcdnversion": "2018-05-02",
-			"romcdnversion": "GoodGbx-3.14-2018-04-26",
+			"romcdnversion": "GoodGbx-3.14",
 			"collection": "GoodGBx 3.14",
 			"emuextention": "1.6.9-stable",
 			"emuscript": "gambatte_libretro.js",
@@ -132,7 +132,7 @@
 			"live": true,
 			"supportfilesize": 0,
 			"boxcdnversion": "2018-05-01",
-			"romcdnversion": "GoodGbx-3.14-2018-04-26",
+			"romcdnversion": "GoodGbx-3.14",
 			"collection": "GoodGBx 3.14",
 			"emuextention": "1.6.9-stable",
 			"emuscript": "gambatte_libretro.js",
@@ -706,6 +706,20 @@
 		"show_hidden_files": true
 	},
 	"mappings": {
+		"32x": {
+			"up_axis": "Up",
+			"down_axis": "Down",
+			"left_axis": "Left",
+			"right_axis": "Right",
+			"y_btn": "A",
+			"b_btn": "B",
+			"a_btn": "C",
+			"start_btn": "Start",
+			"select_btn": "Select",
+			"l_btn": "X",
+			"x_btn": "Y",
+			"r_btn": "Z"
+		},
 		"a2600": {
 			"up_axis": "Up",
 			"down_axis": "Down",
@@ -807,6 +821,20 @@
 			"b_btn": "II",
 			"start_btn": "Run",
 			"select_btn": "Select"
+		},
+		"segacd": {
+			"up_axis": "Up",
+			"down_axis": "Down",
+			"left_axis": "Left",
+			"right_axis": "Right",
+			"y_btn": "A",
+			"b_btn": "B",
+			"a_btn": "C",
+			"start_btn": "Start",
+			"select_btn": "Select",
+			"l_btn": "X",
+			"x_btn": "Y",
+			"r_btn": "Z"
 		},
 		"sms": {
 			"up_axis": "Up",
