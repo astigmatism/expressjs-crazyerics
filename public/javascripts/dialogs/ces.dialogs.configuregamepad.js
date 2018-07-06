@@ -5,6 +5,7 @@ var cesDialogsConfigureGamepad = (function(_config, $el, $wrapper, args) {
     var _Compression = args[1];
     var _delayBetweenInputDetection = 200;
     var _openCallback;
+    var _bgImageName = 'configure_dialog_bg.png';
 
     //pulled from config, an object conbining the retroarch name with a friendly label
     var _inputAssignmentMap;
@@ -30,7 +31,7 @@ var cesDialogsConfigureGamepad = (function(_config, $el, $wrapper, args) {
         $el.find('span.gamepadid').text(gamepad.id); //game pad id
         $el.find('span.gamepadport').text(gamepad.index + 1); //game pad port (+1 as its 0 based)
 
-        $('#gamepadwrapper').css('background-image','url("' + _config.paths.images + '/gamepads/' + gameKey.system + '/400.png")');
+        $('#gamepadwrapper').css('background-image','url("' + _config.paths.images + '/gamepads/' + gameKey.system + '/' + _bgImageName + '")');
         
         $('#startgamepadover').off().on('mouseup', function() {
             StartOver();

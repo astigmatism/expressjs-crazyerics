@@ -76,7 +76,7 @@ var cesMain = (function() {
         var welcomeBack =  _Collections.IsEmpty() ? false : true;
         _Dialogs.Register('Welcome', 150, [], !welcomeBack);
         _Dialogs.Register('WelcomeBack', 150, [], welcomeBack);
-        _Dialogs.Register('ConfigureGamepad', 600, [_Gamepad, _Compression]);
+        _Dialogs.Register('ConfigureGamepad', 700, [_Gamepad, _Compression]);
         _Dialogs.Register('ShaderSelection', 500, [_Preferences]);
         _Dialogs.Register('GameLoading', 500, [_BoxArt, _Compression, _PubSub]);
         _Dialogs.Register('SaveSelection', 500);
@@ -251,7 +251,7 @@ var cesMain = (function() {
 
         _Sliders = new cesSliders(_config, _Compression, $('#slidericons'));
 
-        _Suggestions = new cesSuggestions(_BoxArt, _Compression, _Tooltips, PlayGame, $('#suggestionsgrid'), $('#suggestionswrapper'));
+        _Suggestions = new cesSuggestions(_config, _BoxArt, _Compression, _Tooltips, PlayGame, $('#suggestionsgrid'), $('#suggestionswrapper'));
 
         //begin by showing all console suggestions
         _Suggestions.Load('all', true, function() {
@@ -539,6 +539,9 @@ var cesMain = (function() {
                                                                 //wait until height change before they appear
                                                                 DisplayGameContext(gameKey, function() {
 
+                                                                    //show controls slider by default
+                                                                    _Sliders.RegisterGameKey(gameKey, info);
+                                                                    _Sliders.Open('Info');
                                                                 });  
                                                                         
                                                                 //reveal emulator, control is game is given at this step
@@ -710,20 +713,15 @@ var cesMain = (function() {
 
             // slide down background
             $('#gamedetailsboxfront img').addClass('close');
-            $('#gamedetailsbackground').animate({
-                height: 250
-            }, 1000, function() {
+            // $('#gamedetailsbackground').animate({
+            //     height: 250
+            // }, 1000, function() {
 
                 //fade in details
                 $('#gamedetailswrapper').fadeIn(1000, function() {
 
                     $('#gamedetailsboxfront img').removeClass();
-
-                    //load controls
                     $('#controlsslider').empty();
-                    $.get('/layout/controls/' + gameKey.system, function(result) {
-                        $('#controlsslider').append(result);
-                    });
 
                     callback();
                 });
@@ -733,8 +731,7 @@ var cesMain = (function() {
                     textAlign: 'left',
                     horizontalAlign: 'left'
                 }); //auto size text to fit
-            });
-
+            //});
         });
     };
 
@@ -744,14 +741,14 @@ var cesMain = (function() {
         $('#gamedetailsboxfront img').addClass('close');
         $('#gamedetailswrapper').fadeOut();
         $('#gametitlecaption').empty();
-        $('#gamedetailsbackground').animate({
-            height: 0
-        }, 1000, function() {
+        // $('#gamedetailsbackground').animate({
+        //     height: 0
+        // }, 1000, function() {
 
             if (callback) {
                 callback();
             }
-        });
+        //});
     };
 
     /**

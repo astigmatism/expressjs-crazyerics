@@ -889,7 +889,6 @@ p {
 
 #gamedetailsbackground {
 	padding: 10px 0px;
-	height: 0px;
 	width: 100%;
 	background: rgba(0,0,0,1);
 }
@@ -936,57 +935,36 @@ p {
 	font-size: 16px;
 }
 
-/* game controls list and sliders */
+/* sliders */
 
-#gamecontrolslist {
-	position: absolute;
-	top: 40px;
-	left: 0;
-	list-style: none;
-	max-width: 42px;
-	padding: 0;
-	margin: 3px 10px;
-
-	transition-property: all;
-	transition-duration: 1s;
-	transition-timing-function: cubic-bezier(0, 1, 0.5, 1);
-}
-
-#gamecontrolslist li {
-	cursor: pointer;
-	padding-right: 10px;
+#sliderpanels {
+	overflow-y: hidden;
 }
 
 div.slidingpanel {
+	
+    height:100%;
 
-	display: none;
-	width: 550px;
-	position: absolute;
-	top: 40px;
-	left: 0;
-	height: 220px;
-	margin-left: 50px;
-	overflow-x: auto;
-	overflow-y: auto;
+	-webkit-transition:-webkit-transform 200ms ease-in;
+       -moz-transition:   -moz-transform 200ms ease-in;
+        -ms-transition:    -ms-transform 200ms ease-in;
+            transition:        transform 200ms ease-in;
+	width: 100%;
 }
 
-#screenshotsslider div.slidercontainer {
-	position: relative;
-	width: 550px;
-	height: 220px;
+div.slidingpanel.opened { 
+    /* visible */
+    -webkit-transform: translate(0, 0%);
+       -moz-transform: translate(0, 0%);
+        -ms-transform: translate(0, 0%);
+            transform: translate(0, 0%);
 }
-
-#screenshotsslider p {
-	font-size: 12px;
-	margin-top: 0;
-}
-
-#screenshotsslider img {
-	vertical-align: middle;
-	transition:All 200ms ease-in;
-	-webkit-transition:All 200ms ease-in;
-	-moz-transition:All 200ms ease-in;
-	-o-transition:All 200ms ease-in;
+div.slidingpanel.closed { 
+    /* completely offscreen */
+    -webkit-transform: translate(0, -120%);
+       -moz-transform: translate(0, -120%);
+        -ms-transform: translate(0, -120%);
+            transform: translate(0, -120%);
 }
 
 #slidericons {
@@ -1002,6 +980,11 @@ div.slidingpanel {
 	width: 20px;
 	margin-right: 10px;
 	cursor: pointer;
+
+	transition:All 200ms ease-in;
+	-webkit-transition:All 200ms ease-in;
+	-moz-transition:All 200ms ease-in;
+	-o-transition:All 200ms ease-in;
 }
 
 #slidericons .info {
@@ -1018,6 +1001,19 @@ div.slidingpanel {
 
 #slidericons .saves {
 	background: url("http://cdn.crazyerics.com/images/saves.png") center center no-repeat;
+}
+
+#slidericons .on {
+
+	-webkit-transform: rotate(180deg);
+    -moz-transform: rotate(180deg);
+    -o-transform: rotate(180deg);
+    -ms-transform: rotate(180deg);
+    transform: rotate(180deg);
+}
+
+#controls-slider {
+	height: 600px;
 }
 
 /* grids */
@@ -1231,9 +1227,12 @@ div.slidingpanel {
 	margin: 5px 0px;
 }
 
-#loading {
-	width: 100px;
-	margin: 50px auto;
+#suggestionsloading {
+	width: 100%;
+	height: 100px;
+	margin: 20px 0;
+	background-position: center center;
+	background-repeat: no-repeat;
 
 	transition:All 100ms ease-in;
 	-webkit-transition:All 100ms ease-in;

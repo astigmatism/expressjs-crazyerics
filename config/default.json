@@ -715,7 +715,7 @@
 			"b_btn": "B",
 			"a_btn": "C",
 			"start_btn": "Start",
-			"select_btn": "Select",
+			"select_btn": "Mode",
 			"l_btn": "X",
 			"x_btn": "Y",
 			"r_btn": "Z"
@@ -725,7 +725,27 @@
 			"down_axis": "Down",
 			"left_axis": "Left",
 			"right_axis": "Right",
-			"b_btn": "Button"
+			"b_btn": "Fire",
+			"start_btn": "Reset",
+			"select_btn": "Select",
+			"l_btn": "Left Difficulty A",
+			"r_btn": "Right Difficulty A",
+			"l2_btn": "Left Difficulty B",
+			"r2_btn": "Right Difficulty B",
+			"l3_btn": "Color",
+			"r3_btn": "Black & White"
+		},
+		"a7800": {
+			"up_axis": "Up",
+			"down_axis": "Down",
+			"left_axis": "Left",
+			"right_axis": "Right",
+			"b_btn": "1",
+			"a_btn": "2",
+			"start_btn": "Pause",
+			"select_btn": "Select",
+			"l_btn": "Left Difficulty",
+			"r_btn": "Right Difficulty"
 		},
 		"gb": {
 			"up_axis": "Up",
@@ -777,7 +797,7 @@
 			"b_btn": "B",
 			"a_btn": "C",
 			"start_btn": "Start",
-			"select_btn": "Select",
+			"select_btn": "Mode",
 			"l_btn": "X",
 			"x_btn": "Y",
 			"r_btn": "Z"
@@ -792,6 +812,20 @@
 			"start_btn": "Start",
 			"l_btn": "Option 1",
 			"r_btn": "Option 2"
+		},
+		"nds": {
+			"up_axis": "Up",
+			"down_axis": "Down",
+			"left_axis": "Left",
+			"right_axis": "Right",
+			"a_btn": "A",
+			"b_btn": "B",
+			"x_btn": "X",
+			"y_btn": "Y",
+			"start_btn": "Start",
+			"select_btn": "Select",
+			"l_btn": "L",
+			"r_btn": "R"
 		},
 		"nes": {
 			"up_axis": "Up",
@@ -831,7 +865,7 @@
 			"b_btn": "B",
 			"a_btn": "C",
 			"start_btn": "Start",
-			"select_btn": "Select",
+			"select_btn": "Mode",
 			"l_btn": "X",
 			"x_btn": "Y",
 			"r_btn": "Z"
@@ -867,6 +901,20 @@
 			"b_btn": "2",
 			"x_btn": "3",
 			"y_btn": "4"
+		},
+		"wsx": {
+			"up_axis": "X Cursor Up",
+			"down_axis": "X Cursor Down",
+			"left_axis": "X Cursor Left",
+			"right_axis": "X Cursor Right",
+			"a_btn": "A",
+			"b_btn": "B",
+			"start_btn": "Start",
+			"select_btn": "Rotate screen",
+			"r2_btn": "Y Cursor Up",
+			"l2_btn": "Y Cursor Down",
+			"l_btn": "Y Cursor Left",
+			"r_btn": "Y Cursor Right"
 		},
 		"vb": {
 			"up_axis": "Up",

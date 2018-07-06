@@ -379,17 +379,8 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _GamePad, _Pr
                     configString +=  configItem + ' = ' + retroArchConfig[configItem] + '\n';
                 }
 
-                //default button mappings
-                if (_config.mappings) {
-
-                    var remapConfig = _config.mappings.default; //in json
-    
-                    //convert json to string delimited list
-                    for (var configItem in remapConfig) {
-                        configString +=  configItem + ' = ' + remapConfig[configItem] + '\n';
-                    }
-                }
-    
+                //get input assignments
+                configString += self._InputHelper.BuildInputConfiguration(gameKey);
 
                 this.FS_createDataFile('/home/web_user/retroarch/userdata', 'retroarch.cfg', configString, true, true);
             }

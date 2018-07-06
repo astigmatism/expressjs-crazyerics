@@ -31,6 +31,7 @@ block content
                 div(class="ConfigureGamepad")
                     h2 Configure Gamepad For #[span(class="gamepadsystem")]
                     p The gamepad "#[span(class="gamepadid")]" hasn't been configured for port #[span(class="gamepadport")] on this system.
+                    p Press any key on the keyboard skip an assignment
                     div#gamepadwrapper
                         div#gamepadvoid
                         ul#gamepadinputs
@@ -100,13 +101,14 @@ block content
                         div#gametitlecaption
                         div#sliderwrapper
                             ul#slidericons
-                                li(class="controls tooltip", data-slider="controls", title="Controls")
+                                li(class="controls tooltip", data-slider="Controls", title="Controls")
                                 li(class="screenshots tooltip", title="Screenshots")
                                 li(class="saves tooltip", title="Saves")
-                                li(class="info tooltip", data-slider="info", title="Info")
+                                li(class="info tooltip", data-slider="Info", title="Info")
                             //- sliding panels
-                            div#controls-slider(class="slidingpanel closed")
-                            div#info-slider(class="slidingpanel closed")
+                            div#sliderpanels
+                                div#Controls-slider(class="slidingpanel closed")
+                                div#Info-slider(class="slidingpanel closed")
                     div#gamedetailsboxfront
 
     div#collectionsWrapper
@@ -146,3 +148,4 @@ block content
             input#browse-show-obscure(type="checkbox")
             div(class="tooltip" title="When browsing by letter, enable this to see all available games.") Reveal Obscure Titles
         div#suggestionsgrid(class="grid")
+        div#suggestionsloading(class="close")
