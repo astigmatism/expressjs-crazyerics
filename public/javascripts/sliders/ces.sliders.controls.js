@@ -2,7 +2,7 @@ var cesSlidersControls = (function(_config, $li, $panel) {
 
     var self = this;
 
-    this.Content = function(gameKey, info) {
+    this.Activate = function() {
         
     };
 

@@ -3,12 +3,11 @@ var cesSliders = (function(_config, _Compression, $silderIcons) {
     var _self = this;
     var _sliders = {};
     var _currentOpen = null;
-    var _currentGameKey = null;
     
     this.Open = function(name, callback) {
 
-        //the name must exist and a gamekey must be registered for slider to show/work
-        if (!_sliders.hasOwnProperty(name) || !_currentGameKey) {
+        //the name must exist
+        if (!_sliders.hasOwnProperty(name)) {
             return;
         }
 
@@ -63,13 +62,21 @@ var cesSliders = (function(_config, _Compression, $silderIcons) {
         });
     };
 
-    this.RegisterGameKey = function(gameKey, info) {
-        _currentGameKey = gameKey;
+    //called on emaultion exit
+    this.DeactivateAll = function() {
 
         for (var slider in _sliders) {
-            if (_sliders[slider].module && _sliders[slider].module.Content) {
-                _sliders[slider].module.Content(gameKey, info);
-            }
+            _sliders[slider].icon.addClass('deactivated');
+            _sliders[slider].activated = false;
+        }
+    };
+
+    this.Activate = function(name, args) {
+
+        if (_sliders[name] && _sliders[name].module && _sliders[name].module.Activate) {
+            _sliders[name].activated = true;
+            _sliders[name].icon.removeClass('deactivated');  //reveal icon for clicking
+            _sliders[name].module.Activate.apply(null, args);
         }
     };
 
@@ -81,6 +88,8 @@ var cesSliders = (function(_config, _Compression, $silderIcons) {
             var $li = $(li);
             var sliderId = $(this).data('slider');
             var $panel = $('#' + sliderId + '-slider');
+
+            $li.addClass('deactivated');
 
             //if a data reference was found along with the dom element
             if (sliderId && $('#' + sliderId + '-slider')) {
@@ -94,7 +103,8 @@ var cesSliders = (function(_config, _Compression, $silderIcons) {
                 _sliders[sliderId] = {
                     icon: $li,
                     panel: $panel,
-                    module: module
+                    module: module,
+                    activated: false
                 }
 
                 $li.on('click', function() {

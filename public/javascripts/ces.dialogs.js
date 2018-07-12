@@ -125,7 +125,7 @@ var cesDialogs = (function(_config, $wrapper) {
 
     var Transition = function(item) {
 
-        console.log('transition', item); //debugger
+        //console.log('transition', item); //debugger
 
         var action = item.action;
         var name = item.name;

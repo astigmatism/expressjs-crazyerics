@@ -15,7 +15,7 @@ var cesGamePad = (function(_config, _Compression, _PubSub, _Tooltips, _Preferenc
     var _gameLoop;
 
     //debug
-    var reconfigureEachTime = false; //when true will avoid checking preferences for saved configuration
+    var reconfigureEachTime = true; //when true will avoid checking preferences for saved configuration
 
     //these values are specific to retroarch config
 

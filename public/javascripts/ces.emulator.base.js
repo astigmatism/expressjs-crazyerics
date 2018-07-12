@@ -831,12 +831,15 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
      * @return {undef}
      */
     var LoadGame = function(_ProgressBar, filesize, deffered) {
-        
+
         var filename = _Compression.Zip.string(_gameKey.title + _gameKey.file);
         var location = _config.paths.roms + '/' + _gameKey.system + '/' + _config.systemdetails[_gameKey.system].romcdnversion + '/';
 
         //encode twice: once for the trip, the second because the files are saved that way on the CDN
-        location += encodeURIComponent(encodeURIComponent(filename));
+        var firstEncode = encodeURIComponent(filename);
+        var secondEncode = encodeURIComponent(firstEncode);
+        
+        location += secondEncode;
 
         //converted from jsonp to straight up json. Seems to work. Going this route allows me to add
         //an event listener to progress for a download progress bar

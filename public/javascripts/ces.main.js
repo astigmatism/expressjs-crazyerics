@@ -535,13 +535,20 @@ var cesMain = (function() {
                                                             //enlarge dialog area for emulator
                                                             _Dialogs.SetHeight($('#emulatorwrapper').outerHeight(), function() {
 
+                                                                //activate certain sliders
+                                                                _Sliders.Activate('Controls', []);
+                                                                
+                                                                //reqiure gamedb data to have info slider
+                                                                if (!$.isEmptyObject(info)) {
+                                                                    _Sliders.Activate('Info', [gameKey, info]);
+                                                                }
+
                                                                 //handle title and content fadein steps
                                                                 //wait until height change before they appear
                                                                 DisplayGameContext(gameKey, function() {
 
-                                                                    //show controls slider by default
-                                                                    _Sliders.RegisterGameKey(gameKey, info);
-                                                                    _Sliders.Open('Info');
+                                                                    //show controls slider by default (it is always activated)
+                                                                    _Sliders.Open('Controls');
                                                                 });  
                                                                         
                                                                 //reveal emulator, control is game is given at this step
@@ -741,6 +748,9 @@ var cesMain = (function() {
         $('#gamedetailsboxfront img').addClass('close');
         $('#gamedetailswrapper').fadeOut();
         $('#gametitlecaption').empty();
+
+        _Sliders.DeactivateAll();
+
         // $('#gamedetailsbackground').animate({
         //     height: 0
         // }, 1000, function() {

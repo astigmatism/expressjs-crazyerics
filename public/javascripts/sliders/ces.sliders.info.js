@@ -12,7 +12,7 @@ var cesSlidersInfo = (function(_config, $li, $panel) {
         callback(true);
     };
 
-    this.Content = function(gameKey, info) {
+    this.Activate = function(gameKey, info) {
 
         $panel.empty();
 
@@ -24,6 +24,10 @@ var cesSlidersInfo = (function(_config, $li, $panel) {
                     genres += info.Genres[genre] + ', ';
                 }
                 $panel.append('<p>Genres: ' + genres.slice(0, -2) + '</p>');
+            }
+
+            if (info.Overview) {
+                $panel.append('<p>' + info.Overview + '</p>');
             }
 
             if (info.ReleaseDate) {
@@ -40,10 +44,6 @@ var cesSlidersInfo = (function(_config, $li, $panel) {
 
             if (info.Players) {
                 $panel.append('<p>Players: ' + info.Players + '</p>');
-            }
-
-            if (info.Overview) {
-                $panel.append('<p>' + info.Overview + '</p>');
             }
 
             // if (info.AlternateTitles) {
