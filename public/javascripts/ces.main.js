@@ -289,13 +289,6 @@ var cesMain = (function() {
             $(this).css('background-image','url("' + _config.paths.images + '/titlebanners/' + _currentBanner + '.png")');
         });
         $('#titlebanner').trigger('click');
-
-        //gamepad
-        window.addEventListener('gamepadconnected', function(e) {
-            console.log('Gamepad connected at index %d: %s. %d buttons, %d axes.',
-              e.gamepad.index, e.gamepad.id,
-              e.gamepad.buttons.length, e.gamepad.axes.length);
-          });
     });
 
     /* public methods */

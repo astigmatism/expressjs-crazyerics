@@ -18,16 +18,16 @@ var cesSlidersInfo = (function(_config, $li, $panel) {
 
         if (info) {
 
+            if (info.Overview) {
+                $panel.append('<p>' + info.Overview + '</p>');
+            }
+
             if (info.Genres) {
                 var genres = '';
                 for (var genre in info.Genres) {
                     genres += info.Genres[genre] + ', ';
                 }
                 $panel.append('<p>Genres: ' + genres.slice(0, -2) + '</p>');
-            }
-
-            if (info.Overview) {
-                $panel.append('<p>' + info.Overview + '</p>');
             }
 
             if (info.ReleaseDate) {
