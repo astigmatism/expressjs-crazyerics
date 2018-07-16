@@ -99,7 +99,7 @@ module.exports = new (function() {
                 data = JSON.parse(data);
             }
             catch (e) {
-                return callback(e);
+                return callback(path, e);
             }
             callback(null, data);
         });
