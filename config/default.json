@@ -370,7 +370,7 @@
 		"snes": {
 			"name": "Super Nintendo Entermainment System",
 			"shortname": "Super Nintendo",
-			"live": false,
+			"live": true,
 			"supportfilesize": 0,
 			"boxcdnversion": "2018-05-22",
 			"romcdnversion": "snes20180714",
