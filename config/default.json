@@ -241,11 +241,11 @@
 		"n64": {
 			"name": "Nintendo 64",
 			"shortname": "Nintendo 64",
-			"live": false,
+			"live": true,
 			"supportfilesize": 0,
 			"collection": "GoodN64 3.27",
 			"boxcdnversion": "2018-05-22",
-			"romcdnversion": "GoodN64-3.27",
+			"romcdnversion": "n6420180715",
 			"emuextention": "1.6.9-stable",
 			"emuscript": "mupen64plus_libretro.js",
 			"screenshotaspectratio": 1.142857143,
