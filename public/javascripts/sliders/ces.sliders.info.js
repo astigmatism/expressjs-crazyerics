@@ -14,12 +14,38 @@ var cesSlidersInfo = (function(_config, $li, $panel) {
 
     this.Activate = function(gameKey, info) {
 
-        $panel.empty();
+        var $title = $panel.find('img.title');
+        var $screen1 = $panel.find('img.screenshot1');
+        var $overview = $panel.find('p.overview');
+        var $genre = $panel.find('p.genre');
+        var $release = $panel.find('p.release');
+        var $publisher = $panel.find('p.publisher');
+        var $developer = $panel.find('p.developer');
+        var $players = $panel.find('p.players');
+
+        $overview.empty();
+        $genre.empty();
+        $release.empty();
+        $publisher.empty();
+        $developer.empty();
+        $players.empty();
+        
+        $title.hide();
+        $title.imagesLoaded().done(function() {
+            $title.show(); //remove close on parent to reveal image
+        });
+        $title.attr('src',_config.paths.images + '/titlescreens/' + gameKey.system + '/' + gameKey.title + '/original.jpg');
+
+        $screen1.hide();
+        $screen1.imagesLoaded().done(function() {
+            $screen1.show(); //remove close on parent to reveal image
+        });
+        $screen1.attr('src',_config.paths.images + '/screenshot1/' + gameKey.system + '/' + gameKey.title + '/original.jpg');
 
         if (info) {
 
             if (info.Overview) {
-                $panel.append('<p>' + info.Overview + '</p>');
+                $overview.text(info.Overview);
             }
 
             if (info.Genres) {
@@ -27,23 +53,23 @@ var cesSlidersInfo = (function(_config, $li, $panel) {
                 for (var genre in info.Genres) {
                     genres += info.Genres[genre] + ', ';
                 }
-                $panel.append('<p>Genres: ' + genres.slice(0, -2) + '</p>');
+                $genre.text('Genre: ' + genres.slice(0, -2));
             }
 
             if (info.ReleaseDate) {
-                $panel.append('<p>Release Date: ' + info.ReleaseDate + '</p>');
+                $release.text('Release Date: ' + info.ReleaseDate);
             }
 
             if (info.Publisher) {
-                $panel.append('<p>Publisher: ' + info.Publisher + '</p>');
+                $publisher.text('Publisher: ' + info.Publisher);
             }
 
             if (info.Developer) {
-                $panel.append('<p>Developer: ' + info.Developer + '</p>');
+                $developer.text('Developer: ' + info.Developer);
             }
 
             if (info.Players) {
-                $panel.append('<p>Players: ' + info.Players + '</p>');
+                $players.text('Players: ' + info.Players);
             }
 
             // if (info.AlternateTitles) {
@@ -54,6 +80,10 @@ var cesSlidersInfo = (function(_config, $li, $panel) {
             //     $panel.append('<p>Alternate Titles: ' + titles.slice(0, -1) + '</p>');
             // }
         }
+    };
+
+    this.Deactivate = function() {
+
     };
 
     var Constructor = (function() {

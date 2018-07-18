@@ -23,7 +23,10 @@ var cesSliders = (function(_config, _Compression, $silderIcons) {
                     $(data.icon).addClass('on');
 
                     $(data.panel).removeClass('closed');
-                    $(data.panel).addClass('opened');
+                    
+                    $(data.panel).slideDown(function() {
+                        $(data.panel).addClass('opened');
+                    });
 
                     _currentOpen = name;
 
@@ -53,7 +56,11 @@ var cesSliders = (function(_config, _Compression, $silderIcons) {
                 $(data.icon).removeClass('on');
 
                 $(data.panel).removeClass('opened');
-                $(data.panel).addClass('closed');
+                
+
+                $(data.panel).slideUp(function() {
+                    $(data.panel).addClass('closed');
+                });
 
                 _currentOpen = null;
 
@@ -63,11 +70,12 @@ var cesSliders = (function(_config, _Compression, $silderIcons) {
     };
 
     //called on emaultion exit
-    this.DeactivateAll = function() {
+    this.DeactivateAll = function(args) {
 
         for (var slider in _sliders) {
-            _sliders[slider].icon.addClass('deactivated');
             _sliders[slider].activated = false;
+            _sliders[slider].icon.addClass('deactivated');
+            _sliders[slider].module.Deactivate.apply(null, args);
         }
     };
 

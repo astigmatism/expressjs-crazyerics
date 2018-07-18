@@ -942,29 +942,11 @@ p {
 }
 
 div.slidingpanel {
-	
-    height:100%;
-
-	-webkit-transition:-webkit-transform 300ms ease-in-out;
-       -moz-transition:   -moz-transform 300ms ease-in-out;
-        -ms-transition:    -ms-transform 300ms ease-in-out;
-            transition:        transform 300ms ease-in-out;
-	width: 100%;
+	padding: 15px 0px;
 }
 
-div.slidingpanel.opened { 
-    /* visible */
-    -webkit-transform: translate(0, 0%);
-       -moz-transform: translate(0, 0%);
-        -ms-transform: translate(0, 0%);
-            transform: translate(0, 0%);
-}
 div.slidingpanel.closed { 
-    /* completely offscreen */
-    -webkit-transform: translate(0, -120%);
-       -moz-transform: translate(0, -120%);
-        -ms-transform: translate(0, -120%);
-            transform: translate(0, -120%);
+	display: none;
 }
 
 #slidericons {
@@ -1018,6 +1000,18 @@ div.slidingpanel.closed {
 
 #controls-slider {
 	height: 600px;
+}
+
+#Controls-slider td {
+	vertical-align: top;
+}
+
+#Info-slider td {
+	vertical-align: top;
+}
+
+#Info-slider img {
+	margin-right: 20px;
 }
 
 /* grids */

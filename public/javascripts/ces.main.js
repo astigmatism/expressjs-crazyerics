@@ -529,7 +529,7 @@ var cesMain = (function() {
                                                             _Dialogs.SetHeight($('#emulatorwrapper').outerHeight(), function() {
 
                                                                 //activate certain sliders
-                                                                _Sliders.Activate('Controls', []);
+                                                                _Sliders.Activate('Controls', [gameKey]);
                                                                 
                                                                 //reqiure gamedb data to have info slider
                                                                 if (!$.isEmptyObject(info)) {
@@ -540,7 +540,7 @@ var cesMain = (function() {
                                                                 //wait until height change before they appear
                                                                 DisplayGameContext(gameKey, function() {
 
-                                                                    //show controls slider by default (it is always activated)
+                                                                    //show controls slider by default (because it is always activated)
                                                                     _Sliders.Open('Controls');
                                                                 });  
                                                                         
