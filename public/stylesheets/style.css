@@ -946,6 +946,7 @@ div.slidingpanel {
 }
 
 div.slidingpanel.closed { 
+	height: 0px;
 	display: none;
 }
 
