@@ -1,10 +1,11 @@
-var cesGameLink = (function(_BoxArt, gameKey, size, opt_tooltip, opt_PlayGame, opt_onImageLoadError, opt_removeSelector, opt_onRemove) {
+var cesGameLink = (function(_config, _BoxArt, _Tooltips, gameKey, size, opt_tooltip, opt_PlayGame, opt_onImageLoadError, opt_removeSelector, opt_onRemove) {
 
     //private members
     var self = this;
     var _gamelink;
     var _imagewrapper;
     var _image;
+    var _TITLESCREENWIDTH = 160;
 
     //public members
 
@@ -19,6 +20,23 @@ var cesGameLink = (function(_BoxArt, gameKey, size, opt_tooltip, opt_PlayGame, o
 
     this.SetImageLoadError = function(handler) {
         opt_onImageLoadError = handler;
+    };
+
+    var GenerateTooltipContent = function(gameKey) {
+
+        var $tooltipContent = $('<div class="gamelink-tooltip" />');
+        $tooltipContent.append('<div>' + gameKey.title + '</div>');
+        var $titlescreen = $('<img width="' + _TITLESCREENWIDTH + '" />');
+        $tooltipContent.append($titlescreen);
+
+        $titlescreen.hide();
+        $titlescreen.imagesLoaded().done(function() {
+            $titlescreen.show(); //remove close on parent to reveal image
+        });
+        $titlescreen.attr('src', _config.paths.images + '/titlescreens/' + gameKey.system + '/' + gameKey.title + '/original.jpg');
+        
+        return $tooltipContent;
+
     };
 
     var Constructor = (function() {
@@ -43,15 +61,19 @@ var cesGameLink = (function(_BoxArt, gameKey, size, opt_tooltip, opt_PlayGame, o
                 if (opt_PlayGame) {
                     opt_PlayGame(gameKey);
                 }
-            })
+            });
         });
 
         var $imagewrapper = $('<div class="box zoom close"></div>');
         
         $imagewrapper.addClass('close');
         if (opt_tooltip) {
-            $imagewrapper.addClass('tooltip');
-            $imagewrapper.attr('title', gameKey.title);
+            //$imagewrapper.addClass('tooltip');
+            //$imagewrapper.attr('title', gameKey.title);
+
+            //generate new toolips content
+            var $tooltipContent = GenerateTooltipContent(gameKey);   //generate html specific for collections
+            _Tooltips.SingleHTML($imagewrapper, $tooltipContent, false); //reapply tooltips
         }
 
         $imagewrapper.append($box);

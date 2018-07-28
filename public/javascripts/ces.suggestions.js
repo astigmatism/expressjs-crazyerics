@@ -122,7 +122,7 @@ var cesSuggestions = (function(_config, _BoxArt, _Compression, _Tooltips, PlayGa
             var gameKey = _Compression.Decompress.gamekey(suggestions[i]);
 
             //spawn new gamelink
-            gamelink = new cesGameLink(_BoxArt, gameKey, _BOXSIZE, true, PlayGame);
+            gamelink = new cesGameLink(_config, _BoxArt, _Tooltips, gameKey, _BOXSIZE, true, PlayGame);
 
             //create the grid item and insert it
             var $griditem = $('<div class="grid-item" />');

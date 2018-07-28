@@ -1,10 +1,11 @@
-var cesCollections = (function(_Compression, _Preferences, _BoxArt, _Sync, _Tooltips, _PlayGameHandler, $collectionTitlesWrapper, $collectionNamesWrapper, _initialSyncPackage, copyToFeatured, _OnRemoveHandler) {
+var cesCollections = (function(_config, _Compression, _Preferences, _BoxArt, _Sync, _Tooltips, _PlayGameHandler, $collectionTitlesWrapper, $collectionNamesWrapper, _initialSyncPackage, copyToFeatured, _OnRemoveHandler) {
 		
     //private members
     var _self = this;
     var _titlesGrid = null;             //see constructor for assignment
     var _collectionsGrid = null;
     var _BOXSIZE = 116;
+    var _TITLESCREENWIDTH = 160;
     var _currentLoadingGame = null;
     var _baseUrl = '/collections';
     var _featureUrl = '/featured';
@@ -260,11 +261,20 @@ var cesCollections = (function(_Compression, _Preferences, _BoxArt, _Sync, _Tool
     var GenerateTitleTooltipContent = function(activeTitle) {
 
         //create the tooltip content
+        
         var $tooltipContent = $('<div class="collection-tooltip" />');
         $tooltipContent.append('<div>' + activeTitle.gameKey.title + '</div>');
+        var $titlescreen = $('<img width="' + _TITLESCREENWIDTH + '" />');
+        $tooltipContent.append($titlescreen);
         $tooltipContent.append('<div>Last Played: ' + $.format.date(activeTitle.lastPlayed, 'MMM D h:mm:ss a') + '</div>'); //using the jquery dateFormat plugin
         $tooltipContent.append('<div>Play Count: ' + activeTitle.playCount + '</div>');
         $tooltipContent.append('<div>Number of Saves: ' + activeTitle.saveCount + '</div>');
+
+        $titlescreen.hide();
+        $titlescreen.imagesLoaded().done(function() {
+            $titlescreen.show(); //remove close on parent to reveal image
+        });
+        $titlescreen.attr('src', _config.paths.images + '/titlescreens/' + activeTitle.gameKey.system + '/' + activeTitle.gameKey.title + '/original.jpg');
         
         $remove = $('<div class="remove">Remove from this Collection</div>');
         $remove.on('click', function() {
@@ -641,7 +651,7 @@ var cesCollections = (function(_Compression, _Preferences, _BoxArt, _Sync, _Tool
                     };
 
                     //generate gamelink
-                    var gameLink = new cesGameLink(_BoxArt, gameKey, _BOXSIZE, false, _PlayGameHandler, onBoxImageLoadError);
+                    var gameLink = new cesGameLink(_config, _BoxArt, _Tooltips, gameKey, _BOXSIZE, false, _PlayGameHandler, onBoxImageLoadError);
 
                     //push to our local cache
                     _activeCollectionTitles.push({

@@ -19,14 +19,16 @@ var cesTooltips = (function(config, tooltipSelector, tooltipContentSelector) {
         });
     };
 
-    this.SingleHTML = function($el, $content) {
+    this.SingleHTML = function($el, $content, opt_interactive) {
+
+        opt_interactive = opt_interactive == undefined ? true : opt_interactive;
 
         if (!$el.hasClass(alreadyProcessedName)) {
             $el.tooltipster({
                 theme: 'tooltipster-shadow',
                 animation: 'grow',
                 delay: [1200, 200],
-                interactive: true,
+                interactive: opt_interactive,
                 contentAsHTML: true
             });
         }

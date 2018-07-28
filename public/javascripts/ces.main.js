@@ -67,10 +67,10 @@ var cesMain = (function() {
 
         _Gamepad = new cesGamePad(_config, _Compression, _PubSub, _Tooltips, _Preferences, _Dialogs, $('#gameid0'), $('#gameid1'));
 
-        _Collections = new cesCollections(_Compression, _Preferences, _BoxArt, _Sync, _Tooltips, PlayGame, $('#openCollectionGrid'), $('#collectionsGrid'), clientdata.components.c, _config.defaults.copyToFeatured, null);
+        _Collections = new cesCollections(_config, _Compression, _Preferences, _BoxArt, _Sync, _Tooltips, PlayGame, $('#openCollectionGrid'), $('#collectionsGrid'), clientdata.components.c, _config.defaults.copyToFeatured, null);
         _Sync.RegisterComponent('c', _Collections.Sync);
 
-        _Featured = new cesFeatured(_Compression, _Preferences, _BoxArt, _Sync, _Tooltips, PlayGame, _Collections, clientdata.components.f, null);
+        _Featured = new cesFeatured(_config, _Compression, _Preferences, _BoxArt, _Sync, _Tooltips, PlayGame, _Collections, clientdata.components.f, null);
 
         //register dialogs after setting up components
         var welcomeBack =  _Collections.IsEmpty() ? false : true;

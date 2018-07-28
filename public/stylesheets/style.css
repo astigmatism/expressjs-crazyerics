@@ -1158,6 +1158,10 @@ div.slidingpanel.closed {
 	padding-top: 10px;
 }
 
+div.collection-tooltip {
+	text-align: center;
+}
+
 /* game links */
 
 .gamelink {
@@ -1183,6 +1187,10 @@ div.slidingpanel.closed {
 	right: -5px;
 	z-index: 200;
 } */
+
+div.gamelink-tooltip {
+	text-align: center;
+}
 
 /* suggestions */
 
