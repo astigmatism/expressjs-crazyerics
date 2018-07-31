@@ -612,7 +612,7 @@
 					}
 				}
 			},
-			"samples": 40
+			"samples": 20
 		},
 		"gb": {
 			"recipe": {
@@ -622,7 +622,7 @@
 					}
 				}
 			},
-			"samples": 40
+			"samples": 20
 		},
 		"gba": {
 			"recipe": {
@@ -632,7 +632,7 @@
 					}
 				}
 			},
-			"samples": 40
+			"samples": 20
 		},
 		"gbc": {
 			"recipe": {
@@ -642,7 +642,7 @@
 					}
 				}
 			},
-			"samples": 40
+			"samples": 20
 		},
 		"nes": {
 			"recipe": {
@@ -652,7 +652,7 @@
 					}
 				}
 			},
-			"samples": 40
+			"samples": 20
 		},
 		"gen": {
 			"recipe": {
@@ -662,7 +662,7 @@
 					}
 				}
 			},
-			"samples": 40
+			"samples": 20
 		}
 	},
 	"retroarch": {

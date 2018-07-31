@@ -15,7 +15,7 @@ var cesGamePad = (function(_config, _Compression, _PubSub, _Tooltips, _Preferenc
     var _gameLoop;
 
     //debug
-    var reconfigureEachTime = true; //when true will avoid checking preferences for saved configuration
+    var reconfigureEachTime = false; //when true will avoid checking preferences for saved configuration
 
     //these values are specific to retroarch config
 
@@ -70,14 +70,22 @@ var cesGamePad = (function(_config, _Compression, _PubSub, _Tooltips, _Preferenc
 
             //if we found preferences for the gamepad already, no need to configure, try next gamepad until no more
             if (savedMappings && !reconfigureEachTime) {
+                
+                //cache locally
+                gamepad.inputconfig = _Compression.Decompress.json(savedMappings);
+
                 return ConfigureGamepad(index+1, gameKey, callback); //configure next gamepad
             }
 
-            _Dialogs.Open('ConfigureGamepad', [_config, gamepad, gameKey], false, function(compressedInputConfig) {
+            _Dialogs.Open('ConfigureGamepad', [_config, gamepad, gameKey], false, function(inputconfig) {
                 
                 //if the dialog is returning a successful configuration, let's save it
-                if (compressedInputConfig) {
-                    _Preferences.Set(prefName, compressedInputConfig);
+                if (inputconfig) {
+
+                    //cache locally
+                    gamepad.inputconfig = inputconfig;
+
+                    _Preferences.Set(prefName, _Compression.Compress.json(inputconfig));
                 }
                 
                 return ConfigureGamepad(index+1, gameKey, callback); //configure next gamepad
@@ -124,6 +132,10 @@ var cesGamePad = (function(_config, _Compression, _PubSub, _Tooltips, _Preferenc
 
         _gameLoop = requestAnimationFrame(Update); //loop start
     };
+
+    this.GetGamePadDetails = function() {
+        return _gamepads;
+    }
 
     // private methods
 

@@ -942,7 +942,7 @@ p {
 }
 
 div.slidingpanel {
-	padding: 15px 0px;
+	padding: 10px 0px;
 }
 
 div.slidingpanel.closed { 
@@ -999,8 +999,8 @@ div.slidingpanel.closed {
     transform: rotate(180deg);
 }
 
-#controls-slider {
-	height: 600px;
+#Controls-slider table {
+	width: 100%;
 }
 
 #Controls-slider td {
@@ -1013,6 +1013,14 @@ div.slidingpanel.closed {
 
 #Info-slider img {
 	margin-right: 20px;
+}
+
+#Info-slider p {
+	margin: 0px 0px 10px 0px;
+}
+
+#Screenshots-slider .grid-item {
+	margin: 5px;
 }
 
 /* grids */

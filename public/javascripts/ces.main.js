@@ -529,7 +529,8 @@ var cesMain = (function() {
                                                             _Dialogs.SetHeight($('#emulatorwrapper').outerHeight(), function() {
 
                                                                 //activate certain sliders
-                                                                _Sliders.Activate('Controls', [gameKey]);
+                                                                _Sliders.Activate('Controls', [gameKey, _Gamepad]);
+                                                                _Sliders.Activate('Screenshots', [gameKey, _PubSub]);
                                                                 
                                                                 //reqiure gamedb data to have info slider
                                                                 if (!$.isEmptyObject(info)) {

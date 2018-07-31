@@ -11,6 +11,11 @@ var cesSliders = (function(_config, _Compression, $silderIcons) {
             return;
         }
 
+        //if currently, bail
+        if (name == _currentOpen) {
+            return;
+        }
+
         var data = _sliders[name];
 
         //first close the open slider
@@ -105,7 +110,9 @@ var cesSliders = (function(_config, _Compression, $silderIcons) {
                 var module;
 
                 if (window.hasOwnProperty('cesSliders' + sliderId)) {
-                    module = new window['cesSliders' + sliderId](_config, $li, $panel);
+                    module = new window['cesSliders' + sliderId](_config, $li, $panel, function() {
+                        _self.Open(sliderId); //give each module the ability to open themselves (because some are subscribing to topics)
+                    });
                 }
 
                 _sliders[sliderId] = {

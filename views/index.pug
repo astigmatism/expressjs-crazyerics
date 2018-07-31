@@ -102,16 +102,24 @@ block content
                         div#sliderwrapper
                             ul#slidericons
                                 li(class="controls tooltip", data-slider="Controls", title="Controls")
-                                li(class="screenshots tooltip", title="Screenshots")
+                                li(class="screenshots tooltip", data-slider="Screenshots", title="Screenshots")
                                 li(class="saves tooltip", title="Saves")
                                 li(class="info tooltip", data-slider="Info", title="Info")
                             //- sliding panels
                             div#sliderpanels
                                 div#Controls-slider(class="slidingpanel closed")
                                     table
-                                        tr
+                                        tr(class="controllers")
                                             td
-                                                img(class="controller")
+                                                h3 Special Functions:
+                                                ul
+                                                    li R = Rewind
+                                                    li 1 = Save Progress
+                                                    li 4 = Load Last Progress
+                                                    li Space = Fast Forward
+                                                    li T = Take Screenshot
+                                                    li H = Reset System
+                                                    li P = Pause
                                 div#Info-slider(class="slidingpanel closed")
                                     table
                                         tr
@@ -125,6 +133,10 @@ block content
                                                 p(class="publisher")
                                                 p(class="developer")
                                                 p(class="players")
+                                div#Screenshots-slider(class="slidingpanel closed")
+                                    p Click to download a screenshot. Hover to optionally contribute it back to Crazyerics (and thank you!)
+                                    div#screenshotsGrid(class="grid")
+                                    p All screenshots here will be lost when you leave or play another game.
                     div#gamedetailsboxfront
 
     div#collectionsWrapper

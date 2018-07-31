@@ -78,7 +78,7 @@ var cesDialogsConfigureGamepad = (function(_config, $el, $wrapper, args) {
         ListenForInput(listitems, 0, function() {
             
             //config array defined, return it
-            _openCallback(_Compression.Compress.json(_inputAssingments));
+            _openCallback(_inputAssingments);
         });
     };
 

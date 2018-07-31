@@ -32,7 +32,7 @@ var cesDialogsShaderSelection = (function(_config, $el, $wrapper, args) {
         //     }));
         // }
 
-        $('#shaderselectlist').append($('<li class="zoom" data-shader=""><h3>No Processing</h3><img src="' + _config.paths.images + '/shaders/pixels.png" /></li>').on('click', function(e) {
+        $('#shaderselectlist').append($('<li class="zoom" data-shader=""><h3>Pixel Perfect</h3><img src="' + _config.paths.images + '/shaders/pixels.png" /></li>').on('click', function(e) {
             OnShaderSelected(system, $(this).attr('data-shader'));
         }));
 
