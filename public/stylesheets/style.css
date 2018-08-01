@@ -441,6 +441,17 @@ p {
 	box-shadow: none;
 }
 
+#romsselectordie {
+	padding: 14px 10px;
+	border: none;
+	width: 800px;
+	text-transform: none;
+	font-size: 12px;
+	font-weight: normal;
+	height: 40px;
+	box-shadow: none;
+}
+
 #toolbar .search input {
 	height: 100%;
 	padding: 0px 10px;
@@ -942,7 +953,6 @@ p {
 /* sliders */
 
 #sliderpanels {
-	overflow-y: hidden;
 }
 
 div.slidingpanel {
@@ -1037,6 +1047,10 @@ div.screenshot-tooltip {
 
 div.screenshot-tooltip div {
 	cursor: pointer;
+}
+
+#Roms-slider .sod_list_wrapper {
+	width: 800px;
 }
 
 /* grids */
