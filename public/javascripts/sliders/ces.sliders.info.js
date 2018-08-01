@@ -29,19 +29,31 @@ var cesSlidersInfo = (function(_config, $li, $panel) {
         $publisher.empty();
         $developer.empty();
         $players.empty();
-        
-        var titlescreenPath = _config.paths.titlescreens + '/' + encodeURIComponent(encodeURIComponent(gameKey.gk)) + '/0.jpg';
+
+        var titlescreenPath = _config.paths.titlescreens + '/' + gameKey.system + '/' + encodeURIComponent(encodeURIComponent(gameKey.gk)) + '/0.jpg';
+        var userContributedTitlescreenPath = _config.paths.contributions + '/titlescreens/' + gameKey.system + '/' + encodeURIComponent(encodeURIComponent(gameKey.gk)) + '/0.jpg';
 
         $title.hide();
-        $title.imagesLoaded().done(function() {
-            $title.show(); //remove close on parent to reveal image
-        });
+        $title.imagesLoaded()
+            .done(function() {
+                $title.show(); //remove close on parent to reveal image
+            })
+            .fail(function() {
+                
+                //attempt to load a user contributed image
+                $title.imagesLoaded()
+                    .done(function() {
+                        $title.show(); //remove close on parent to reveal image
+                    });
+                $title.attr('src', userContributedTitlescreenPath); //other url
+            });
         $title.attr('src', titlescreenPath);
 
         $screen1.hide();
-        $screen1.imagesLoaded().done(function() {
-            $screen1.show(); //remove close on parent to reveal image
-        });
+        $screen1.imagesLoaded()
+            .done(function() {
+                $screen1.show(); //remove close on parent to reveal image
+            });
         $screen1.attr('src',_config.paths.images + '/screenshot1/' + gameKey.system + '/' + gameKey.title + '/original.jpg');
 
         if (info) {

@@ -25,7 +25,7 @@ var cesGameLink = (function(_config, _BoxArt, _Tooltips, gameKey, size, opt_tool
 
         var $tooltipContent = $('<div class="gamelink-tooltip" />');
         $tooltipContent.append('<div class="tooltiptitle">' + gameKey.title + '</div>');
-        //$tooltipContent.append(_Tooltips.TooltipTitleScreen(gameKey));
+        $tooltipContent.append(_Tooltips.TooltipTitleScreen(gameKey));
         
         return $tooltipContent;
 
