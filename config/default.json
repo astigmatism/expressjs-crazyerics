@@ -1,13 +1,16 @@
 {
 	"paths": {
 		"images": "http://cdn.crazyerics.com/images",
+		"titlescreens": "http://cdn.crazyerics.com/titlescreens",
+		"contributions": "http://cdn.crazyerics.com/contributions",
 		"textures": "http://cdn.crazyerics.com/textures",
 		"shaders": "http://cdn.crazyerics.com:81/shaders/2017-12-27", /* shader image previews at https://buildbot.libretro.com/.docs/shader/introduction/ */
 		"boxes": "http://cdn.crazyerics.com/boxes",
 		"roms": "http://cdn.crazyerics.com:81/roms",
 		"emulator_extensions": "emulatorextentions/",
 		"emulators": "http://cdn.crazyerics.com/emulators",
-		"supportfiles": "http://cdn.crazyerics.com:81/support"
+		"supportfiles": "http://cdn.crazyerics.com:81/support",
+		"screenupload": "http://cdn.crazyerics.com/contribute"
 	},
 	"defaults": {
 		"maxSavesPerGame": 40,

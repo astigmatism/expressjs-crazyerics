@@ -5,7 +5,6 @@ var cesGameLink = (function(_config, _BoxArt, _Tooltips, gameKey, size, opt_tool
     var _gamelink;
     var _imagewrapper;
     var _image;
-    var _TITLESCREENWIDTH = 160;
 
     //public members
 
@@ -25,15 +24,8 @@ var cesGameLink = (function(_config, _BoxArt, _Tooltips, gameKey, size, opt_tool
     var GenerateTooltipContent = function(gameKey) {
 
         var $tooltipContent = $('<div class="gamelink-tooltip" />');
-        $tooltipContent.append('<div>' + gameKey.title + '</div>');
-        var $titlescreen = $('<img width="' + _TITLESCREENWIDTH + '" />');
-        $tooltipContent.append($titlescreen);
-
-        $titlescreen.hide();
-        $titlescreen.imagesLoaded().done(function() {
-            $titlescreen.show(); //remove close on parent to reveal image
-        });
-        $titlescreen.attr('src', _config.paths.images + '/titlescreens/' + gameKey.system + '/' + gameKey.title + '/original.jpg');
+        $tooltipContent.append('<div class="tooltiptitle">' + gameKey.title + '</div>');
+        //$tooltipContent.append(_Tooltips.TooltipTitleScreen(gameKey));
         
         return $tooltipContent;
 

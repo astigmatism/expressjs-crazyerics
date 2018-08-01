@@ -50,6 +50,10 @@ p {
 	font-size: 1.2em;
 }
 
+.clickable {
+	cursor: pointer;
+}
+
 #container {
 	margin: 0 auto;
 	position: relative;
@@ -1023,6 +1027,18 @@ div.slidingpanel.closed {
 	margin: 5px;
 }
 
+#Screenshots-slider .grid-item img {
+	cursor: pointer;
+}
+
+div.screenshot-tooltip {
+	text-align: center;
+}
+
+div.screenshot-tooltip div {
+	cursor: pointer;
+}
+
 /* grids */
 
 .grid:after {
@@ -1198,6 +1214,12 @@ div.collection-tooltip {
 
 div.gamelink-tooltip {
 	text-align: center;
+}
+
+div.tooltiptitle {
+	font-size: 16px;
+	line-height: 30px;
+	font-weight: bold;
 }
 
 /* suggestions */

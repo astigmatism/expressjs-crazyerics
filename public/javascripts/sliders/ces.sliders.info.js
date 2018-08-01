@@ -30,11 +30,13 @@ var cesSlidersInfo = (function(_config, $li, $panel) {
         $developer.empty();
         $players.empty();
         
+        var titlescreenPath = _config.paths.titlescreens + '/' + encodeURIComponent(encodeURIComponent(gameKey.gk)) + '/0.jpg';
+
         $title.hide();
         $title.imagesLoaded().done(function() {
             $title.show(); //remove close on parent to reveal image
         });
-        $title.attr('src',_config.paths.images + '/titlescreens/' + gameKey.system + '/' + gameKey.title + '/original.jpg');
+        $title.attr('src', titlescreenPath);
 
         $screen1.hide();
         $screen1.imagesLoaded().done(function() {

@@ -530,7 +530,7 @@ var cesMain = (function() {
 
                                                                 //activate certain sliders
                                                                 _Sliders.Activate('Controls', [gameKey, _Gamepad]);
-                                                                _Sliders.Activate('Screenshots', [gameKey, _PubSub]);
+                                                                _Sliders.Activate('Screenshots', [gameKey, _PubSub, _Tooltips, _Compression]);
                                                                 
                                                                 //reqiure gamedb data to have info slider
                                                                 if (!$.isEmptyObject(info)) {

@@ -263,18 +263,11 @@ var cesCollections = (function(_config, _Compression, _Preferences, _BoxArt, _Sy
         //create the tooltip content
         
         var $tooltipContent = $('<div class="collection-tooltip" />');
-        $tooltipContent.append('<div>' + activeTitle.gameKey.title + '</div>');
-        var $titlescreen = $('<img width="' + _TITLESCREENWIDTH + '" />');
-        $tooltipContent.append($titlescreen);
+        $tooltipContent.append('<div class="tooltiptitle">' + activeTitle.gameKey.title + '</div>');
+        $tooltipContent.append(_Tooltips.TooltipTitleScreen(activeTitle.gameKey));
         $tooltipContent.append('<div>Last Played: ' + $.format.date(activeTitle.lastPlayed, 'MMM D h:mm:ss a') + '</div>'); //using the jquery dateFormat plugin
         $tooltipContent.append('<div>Play Count: ' + activeTitle.playCount + '</div>');
         $tooltipContent.append('<div>Number of Saves: ' + activeTitle.saveCount + '</div>');
-
-        $titlescreen.hide();
-        $titlescreen.imagesLoaded().done(function() {
-            $titlescreen.show(); //remove close on parent to reveal image
-        });
-        $titlescreen.attr('src', _config.paths.images + '/titlescreens/' + activeTitle.gameKey.system + '/' + activeTitle.gameKey.title + '/original.jpg');
         
         $remove = $('<div class="remove">Remove from this Collection</div>');
         $remove.on('click', function() {

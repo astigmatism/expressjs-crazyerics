@@ -8,6 +8,7 @@ var cesTooltips = (function(config, tooltipSelector, tooltipContentSelector) {
     var self = this;
     var alreadyProcessedName = 'tooltipstered';
     var alreadyProcessedSelector = '.' + alreadyProcessedName;
+    var _TITLESCREENWIDTH = 160;
 
     this.Any = function() {
 
@@ -39,6 +40,33 @@ var cesTooltips = (function(config, tooltipSelector, tooltipContentSelector) {
         $el.find(alreadyProcessedSelector).tooltipster('destroy');
         $el.tooltipster('destroy');
     };
+
+    this.TooltipTitleScreen = function(gameKey) {
+
+        var $titlescreen = $('<img width="' + _TITLESCREENWIDTH + '" />');
+        
+        var titlescreenPath = config.paths.titlescreens + '/' + gameKey.system + '/' + encodeURIComponent(encodeURIComponent(gameKey.gk)) + '/0.jpg';
+        var userContributedTitlescreenPath = config.paths.contributions + '/titlescreens/' + gameKey.system + '/' + encodeURIComponent(encodeURIComponent(gameKey.gk)) + '/0.jpg';
+
+        $titlescreen.hide();
+        $titlescreen.imagesLoaded()
+            .done(function() {
+                $titlescreen.show(); //remove close on parent to reveal image
+            })
+            .fail(function() {
+                
+                //attempt to load a user contributed image
+                $titlescreen.imagesLoaded()
+                .done(function() {
+                    $titlescreen.show(); //remove close on parent to reveal image
+                });
+                $titlescreen.attr('src', userContributedTitlescreenPath); //other url
+            });
+        
+        $titlescreen.attr('src', titlescreenPath);
+
+        return $titlescreen;
+    }
 
     //constructor
     var Constructor = (function() {
