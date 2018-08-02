@@ -19,7 +19,7 @@ var cesImages = (function(_config, _Compression, _PubSub, _Tooltips, _Preference
 
         //hide the wrapper until we know we have an image to show
         $wrapper.hide();
-
+        
         //first check client cache for this image to prevent going over the network
         var cacheKey = gameKey.gk + opt_width + opt_height;
         if (cacheKey in titlescreenCache) {

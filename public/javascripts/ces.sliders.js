@@ -120,7 +120,7 @@ var cesSliders = (function(_config, _Compression, $silderIcons) {
                     panel: $panel,
                     module: module,
                     activated: false
-                }
+                };
 
                 $li.on('click', function() {
                     _self.Open(sliderId);
