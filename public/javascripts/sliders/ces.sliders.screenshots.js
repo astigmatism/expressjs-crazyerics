@@ -97,13 +97,12 @@ var cesSlidersScreenshots = (function(_config, $li, $panel, Open) {
 
         //compress data stream
         data = _compression.Compress.json({
-            ts: isTitleScreen,
             contents: contents,
             gameKey: _gameKey
         });
 
         $.ajax({
-            url: _config.paths.screenupload,
+            url: _config.paths.screenupload + '/' + ((isTitleScreen) ? 'titlescreen' : 'screenshot'),
             type: 'POST',
             data: {
                 'cxhr': data 

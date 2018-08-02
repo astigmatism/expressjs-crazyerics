@@ -14,8 +14,8 @@ var cesSlidersInfo = (function(_config, $li, $panel) {
 
     this.Activate = function(gameKey, info) {
 
-        var $title = $panel.find('img.title');
-        var $screen1 = $panel.find('img.screenshot1');
+        var $titleWrapper = $('#infosilderTitleScreen');
+        //var $screen1 = $panel.find('img.screenshot1');
         var $overview = $panel.find('p.overview');
         var $genre = $panel.find('p.genre');
         var $release = $panel.find('p.release');
@@ -33,28 +33,30 @@ var cesSlidersInfo = (function(_config, $li, $panel) {
         var titlescreenPath = _config.paths.titlescreens + '/' + gameKey.system + '/' + encodeURIComponent(encodeURIComponent(gameKey.gk)) + '/0.jpg';
         var userContributedTitlescreenPath = _config.paths.contributions + '/titlescreens/' + gameKey.system + '/' + encodeURIComponent(encodeURIComponent(gameKey.gk)) + '/0.jpg';
 
-        $title.hide();
-        $title.imagesLoaded()
-            .done(function() {
-                $title.show(); //remove close on parent to reveal image
-            })
-            .fail(function() {
-                
-                //attempt to load a user contributed image
-                $title.imagesLoaded()
-                    .done(function() {
-                        $title.show(); //remove close on parent to reveal image
-                    });
-                $title.attr('src', userContributedTitlescreenPath); //other url
-            });
-        $title.attr('src', titlescreenPath);
+        $titleWrapper.empty().hide();
 
-        $screen1.hide();
-        $screen1.imagesLoaded()
-            .done(function() {
-                $screen1.show(); //remove close on parent to reveal image
-            });
-        $screen1.attr('src',_config.paths.images + '/screenshot1/' + gameKey.system + '/' + gameKey.title + '/original.jpg');
+        $.ajax({
+            url: _config.paths.titlescreens,
+            type: 'GET',
+            crossDomain: true,
+            data: { gk: gameKey.gk },
+            cache: false,
+            complete: function(response) {
+            
+                //in the case of an error, response comes back empty
+                if (response.responseJSON) {
+                    
+                    var $img = $('<img src="data:image/jpg;base64,' + response.responseJSON + '" />');
+
+                    $titleWrapper.imagesLoaded()
+                    .done(function() {
+                        $titleWrapper.show();
+                    });
+
+                    $titleWrapper.append($img);
+                }
+            }
+        });
 
         if (info) {
 

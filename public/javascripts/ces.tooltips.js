@@ -2,7 +2,7 @@
  Wrapper for tooltips
  Important not to pass in the $(selector) because you will have a subset at the time it was passed. needs to be live
  */
-var cesTooltips = (function(config, tooltipSelector, tooltipContentSelector) {
+var cesTooltips = (function(_config, tooltipSelector, tooltipContentSelector) {
     
     //private members
     var self = this;
@@ -29,46 +29,83 @@ var cesTooltips = (function(config, tooltipSelector, tooltipContentSelector) {
                 theme: 'tooltipster-shadow',
                 animation: 'grow',
                 delay: [1200, 200],
+                animationDuration: [200, 300],
                 interactive: opt_interactive,
                 contentAsHTML: true,
+                content: $content,
                 functionBefore: opt_functionBefore //function(instance, helper)
             });
         }
-        $el.tooltipster('content', $content);
+        else {
+            //if already processed, simply update its content
+            $el.tooltipster('content', $content);
+        }
+    };
+
+    this.SingleHTMLWithTitleScreen = function($el, $content, $imagewrapper, gameKey, opt_interactive) {
+
+        opt_interactive = opt_interactive == undefined ? true : opt_interactive;
+
+        if ($el.hasClass(alreadyProcessedName)) {
+            $el.tooltipster('destroy'); //remove any previus def
+        }
+        
+        $el.tooltipster({
+            theme: 'tooltipster-shadow',
+            animation: 'grow',
+            delay: [1200, 200],
+            animationDuration: [200, 300],
+            interactive: opt_interactive,
+            contentAsHTML: true,
+            content: $content,
+            functionBefore: function(instance, helper) {
+
+                //attempt to obtain a titlescreen
+
+                //var $loading = $('<img src="' + _config.paths.images + '/' + _loadingIcon + '" />');
+                //$imagewrapper.append($loading);
+
+                $.ajax({
+                    url: _config.paths.titlescreens,
+                    type: 'GET',
+                    crossDomain: true,
+                    data: { gk: gameKey.gk },
+                    cache: false,
+                    complete: function(response) {
+                        
+                        $imagewrapper.addClass('titlescreenloaded'); //set the flag for the tooltip to allowed to be open (whether it was returned or not)
+                    
+                        //in the case of an error, response comes back empty
+                        if (response.responseJSON) {
+                            
+                            var $img = $('<img width="' + _TITLESCREENWIDTH + '" src="data:image/jpg;base64,' + response.responseJSON + '" />');
+
+                            $imagewrapper.imagesLoaded()
+                            .done(function() {
+                                instance.open(); //when the title screen has loaded, try again, the flag will be set to allow the tooltip to show
+                            });
+
+                            $imagewrapper.empty().append($img);
+                        }
+                        else {
+                            instance.open();
+                        }
+                    }
+                });
+
+                //on the initial open, unless the title screen has returned from the cdn, cancel this request to show the tooltip
+                if (!$imagewrapper.hasClass('titlescreenloaded')) {
+                    return false;
+                }
+            }
+        });
     };
 
     this.Destroy = function($el) {
         $el.find(alreadyProcessedSelector).tooltipster('destroy');
         $el.tooltipster('destroy');
     };
-
-    this.TooltipTitleScreen = function(gameKey) {
-
-        var $titlescreen = $('<img width="' + _TITLESCREENWIDTH + '" />');
-        
-        var titlescreenPath = config.paths.titlescreens + '/' + gameKey.system + '/' + encodeURIComponent(encodeURIComponent(gameKey.gk)) + '/0.jpg';
-        var userContributedTitlescreenPath = config.paths.contributions + '/titlescreens/' + gameKey.system + '/' + encodeURIComponent(encodeURIComponent(gameKey.gk)) + '/0.jpg';
-
-        $titlescreen.hide();
-        $titlescreen.imagesLoaded()
-            .done(function() {
-                $titlescreen.show(); //remove close on parent to reveal image
-            })
-            .fail(function() {
-                
-                //attempt to load a user contributed image
-                $titlescreen.imagesLoaded()
-                .done(function() {
-                    $titlescreen.show(); //remove close on parent to reveal image
-                });
-                $titlescreen.attr('src', userContributedTitlescreenPath); //other url
-            });
-        
-        $titlescreen.attr('src', titlescreenPath);
-
-        return $titlescreen;
-    }
-
+    
     //constructor
     var Constructor = (function() {
     })();

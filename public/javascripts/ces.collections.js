@@ -139,8 +139,7 @@ var cesCollections = (function(_config, _Compression, _Preferences, _BoxArt, _Sy
             }
 
             //generate new toolips content
-            var $tooltipContent = GenerateTitleTooltipContent(activeTitle);   //generate html specific for collections
-            _Tooltips.SingleHTML(activeTitle.gridItem, $tooltipContent); //reapply tooltips
+            GenerateTitleTooltipContent(activeTitle);   //generate html specific for collections
         }
 
         //remove anything from the grid not found
@@ -264,10 +263,13 @@ var cesCollections = (function(_config, _Compression, _Preferences, _BoxArt, _Sy
         
         var $tooltipContent = $('<div class="collection-tooltip" />');
         $tooltipContent.append('<div class="tooltiptitle">' + activeTitle.gameKey.title + '</div>');
-        $tooltipContent.append(_Tooltips.TooltipTitleScreen(activeTitle.gameKey));
+        var $titlescreenwrapper = $('<div />');
+        $tooltipContent.append($titlescreenwrapper);
         $tooltipContent.append('<div>Last Played: ' + $.format.date(activeTitle.lastPlayed, 'MMM D h:mm:ss a') + '</div>'); //using the jquery dateFormat plugin
         $tooltipContent.append('<div>Play Count: ' + activeTitle.playCount + '</div>');
         $tooltipContent.append('<div>Number of Saves: ' + activeTitle.saveCount + '</div>');
+
+        //
         
         $remove = $('<div class="remove">Remove from this Collection</div>');
         $remove.on('click', function() {
@@ -277,7 +279,8 @@ var cesCollections = (function(_config, _Compression, _Preferences, _BoxArt, _Sy
             });
         });
         $tooltipContent.append($remove);
-        return $tooltipContent;
+        
+        _Tooltips.SingleHTMLWithTitleScreen(activeTitle.gridItem, $tooltipContent, $titlescreenwrapper, activeTitle.gameKey, true);
     };
 
     var GenerateCollectionTooltipContent = function(collection) {

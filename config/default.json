@@ -10,7 +10,8 @@
 		"emulator_extensions": "emulatorextentions/",
 		"emulators": "http://cdn.crazyerics.com/emulators",
 		"supportfiles": "http://cdn.crazyerics.com:81/support",
-		"screenupload": "http://cdn.crazyerics.com/contribute"
+		//"screenupload": "http://cdn.crazyerics.com/contribute"
+		"screenupload": "http://localhost:8001/contribute"
 	},
 	"defaults": {
 		"maxSavesPerGame": 40,

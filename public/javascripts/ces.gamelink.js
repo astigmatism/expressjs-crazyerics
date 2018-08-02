@@ -57,42 +57,10 @@ var cesGameLink = (function(_config, _BoxArt, _Tooltips, gameKey, size, opt_tool
             //generate new toolips content
             var $tooltipContent = $('<div class="gamelink-tooltip" />');
             $tooltipContent.append('<div class="tooltiptitle">' + gameKey.title + '</div>');
-            $tooltipContent.append('<div class="titlescreenplaceholder"></div>');
+            var $titlescreenwrapper = $('<div class="titlescreenplaceholder"></div>');
+            $tooltipContent.append($titlescreenwrapper);
 
-            _Tooltips.SingleHTML($imagewrapper, $tooltipContent, false, function(instance, helper) {
-
-                //tooltip on open method
-
-                var $imagewrapper = $(instance.content()).find('.titlescreenplaceholder');
-
-                //attempt to obtain a titlescreen
-
-                //var $loading = $('<img src="' + _config.paths.images + '/' + _loadingIcon + '" />');
-                //$imagewrapper.append($loading);
-
-                $.ajax({
-                    url: _config.paths.titlescreens,
-                    type: 'GET',
-                    crossDomain: true,
-                    data: { gk: gameKey.gk },
-                    cache: false,
-                    complete: function(response) {
-                        //$loading.remove(); //remove loading
-                    
-                        //in the case of an error, response comes back empty
-                        if (response.responseJSON) {
-                            
-                            var $img = $('<img width="' + _TITLESCREENWIDTH + '" src="data:image/jpg;base64,' + response.responseJSON + '" />');
-                            $imagewrapper.empty().append($img);
-                            instance.open();
-                        }
-                        else {
-                            instance.open();
-                        }
-                    }
-                });
-
-            }); //reapply tooltips
+            _Tooltips.SingleHTMLWithTitleScreen($imagewrapper, $tooltipContent, $titlescreenwrapper, gameKey, false);
         }
 
         $imagewrapper.append($box);
