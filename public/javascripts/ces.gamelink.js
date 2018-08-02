@@ -5,6 +5,8 @@ var cesGameLink = (function(_config, _BoxArt, _Tooltips, gameKey, size, opt_tool
     var _gamelink;
     var _imagewrapper;
     var _image;
+    var _loadingIcon = 'Blocks-1s-61px.svg';
+    var _TITLESCREENWIDTH = 160;
 
     //public members
 
@@ -19,16 +21,6 @@ var cesGameLink = (function(_config, _BoxArt, _Tooltips, gameKey, size, opt_tool
 
     this.SetImageLoadError = function(handler) {
         opt_onImageLoadError = handler;
-    };
-
-    var GenerateTooltipContent = function(gameKey) {
-
-        var $tooltipContent = $('<div class="gamelink-tooltip" />');
-        $tooltipContent.append('<div class="tooltiptitle">' + gameKey.title + '</div>');
-        $tooltipContent.append(_Tooltips.TooltipTitleScreen(gameKey));
-        
-        return $tooltipContent;
-
     };
 
     var Constructor = (function() {
@@ -59,13 +51,48 @@ var cesGameLink = (function(_config, _BoxArt, _Tooltips, gameKey, size, opt_tool
         var $imagewrapper = $('<div class="box zoom close"></div>');
         
         $imagewrapper.addClass('close');
+
         if (opt_tooltip) {
-            //$imagewrapper.addClass('tooltip');
-            //$imagewrapper.attr('title', gameKey.title);
 
             //generate new toolips content
-            var $tooltipContent = GenerateTooltipContent(gameKey);   //generate html specific for collections
-            _Tooltips.SingleHTML($imagewrapper, $tooltipContent, false); //reapply tooltips
+            var $tooltipContent = $('<div class="gamelink-tooltip" />');
+            $tooltipContent.append('<div class="tooltiptitle">' + gameKey.title + '</div>');
+            $tooltipContent.append('<div class="titlescreenplaceholder"></div>');
+
+            _Tooltips.SingleHTML($imagewrapper, $tooltipContent, false, function(instance, helper) {
+
+                //tooltip on open method
+
+                var $imagewrapper = $(instance.content()).find('.titlescreenplaceholder');
+
+                //attempt to obtain a titlescreen
+
+                //var $loading = $('<img src="' + _config.paths.images + '/' + _loadingIcon + '" />');
+                //$imagewrapper.append($loading);
+
+                $.ajax({
+                    url: _config.paths.titlescreens,
+                    type: 'GET',
+                    crossDomain: true,
+                    data: { gk: gameKey.gk },
+                    cache: false,
+                    complete: function(response) {
+                        //$loading.remove(); //remove loading
+                    
+                        //in the case of an error, response comes back empty
+                        if (response.responseJSON) {
+                            
+                            var $img = $('<img width="' + _TITLESCREENWIDTH + '" src="data:image/jpg;base64,' + response.responseJSON + '" />');
+                            $imagewrapper.empty().append($img);
+                            instance.open();
+                        }
+                        else {
+                            instance.open();
+                        }
+                    }
+                });
+
+            }); //reapply tooltips
         }
 
         $imagewrapper.append($box);

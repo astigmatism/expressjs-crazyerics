@@ -20,7 +20,7 @@ var cesTooltips = (function(config, tooltipSelector, tooltipContentSelector) {
         });
     };
 
-    this.SingleHTML = function($el, $content, opt_interactive) {
+    this.SingleHTML = function($el, $content, opt_interactive, opt_functionBefore) {
 
         opt_interactive = opt_interactive == undefined ? true : opt_interactive;
 
@@ -30,7 +30,8 @@ var cesTooltips = (function(config, tooltipSelector, tooltipContentSelector) {
                 animation: 'grow',
                 delay: [1200, 200],
                 interactive: opt_interactive,
-                contentAsHTML: true
+                contentAsHTML: true,
+                functionBefore: opt_functionBefore //function(instance, helper)
             });
         }
         $el.tooltipster('content', $content);
