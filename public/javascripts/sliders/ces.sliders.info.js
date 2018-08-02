@@ -1,8 +1,18 @@
 var cesSlidersInfo = (function(_config, $li, $panel) {
 
     var self = this;
+    var _images = null;
+    var _gameKey = null;
+    var $titleWrapper = $('#infosilderTitleScreen');
 
     this.OnOpen = function(callback) {
+
+        //on open, attempt to fetch new title screen
+        if (_images && _gameKey) {
+            _images.TitleScreen($titleWrapper, _gameKey, function(success) {
+                //not really anything I care about here. Either it loaded or it didn't
+            }); 
+        }
 
         callback(true);
     };
@@ -12,10 +22,11 @@ var cesSlidersInfo = (function(_config, $li, $panel) {
         callback(true);
     };
 
-    this.Activate = function(gameKey, info) {
+    this.Activate = function(gameKey, info, _Images) {
 
-        var $titleWrapper = $('#infosilderTitleScreen');
-        //var $screen1 = $panel.find('img.screenshot1');
+        _images = _Images;
+        _gameKey = gameKey;
+
         var $overview = $panel.find('p.overview');
         var $genre = $panel.find('p.genre');
         var $release = $panel.find('p.release');
@@ -29,34 +40,6 @@ var cesSlidersInfo = (function(_config, $li, $panel) {
         $publisher.empty();
         $developer.empty();
         $players.empty();
-
-        var titlescreenPath = _config.paths.titlescreens + '/' + gameKey.system + '/' + encodeURIComponent(encodeURIComponent(gameKey.gk)) + '/0.jpg';
-        var userContributedTitlescreenPath = _config.paths.contributions + '/titlescreens/' + gameKey.system + '/' + encodeURIComponent(encodeURIComponent(gameKey.gk)) + '/0.jpg';
-
-        $titleWrapper.empty().hide();
-
-        $.ajax({
-            url: _config.paths.titlescreens,
-            type: 'GET',
-            crossDomain: true,
-            data: { gk: gameKey.gk },
-            cache: false,
-            complete: function(response) {
-            
-                //in the case of an error, response comes back empty
-                if (response.responseJSON) {
-                    
-                    var $img = $('<img src="data:image/jpg;base64,' + response.responseJSON + '" />');
-
-                    $titleWrapper.imagesLoaded()
-                    .done(function() {
-                        $titleWrapper.show();
-                    });
-
-                    $titleWrapper.append($img);
-                }
-            }
-        });
 
         if (info) {
 
@@ -100,6 +83,8 @@ var cesSlidersInfo = (function(_config, $li, $panel) {
 
     this.Deactivate = function() {
 
+        _gameKey = null;
+        _images = null;
     };
 
     var Constructor = (function() {

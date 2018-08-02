@@ -2,7 +2,7 @@
  Wrapper for tooltips
  Important not to pass in the $(selector) because you will have a subset at the time it was passed. needs to be live
  */
-var cesTooltips = (function(_config, tooltipSelector, tooltipContentSelector) {
+var cesTooltips = (function(_config, _Images, tooltipSelector, tooltipContentSelector) {
     
     //private members
     var self = this;
@@ -60,42 +60,21 @@ var cesTooltips = (function(_config, tooltipSelector, tooltipContentSelector) {
             content: $content,
             functionBefore: function(instance, helper) {
 
-                //attempt to obtain a titlescreen
-
-                //var $loading = $('<img src="' + _config.paths.images + '/' + _loadingIcon + '" />');
-                //$imagewrapper.append($loading);
-
-                $.ajax({
-                    url: _config.paths.titlescreens,
-                    type: 'GET',
-                    crossDomain: true,
-                    data: { gk: gameKey.gk },
-                    cache: false,
-                    complete: function(response) {
-                        
-                        $imagewrapper.addClass('titlescreenloaded'); //set the flag for the tooltip to allowed to be open (whether it was returned or not)
-                    
-                        //in the case of an error, response comes back empty
-                        if (response.responseJSON) {
-                            
-                            var $img = $('<img width="' + _TITLESCREENWIDTH + '" src="data:image/jpg;base64,' + response.responseJSON + '" />');
-
-                            $imagewrapper.imagesLoaded()
-                            .done(function() {
-                                instance.open(); //when the title screen has loaded, try again, the flag will be set to allow the tooltip to show
-                            });
-
-                            $imagewrapper.empty().append($img);
-                        }
-                        else {
-                            instance.open();
-                        }
-                    }
-                });
-
-                //on the initial open, unless the title screen has returned from the cdn, cancel this request to show the tooltip
+                //on the initial open, we won't have loaded the image from the cdn yet and the tooltip will appear without it
                 if (!$imagewrapper.hasClass('titlescreenloaded')) {
-                    return false;
+
+                    //obtain the image
+                    _Images.TitleScreen($imagewrapper, gameKey, function(success, response) {
+                        
+                        $imagewrapper.addClass('titlescreenloaded'); //set the flag for the tooltip to allowed to be open and no more attempts to get it
+                        instance.open(); //calling open will refire the functionBefore
+
+                        //after openning remove flag to try again on the next tooltip show (it would be pulled from cache, or will try again over the network)
+                        $imagewrapper.removeClass('titlescreenloaded');
+    
+                    }, _TITLESCREENWIDTH);
+
+                    return false; //prevent from openning before getting art
                 }
             }
         });

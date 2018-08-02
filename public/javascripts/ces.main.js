@@ -31,6 +31,7 @@ var cesMain = (function() {
     var _Notifications = null;
     var _Tooltips= null;
     var _Gamepad = null;
+    var _Images = null;
     var _ClientCache = {}; //a consistant location to store items in client memory during a non-refresh session
 
     // public members
@@ -50,9 +51,11 @@ var cesMain = (function() {
 
         _PubSub = new cesPubSub();
 
+        _Images = new cesImages(_config);
+
         _Dialogs = new cesDialogs(_config, $('#dialogs'));
 
-        _Tooltips = new cesTooltips(_config, '.tooltip', '.tooltip-content');
+        _Tooltips = new cesTooltips(_config, _Images, '.tooltip', '.tooltip-content');
 
         _ProgressBar = new cesProgressBar(loadingprogressbar);
 
@@ -535,7 +538,7 @@ var cesMain = (function() {
                                                                 
                                                                 //reqiure gamedb data to have info slider
                                                                 if (!$.isEmptyObject(info)) {
-                                                                    _Sliders.Activate('Info', [gameKey, info]);
+                                                                    _Sliders.Activate('Info', [gameKey, info, _Images]);
                                                                 }
 
                                                                 //handle title and content fadein steps
