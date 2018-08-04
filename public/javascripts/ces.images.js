@@ -17,20 +17,31 @@ var cesImages = (function(_config, _Compression, _PubSub, _Tooltips, _Preference
      */
     this.TitleScreen = function($wrapper, gameKey, callback, opt_width, opt_height) {
 
-        Get(_config.paths.titlescreens, $wrapper, gameKey, function(success) {
+        Get(_config.paths.titlescreens, $wrapper, gameKey, function(success, content) {
             
-            return callback(success);
+            if (content) {
+                InjectBase64Image($wrapper, content, function() {
+                    $wrapper.show(); //show image wrapper with loaded image
+                    clientImageCache[gameKey.gk + opt_width + opt_height] = content; //client cache response
+                    return callback(success);
+                });
+            }
+            else {
+                return callback(success);
+            }
 
         }, opt_width, opt_height)
     };
 
     this.BoxFront = function($wrapper, gameKey, callback, opt_width, opt_height) {
 
-        Get(_config.paths.boxfront, $wrapper, gameKey, function(success) {
-            
-            return callback(success);
-            
-        }, opt_width, opt_height)
+        //width and height query strings
+        var qs = (opt_width) ? 'w=' + opt_width : '';
+        qs += (opt_width && opt_height) ? '&' : '';
+        qs += (opt_height) ? 'h=' + opt_height : '';
+
+        $img = $('<img src="' + _config.paths.boxfront + '/' + encodeURIComponent(gameKey.gk) + (qs ? '?' + qs : '') + '" />');
+        $wrapper.append($img);
     };
 
     /**
@@ -39,11 +50,11 @@ var cesImages = (function(_config, _Compression, _PubSub, _Tooltips, _Preference
      * @param {Number} opt_width optional
      * @param {Number} opt_height optional
      */
-    this.ExpireTitleScreen = function(gameKey, opt_width, opt_height) {
+    this.ExpireClientImageCache = function(gameKey, opt_width, opt_height) {
 
         var cacheKey = gameKey.gk + opt_width + opt_height;
-        if (cacheKey in titlescreenCache) {
-            delete titlescreenCache[cacheKey];
+        if (cacheKey in clientImageCache) {
+            delete clientImageCache[cacheKey];
         }
     };
 
@@ -79,11 +90,7 @@ var cesImages = (function(_config, _Compression, _PubSub, _Tooltips, _Preference
                 //the response code gives us the best impression of success
                 if (response.status == 200 && response.responseJSON) {
 
-                    InjectBase64Image($wrapper, response.responseJSON, function() {
-                        $wrapper.show(); //show image wrapper with loaded image
-                        clientImageCache[gameKey.gk + opt_width + opt_height] = response.responseJSON; //client cache response
-                        return callback(true);
-                    });
+                    callback(true, response.responseJSON)
                 }
                 //if no valid image data was returned, simply return
                 else {
