@@ -1,4 +1,4 @@
-var cesGameLink = (function(_config, _BoxArt, _Tooltips, gameKey, size, opt_tooltip, opt_PlayGame, opt_onImageLoadError, opt_removeSelector, opt_onRemove) {
+var cesGameLink = (function(_config, _Images, _Tooltips, gameKey, size, opt_tooltip, opt_PlayGame, opt_onImageLoadError, opt_removeSelector, opt_onRemove) {
 
     //private members
     var self = this;
@@ -28,27 +28,38 @@ var cesGameLink = (function(_config, _BoxArt, _Tooltips, gameKey, size, opt_tool
         var _self = this;
 
         var $div = $('<div class="gamelink"></div>');
-        var $box = _BoxArt.Get$(gameKey, size, function(image) {
-            //on image load failure
-            $(image).parent().append('<div class="boxlabel boxlabel-' + gameKey.system + '"><p>' + gameKey.title + '</p></div>');
-            if (opt_onImageLoadError) {
-                opt_onImageLoadError(image);
-            }
-        });
 
-        //show box art when finished loading
-        $box.load(function() {
-            $(this)
-            .removeClass('close')
-            .on('mousedown', function() {
+
+
+
+
+        // var $box = _BoxArt.Get$(gameKey, size, function(image) {
+        //     //on image load failure
+        //     $(image).parent().append('<div class="boxlabel boxlabel-' + gameKey.system + '"><p>' + gameKey.title + '</p></div>');
+        //     if (opt_onImageLoadError) {
+        //         opt_onImageLoadError(image);
+        //     }
+        // });
+
+        // //show box art when finished loading
+        // $box.load(function() {
+        //     $(this)
+        //     .removeClass('close')
+        //     .on('mousedown', function() {
                 
-                if (opt_PlayGame) {
-                    opt_PlayGame(gameKey);
-                }
-            });
-        });
+        //         if (opt_PlayGame) {
+        //             opt_PlayGame(gameKey);
+        //         }
+        //     });
+        // });
 
         var $imagewrapper = $('<div class="box zoom close"></div>');
+
+        _Images.BoxFront($imagewrapper, gameKey, function(success) {
+
+
+
+        }, _TITLESCREENWIDTH);
         
         $imagewrapper.addClass('close');
 
@@ -63,7 +74,7 @@ var cesGameLink = (function(_config, _BoxArt, _Tooltips, gameKey, size, opt_tool
             _Tooltips.SingleHTMLWithTitleScreen($imagewrapper, $tooltipContent, $titlescreenwrapper, gameKey, false);
         }
 
-        $imagewrapper.append($box);
+        //$imagewrapper.append($box);
 
         $div.append($imagewrapper);
 
@@ -73,7 +84,7 @@ var cesGameLink = (function(_config, _BoxArt, _Tooltips, gameKey, size, opt_tool
 
         _gamelink = $div;
         _imagewrapper = $imagewrapper;
-        _image = $box;
+        //_image = $box;
     })();
 
     return this;

@@ -6,7 +6,7 @@ var cesImages = (function(_config, _Compression, _PubSub, _Tooltips, _Preference
 
     // private members
     var self = this;
-    var titlescreenCache = {}; //keyed by gameKey.gk along with width/height requirements
+    var clientImageCache = {}; //keyed by gameKey.gk along with width/height requirements
     
     //public
 
@@ -17,48 +17,20 @@ var cesImages = (function(_config, _Compression, _PubSub, _Tooltips, _Preference
      */
     this.TitleScreen = function($wrapper, gameKey, callback, opt_width, opt_height) {
 
-        //hide the wrapper until we know we have an image to show
-        $wrapper.hide();
-        
-        //first check client cache for this image to prevent going over the network
-        var cacheKey = gameKey.gk + opt_width + opt_height;
-        if (cacheKey in titlescreenCache) {
-
-            InjectBase64Image($wrapper, titlescreenCache[cacheKey], function() {
-                $wrapper.show(); //show image wrapper with loaded image
-                return callback(true);
-            });
-            return;
-        }
-
-        //network request to CDN to obtain image
-        $.ajax({
-            url: _config.paths.titlescreens + '/' + encodeURIComponent(gameKey.gk),
-            type: 'GET',
-            data: {
-                w: opt_width,
-                h: opt_height
-            },
-            dataType: 'json',
-            crossDomain: true,
-            cache: false,
-            complete: function(response) {
+        Get(_config.paths.titlescreens, $wrapper, gameKey, function(success) {
             
-                //the response code gives us the best impression of success
-                if (response.status == 200 && response.responseJSON) {
+            return callback(success);
 
-                    InjectBase64Image($wrapper, response.responseJSON, function() {
-                        $wrapper.show(); //show image wrapper with loaded image
-                        titlescreenCache[gameKey.gk + opt_width + opt_height] = response.responseJSON; //client cache response
-                        return callback(true);
-                    });
-                }
-                //if no valid image data was returned, simply return
-                else {
-                    return callback(false);
-                }
-            }
-        });
+        }, opt_width, opt_height)
+    };
+
+    this.BoxFront = function($wrapper, gameKey, callback, opt_width, opt_height) {
+
+        Get(_config.paths.boxfront, $wrapper, gameKey, function(success) {
+            
+            return callback(success);
+            
+        }, opt_width, opt_height)
     };
 
     /**
@@ -74,6 +46,52 @@ var cesImages = (function(_config, _Compression, _PubSub, _Tooltips, _Preference
             delete titlescreenCache[cacheKey];
         }
     };
+
+    var Get = function(location, $wrapper, gameKey, callback, opt_width, opt_height) {
+        //hide the wrapper until we know we have an image to show
+        $wrapper.hide();
+
+        //first check client cache for this image to prevent going over the network
+        var cacheKey = location + gameKey.gk + opt_width + opt_height;
+
+        if (cacheKey in clientImageCache) {
+
+            InjectBase64Image($wrapper, clientImageCache[cacheKey], function() {
+                $wrapper.show(); //show image wrapper with loaded image
+                return callback(true);
+            });
+            return;
+        }
+
+        //network request to CDN to obtain image
+        $.ajax({
+            url: location + '/' + encodeURIComponent(gameKey.gk),
+            type: 'GET',
+            data: {
+                w: opt_width,
+                h: opt_height
+            },
+            dataType: 'json',
+            crossDomain: true,
+            cache: false,
+            complete: function(response) {
+            
+                //the response code gives us the best impression of success
+                if (response.status == 200 && response.responseJSON) {
+
+                    InjectBase64Image($wrapper, response.responseJSON, function() {
+                        $wrapper.show(); //show image wrapper with loaded image
+                        clientImageCache[gameKey.gk + opt_width + opt_height] = response.responseJSON; //client cache response
+                        return callback(true);
+                    });
+                }
+                //if no valid image data was returned, simply return
+                else {
+                    return callback(false);
+                }
+            }
+        });
+    }
 
     var InjectBase64Image = function($wrapper, src, callback) {
 

@@ -70,10 +70,10 @@ var cesMain = (function() {
 
         _Gamepad = new cesGamePad(_config, _Compression, _PubSub, _Tooltips, _Preferences, _Dialogs, $('#gameid0'), $('#gameid1'));
 
-        _Collections = new cesCollections(_config, _Compression, _Preferences, _BoxArt, _Sync, _Tooltips, PlayGame, $('#openCollectionGrid'), $('#collectionsGrid'), clientdata.components.c, _config.defaults.copyToFeatured, null);
+        _Collections = new cesCollections(_config, _Compression, _Preferences, _Images, _Sync, _Tooltips, PlayGame, $('#openCollectionGrid'), $('#collectionsGrid'), clientdata.components.c, _config.defaults.copyToFeatured, null);
         _Sync.RegisterComponent('c', _Collections.Sync);
 
-        _Featured = new cesFeatured(_config, _Compression, _Preferences, _BoxArt, _Sync, _Tooltips, PlayGame, _Collections, clientdata.components.f, null);
+        _Featured = new cesFeatured(_config, _Compression, _Preferences, _Images, _Sync, _Tooltips, PlayGame, _Collections, clientdata.components.f, null);
 
         //register dialogs after setting up components
         var welcomeBack =  _Collections.IsEmpty() ? false : true;
@@ -194,10 +194,11 @@ var cesMain = (function() {
              */
             renderItem: function(item, search) {
 
+                
                 var gameKey = _Compression.Decompress.gamekey(item[0]);
                 var $suggestion = $('<div class="autocomplete-suggestion" data-gk="' + gameKey.gk + '" data-searchscore="' + item[1] + '"></div>');
-                var $box = _BoxArt.Get$(gameKey, 50);
-                $suggestion.append($box);
+                //var $box = _BoxArt.Get$(gameKey, 50);
+                //$suggestion.append($box);
                 $suggestion.append('<div>' + gameKey.title + '</div>');
                 return $('<div/>').append($suggestion).html(); //because .html only returns inner content
             },
@@ -254,7 +255,7 @@ var cesMain = (function() {
 
         _Sliders = new cesSliders(_config, _Compression, $('#slidericons'));
 
-        _Suggestions = new cesSuggestions(_config, _BoxArt, _Compression, _Tooltips, PlayGame, $('#suggestionsgrid'), $('#suggestionswrapper'));
+        _Suggestions = new cesSuggestions(_config, _Images, _Compression, _Tooltips, PlayGame, $('#suggestionsgrid'), $('#suggestionswrapper'));
 
         //begin by showing all console suggestions
         _Suggestions.Load('all', true, function() {
@@ -708,6 +709,8 @@ var cesMain = (function() {
      * @return {undef}
      */
     var DisplayGameContext = function(gameKey, callback) {
+
+        return;
 
         var box = _BoxArt.Get(gameKey, 170, function(loadedImage) {
 
