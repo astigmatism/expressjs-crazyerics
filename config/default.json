@@ -1,7 +1,8 @@
 {
 	"paths": {
 		"images": "http://cdn.crazyerics.com/images",
-		"titlescreens": "http://cdn.crazyerics.com/titlescreen",
+		//"titlescreens": "http://cdn.crazyerics.com/titlescreen",
+		"titlescreens": "http://localhost:8001/titlescreen",
 		//"boxfront": "http://cdn.crazyerics.com/titlescreen",
 		"boxfront": "http://localhost:8001/box/front",
 		"textures": "http://cdn.crazyerics.com/textures",
@@ -48,7 +49,7 @@
 		"a2600": {
 			"name": "Atari 2600",
 			"shortname": "Atari 2600",
-			"live": true,
+			"live": false,
 			"supportfilesize": 0,
 			"collection": "Good2600 1.0.0",
 			"boxcdnversion": "2018-05-22",
@@ -61,7 +62,7 @@
 		"a7800": {
 			"name": "Atari 7800",
 			"shortname": "Atari 7800",
-			"live": true,
+			"live": false,
 			"boxcdnversion": "2018-05-22",
 			"romcdnversion": "20180712",
 			"supportfilesize": 0,
@@ -134,7 +135,7 @@
 		"gbc": {
 			"name": "Nintendo Game Boy Color",
 			"shortname": "Game Boy Color",
-			"live": true,
+			"live": false,
 			"supportfilesize": 0,
 			"boxcdnversion": "2018-05-01",
 			"romcdnversion": "20180713",
@@ -156,7 +157,7 @@
 		"gba": {
 			"name": "Nintendo Game Boy Advance",
 			"shortname": "Game Boy Advance",
-			"live": true,
+			"live": false,
 			"supportfilesize": 0,
 			"boxcdnversion": "2018-05-18",
 			"romcdnversion": "gba20180727",
@@ -178,7 +179,7 @@
 		"gen": {
 			"name": "Sega Genesis / Mega Drive",
 			"shortname": "Sega Genesis",
-			"live": true,
+			"live": false,
 			"supportfilesize": 0,
 			"boxcdnversion": "2018-05-18",
 			"romcdnversion": "gen20180713",
@@ -190,7 +191,7 @@
 		"gg": {
 			"name": "Sega Game Gear",
 			"shortname": "Sega Game Gear",
-			"live": true,
+			"live": false,
 			"collection": "GoodGG 3.20",
 			"boxcdnversion": "2018-04-30",
 			"romcdnversion": "gg20180713",
@@ -213,7 +214,7 @@
 			"name": "Atari Jaguar",
 			"shortname": "Atari Jaguar",
 			"collection":"GoodJag 2.01",
-			"live": true,
+			"live": false,
 			"supportfilesize": 0,
 			"boxcdnversion": "2018-05-22",
 			"romcdnversion": "jag20180713",
@@ -224,7 +225,7 @@
 		"lynx": {
 			"name": "Atari Lynx",
 			"shortname": "Atari Lynx",
-			"live": true,
+			"live": false,
 			"supportfilesize": 0,
 			"collection":"GoodLynx 2.01",
 			"boxcdnversion": "2018-05-22",
@@ -246,7 +247,7 @@
 		"n64": {
 			"name": "Nintendo 64",
 			"shortname": "Nintendo 64",
-			"live": true,
+			"live": false,
 			"supportfilesize": 0,
 			"collection": "GoodN64 3.27",
 			"boxcdnversion": "2018-05-22",
@@ -307,7 +308,7 @@
 		"ngpx": {
 			"name": "Neo Geo Pocket",
 			"shortname": "Neo Geo Pocket",
-			"live": true,
+			"live": false,
 			"supportfilesize": 0,
 			"boxcdnversion": "2018-05-22",
 			"romcdnversion": "ngpx20180713",
@@ -330,7 +331,7 @@
 		"pce": {
 			"name": "NEC TurboGrafx-16",
 			"shortname": "TurboGrafx-16",
-			"live": true,
+			"live": false,
 			"supportfilesize": 0,
 			"boxcdnversion": "2018-05-18",
 			"romcdnversion": "pce20180713",
@@ -364,7 +365,7 @@
 		"sms": {
 			"name": "Sega Master System / SG-1000 / SC-3000 / Mark III",
 			"shortname": "Sega Master System",
-			"live": true,
+			"live": false,
 			"supportfilesize": 0,
 			"boxcdnversion": "2018-04-30",
 			"romcdnversion": "sms20180713",
@@ -387,7 +388,7 @@
 		"vb": {
 			"name": "Nintendo Virtual Boy",
 			"shortname": "Virtual Boy",
-			"live": true,
+			"live": false,
 			"supportfilesize": 0,
 			"collection": "GoodVBoy 3.1415",
 			"boxcdnversion": "2018-05-18",
@@ -409,7 +410,7 @@
 		"vect": {
 			"name": "Vectrex",
 			"shortname": "Vectrex",
-			"live": true,
+			"live": false,
 			"supportfilesize": 0,
 			"collection": "GoodVect 1.06",
 			"boxcdnversion": "2018-05-22",
@@ -421,7 +422,7 @@
 		"wsx": {
 			"name": "Bandai WonderSwan",
 			"shortname": "WonderSwan",
-			"live": true,
+			"live": false,
 			"supportfilesize": 0,
 			"collection": "GoodWSx 3.27",
 			"boxcdnversion": "wsx20180713",

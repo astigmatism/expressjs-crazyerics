@@ -17,31 +17,44 @@ var cesImages = (function(_config, _Compression, _PubSub, _Tooltips, _Preference
      */
     this.TitleScreen = function($wrapper, gameKey, callback, opt_width, opt_height) {
 
-        Get(_config.paths.titlescreens, $wrapper, gameKey, function(success, content) {
+        Get(_config.paths.titlescreens, gameKey, function(status, content) {
             
             if (content) {
-                InjectBase64Image($wrapper, content, function() {
-                    $wrapper.show(); //show image wrapper with loaded image
-                    clientImageCache[gameKey.gk + opt_width + opt_height] = content; //client cache response
-                    return callback(success);
-                });
+                $wrapper.imagesLoaded()
+                    .done(function() {
+                        return callback(true, status);
+                    });
+            
+                var $img = $('<img src="data:image/jpg;base64,' + content + '" />');
+                $wrapper.empty().append($img); //empty the wrapper as a sanity check
             }
             else {
-                return callback(success);
+                return callback(false, status);
             }
 
         }, opt_width, opt_height)
     };
 
-    this.BoxFront = function($wrapper, gameKey, callback, opt_width, opt_height) {
+    this.BoxFront = function($box, gameKey, callback, opt_width, opt_height) {
 
-        //width and height query strings
-        var qs = (opt_width) ? 'w=' + opt_width : '';
-        qs += (opt_width && opt_height) ? '&' : '';
-        qs += (opt_height) ? 'h=' + opt_height : '';
+        Get(_config.paths.boxfront, gameKey, function(status, content) {
+            
+            //status codes to expect: 200 (modified returned), 201 (modified created), 204 using the "no box art"
 
-        $img = $('<img src="' + _config.paths.boxfront + '/' + encodeURIComponent(gameKey.gk) + (qs ? '?' + qs : '') + '" />');
-        $wrapper.append($img);
+            if (content && (status == 200 || status == 201)) {
+                $box.attr('src', 'data:image/jpg;base64,' + content);
+                return callback(status, true, content);
+            }
+            //the no box art found
+            else if (content && status == 203) {
+                $box.attr('src', 'data:image/jpg;base64,' + content);
+                return callback(status, true, content);
+            }
+            else {
+                return callback(status, false);
+            }
+            
+        }, opt_width, opt_height)
     };
 
     /**
@@ -50,28 +63,21 @@ var cesImages = (function(_config, _Compression, _PubSub, _Tooltips, _Preference
      * @param {Number} opt_width optional
      * @param {Number} opt_height optional
      */
-    this.ExpireClientImageCache = function(gameKey, opt_width, opt_height) {
+    this.ExpireTitleScreen = function(gameKey, opt_width, opt_height) {
 
         var cacheKey = gameKey.gk + opt_width + opt_height;
-        if (cacheKey in clientImageCache) {
-            delete clientImageCache[cacheKey];
+        if (cacheKey in titlescreenCache) {
+            delete titlescreenCache[cacheKey];
         }
     };
 
-    var Get = function(location, $wrapper, gameKey, callback, opt_width, opt_height) {
-        //hide the wrapper until we know we have an image to show
-        $wrapper.hide();
+    var Get = function(location, gameKey, callback, opt_width, opt_height) {
 
         //first check client cache for this image to prevent going over the network
         var cacheKey = location + gameKey.gk + opt_width + opt_height;
 
         if (cacheKey in clientImageCache) {
-
-            InjectBase64Image($wrapper, clientImageCache[cacheKey], function() {
-                $wrapper.show(); //show image wrapper with loaded image
-                return callback(true);
-            });
-            return;
+            return clientImageCache[cacheKey];
         }
 
         //network request to CDN to obtain image
@@ -82,34 +88,23 @@ var cesImages = (function(_config, _Compression, _PubSub, _Tooltips, _Preference
                 w: opt_width,
                 h: opt_height
             },
-            dataType: 'json',
             crossDomain: true,
             cache: false,
             complete: function(response) {
             
                 //the response code gives us the best impression of success
-                if (response.status == 200 && response.responseJSON) {
+                if (response.responseText) {
 
-                    callback(true, response.responseJSON)
+                    clientImageCache[gameKey.gk + opt_width + opt_height] = response.responseText; //client cache response
+                    return callback(response.status, response.responseText);
                 }
                 //if no valid image data was returned, simply return
                 else {
-                    return callback(false);
+                    return callback(response.status);
                 }
             }
         });
     }
-
-    var InjectBase64Image = function($wrapper, src, callback) {
-
-        $wrapper.imagesLoaded()
-            .done(function() {
-                return callback();
-            });
-        
-        var $img = $('<img src="data:image/jpg;base64,' + src + '" />');
-        $wrapper.empty().append($img); //empty the wrapper as a sanity check
-    };
 
     return this;
 });
