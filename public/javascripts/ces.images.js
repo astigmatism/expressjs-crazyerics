@@ -35,16 +35,6 @@ var cesImages = (function(_config, _Compression, _PubSub, _Tooltips, _Preference
         }, opt_width, opt_height)
     };
 
-    this.BoxFront = function(gameKey, callback, opt_width, opt_height) {
-
-        Get(_config.paths.boxfront, gameKey, function(status, content) {
-            if (content) {
-                return callback(status, true, content);
-            };
-            return callback(status, false);
-        }, opt_width, opt_height)
-    };
-
     /**
      * 
      * @param {*} gameKey 

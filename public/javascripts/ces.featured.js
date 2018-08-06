@@ -62,11 +62,6 @@ var AddTitle = function(gk) {
 
     $griditem.append(gameLink.GetDOM()); //add all visual content from gamelink to grid
 
-    //set box image load error
-    gameLink.SetImageLoadError(function() {
-        _titlesGrid.isotope('layout');
-    });
-
     $griditem.find('img').imagesLoaded().progress(function(imgLoad, image) {
         $(image.img).parent().removeClass('close'); //remove close on parent to reveal image
         _titlesGrid.isotope('layout');

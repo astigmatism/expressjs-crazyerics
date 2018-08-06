@@ -135,7 +135,7 @@ var cesSuggestions = (function(_config, _Images, _Compression, _Tooltips, PlayGa
         _grid.find('img').imagesLoaded()
             .progress(function(imgLoad, image) {
                 
-                $(image.img).parent().removeClass('close');
+                //relayout the grid on each image load (they trickle in)
                 _grid.isotope('layout');
             })
             .done(function() {

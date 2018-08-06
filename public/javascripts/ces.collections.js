@@ -168,13 +168,7 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Images, _Sy
 
         $griditem.append(activeTitle.gameLink.GetDOM()); //add all visual content from gamelink to grid
 
-        //set box image load error
-        activeTitle.gameLink.SetImageLoadError(function() {
-            _TitlesSort.Sort();
-        });
-
         $griditem.find('img').imagesLoaded().progress(function(imgLoad, image) {
-            $(image.img).parent().removeClass('close'); //remove close on parent to reveal image
             _TitlesSort.Sort();
         });
 

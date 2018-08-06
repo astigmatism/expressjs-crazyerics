@@ -712,37 +712,33 @@ var cesMain = (function() {
      */
     var DisplayGameContext = function(gameKey, callback) {
 
-        return;
 
-        var box = _BoxArt.Get(gameKey, 170, function(loadedImage) {
+        var img = document.createElement('img');
+        img.src = _config.paths.boxfront + '/' + encodeURIComponent(gameKey.gk) + '?w=170';
 
-            var img = $('<img src="' + loadedImage.src + '" />');
+        $('#gamedetailsboxfront').empty().append($(img));
+        $('#gametitle').empty().hide().append(gameKey.title);
 
-            $('#gamedetailsboxfront').empty().append(img);
-            $('#gametitle').empty().hide().append(gameKey.title);
+        // slide down background
+        $('#gamedetailsboxfront img').addClass('close');
+        // $('#gamedetailsbackground').animate({
+        //     height: 250
+        // }, 1000, function() {
 
-            // slide down background
-            $('#gamedetailsboxfront img').addClass('close');
-            // $('#gamedetailsbackground').animate({
-            //     height: 250
-            // }, 1000, function() {
+        //fade in details
+        $('#gamedetailswrapper').fadeIn(1000, function() {
 
-                //fade in details
-                $('#gamedetailswrapper').fadeIn(1000, function() {
+            $('#gamedetailsboxfront img').removeClass();
+            $('#controlsslider').empty();
 
-                    $('#gamedetailsboxfront img').removeClass();
-                    $('#controlsslider').empty();
-
-                    callback();
-                });
-
-                //needs to occur after fade in to understand dimensions
-                $('#gametitle').bigText({
-                    textAlign: 'left',
-                    horizontalAlign: 'left'
-                }); //auto size text to fit
-            //});
+            callback();
         });
+
+        //needs to occur after fade in to understand dimensions
+        $('#gametitle').bigText({
+            textAlign: 'left',
+            horizontalAlign: 'left'
+        }); //auto size text to fit
     };
 
     var HideGameContext = function(callback) {

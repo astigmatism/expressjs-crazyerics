@@ -19,19 +19,27 @@ var cesGameLink = (function(_config, _Images, _Tooltips, gameKey, size, opt_tool
         $(_gamelink).find('*').off();
     };
 
-    this.SetImageLoadError = function(handler) {
-        opt_onImageLoadError = handler;
-    };
-
     var Constructor = (function() {
 
         var _self = this;
 
         var $div = $('<div class="gamelink"></div>');
         var $imagewrapper = $('<div class="box zoom close"></div>');
-        
+
         var img = document.createElement('img');
         img.src = _config.paths.boxfront + '/' + encodeURIComponent(gameKey.gk) + '?w=' + _BOXFRONTWIDTH;
+
+        $(img).imagesLoaded().progress(function(imgLoad, image) {
+            $imagewrapper.removeClass('close'); //remove close on parent to reveal image
+
+            //attach play game event only when image is available
+            $imagewrapper.on('mousedown', function() {
+                    
+                if (opt_PlayGame) {
+                    opt_PlayGame(gameKey);
+                }
+            });
+        });
 
 
 
@@ -73,7 +81,6 @@ var cesGameLink = (function(_config, _Images, _Tooltips, gameKey, size, opt_tool
 
         _gamelink = $div;
         _imagewrapper = $imagewrapper;
-        //_image = $box;
     })();
 
     return this;

@@ -176,9 +176,8 @@
 		"gen": {
 			"name": "Sega Genesis / Mega Drive",
 			"shortname": "Sega Genesis",
-			"live": false,
+			"live": true,
 			"supportfilesize": 0,
-			"boxcdnversion": "2018-05-18",
 			"romcdnversion": "gen20180713",
 			"emuextention": "2017-03-27",
 			"collection": "GoodGen 3.21",
@@ -188,9 +187,8 @@
 		"gg": {
 			"name": "Sega Game Gear",
 			"shortname": "Sega Game Gear",
-			"live": false,
+			"live": true,
 			"collection": "GoodGG 3.20",
-			"boxcdnversion": "2018-04-30",
 			"romcdnversion": "gg20180713",
 			"supportfilesize": 0,
 			"emuextention": "1.6.9-stable",
@@ -362,9 +360,8 @@
 		"sms": {
 			"name": "Sega Master System / SG-1000 / SC-3000 / Mark III",
 			"shortname": "Sega Master System",
-			"live": false,
+			"live": true,
 			"supportfilesize": 0,
-			"boxcdnversion": "2018-04-30",
 			"romcdnversion": "sms20180713",
 			"emuextention": "1.6.9-stable",
 			"emuscript": "genesis_plus_gx_libretro.js",
