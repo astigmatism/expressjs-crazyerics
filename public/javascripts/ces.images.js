@@ -35,25 +35,13 @@ var cesImages = (function(_config, _Compression, _PubSub, _Tooltips, _Preference
         }, opt_width, opt_height)
     };
 
-    this.BoxFront = function($box, gameKey, callback, opt_width, opt_height) {
+    this.BoxFront = function(gameKey, callback, opt_width, opt_height) {
 
         Get(_config.paths.boxfront, gameKey, function(status, content) {
-            
-            //status codes to expect: 200 (modified returned), 201 (modified created), 204 using the "no box art"
-
-            if (content && (status == 200 || status == 201)) {
-                $box.attr('src', 'data:image/jpg;base64,' + content);
+            if (content) {
                 return callback(status, true, content);
-            }
-            //the no box art found
-            else if (content && status == 203) {
-                $box.attr('src', 'data:image/jpg;base64,' + content);
-                return callback(status, true, content);
-            }
-            else {
-                return callback(status, false);
-            }
-            
+            };
+            return callback(status, false);
         }, opt_width, opt_height)
     };
 
@@ -71,7 +59,7 @@ var cesImages = (function(_config, _Compression, _PubSub, _Tooltips, _Preference
         }
     };
 
-    var Get = function(location, gameKey, callback, opt_width, opt_height) {
+    var Get = function(location, gameKey, callback, opt_width, opt_height, opt_base64) {
 
         //first check client cache for this image to prevent going over the network
         var cacheKey = location + gameKey.gk + opt_width + opt_height;
@@ -80,19 +68,29 @@ var cesImages = (function(_config, _Compression, _PubSub, _Tooltips, _Preference
             return clientImageCache[cacheKey];
         }
 
+        //build optional data
+        var data = {};
+
+        if (opt_width) {
+            data.w = opt_width;
+        }
+        if (opt_height) {
+            data.h = opt_height;
+        }
+        if (opt_base64) {
+            data.b = 1;
+        }
+
         //network request to CDN to obtain image
         $.ajax({
             url: location + '/' + encodeURIComponent(gameKey.gk),
             type: 'GET',
-            data: {
-                w: opt_width,
-                h: opt_height
-            },
+            data: data,
             crossDomain: true,
             cache: false,
             complete: function(response) {
             
-                //the response code gives us the best impression of success
+                //the response code gives us the best impression of success and image source on the CDN
                 if (response.responseText) {
 
                     clientImageCache[gameKey.gk + opt_width + opt_height] = response.responseText; //client cache response

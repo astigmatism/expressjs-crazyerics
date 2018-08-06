@@ -1,9 +1,7 @@
 {
 	"paths": {
 		"images": "http://cdn.crazyerics.com/images",
-		//"titlescreens": "http://cdn.crazyerics.com/titlescreen",
-		"titlescreens": "http://localhost:8001/titlescreen",
-		//"boxfront": "http://cdn.crazyerics.com/titlescreen",
+		"titlescreens": "http://cdn.crazyerics.com/titlescreen",
 		"boxfront": "http://localhost:8001/box/front",
 		"textures": "http://cdn.crazyerics.com/textures",
 		"shaders": "http://cdn.crazyerics.com:81/shaders/2017-12-27", /* shader image previews at https://buildbot.libretro.com/.docs/shader/introduction/ */
@@ -114,7 +112,6 @@
 			"shortname": "Game Boy",
 			"live": true,
 			"supportfilesize": 0,
-			"boxcdnversion": "2018-05-02",
 			"romcdnversion": "20180712",
 			"collection": "GoodGBx 3.14",
 			"emuextention": "1.6.9-stable",
@@ -378,7 +375,6 @@
 			"shortname": "Super Nintendo",
 			"live": true,
 			"supportfilesize": 0,
-			"boxcdnversion": "2018-05-22",
 			"romcdnversion": "snes20180714",
 			"collection": "GoodSNES 3.23",
 			"emuextention": "1.6.9-stable",

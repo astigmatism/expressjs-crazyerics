@@ -29,22 +29,26 @@ var cesGameLink = (function(_config, _Images, _Tooltips, gameKey, size, opt_tool
 
         var $div = $('<div class="gamelink"></div>');
         var $imagewrapper = $('<div class="box zoom close"></div>');
-        var $box = $(document.createElement('img'));
+        
+        var img = document.createElement('img');
+        img.src = _config.paths.boxfront + '/' + encodeURIComponent(gameKey.gk) + '?w=' + _BOXFRONTWIDTH;
 
-        _Images.BoxFront($box, gameKey, function(success, status) {
 
-            if (success) {
-                $imagewrapper.removeClass('close');
 
-                $imagewrapper.on('mousedown', function() {
+        // _Images.BoxFront($box, gameKey, function(success, status) {
+
+        //     if (success) {
+        //         $imagewrapper.removeClass('close');
+
+        //         $imagewrapper.on('mousedown', function() {
                     
-                    if (opt_PlayGame) {
-                        opt_PlayGame(gameKey);
-                    }
-                });
-            }
+        //             if (opt_PlayGame) {
+        //                 opt_PlayGame(gameKey);
+        //             }
+        //         });
+        //     }
 
-        }, _BOXFRONTWIDTH);
+        // }, _BOXFRONTWIDTH);
         
         //$imagewrapper.addClass('close');
 
@@ -59,7 +63,7 @@ var cesGameLink = (function(_config, _Images, _Tooltips, gameKey, size, opt_tool
             _Tooltips.SingleHTMLWithTitleScreen($imagewrapper, $tooltipContent, $titlescreenwrapper, gameKey, false);
         }
 
-        $imagewrapper.append($box);
+        $imagewrapper.append($(img));
 
         $div.append($imagewrapper);
 
