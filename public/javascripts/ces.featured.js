@@ -8,7 +8,7 @@ var cesFeatured = (function(_config, _Compression, _Preferences, _Images, _Sync,
 var _self = this;
 var _set = {};
 var _currentIndex = 0;
-var _BOXSIZE = 120;
+var _BOXFRONTWIDTH = 116;
 var _titlesGrid = _Collections.GetGrids().titles;
 var _collectionsGrid = _Collections.GetGrids().collections;
 var _baseUrl = '/featured';
@@ -58,7 +58,7 @@ var AddTitle = function(gk) {
 
     var gameKey = _Compression.Decompress.gamekey(gk);
 
-    var gameLink = new cesGameLink(_config, _Images, _Tooltips, gameKey, _BOXSIZE, true, _PlayGameHandler);
+    var gameLink = new cesGameLink(_config, _Images, _Tooltips, gameKey, _BOXFRONTWIDTH, true, _PlayGameHandler);
 
     $griditem.append(gameLink.GetDOM()); //add all visual content from gamelink to grid
 

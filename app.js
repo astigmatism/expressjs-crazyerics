@@ -13,12 +13,11 @@ const pool = require('./db/pool.js');
 const ApplicationService = require('./services/application');
 const UsersService = require('./services/users');
 const SyncService = require('./services/sync');
-const PreferencesService = require('./services/preferences');
 
 const routes = require('./routes/index');
 const saves = require('./routes/saves');
 const suggest = require('./routes/suggest');
-const work = require('./routes/work');
+const dev = require('./routes/dev');
 const games = require('./routes/games');
 const collections = require('./routes/collections');
 const featured = require('./routes/featured');
@@ -69,9 +68,9 @@ app.use('/games', games);
 app.use('/collections', collections);
 app.use('/featured', featured);
 
-
+//end point only accessable in dev
 if (app.get('env') === 'development') {
-    app.use('/work', work);
+    app.use('/dev', dev);
 }
 
 // catch 404 and forward to error handler

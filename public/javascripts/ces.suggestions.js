@@ -2,12 +2,12 @@
  * Object which wraps common functions related to player preferences, data that comes form the server initially but can be changed
  * @type {Object}
  */
-var cesSuggestions = (function(_config, _Images, _Compression, _Tooltips, PlayGame, $grid, $wrapper) {
+var cesSuggestions = (function(_config, _Images, _Compression, _Tooltips, PlayGameHandler, $grid, $wrapper) {
 
     //private members
     var self = this;
     var _grid = null;
-    var _BOXSIZE = 116;
+    var _BOXFRONTSIZE = 116;
     var _lastRecipe = null;
     var _currentGameLinks = [];
     var _loading = false;
@@ -121,8 +121,12 @@ var cesSuggestions = (function(_config, _Images, _Compression, _Tooltips, PlayGa
             
             var gameKey = _Compression.Decompress.gamekey(suggestions[i]);
 
+            var OnImageLoaded = function(image) {
+                _grid.isotope('layout');
+            };
+
             //spawn new gamelink
-            gamelink = new cesGameLink(_config, _Images, _Tooltips, gameKey, _BOXSIZE, true, PlayGame);
+            gamelink = new cesGameLink(_config, _Images, _Tooltips, gameKey, _BOXFRONTSIZE, true, PlayGameHandler, OnImageLoaded);
 
             //create the grid item and insert it
             var $griditem = $('<div class="grid-item" />');
@@ -133,11 +137,6 @@ var cesSuggestions = (function(_config, _Images, _Compression, _Tooltips, PlayGa
 
         //functionality for when each images loads
         _grid.find('img').imagesLoaded()
-            .progress(function(imgLoad, image) {
-                
-                //relayout the grid on each image load (they trickle in)
-                _grid.isotope('layout');
-            })
             .done(function() {
 
                 if (callback) {

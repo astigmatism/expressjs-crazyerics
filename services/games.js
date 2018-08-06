@@ -123,13 +123,13 @@ module.exports = new (function() {
                     data.files = masterFile[gameKey.title].f;
 
                     //is there box art too?
-                    FileService.Get('/data/' + gameKey.system + '_boxart', function(err, boxartgames) {
+                    FileService.Get('/data/' + gameKey.system + '_boxfronts', function(err, boxFrontData) {
                         if (err) {
                             //no need to trap here
                         } else {
 
-                            if (boxartgames[gameKey.title]) {
-                                data.boxart = boxartgames[gameKey.title];
+                            if (boxFrontData[gameKey.title]) {
+                                data.boxart = boxFrontData[gameKey.title];
                             }
                         }
 

@@ -57,14 +57,22 @@ module.exports = new (function() {
     };
 
     //sometimes we want to cache data and treat it like openning a file, so expose this
-    this.Set = function(path, data, opt_callback) {
+    //optionally you can also write the file with the path definition
+    this.Set = function(path, data, opt_callback, opt_writeFile) {
 
         FileCache.Set([path], data, (err, success) => {
-            if (opt_callback) {
-                if (err) {
-                    return opt_callback(err);
-                }
-                return opt_callback(null, success);
+            if (err && opt_callback) return opt_callback(err);
+
+            if (opt_writeFile) {
+
+                _self.WriteFile(path, data, err => {
+                    if (err && opt_callback) return opt_callback(err);
+
+                    if (opt_callback) return opt_callback();
+                });
+            }
+            else if (opt_callback) {
+                return opt_callback();
             }
         });
     };

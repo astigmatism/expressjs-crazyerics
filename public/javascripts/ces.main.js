@@ -9,7 +9,6 @@ var cesMain = (function() {
     //var _preventGamePause = false; //condition for blur event of emulator, sometimes we don't want it to pause when we're giving it back focus
     var _minimumGameLoadingTime = 6000; //minimum amount of time to display the title loading. artificially longer for tips
     var _minimumSaveLoadingTime = 3000; //minimum amount of time to display the state loading screenshot
-    var _delayToLoadStateAfterEmulatorStarts = 1000; //I was originally simulating keypresses before the emulator was running :P changed with 11-14 set
     var _suggestionsLoading = false;
     var _toolbars = {}; //handles to elements in the toolbar ui (select, search, etc)
 
@@ -22,7 +21,6 @@ var cesMain = (function() {
     var _SavesManager = null;
     var _Emulator = null;
     var _Dialogs = null;
-    var _BoxArt = null;
     var _Collections = null;
     var _Featured = null;
     var _Suggestions = null;
@@ -63,8 +61,6 @@ var cesMain = (function() {
 
         _Sync = new cesSync(_config, _Compression);
 
-        _BoxArt = new cesBoxArt(_config, _Compression);
-
         _Preferences = new cesPreferences(_Compression, _PubSub, clientdata.components.p);
         _Sync.RegisterComponent('p', _Preferences.Sync);
 
@@ -81,7 +77,7 @@ var cesMain = (function() {
         _Dialogs.Register('WelcomeBack', 150, [], welcomeBack);
         _Dialogs.Register('ConfigureGamepad', 700, [_Gamepad, _Compression]);
         _Dialogs.Register('ShaderSelection', 500, [_Preferences]);
-        _Dialogs.Register('GameLoading', 500, [_BoxArt, _Compression, _PubSub]);
+        _Dialogs.Register('GameLoading', 500, [_Images, _Compression, _PubSub]);
         _Dialogs.Register('SaveSelection', 500);
         _Dialogs.Register('SaveLoading', 500);
         _Dialogs.Register('Exception', 500);
@@ -194,12 +190,10 @@ var cesMain = (function() {
              */
             renderItem: function(item, search) {
 
-                
                 var gameKey = _Compression.Decompress.gamekey(item[0]);
                 var $suggestion = $('<div class="autocomplete-suggestion" data-gk="' + gameKey.gk + '" data-searchscore="' + item[1] + '"></div>');
-                var img = document.createElement('img');
-                img.src = _config.paths.boxfront + '/' + encodeURIComponent(gameKey.gk) + '?w=50';
-                $suggestion.append($(img));
+                var $img = _Images.$BoxFront(gameKey, 50);
+                $suggestion.append($img);
                 $suggestion.append('<div>' + gameKey.title + '</div>');
                 
                 return $('<div/>').append($suggestion).html(); //because .html only returns inner content

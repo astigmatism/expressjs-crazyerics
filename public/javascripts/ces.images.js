@@ -2,13 +2,31 @@
  * Image loading helper class. Since we now have unique methods of obtaining images from the CDN,
  * this class specializes in understanding the correct methods for obtaining them 
  */
-var cesImages = (function(_config, _Compression, _PubSub, _Tooltips, _Preferences, _Dialogs, $gamepad0, $gamepad1) {
+var cesImages = (function(_config) {
 
     // private members
-    var self = this;
+    var _self = this;
     var clientImageCache = {}; //keyed by gameKey.gk along with width/height requirements
     
     //public
+
+    this.BoxFront = function(gameKey, opt_width, opt_height) {
+        var img = new Image();
+
+        var widthandheight = '';
+        widthandheight += (opt_width) ? 'w=' + opt_width : '';
+        widthandheight += (opt_width && opt_height) ? '&' : '';
+        widthandheight += (opt_height) ? 'h=' + opt_height : '';
+
+        img.src = _config.paths.boxfront + '/' + encodeURIComponent(gameKey.gk) + '?' + widthandheight;
+        img.crossOrigin = 'anonymous'; //this is necessary when creating a new image from canvas
+
+        return $(img);
+    };
+
+    this.$BoxFront = function(gameKey, opt_width, opt_height) {
+        return $(_self.BoxFront(gameKey, opt_width, opt_height));
+    };
 
     /**
      * For obtaining title screens from the CDN and inserting (or not if error) them into the provided wrapper

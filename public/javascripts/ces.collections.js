@@ -4,7 +4,7 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Images, _Sy
     var _self = this;
     var _titlesGrid = null;             //see constructor for assignment
     var _collectionsGrid = null;
-    var _BOXSIZE = 116;
+    var _BOXFRONTWIDTH = 116;
     var _TITLESCREENWIDTH = 160;
     var _currentLoadingGame = null;
     var _baseUrl = '/collections';
@@ -636,12 +636,12 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Images, _Sy
                     var gameKey = _Compression.Decompress.gamekey(payload[i].gk);
 
                     //if the box image fails to load, resync this grid to make room for the error images
-                    var onBoxImageLoadError = function(el) {
+                    var OnImageLoaded = function(image) {
                         _titlesGrid.isotope('layout');
                     };
 
                     //generate gamelink
-                    var gameLink = new cesGameLink(_config, _Images, _Tooltips, gameKey, _BOXSIZE, false, _PlayGameHandler, onBoxImageLoadError);
+                    var gameLink = new cesGameLink(_config, _Images, _Tooltips, gameKey, _BOXFRONTWIDTH, false, _PlayGameHandler, OnImageLoaded);
 
                     //push to our local cache
                     _activeCollectionTitles.push({

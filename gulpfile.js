@@ -13,7 +13,8 @@ var pump = require('pump');
 
 //ideally we are watching all javacript files inside this project
 var paths = [
-    './public/javascripts/*.js'
+    './public/javascripts/*.js',
+    './public/javascripts/*/*.js'
 ];
 
 var DEST = './public/build/';

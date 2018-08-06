@@ -123,8 +123,12 @@ module.exports = new (function() {
                     if (err) {
                         return next(err);
                     }
-                    FileService.Set('suggestions.canned.' + definitionName + '.' + i, suggestions);
-                    next();
+                    FileService.Set('suggestions.canned.' + definitionName + '.' + i, suggestions, (err) => {
+                        if (err) return next(err);
+
+                        next();
+                    });
+                    
                 });
             }, function(err) {
                 if (err) {

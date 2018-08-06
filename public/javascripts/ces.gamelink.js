@@ -1,11 +1,8 @@
-var cesGameLink = (function(_config, _Images, _Tooltips, gameKey, size, opt_tooltip, opt_PlayGame, opt_onImageLoadError, opt_removeSelector, opt_onRemove) {
+var cesGameLink = (function(_config, _Images, _Tooltips, gameKey, size, opt_tooltip, opt_PlayGame, opt_OnImageLoaded, opt_removeSelector, opt_onRemove) {
 
     //private members
     var self = this;
     var _gamelink;
-    var _imagewrapper;
-    var _image;
-    var _loadingIcon = 'Blocks-1s-61px.svg';
     var _BOXFRONTWIDTH = 116;
 
     //public members
@@ -26,10 +23,9 @@ var cesGameLink = (function(_config, _Images, _Tooltips, gameKey, size, opt_tool
         var $div = $('<div class="gamelink"></div>');
         var $imagewrapper = $('<div class="box zoom close"></div>');
 
-        var img = document.createElement('img');
-        img.src = _config.paths.boxfront + '/' + encodeURIComponent(gameKey.gk) + '?w=' + _BOXFRONTWIDTH;
+        var $img = _Images.$BoxFront(gameKey, _BOXFRONTWIDTH);
 
-        $(img).imagesLoaded().progress(function(imgLoad, image) {
+        $img.imagesLoaded().progress(function(imgLoad, image) {
             $imagewrapper.removeClass('close'); //remove close on parent to reveal image
 
             //attach play game event only when image is available
@@ -39,26 +35,13 @@ var cesGameLink = (function(_config, _Images, _Tooltips, gameKey, size, opt_tool
                     opt_PlayGame(gameKey);
                 }
             });
+
+            if (opt_OnImageLoaded) {
+                opt_OnImageLoaded(image);
+            }
         });
-
-
-
-        // _Images.BoxFront($box, gameKey, function(success, status) {
-
-        //     if (success) {
-        //         $imagewrapper.removeClass('close');
-
-        //         $imagewrapper.on('mousedown', function() {
-                    
-        //             if (opt_PlayGame) {
-        //                 opt_PlayGame(gameKey);
-        //             }
-        //         });
-        //     }
-
-        // }, _BOXFRONTWIDTH);
         
-        //$imagewrapper.addClass('close');
+        $imagewrapper.append($img);
 
         if (opt_tooltip) {
 
@@ -71,16 +54,10 @@ var cesGameLink = (function(_config, _Images, _Tooltips, gameKey, size, opt_tool
             _Tooltips.SingleHTMLWithTitleScreen($imagewrapper, $tooltipContent, $titlescreenwrapper, gameKey, false);
         }
 
-        $imagewrapper.append($(img));
-
         $div.append($imagewrapper);
 
-        if (opt_removeSelector) {
-            _self.AssignRemove(opt_removeSelector, opt_onRemove);
-        }
 
-        _gamelink = $div;
-        _imagewrapper = $imagewrapper;
+        _gamelink = $div; //save to the instance for manipulation later        
     })();
 
     return this;

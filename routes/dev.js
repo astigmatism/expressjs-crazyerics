@@ -6,6 +6,77 @@ var beautify = require('js-beautify');
 var FileService = require('../services/files.js');
 var async = require('async');
 
+router.get('/ts/:system', (req, res) => {
+
+    var system = req.params.system;
+
+    if (!system) {
+        return res.status(400).end('err 0'); //400 Bad Request
+    }
+
+    FileService.Get('/data/' + system + '_topsuggestions', (err, topSuggestions) => {
+        if (err) {
+            topSuggestions = {};
+        }
+
+        FileService.Get('/data/' + system + '_master', function(err, masterFile) {
+            if (err) return res.status(500).json(err);
+
+            //open the data file, open preexisting top suggestions file
+            FileService.Get('/data/' + system + '_boxfronts', function(err, boxFronts) {
+                if (err) return res.status(500).json(err);
+
+                //merge some data in from the master file
+                for (title in boxFronts) {
+                    if (masterFile[title]) {
+                        boxFronts[title].gk = masterFile[title].f[masterFile[title].b].gk;
+                        boxFronts[title].rank = masterFile[title].f[masterFile[title].b].rank;
+                    }
+                }
+
+                const ordered = {};
+                Object.keys(boxFronts).sort().forEach(function(key) {
+                    ordered[key] = boxFronts[key];
+                });
+
+                res.render('topsuggestions', {
+                    boxFronts: JSON.stringify(ordered),
+                    system: system,
+                    currentTs: JSON.stringify(topSuggestions),
+                    cdn: config.paths.boxfront
+                });
+            });
+        });
+    });
+});
+
+router.put('/ts/:system', (req, res) => {
+
+    var system = req.params.system;
+    var title = req.body.t;
+
+    if (!system) {
+        return res.status(400).end('err 0'); //400 Bad Request
+    }
+    if (!title) {
+        return res.status(400).end('err 1'); //400 Bad Request
+    }
+
+    FileService.Get('/data/' + system + '_topsuggestions', (err, topSuggestions) => {
+        if (err) {
+            topSuggestions = {};
+        }
+
+        topSuggestions[title] = {};
+
+        FileService.Set('/data/' + system + '_topsuggestions', JSON.stringify(topSuggestions), (err) => {
+            if (err) return res.status(500).end(err);
+
+            res.status(200).send();
+        }, true); //true says to write the file on set
+    });
+});
+
 router.get('/three', function(req, res, next) {
     res.render('work');
 });

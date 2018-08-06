@@ -11,6 +11,7 @@ const SuggestionService = require('./suggestions');
 const GamesService = require('./games');
 const FeaturedService = require('./featured');
 const CronService = require('./cron');
+const request = require('request');
 
 module.exports = new (function() {
 
@@ -83,12 +84,21 @@ module.exports = new (function() {
                             console.log('Could not find filedata file for ' + system + '.');
                         }
                 
+                        //audit for boxart from the cdn server
+                        request(config.paths.audit + '/media/box/front/' + system, (err, response, body) => {
+                            
+                            var boxFrontData = {};
 
-                        //let's try opening the boxart data file now too
-                        FileService.Get('/data/' + system + '_boxart', function(err, boxartdata) {
-                            if (err) {
+                            if (err || response.statusCode != 200) {
                                 console.log('Could not find boxart file for ' + system + '. No suggests can be made without boxart');
                                 //if error, console log only, we can still build cache
+                            }
+                            //response code 200
+                            else {
+                                
+                                boxFrontData = JSON.parse(body);
+                                //cache this response for the app in FileService
+                                FileService.Set('/data/' + system + '_boxfronts', boxFrontData);
                             }
 
                             var titlecount = 0;
@@ -122,7 +132,7 @@ module.exports = new (function() {
 
                                 //in order to be suggested must have art and must need minimum rank to be preferable playing game
                                 //you can get systemSuggestionThreshold in config if needed
-                                if (boxartdata && title in boxartdata) {
+                                if (boxFrontData && title in boxFrontData) {
 
                                     //include thegamesdb rating info into suggestions cache (although i'm not use it at this time)
                                     if (thegamesdb && thegamesdb[title] && thegamesdb[title].Rating) {
@@ -131,7 +141,7 @@ module.exports = new (function() {
                                     }
 
                                     //top suggestions. these titles can also exist in "best" and "foriegn" so be sure not to mix them
-                                    if (boxartdata[title].hasOwnProperty('t')) {
+                                    if (boxFrontData[title].hasOwnProperty('t')) {
 
                                         all_suggestions.top.push(gk);
                                         system_suggestions.top.push(gk);
@@ -254,7 +264,7 @@ module.exports = new (function() {
                                 nextsystem();
                             });
 
-                        }); //open boxart
+                        }); //box front audit request
                     }); //open filedata
                 }); //open thegamesdb
             }); //open masterfile
@@ -285,6 +295,9 @@ module.exports = new (function() {
                 if (err) {
                     return callback(err);
                 }
+
+                console.log('Crazyerics application start-up complete! Enjoy ;)');
+
                 callback();
             });
         });
