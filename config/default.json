@@ -154,9 +154,8 @@
 		"gba": {
 			"name": "Nintendo Game Boy Advance",
 			"shortname": "Game Boy Advance",
-			"live": false,
+			"live": true,
 			"supportfilesize": 0,
-			"boxcdnversion": "2018-05-18",
 			"romcdnversion": "gba20180727",
 			"collection": "GoodGba3.23",
 			"emuextention": "1.6.9-stable",
@@ -381,10 +380,9 @@
 		"vb": {
 			"name": "Nintendo Virtual Boy",
 			"shortname": "Virtual Boy",
-			"live": false,
+			"live": true,
 			"supportfilesize": 0,
 			"collection": "GoodVBoy 3.1415",
-			"boxcdnversion": "2018-05-18",
 			"romcdnversion": "vb20180713",
 			"emuextention": "1.6.9-stable",
 			"emuscript": "mednafen_vb_libretro.js",
