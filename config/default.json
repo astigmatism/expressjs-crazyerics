@@ -2,8 +2,8 @@
 	"paths": {
 		"images": "http://cdn.crazyerics.com/images",
 		"titlescreens": "http://cdn.crazyerics.com/titlescreen",
-		"boxfront": "http://localhost:8001/box/front",
-		"audit": "http://localhost:8001/audit",
+		"boxfront": "http://cdn.crazyerics.com/box/front",
+		"audit": "http://cdn.crazyerics.com/audit",
 		"textures": "http://cdn.crazyerics.com/textures",
 		"shaders": "http://cdn.crazyerics.com:81/shaders/2017-12-27", /* shader image previews at https://buildbot.libretro.com/.docs/shader/introduction/ */
 		"boxes": "http://cdn.crazyerics.com/boxes",
@@ -133,9 +133,8 @@
 		"gbc": {
 			"name": "Nintendo Game Boy Color",
 			"shortname": "Game Boy Color",
-			"live": false,
+			"live": true,
 			"supportfilesize": 0,
-			"romcdnversion": "20180713",
 			"collection": "GoodGBx 3.14",
 			"emuextention": "1.6.9-stable",
 			"emuscript": "gambatte_libretro.js",
