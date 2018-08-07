@@ -69,7 +69,34 @@ router.put('/ts/:system', (req, res) => {
 
         topSuggestions[title] = {};
 
-        FileService.Set('/data/' + system + '_topsuggestions', JSON.stringify(topSuggestions), (err) => {
+        FileService.Set('/data/' + system + '_topsuggestions', topSuggestions, (err) => {
+            if (err) return res.status(500).end(err);
+
+            res.status(200).send();
+        }, true); //true says to write the file on set
+    });
+});
+
+router.delete('/ts/:system', (req, res) => {
+
+    var system = req.params.system;
+    var title = req.body.t;
+
+    if (!system) {
+        return res.status(400).end('err 0'); //400 Bad Request
+    }
+    if (!title) {
+        return res.status(400).end('err 1'); //400 Bad Request
+    }
+
+    FileService.Get('/data/' + system + '_topsuggestions', (err, topSuggestions) => {
+        if (err) {
+            topSuggestions = {};
+        }
+
+        delete topSuggestions[title];
+
+        FileService.Set('/data/' + system + '_topsuggestions', topSuggestions, (err) => {
             if (err) return res.status(500).end(err);
 
             res.status(200).send();

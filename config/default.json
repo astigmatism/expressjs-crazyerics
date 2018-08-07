@@ -111,7 +111,7 @@
 		"gb": {
 			"name": "Nintendo Game Boy",
 			"shortname": "Game Boy",
-			"live": true,
+			"live": false,
 			"supportfilesize": 0,
 			"romcdnversion": "20180712",
 			"collection": "GoodGBx 3.14",
@@ -133,7 +133,7 @@
 		"gbc": {
 			"name": "Nintendo Game Boy Color",
 			"shortname": "Game Boy Color",
-			"live": true,
+			"live": false,
 			"supportfilesize": 0,
 			"romcdnversion": "20180713",
 			"collection": "GoodGBx 3.14",
@@ -154,7 +154,7 @@
 		"gba": {
 			"name": "Nintendo Game Boy Advance",
 			"shortname": "Game Boy Advance",
-			"live": true,
+			"live": false,
 			"supportfilesize": 0,
 			"romcdnversion": "gba20180727",
 			"collection": "GoodGba3.23",
@@ -175,7 +175,7 @@
 		"gen": {
 			"name": "Sega Genesis / Mega Drive",
 			"shortname": "Sega Genesis",
-			"live": true,
+			"live": false,
 			"supportfilesize": 0,
 			"romcdnversion": "gen20180713",
 			"emuextention": "2017-03-27",
@@ -186,7 +186,7 @@
 		"gg": {
 			"name": "Sega Game Gear",
 			"shortname": "Sega Game Gear",
-			"live": true,
+			"live": false,
 			"collection": "GoodGG 3.20",
 			"romcdnversion": "gg20180713",
 			"supportfilesize": 0,
@@ -290,7 +290,7 @@
 		"nes": {
 			"name": "Nintendo Entermainment System",
 			"shortname": "Nintendo",
-			"live": true,
+			"live": false,
 			"supportfilesize": 0,
 			"boxcdnversion": "2018-05-21",
 			"romcdnversion": "20180712",
@@ -359,7 +359,7 @@
 		"sms": {
 			"name": "Sega Master System / SG-1000 / SC-3000 / Mark III",
 			"shortname": "Sega Master System",
-			"live": true,
+			"live": false,
 			"supportfilesize": 0,
 			"romcdnversion": "sms20180713",
 			"emuextention": "1.6.9-stable",
@@ -380,7 +380,7 @@
 		"vb": {
 			"name": "Nintendo Virtual Boy",
 			"shortname": "Virtual Boy",
-			"live": true,
+			"live": false,
 			"supportfilesize": 0,
 			"collection": "GoodVBoy 3.1415",
 			"romcdnversion": "vb20180713",

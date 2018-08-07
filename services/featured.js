@@ -30,7 +30,7 @@ module.exports = new (function() {
     this.Create = function(name, gks, callback) {
 
         //will replace will already exists
-        FileService.WriteFile(_path + name, JSON.stringify(gks), (err) => {
+        FileService.WriteJson(_path + name, gks, (err) => {
             if (err) return callback(err);
             callback();
         });
@@ -79,7 +79,7 @@ module.exports = new (function() {
             async.each(files, function(file, nextfile) {
 
                 //read file
-                FileService.ReadJsonFile(_path + file, (err, content) => {
+                FileService.ReadJson(_path + file, (err, content) => {
                     if (err) return callback(err);
 
                     //add to cache

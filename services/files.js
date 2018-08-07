@@ -1,56 +1,48 @@
-const fs = require('fs');
+const fs = require('fs-extra');
 const async = require('async');
 const colors = require('colors');
 const Cache = require('../services/cache');
 const NodeCache = require('node-cache');
+const path = require('path');
+const request = require('request');
 
 //define custom cache for files
-const FileCache = new Cache('file.$1', new NodeCache({
+const JsonFileCache = new Cache('file.$1', new NodeCache({
         stdTTL: 0,                      //0 = unlimited. 
         checkperiod: 0                  //0 = no periodic check
     })
 );
 
+const projectRoot = __dirname + '/..';
+
 module.exports = new (function() {
 
     var _self = this;
 
-    this.Get = function(path, callback, opt_forceLoad, opt_asBuffer) {
+    this.Get = function(sourcePath, callback, opt_forceLoad) {
 
         opt_forceLoad        = opt_forceLoad || false; //ignore cache attempt and load data from source
-        opt_asBuffer         = opt_asBuffer || false; //default: to parse and return as json
 
-        FileCache.Get([path], (err, cache) => {
+        JsonFileCache.Get([sourcePath], (err, jsonCache) => {
             if (err) {
                 return callback(err);
             }
             //if successful cache hit and we're not forcing to load data from source
-            if (cache && !opt_forceLoad) {
-                return callback(null, cache);
+            if (jsonCache && !opt_forceLoad) {
+                return callback(null, jsonCache);
             }
             
             //no successful cache hit, find in file system and add to cache
-            var fullPath = __dirname + '/..' + path;
+            fileSourcePath = path.join(projectRoot, sourcePath);
             
-            fs.readFile(fullPath, 'utf8', function(err, content) {
-                if (err) {
-                    return callback(err);
-                }
+            _self.ReadJson(fileSourcePath, function(err, json) {
+                if (err) return callback(err);
 
-                //JSON parse file contents, comes in as string
-                if (!opt_asBuffer) {
-                    try {
-                        content = JSON.parse(content);
-                    } catch (e) {
-                        return callback(e);
-                    }
-                }
-
-                _self.Set(path, content, (err, success) => {
+                _self.Set(sourcePath, json, (err, success) => {
                     if (err) {
                         return callback(err);
                     }
-                    return callback(null, content);
+                    return callback(null, json);
                 });
             });
         });
@@ -58,14 +50,17 @@ module.exports = new (function() {
 
     //sometimes we want to cache data and treat it like openning a file, so expose this
     //optionally you can also write the file with the path definition
-    this.Set = function(path, data, opt_callback, opt_writeFile) {
+    this.Set = function(destinationPath, json, opt_callback, opt_writeFile) {
 
-        FileCache.Set([path], data, (err, success) => {
+        JsonFileCache.Set([destinationPath], json, (err, success) => {
             if (err && opt_callback) return opt_callback(err);
 
             if (opt_writeFile) {
 
-                _self.WriteFile(path, data, err => {
+                fileDestinationPath = path.join(projectRoot, destinationPath);
+
+                //convert json to string for writing to file
+                _self.WriteJson(fileDestinationPath, json, err => {
                     if (err && opt_callback) return opt_callback(err);
 
                     if (opt_callback) return opt_callback();
@@ -77,39 +72,40 @@ module.exports = new (function() {
         });
     };
 
+    this.Request = function(url, callback, opt_filePath) {
+        request(url, (err, response, body) => {
+            if (err) return callback(response.statusCode, err);
+
+            body = JSON.parse(body);
+
+            if (opt_filePath) {
+                _self.Set(opt_filePath, body, null, true); //cache and write file
+            }
+
+            return callback(response.statusCode, null, body);
+        });
+    }
+
     //rudimentary file system operations
+
+    this.WriteJson = function(path, json, callback) {
+        fs.writeJson(path, json, err => {
+            if (err) return callback(err);
+            return callback();
+        }); 
+    };
+
+    this.ReadJson = function(path, callback) {
+        fs.readJson(path, (err, content) => {
+            if (err) return callback(err);
+            return callback(null, content);
+        });
+    }
 
     this.DeleteFile = function(path, callback) {
         fs.unlink(__dirname + '/..' + path, (err) => {
             if (err) return callback(err);
             callback();
-        });
-    };
-
-    this.WriteFile = function(path, content, callback) {
-        fs.writeFile(__dirname + '/..' + path, content, (err) => {
-            if (err) return callback(err);
-            callback();
-        })
-    };
-
-    this.ReadFile = function(path, callback) {
-        fs.readFile(__dirname + '/..' + path, (err, data) => {
-            if (err) return callback(err);
-            callback(null, data);
-        });
-    };
-
-    this.ReadJsonFile = function(path, callback) {
-        fs.readFile(__dirname + '/..' + path, (err, data) => {
-            if (err) return callback(err);
-            try {
-                data = JSON.parse(data);
-            }
-            catch (e) {
-                return callback(path, e);
-            }
-            callback(null, data);
         });
     };
 

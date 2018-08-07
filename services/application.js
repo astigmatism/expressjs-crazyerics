@@ -11,7 +11,6 @@ const SuggestionService = require('./suggestions');
 const GamesService = require('./games');
 const FeaturedService = require('./featured');
 const CronService = require('./cron');
-const request = require('request');
 
 module.exports = new (function() {
 
@@ -85,186 +84,183 @@ module.exports = new (function() {
                         }
                 
                         //audit for boxart from the cdn server
-                        request(config.paths.audit + '/media/box/front/' + system, (err, response, body) => {
-                            
-                            var boxFrontData = {};
-
-                            if (err || response.statusCode != 200) {
+                        FileService.Request(config.paths.audit + '/media/box/front/' + system, (status, err, boxFrontData) => {
+                            if (err) {  
+                                //in the case of error, continue because box fronts are not required, we just can't make suggestions for this system
                                 console.log('Could not find boxart file for ' + system + '. No suggests can be made without boxart');
-                                //if error, console log only, we can still build cache
-                            }
-                            //response code 200
-                            else {
-                                
-                                boxFrontData = JSON.parse(body);
-                                //cache this response for the app in FileService
-                                FileService.Set('/data/' + system + '_boxfronts', boxFrontData);
+                                boxFrontData = {};
                             }
 
-                            var titlecount = 0;
+                            FileService.Get('/data/' + system + '_topsuggestions', function(err, topSuggestions) {
+                                if (err) {
+                                    console.log('Could not find topsuggestions file for ' + system + '.');
+                                    topSuggestions = {};
+                                }
 
-                            var system_suggestions = {
-                                top: [],            //top suggestions are those that have been marked in the box datafile as the most "inviting" titles for the system (my discretion!)
-                                above: [],          //above suggestions threshold defined in config (generally US titles)
-                                below: [],          //remaining box art below the defined threshold (generally foriegn, obscure and PD)
-                                art: [],            //all titles with art (combination of above and below)
-                                noart: [],          //the remaining titles without any boxart (don't use these for suggestions but cache them anyway)
-                                all: [],            //all titles for this system without any conditions
-                                alpha: {
-                                    all: {},
-                                    above: {}
-                                }           //for browsing systems by alpha (a, b, c, d, etc)
-                            }
+                                var titlecount = 0;
 
-                            //we'll cache a separate structure for search
-                            var system_search = [];     //system specific search includes all titles
+                                var system_suggestions = {
+                                    top: [],            //top suggestions are those that have been marked in the box datafile as the most "inviting" titles for the system (my discretion!)
+                                    above: [],          //above suggestions threshold defined in config (generally US titles)
+                                    below: [],          //remaining box art below the defined threshold (generally foriegn, obscure and PD)
+                                    art: [],            //all titles with art (combination of above and below)
+                                    noart: [],          //the remaining titles without any boxart (don't use these for suggestions but cache them anyway)
+                                    all: [],            //all titles for this system without any conditions
+                                    alpha: {
+                                        all: {},
+                                        above: {}
+                                    }           //for browsing systems by alpha (a, b, c, d, etc)
+                                }
 
-                            var systemSuggestionThreshold = config.has('systems.' + system + '.suggestionThreshold') ? config.get('systems.' + system + '.suggestionThreshold') : config.get('search').suggestionThreshold;
-                            var titlesWithRating = 0;
+                                //we'll cache a separate structure for search
+                                var system_search = [];     //system specific search includes all titles
 
-                            //loop over each title in the masterfile
-                            for (var title in data) {
+                                var systemSuggestionThreshold = config.has('systems.' + system + '.suggestionThreshold') ? config.get('systems.' + system + '.suggestionThreshold') : config.get('search').suggestionThreshold;
+                                var titlesWithRating = 0;
 
-                                var bestfile = data[title].b;
-                                var bestrank = data[title].f[bestfile].rank;
-                                var gk = data[title].f[bestfile].gk;
-                                var isAbove = false;
+                                //loop over each title in the masterfile
+                                for (var title in data) {
 
-                                //in order to be suggested must have art and must need minimum rank to be preferable playing game
-                                //you can get systemSuggestionThreshold in config if needed
-                                if (boxFrontData && title in boxFrontData) {
+                                    var bestfile = data[title].b;
+                                    var bestrank = data[title].f[bestfile].rank;
+                                    var gk = data[title].f[bestfile].gk;
+                                    var isAbove = false;
 
-                                    //include thegamesdb rating info into suggestions cache (although i'm not use it at this time)
-                                    if (thegamesdb && thegamesdb[title] && thegamesdb[title].Rating) {
-                                        data[title].thegamesdbrating = thegamesdb[title].Rating;
-                                        ++titlesWithRating;
+                                    //in order to be suggested must have art and must need minimum rank to be preferable playing game
+                                    //you can get systemSuggestionThreshold in config if needed
+                                    if (boxFrontData && title in boxFrontData) {
+
+                                        //include thegamesdb rating info into suggestions cache (although i'm not use it at this time)
+                                        if (thegamesdb && thegamesdb[title] && thegamesdb[title].Rating) {
+                                            data[title].thegamesdbrating = thegamesdb[title].Rating;
+                                            ++titlesWithRating;
+                                        }
+
+                                        //top suggestions. these titles can also exist in "best" and "foriegn" so be sure not to mix them (?)
+                                        if (topSuggestions.hasOwnProperty(title)) {
+
+                                            all_suggestions.top.push(gk);
+                                            system_suggestions.top.push(gk);
+                                        }
+                                        
+                                        //ok, now separate the remianing boxart titles between above the threshold and below it
+                                        if (bestrank >= systemSuggestionThreshold) {
+
+                                            all_suggestions.above.push(gk);
+                                            system_suggestions.above.push(gk);
+                                            isAbove = true; //for the alpha sort later
+
+                                        } 
+                                        //foreign suggestion (has art but doesn't meet the suggestion threshold for system)
+                                        else {
+
+                                            system_suggestions.below.push(gk);
+                                        }
+
+                                        //title has art
+                                        system_suggestions.art.push(gk);
                                     }
-
-                                    //top suggestions. these titles can also exist in "best" and "foriegn" so be sure not to mix them
-                                    if (boxFrontData[title].hasOwnProperty('t')) {
-
-                                        all_suggestions.top.push(gk);
-                                        system_suggestions.top.push(gk);
-                                    }
-                                    
-                                    //ok, now separate the remianing boxart titles between above the threshold and below it
-                                    if (bestrank >= systemSuggestionThreshold) {
-
-                                        all_suggestions.above.push(gk);
-                                        system_suggestions.above.push(gk);
-                                        isAbove = true; //for the alpha sort later
-
-                                    } 
-                                    //foreign suggestion (has art but doesn't meet the suggestion threshold for system)
+                                    //title has no art
                                     else {
-
-                                        system_suggestions.below.push(gk);
+                                        system_suggestions.noart.push(gk);
                                     }
 
-                                    //title has art
-                                    system_suggestions.art.push(gk);
-                                }
-                                //title has no art
-                                else {
-                                    system_suggestions.noart.push(gk);
-                                }
+                                    //all titles suggestions (if I ever use this)
+                                    system_suggestions.all.push(gk);
 
-                                //all titles suggestions (if I ever use this)
-                                system_suggestions.all.push(gk);
+                                    //alpha cache
+                                    var firstChar = title.slice(0,1); //take first character
+                                    if (firstChar.match(/[a-z]/i)) {
+                                        firstChar = firstChar.toUpperCase();
+                                        
+                                        system_suggestions.alpha.all = UtilitiesService.CreatePropertyIfNotThere(system_suggestions.alpha.all, firstChar, []);
+                                        system_suggestions.alpha.all[firstChar].push(gk);
+                                        
+                                        if (isAbove) {
 
-                                //alpha cache
-                                var firstChar = title.slice(0,1); //take first character
-                                if (firstChar.match(/[a-z]/i)) {
-                                    firstChar = firstChar.toUpperCase();
-                                    
-                                    system_suggestions.alpha.all = UtilitiesService.CreatePropertyIfNotThere(system_suggestions.alpha.all, firstChar, []);
-                                    system_suggestions.alpha.all[firstChar].push(gk);
-                                    
+                                            system_suggestions.alpha.above = UtilitiesService.CreatePropertyIfNotThere(system_suggestions.alpha.above, firstChar, []);
+                                            system_suggestions.alpha.above[firstChar].push(gk);
+                                        }
+                                    }
+                                    //else is 0-9 or a symbol
+                                    else {
+                                        
+                                        system_suggestions.alpha.all = UtilitiesService.CreatePropertyIfNotThere(system_suggestions.alpha.all, '#', []);
+                                        system_suggestions.alpha.all['#'].push(gk);
+
+                                        if (isAbove) {
+
+                                            system_suggestions.alpha.above = UtilitiesService.CreatePropertyIfNotThere(system_suggestions.alpha.above, '#', []);
+                                            system_suggestions.alpha.above['#'].push(gk);
+                                        }
+                                    }
+
+                                    //if the rank of the best playable file for the title is above the threshold for this system
                                     if (isAbove) {
-
-                                        system_suggestions.alpha.above = UtilitiesService.CreatePropertyIfNotThere(system_suggestions.alpha.above, firstChar, []);
-                                        system_suggestions.alpha.above[firstChar].push(gk);
+                                        all_search[totaltitles + titlecount] = {
+                                            t: title,
+                                            r: bestrank,
+                                            gk: gk
+                                        }
                                     }
-                                }
-                                //else is 0-9 or a symbol
-                                else {
-                                    
-                                    system_suggestions.alpha.all = UtilitiesService.CreatePropertyIfNotThere(system_suggestions.alpha.all, '#', []);
-                                    system_suggestions.alpha.all['#'].push(gk);
 
-                                    if (isAbove) {
-
-                                        system_suggestions.alpha.above = UtilitiesService.CreatePropertyIfNotThere(system_suggestions.alpha.above, '#', []);
-                                        system_suggestions.alpha.above['#'].push(gk);
-                                    }
-                                }
-
-                                //if the rank of the best playable file for the title is above the threshold for this system
-                                if (isAbove) {
-                                    all_search[totaltitles + titlecount] = {
+                                    //okay, while we're at it, let's build a customized search file for this system
+                                    //no qualifications for system search, all titles. 
+                                    //I found it fastest to iterator with for in. the property doesn't matter since we have
+                                    //to iterate over all props
+                                    system_search[titlecount] = {
                                         t: title,
                                         r: bestrank,
                                         gk: gk
                                     }
+
+                                    ++titlecount;
+                                
+                                } //end for each title in masterfile
+
+                                totaltitles += titlecount;
+
+                                //cache results in file service because it has unlimited ttl
+                                //system specific caches:
+                                FileService.Set('suggestions.' + system + '.top', system_suggestions.top);
+                                FileService.Set('suggestions.' + system + '.above', system_suggestions.above);
+                                FileService.Set('suggestions.' + system + '.below', system_suggestions.below);
+                                FileService.Set('suggestions.' + system + '.art', system_suggestions.art);
+                                FileService.Set('suggestions.' + system + '.noart', system_suggestions.noart);
+                                FileService.Set('suggestions.' + system + '.all', system_suggestions.all);
+                                for (var alpha in system_suggestions.alpha.all) {
+                                    FileService.Set('suggestions.' + system + '.alpha.all.' + alpha, system_suggestions.alpha.all[alpha]);    
                                 }
-
-                                //okay, while we're at it, let's build a customized search file for this system
-                                //no qualifications for system search, all titles. 
-                                //I found it fastest to iterator with for in. the property doesn't matter since we have
-                                //to iterate over all props
-                                system_search[titlecount] = {
-                                    t: title,
-                                    r: bestrank,
-                                    gk: gk
+                                for (var alpha in system_suggestions.alpha.above) {
+                                    FileService.Set('suggestions.' + system + '.alpha.above.' + alpha, system_suggestions.alpha.above[alpha]);    
                                 }
+                                
+                                //for cache lengths and other misc data so that I don't need to calculate each time when I access them later
+                                FileService.Set('suggestions.' + system + '.data', {
+                                    lengths: {
+                                        top: system_suggestions.top.length,
+                                        above: system_suggestions.above.length,
+                                        below: system_suggestions.below.length,
+                                        art: system_suggestions.art.length,
+                                        noart: system_suggestions.noart.length,
+                                        all: titlecount
+                                    }
+                                });
+                                
+                                FileService.Set('search.' + system, system_search); //ok to be sync
 
-                                ++titlecount;
-                            
-                            } //end for each title in masterfile
-
-                            totaltitles += titlecount;
-
-                            //cache results in file service because it has unlimited ttl
-                            //system specific caches:
-                            FileService.Set('suggestions.' + system + '.top', system_suggestions.top);
-                            FileService.Set('suggestions.' + system + '.above', system_suggestions.above);
-                            FileService.Set('suggestions.' + system + '.below', system_suggestions.below);
-                            FileService.Set('suggestions.' + system + '.art', system_suggestions.art);
-                            FileService.Set('suggestions.' + system + '.noart', system_suggestions.noart);
-                            FileService.Set('suggestions.' + system + '.all', system_suggestions.all);
-                            for (var alpha in system_suggestions.alpha.all) {
-                                FileService.Set('suggestions.' + system + '.alpha.all.' + alpha, system_suggestions.alpha.all[alpha]);    
-                            }
-                            for (var alpha in system_suggestions.alpha.above) {
-                                FileService.Set('suggestions.' + system + '.alpha.above.' + alpha, system_suggestions.alpha.above[alpha]);    
-                            }
-                            
-                            //for cache lengths and other misc data so that I don't need to calculate each time when I access them later
-                            FileService.Set('suggestions.' + system + '.data', {
-                                lengths: {
-                                    top: system_suggestions.top.length,
-                                    above: system_suggestions.above.length,
-                                    below: system_suggestions.below.length,
-                                    art: system_suggestions.art.length,
-                                    noart: system_suggestions.noart.length,
-                                    all: titlecount
-                                }
-                            });
-                            
-                            FileService.Set('search.' + system, system_search); //ok to be sync
-
-                            //console.log('suggestions.' + system + ' (threshold: ' + systemSuggestionThreshold + ') "inviting" suggestions --> ' + suggestions.top.length + '. suggestions above threshold --> ' + suggestions.above.length + '. suggestions below threshhold --> ' + suggestions.below.length + '. total with thegamesdb rating --> ' + titlesWithRating);
-                            
-                            //best place for sql table insert check
-                            //note: I realize I could begin doing a title, even file insert check here, but I'd rather leave that operation to a client play request
-                            SystemsSQL.Exists(system, config.get('systems.' + system + '.name'), (err) => {
-                                if (err) {
-                                    return nextsystem(err);
-                                }
-                                nextsystem();
-                            });
-
-                        }); //box front audit request
+                                //console.log('suggestions.' + system + ' (threshold: ' + systemSuggestionThreshold + ') "inviting" suggestions --> ' + suggestions.top.length + '. suggestions above threshold --> ' + suggestions.above.length + '. suggestions below threshhold --> ' + suggestions.below.length + '. total with thegamesdb rating --> ' + titlesWithRating);
+                                
+                                //best place for sql table insert check
+                                //note: I realize I could begin doing a title, even file insert check here, but I'd rather leave that operation to a client play request
+                                SystemsSQL.Exists(system, config.get('systems.' + system + '.name'), (err) => {
+                                    if (err) {
+                                        return nextsystem(err);
+                                    }
+                                    nextsystem();
+                                });
+                            }); //get topsuggestions
+                        }, '/data/' + system + '_boxfronts'); //box front audit request. final param is the path to save the response to
                     }); //open filedata
                 }); //open thegamesdb
             }); //open masterfile

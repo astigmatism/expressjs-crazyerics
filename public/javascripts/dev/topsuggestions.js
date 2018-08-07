@@ -25,18 +25,13 @@ var TopSuggestions = (function() {
             $li.on('click', function() {
                 $li.toggleClass('selected');
 
-                if ($li.hasClass('selected')) {
-                    $.ajax({
-                        url: '/dev/ts/' + system,
-                        type: 'PUT',
-                        data: {
-                            t: title
-                        }
-                      });
-                }
-                else {
-
-                }
+                $.ajax({
+                    url: '/dev/ts/' + system,
+                    type: $li.hasClass('selected') ? 'PUT' : 'DELETE',
+                    data: {
+                        t: title
+                    }
+                });
 
             });
             $ul.append($li);
