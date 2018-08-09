@@ -357,7 +357,7 @@
 		"sms": {
 			"name": "Sega Master System / SG-1000 / SC-3000 / Mark III",
 			"shortname": "Sega Master System",
-			"live": false,
+			"live": true,
 			"supportfilesize": 0,
 			"romcdnversion": "sms20180713",
 			"emuextention": "1.6.9-stable",
