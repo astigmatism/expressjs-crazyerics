@@ -111,7 +111,7 @@
 		"gb": {
 			"name": "Nintendo Game Boy",
 			"shortname": "Game Boy",
-			"live": false,
+			"live": true,
 			"supportfilesize": 0,
 			"romcdnversion": "20180712",
 			"collection": "GoodGBx 3.14",
@@ -135,6 +135,7 @@
 			"shortname": "Game Boy Color",
 			"live": true,
 			"supportfilesize": 0,
+			"romcdnversion": "20180713",
 			"collection": "GoodGBx 3.14",
 			"emuextention": "1.6.9-stable",
 			"emuscript": "gambatte_libretro.js",
@@ -185,7 +186,7 @@
 		"gg": {
 			"name": "Sega Game Gear",
 			"shortname": "Sega Game Gear",
-			"live": false,
+			"live": true,
 			"collection": "GoodGG 3.20",
 			"romcdnversion": "gg20180713",
 			"supportfilesize": 0,
@@ -289,9 +290,8 @@
 		"nes": {
 			"name": "Nintendo Entermainment System",
 			"shortname": "Nintendo",
-			"live": false,
+			"live": true,
 			"supportfilesize": 0,
-			"boxcdnversion": "2018-05-21",
 			"romcdnversion": "20180712",
 			"collection": "GoodNES 3.23b",
 			"emuextention": "1.6.9-stable",
@@ -324,9 +324,8 @@
 		"pce": {
 			"name": "NEC TurboGrafx-16",
 			"shortname": "TurboGrafx-16",
-			"live": false,
+			"live": true,
 			"supportfilesize": 0,
-			"boxcdnversion": "2018-05-18",
 			"romcdnversion": "pce20180713",
 			"collection": "GoodPCE 1.09a GoodMerged",
 			"emuextention": "1.6.9-stable",
@@ -379,7 +378,7 @@
 		"vb": {
 			"name": "Nintendo Virtual Boy",
 			"shortname": "Virtual Boy",
-			"live": false,
+			"live": true,
 			"supportfilesize": 0,
 			"collection": "GoodVBoy 3.1415",
 			"romcdnversion": "vb20180713",

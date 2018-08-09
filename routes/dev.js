@@ -30,7 +30,7 @@ router.get('/ts/:system', (req, res) => {
                 for (title in boxFronts) {
                     if (masterFile[title]) {
                         boxFronts[title].gk = masterFile[title].f[masterFile[title].b].gk;
-                        boxFronts[title].rank = masterFile[title].f[masterFile[title].b].rank;
+                        boxFronts[title].score = masterFile[title].f[masterFile[title].b].rank;
                     }
                 }
 

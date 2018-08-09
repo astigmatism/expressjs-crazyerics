@@ -78,9 +78,11 @@ var cesSliders = (function(_config, _Compression, $silderIcons) {
     this.DeactivateAll = function(args) {
 
         for (var slider in _sliders) {
-            _sliders[slider].activated = false;
-            _sliders[slider].icon.addClass('deactivated');
-            _sliders[slider].module.Deactivate.apply(null, args);
+            if (_sliders[slider].activated == true) {
+                _sliders[slider].activated = false;
+                _sliders[slider].icon.addClass('deactivated');
+                _sliders[slider].module.Deactivate.apply(null, args);
+            }
         }
     };
 

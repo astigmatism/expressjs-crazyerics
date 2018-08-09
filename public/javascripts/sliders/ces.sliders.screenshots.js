@@ -2,7 +2,6 @@ var cesSlidersScreenshots = (function(_config, $li, $panel, Open) {
 
     var self = this;
     var _grid;
-    var _parent;
     var _pubSub;
     var _tooltips;
     var _gameKey;

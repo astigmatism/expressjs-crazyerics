@@ -322,6 +322,9 @@ var cesMain = (function() {
 
     var ForceCloseEmulator = function(callback) {
         
+        //as forced closed generally occurrs during a loading error, also inform collections that the loaded game is no longer loading
+        _Collections.RemoveCurrentGameLoading();
+
         if (_Emulator) {
 
             _Emulator.Hide(null, function() {

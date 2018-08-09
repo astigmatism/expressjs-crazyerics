@@ -80,6 +80,13 @@ var cesTooltips = (function(_config, _Images, tooltipSelector, tooltipContentSel
         });
     };
 
+    this.Close = function($el) {
+
+        if ($el.hasClass(alreadyProcessedName)) {
+            $el.tooltipster('close');
+        }
+    };
+
     this.Destroy = function($el) {
         $el.find(alreadyProcessedSelector).tooltipster('destroy');
         $el.tooltipster('destroy');

@@ -30,7 +30,9 @@ var cesGameLink = (function(_config, _Images, _Tooltips, gameKey, size, opt_tool
 
             //attach play game event only when image is available
             $imagewrapper.on('mousedown', function() {
-                    
+                
+                _Tooltips.Close($imagewrapper); //sometimes the tooltip was staying up after clicking
+
                 if (opt_PlayGame) {
                     opt_PlayGame(gameKey);
                 }
