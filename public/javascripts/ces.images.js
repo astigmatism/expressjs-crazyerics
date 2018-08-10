@@ -10,22 +10,17 @@ var cesImages = (function(_config) {
     
     //public
 
-    this.BoxFront = function(gameKey, opt_width, opt_height) {
+    this.BoxFront = function(gameKey, cdnSizeModifier) {
         var img = new Image();
 
-        var widthandheight = '';
-        widthandheight += (opt_width) ? 'w=' + opt_width : '';
-        widthandheight += (opt_width && opt_height) ? '&' : '';
-        widthandheight += (opt_height) ? 'h=' + opt_height : '';
-
-        img.src = _config.paths.boxfront + '/' + encodeURIComponent(gameKey.gk) + '?' + widthandheight;
+        img.src = _config.paths.box + '/' + cdnSizeModifier + '/' + encodeURIComponent(gameKey.gk);
         img.crossOrigin = 'anonymous'; //this is necessary when creating a new image from canvas
 
         return $(img);
     };
 
-    this.$BoxFront = function(gameKey, opt_width, opt_height) {
-        return $(_self.BoxFront(gameKey, opt_width, opt_height));
+    this.$BoxFront = function(gameKey, cdnSizeModifier) {
+        return $(_self.BoxFront(gameKey, cdnSizeModifier));
     };
 
     /**

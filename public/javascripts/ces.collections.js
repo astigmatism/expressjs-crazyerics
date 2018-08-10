@@ -4,7 +4,6 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Images, _Sy
     var _self = this;
     var _titlesGrid = null;             //see constructor for assignment
     var _collectionsGrid = null;
-    var _BOXFRONTWIDTH = 116;
     var _TITLESCREENWIDTH = 160;
     var _currentLoadingGame = null;
     var _baseUrl = '/collections';
@@ -641,7 +640,7 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Images, _Sy
                     };
 
                     //generate gamelink
-                    var gameLink = new cesGameLink(_config, _Images, _Tooltips, gameKey, _BOXFRONTWIDTH, false, _PlayGameHandler, OnImageLoaded);
+                    var gameLink = new cesGameLink(_config, _Images, _Tooltips, gameKey, 'a', false, _PlayGameHandler, OnImageLoaded);
 
                     //push to our local cache
                     _activeCollectionTitles.push({

@@ -192,7 +192,7 @@ var cesMain = (function() {
 
                 var gameKey = _Compression.Decompress.gamekey(item[0]);
                 var $suggestion = $('<div class="autocomplete-suggestion" data-gk="' + gameKey.gk + '" data-searchscore="' + item[1] + '"></div>');
-                var $img = _Images.$BoxFront(gameKey, 50);
+                var $img = _Images.$BoxFront(gameKey, 'b');
                 $suggestion.append($img);
                 $suggestion.append('<div>' + gameKey.title + '</div>');
                 
@@ -709,11 +709,9 @@ var cesMain = (function() {
      */
     var DisplayGameContext = function(gameKey, callback) {
 
+        var $img = _Images.BoxFront(gameKey, 'c')
 
-        var img = document.createElement('img');
-        img.src = _config.paths.boxfront + '/' + encodeURIComponent(gameKey.gk) + '?w=170';
-
-        $('#gamedetailsboxfront').empty().append($(img));
+        $('#gamedetailsboxfront').empty().append($img);
         $('#gametitle').empty().hide().append(gameKey.title);
 
         // slide down background

@@ -1,9 +1,8 @@
-var cesGameLink = (function(_config, _Images, _Tooltips, gameKey, size, opt_tooltip, opt_PlayGame, opt_OnImageLoaded, opt_removeSelector, opt_onRemove) {
+var cesGameLink = (function(_config, _Images, _Tooltips, gameKey, cdnPathValue, opt_tooltip, opt_PlayGame, opt_OnImageLoaded, opt_removeSelector, opt_onRemove) {
 
     //private members
     var self = this;
     var _gamelink;
-    var _BOXFRONTWIDTH = 116;
 
     //public members
 
@@ -23,7 +22,7 @@ var cesGameLink = (function(_config, _Images, _Tooltips, gameKey, size, opt_tool
         var $div = $('<div class="gamelink"></div>');
         var $imagewrapper = $('<div class="box zoom close"></div>');
 
-        var $img = _Images.$BoxFront(gameKey, _BOXFRONTWIDTH);
+        var $img = _Images.$BoxFront(gameKey, cdnPathValue);
 
         $img.imagesLoaded().progress(function(imgLoad, image) {
             $imagewrapper.removeClass('close'); //remove close on parent to reveal image

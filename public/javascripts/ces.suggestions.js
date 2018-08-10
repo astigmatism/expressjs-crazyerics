@@ -7,7 +7,6 @@ var cesSuggestions = (function(_config, _Images, _Compression, _Tooltips, PlayGa
     //private members
     var self = this;
     var _grid = null;
-    var _BOXFRONTSIZE = 116;
     var _lastRecipe = null;
     var _currentGameLinks = [];
     var _loading = false;
@@ -126,7 +125,7 @@ var cesSuggestions = (function(_config, _Images, _Compression, _Tooltips, PlayGa
             };
 
             //spawn new gamelink
-            gamelink = new cesGameLink(_config, _Images, _Tooltips, gameKey, _BOXFRONTSIZE, true, PlayGameHandler, OnImageLoaded);
+            gamelink = new cesGameLink(_config, _Images, _Tooltips, gameKey, 'a', true, PlayGameHandler, OnImageLoaded);
 
             //create the grid item and insert it
             var $griditem = $('<div class="grid-item" />');

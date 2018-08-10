@@ -3,8 +3,6 @@ var cesDialogsGameLoading = (function(_config, $el, $wrapper, args) {
     var _Images = args[0];
     var _Compression = args[1];
     var _PubSub = args[2];
-    var _BOXFRONTWIDTH = 200;
-    var _BOXFRONTTEXTURESIZE = 256;
 
     var _tipsCycleRate = 4000;
     var _tips = [
@@ -34,8 +32,8 @@ var cesDialogsGameLoading = (function(_config, $el, $wrapper, args) {
         $('#tip').hide();
         //$('#gameloadingname').show().text(gameKey.title);
 
-        var img = _Images.BoxFront(gameKey, _BOXFRONTWIDTH);
-        var texture = _Images.BoxFront(gameKey, _BOXFRONTTEXTURESIZE, _BOXFRONTTEXTURESIZE); //256x256 texture
+        var img = _Images.BoxFront(gameKey, 'd');
+        var texture = _Images.BoxFront(gameKey, 'e'); //256x256 texture
         var recipe = {};
 
         if (_config.loadingBoxRecipes[gameKey.system]) {
