@@ -4,7 +4,6 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Images, _Sy
     var _self = this;
     var _titlesGrid = null;             //see constructor for assignment
     var _collectionsGrid = null;
-    var _TITLESCREENWIDTH = 160;
     var _currentLoadingGame = null;
     var _baseUrl = '/collections';
     var _featureUrl = '/featured';

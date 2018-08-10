@@ -9,7 +9,7 @@ var cesSlidersInfo = (function(_config, $li, $panel) {
 
         //on open, attempt to fetch new title screen
         if (_images && _gameKey) {
-            _images.TitleScreen($titleWrapper, _gameKey, function(success) {
+            _images.TitleScreen($titleWrapper, _gameKey, 'b', function(success) {
                 //not really anything I care about here. Either it loaded or it didn't
             }); 
         }

@@ -43,7 +43,7 @@ router.get('/ts/:system', (req, res) => {
                     boxFronts: JSON.stringify(ordered),
                     system: system,
                     currentTs: JSON.stringify(topSuggestions),
-                    cdn: config.paths.boxfront
+                    cdn: config.paths.boxfront + '/a'
                 });
             });
         });

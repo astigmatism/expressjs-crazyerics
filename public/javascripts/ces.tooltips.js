@@ -8,7 +8,6 @@ var cesTooltips = (function(_config, _Images, tooltipSelector, tooltipContentSel
     var self = this;
     var alreadyProcessedName = 'tooltipstered';
     var alreadyProcessedSelector = '.' + alreadyProcessedName;
-    var _TITLESCREENWIDTH = 160;
 
     this.Any = function() {
 
@@ -64,7 +63,7 @@ var cesTooltips = (function(_config, _Images, tooltipSelector, tooltipContentSel
                 if (!$imagewrapper.hasClass('titlescreenloaded')) {
 
                     //obtain the image
-                    _Images.TitleScreen($imagewrapper, gameKey, function(success, response) {
+                    _Images.TitleScreen($imagewrapper, gameKey, 'a', function(success, response) {
                         
                         $imagewrapper.addClass('titlescreenloaded'); //set the flag for the tooltip to allowed to be open and no more attempts to get it
                         instance.open(); //calling open will refire the functionBefore
@@ -72,7 +71,7 @@ var cesTooltips = (function(_config, _Images, tooltipSelector, tooltipContentSel
                         //after openning remove flag to try again on the next tooltip show (it would be pulled from cache, or will try again over the network)
                         $imagewrapper.removeClass('titlescreenloaded');
     
-                    }, _TITLESCREENWIDTH);
+                    });
 
                     return false; //prevent from openning before getting art
                 }

@@ -15,7 +15,7 @@ var TopSuggestions = (function() {
             }
 
             $li.append('<div>' + title + '</div>');
-            var $img = $('<img src="' + cdn + '/' + encodeURIComponent(details.gk) + '?w=116" />');            
+            var $img = $('<img src="' + cdn + '/' + encodeURIComponent(details.gk) + '" />');            
             $li.append($img);
             $li.append('<div>' + details.score + '</div>');
             $li.append('<div> cdn rank: ' + details.rank + '</div>');

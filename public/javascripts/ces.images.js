@@ -13,7 +13,7 @@ var cesImages = (function(_config) {
     this.BoxFront = function(gameKey, cdnSizeModifier) {
         var img = new Image();
 
-        img.src = _config.paths.box + '/' + cdnSizeModifier + '/' + encodeURIComponent(gameKey.gk);
+        img.src = _config.paths.boxfront + '/' + cdnSizeModifier + '/' + encodeURIComponent(gameKey.gk);
         img.crossOrigin = 'anonymous'; //this is necessary when creating a new image from canvas
 
         return $(img);
@@ -28,9 +28,9 @@ var cesImages = (function(_config) {
      * @param {*} $wrapper jQuery 
      * @param {*} gameKey cesGameKey
      */
-    this.TitleScreen = function($wrapper, gameKey, callback, opt_width, opt_height) {
+    this.TitleScreen = function($wrapper, gameKey, cdnSizeModifier, callback) {
 
-        Get(_config.paths.titlescreens, gameKey, function(status, content) {
+        Get(_config.paths.title, gameKey, cdnSizeModifier, function(status, content) {
             
             if (content) {
                 $wrapper.imagesLoaded()
@@ -45,7 +45,7 @@ var cesImages = (function(_config) {
                 return callback(false, status);
             }
 
-        }, opt_width, opt_height)
+        });
     };
 
     /**
@@ -54,49 +54,35 @@ var cesImages = (function(_config) {
      * @param {Number} opt_width optional
      * @param {Number} opt_height optional
      */
-    this.ExpireTitleScreen = function(gameKey, opt_width, opt_height) {
+    this.ExpireImageCache = function(gameKey, cdnSizeModifier) {
 
-        var cacheKey = gameKey.gk + opt_width + opt_height;
-        if (cacheKey in titlescreenCache) {
-            delete titlescreenCache[cacheKey];
+        var cacheKey = cdnSizeModifier + gameKey.gk;
+        if (cacheKey in clientImageCache) {
+            delete clientImageCache[cacheKey];
         }
     };
 
-    var Get = function(location, gameKey, callback, opt_width, opt_height, opt_base64) {
+    var Get = function(location, gameKey, cdnSizeModifier, callback) {
 
         //first check client cache for this image to prevent going over the network
-        var cacheKey = location + gameKey.gk + opt_width + opt_height;
+        var cacheKey = cdnSizeModifier + gameKey.gk;
 
         if (cacheKey in clientImageCache) {
-            return clientImageCache[cacheKey];
-        }
-
-        //build optional data
-        var data = {};
-
-        if (opt_width) {
-            data.w = opt_width;
-        }
-        if (opt_height) {
-            data.h = opt_height;
-        }
-        if (opt_base64) {
-            data.b = 1;
+            return callback(200, clientImageCache[cacheKey]);
         }
 
         //network request to CDN to obtain image
         $.ajax({
-            url: location + '/' + encodeURIComponent(gameKey.gk),
+            url: location + '/' + cdnSizeModifier + '/' + encodeURIComponent(gameKey.gk),
             type: 'GET',
-            data: data,
             crossDomain: true,
             cache: false,
             complete: function(response) {
             
                 //the response code gives us the best impression of success and image source on the CDN
-                if (response.responseText) {
+                if (response.status == 200 || response.status == 201) {
 
-                    clientImageCache[gameKey.gk + opt_width + opt_height] = response.responseText; //client cache response
+                    clientImageCache[cacheKey] = response.responseText; //client cache response
                     return callback(response.status, response.responseText);
                 }
                 //if no valid image data was returned, simply return
@@ -105,7 +91,7 @@ var cesImages = (function(_config) {
                 }
             }
         });
-    }
+    };
 
     return this;
 });
