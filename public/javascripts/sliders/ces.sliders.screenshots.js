@@ -6,14 +6,16 @@ var cesSlidersScreenshots = (function(_config, $li, $panel, Open) {
     var _tooltips;
     var _gameKey;
     var _compression;
+    var _images;
 
-    this.Activate = function(gameKey, _PubSub, _Tooltips, _Compression) {
+    this.Activate = function(gameKey, _PubSub, _Tooltips, _Compression, _Images) {
         
         _grid.isotope('remove', _grid.children()); //clear on activation (sanity)
-        _pubSub = _PubSub
+        _pubSub = _PubSub;
         _tooltips = _Tooltips;
         _gameKey = gameKey;
         _compression = _Compression;
+        _images = _Images;
         _pubSub.Subscribe('screenshotWritten', self, OnNewScreenshot);
     };
 
@@ -40,8 +42,6 @@ var cesSlidersScreenshots = (function(_config, $li, $panel, Open) {
 
         $griditem.data('ts', Date.now());
 
-        
-
         var $img = $('<img class="close" />');
         var base64String = btoa(String.fromCharCode.apply(null, new Uint8Array(contents)));
         $img.attr('src', 'data:image/jpg;base64,' + base64String);
@@ -56,7 +56,7 @@ var cesSlidersScreenshots = (function(_config, $li, $panel, Open) {
         $contributeTitleScreen = $('<div class="clickable">Contribute as Title Screen</div>');
         $contributeTitleScreen.on('click', function() {
             _tooltips.Destroy($griditem); //remove tooltip after they commit to contribution
-            Contribute(true, base64String, function() {
+            Contribute(true, base64String, function(status) {
                 
             });
         });
@@ -66,7 +66,7 @@ var cesSlidersScreenshots = (function(_config, $li, $panel, Open) {
         $contributeScreenshot = $('<div class="clickable">Contribute as Screenshot</div>');
         $contributeScreenshot.on('click', function() {
             _tooltips.Destroy($griditem); //remove tooltip after they commit to contribution
-            Contribute(false, base64String, function() {
+            Contribute(false, base64String, function(status) {
                 
             });
         });
@@ -107,9 +107,11 @@ var cesSlidersScreenshots = (function(_config, $li, $panel, Open) {
                 'cxhr': data 
             },
             complete: function(xhr, textStatus) {
-                if (xhr.status != 200) {
-                    
-                }
+
+                //delete the cached image to pull the just contributed one
+                _images.ExpireImageCache(_gameKey);
+
+                callback(xhr.status);
             }
         });
     };

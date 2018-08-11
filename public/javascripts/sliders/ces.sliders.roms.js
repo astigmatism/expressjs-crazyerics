@@ -20,7 +20,7 @@ var cesSlidersRoms = (function(_config, $li, $panel) {
         var $select = $panel.find('select');
         $select.empty();
 
-        for (file in files) {
+        for (var file in files) {
             var selected = (file == gameKey.file) ? ' selected' : '';
             $select.append('<option value="' + files[file].gk + '"' + selected + '>' + file + '</option>');
         }

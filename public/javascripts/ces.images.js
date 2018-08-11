@@ -54,21 +54,27 @@ var cesImages = (function(_config) {
      * @param {Number} opt_width optional
      * @param {Number} opt_height optional
      */
-    this.ExpireImageCache = function(gameKey, cdnSizeModifier) {
+    this.ExpireImageCache = function(gameKey) {
 
-        var cacheKey = cdnSizeModifier + gameKey.gk;
-        if (cacheKey in clientImageCache) {
-            delete clientImageCache[cacheKey];
+        /*
+        //cache actually appears as such:
+        {
+            '[some gamekey]': {
+                [cdnlocation]: 'response text'
+            }
+        }
+        //this will delete all cached image sizes
+        */
+        if (gameKey.gk in clientImageCache) {
+            delete clientImageCache[gameKey.gk];
         }
     };
 
     var Get = function(location, gameKey, cdnSizeModifier, callback) {
 
         //first check client cache for this image to prevent going over the network
-        var cacheKey = cdnSizeModifier + gameKey.gk;
-
-        if (cacheKey in clientImageCache) {
-            return callback(200, clientImageCache[cacheKey]);
+        if (gameKey.gk in clientImageCache && cdnSizeModifier in clientImageCache[gameKey.gk]) {
+            return callback(200, clientImageCache[gameKey.gk[cdnSizeModifier]]);
         }
 
         //network request to CDN to obtain image
@@ -82,7 +88,9 @@ var cesImages = (function(_config) {
                 //the response code gives us the best impression of success and image source on the CDN
                 if (response.status == 200 || response.status == 201) {
 
-                    clientImageCache[cacheKey] = response.responseText; //client cache response
+                    var cacheObject = clientImageCache[gameKey.gk] || {};
+                    cacheObject[cdnSizeModifier] = response.responseText; //client cache response
+                    clientImageCache[gameKey.gk] =  cacheObject;
                     return callback(response.status, response.responseText);
                 }
                 //if no valid image data was returned, simply return

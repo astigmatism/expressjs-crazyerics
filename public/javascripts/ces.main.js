@@ -533,7 +533,7 @@ var cesMain = (function() {
 
                                                                 //activate certain sliders
                                                                 _Sliders.Activate('Controls', [gameKey, _Gamepad]);
-                                                                _Sliders.Activate('Screenshots', [gameKey, _PubSub, _Tooltips, _Compression]);
+                                                                _Sliders.Activate('Screenshots', [gameKey, _PubSub, _Tooltips, _Compression, _Images]);
                                                                 _Sliders.Activate('Roms', [gameKey, files, _Compression, PlayGame]);
                                                                 
                                                                 //reqiure gamedb data to have info slider
@@ -709,7 +709,7 @@ var cesMain = (function() {
      */
     var DisplayGameContext = function(gameKey, callback) {
 
-        var $img = _Images.BoxFront(gameKey, 'c')
+        var $img = _Images.BoxFront(gameKey, 'c');
 
         $('#gamedetailsboxfront').empty().append($img);
         $('#gametitle').empty().hide().append(gameKey.title);
