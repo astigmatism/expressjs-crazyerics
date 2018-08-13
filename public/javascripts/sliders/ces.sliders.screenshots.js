@@ -50,10 +50,10 @@ var cesSlidersScreenshots = (function(_config, $li, $panel, Open) {
         });
 
         var $tooltipContent = $('<div class="screenshot-tooltip" />');
-        $tooltipContent = $('<div class="tooltiptitle">Select an Option (This can only be done once):</div>');
+        $tooltipContent = $('<div class="tooltiptitle">Would you like to contribute back to Crazyerics? You can perform this step only once per screenshot.</div>');
 
         //title screen link
-        $contributeTitleScreen = $('<div class="clickable">Contribute as Title Screen</div>');
+        $contributeTitleScreen = $('<div>Contribute as this game\'s title screen</div>');
         $contributeTitleScreen.on('click', function() {
             _tooltips.Destroy($griditem); //remove tooltip after they commit to contribution
             Contribute(true, base64String, function(status) {
@@ -63,7 +63,7 @@ var cesSlidersScreenshots = (function(_config, $li, $panel, Open) {
         $tooltipContent.append($contributeTitleScreen);
 
         //screenshot link
-        $contributeScreenshot = $('<div class="clickable">Contribute as Screenshot</div>');
+        $contributeScreenshot = $('<div>Contribute as game screenshot</div>');
         $contributeScreenshot.on('click', function() {
             _tooltips.Destroy($griditem); //remove tooltip after they commit to contribution
             Contribute(false, base64String, function(status) {
