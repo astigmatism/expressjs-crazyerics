@@ -25,7 +25,6 @@ var cesMain = (function() {
     var _Featured = null;
     var _Suggestions = null;
     var _SaveSelection = null;
-    var _ProgressBar = null;
     var _Notifications = null;
     var _Tooltips= null;
     var _Gamepad = null;
@@ -54,8 +53,6 @@ var cesMain = (function() {
         _Dialogs = new cesDialogs(_config, $('#dialogs'));
 
         _Tooltips = new cesTooltips(_config, _Images, '.tooltip', '.tooltip-content');
-
-        _ProgressBar = new cesProgressBar(loadingprogressbar);
 
         _Notifications = new cesNotifications(_config, _Compression, _PubSub, $('#notificationwrapper'));
 
@@ -400,6 +397,8 @@ var cesMain = (function() {
         //var box = cesGetBoxFront(_config, gameKey.system, gameKey.title, 170, true); //preload loading screen box
         _Collections.SetCurrentGameLoading(gameKey); //inform collections what the current game is so that they don't attempt to delete it during load
 
+        $('#loadingprogressbar').empty(); //didn't have a more convienent place for this!
+
         //which emulator to load?
         EmulatorFactory(gameKey, function(err, emulator) {
             if (err) {
@@ -424,8 +423,6 @@ var cesMain = (function() {
 
                     _preventLoadingGame = true; //lock loading after shader select
                     var gameLoadingStart = Date.now();
-
-                    _ProgressBar.Reset(); //before loading dialog, reset progress bar from previous
 
                     //game load dialog show
                     _Dialogs.Open('GameLoading', [gameKey], false, function(tipInterval) {
@@ -458,12 +455,10 @@ var cesMain = (function() {
                                 return;
                             }
 
-                            //_ProgressBar.AddBucket('done', filesize * 0.05); //this represents the final work I need to do before the game starts (prevents bar from showing 1 until totally done)
-
                             //begin loading all content. I know it seems like some of these (game, emulator, etc) could load while the user
                             //is viewing the shader select, but I found that when treated as background tasks, it interfere with the performance
                             //of the shader selection ui. I think its best to wait until the loading animation is up to perform all of these
-                            _Emulator.Load(_Emulator.createModule(), _ProgressBar, filesize, shaderSelection.shader, shaderFileSize, supportFileSize, emulatorLoadComplete);
+                            _Emulator.Load(_Emulator.createModule(), shaderSelection.shader, supportFileSize, emulatorLoadComplete);
 
                             //when all deffered calls are ready
                             $.when(emulatorLoadComplete).done(function(emulatorLoaded) {

@@ -73,7 +73,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
      * @param {string} shader   a shader selection or pre-defined
      * @param {Object} deffered when complete
      */
-    this.Load = function(module, _ProgressBar, filesize, shader, shaderFileSize, supportFileSize, deffered) {
+    this.Load = function(module, shader, supportFileSize, deffered) {
 
         var emulatorLoadComplete = $.Deferred();
         var supportLoadComplete = $.Deferred();
@@ -84,25 +84,24 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
 
         //setup progress bar
         var emulatorFileSize = _config.systemdetails[_gameKey.system].emusize;
-        _ProgressBar.AddBucket('game', filesize);
-        _ProgressBar.AddBucket('shader', shaderFileSize); //will be 0 if no shader to load, not effecting the progress bar
-        _ProgressBar.AddBucket('support', supportFileSize); //will be 0 if no support
+
         //only create the bucket for the emaultor script if not in cache
         if (!_cacheEmulatorScripts || !_ClientCache.hasOwnProperty(_cacheName)) {
-            _ProgressBar.AddBucket('emulator', emulatorFileSize);
+
+            //_ProgressBar.AddBucket('emulator', emulatorFileSize);
         }
 
         //loading technique 1 -> emulator first
 
-        LoadEmulatorScript(_ProgressBar, _gameKey.system, module, emulatorFileSize, emulatorLoadComplete);
+        LoadEmulatorScript(_gameKey.system, module, emulatorLoadComplete);
         
         $.when(emulatorLoadComplete).done(function(a, b, c) {
             
             var emulator = [a,b,c]; //combine as it were
 
-            LoadSupportFiles(_ProgressBar, _gameKey.system, supportFileSize, supportLoadComplete);
-            LoadGame(_ProgressBar, filesize, gameLoadComplete);
-            LoadShader(_ProgressBar, shader, shaderFileSize, shaderLoadComplete);
+            LoadSupportFiles(_gameKey.system, supportFileSize, supportLoadComplete);
+            LoadGame(gameLoadComplete);
+            LoadShader(shader, shaderLoadComplete);
 
             $.when(emulatorLoadComplete, supportLoadComplete, gameLoadComplete, shaderLoadComplete).done(function(emulator, support, game, shader) {
                 
@@ -730,7 +729,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
      * @param  {Object} deffered
      * @return {undef}
      */
-    var LoadEmulatorScript = function(_ProgressBar, system, module, filesize, deffered) {
+    var LoadEmulatorScript = function(system, module, deffered) {
 
         //the path is made of three sections, 1) cdn or local 2) the extention name is the folder where they are stored 3) the file itself
         var scriptPath = _config.paths.emulators + '/' + _config.systemdetails[system].emuextention + '/' + _config.systemdetails[system].emuscript;
@@ -757,15 +756,15 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
             return;
         }
 
+        var emulatorProgressBar = new cesProgressBar(loadingprogressbar); //this weird syntax just picks up this name from the dom
+
         LoadResource(scriptPath,
             //onProgress Update
-            function(loaded) {
-                _ProgressBar.Update('emulator', loaded);
+            function(loaded, total) {
+                emulatorProgressBar.Update(loaded, total);
             },
             //onSuccess
             function(response, status, jqXHR) {
-                
-                _ProgressBar.Update('emulator', filesize);
                 
                 if (_cacheEmulatorScripts) {
                     _ClientCache[_cacheName] = response;
@@ -788,7 +787,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
      * @param  {Object} deffered
      * @return {undef}
      */
-    var LoadSupportFiles = function(_ProgressBar, system, supportFileSize, deffered) {
+    var LoadSupportFiles = function(system, supportFileSize, deffered) {
 
         //rely entirely on the filesize from the config to inform us if we are to seek support files
         if (supportFileSize === 0) {
@@ -797,13 +796,15 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
             return;
         }
 
+        var supportProgressBar = new cesProgressBar(loadingprogressbar); //this weird syntax just picks up this name from the dom
+
         //support location also includes a folder which must match the emulator version
         var location = _config.paths.supportfiles + '/' + _config.systemdetails[system].emuextention + '/' + system;
 
         LoadResource(location,
             //onProgress Update
-            function(loaded) {
-                _ProgressBar.Update('support', loaded);
+            function(loaded, total) {
+                supportProgressBar.Update(loaded, total);
             },
             //onSuccess
             function(response, status, jqXHR) {
@@ -830,27 +831,28 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
      * @param  {Object} deffered
      * @return {undef}
      */
-    var LoadGame = function(_ProgressBar, filesize, deffered) {
+    var LoadGame = function(deffered) {
 
-        var filename = _Compression.Zip.string(_gameKey.title + _gameKey.file);
-        var location = _config.paths.roms + '/' + _gameKey.system + '/' + _config.systemdetails[_gameKey.system].romcdnversion + '/';
+        //var filename = _Compression.Zip.string(_gameKey.title + _gameKey.file);
+        var location = _config.paths.game + '/' + _gameKey.system + '/' + encodeURIComponent(_gameKey.gk);
 
         //encode twice: once for the trip, the second because the files are saved that way on the CDN
-        var firstEncode = encodeURIComponent(filename);
-        var secondEncode = encodeURIComponent(firstEncode);
+        //var firstEncode = encodeURIComponent(filename);
+        //var secondEncode = encodeURIComponent(firstEncode);
         
-        location += secondEncode;
+        //location += secondEncode;
+        var gameProgressBar = new cesProgressBar(loadingprogressbar); //this weird syntax just picks up this name from the dom
+        
 
         //converted from jsonp to straight up json. Seems to work. Going this route allows me to add
         //an event listener to progress for a download progress bar
         LoadResource(location,
             //onProgress Update
-            function(loaded) {
-                _ProgressBar.Update('game', loaded);
+            function(loaded, total) {
+                gameProgressBar.Update(loaded, total);
             },
             //onSuccess
             function(response, status, jqXHR) {
-                _ProgressBar.Update('game', filesize);
                 try {
                     response = JSON.parse(response);
                 } catch (e) {
@@ -873,7 +875,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
      * @param  {Object} deffered
      * @return {undefined}
      */
-    var LoadShader = function(_ProgressBar, name, shaderFileSize, deffered) {
+    var LoadShader = function(name, deffered) {
 
         //if no shader selected or unknown filesize (shouls always be in the config), bail
         if (name === "" || shaderFileSize === 0) {
@@ -881,12 +883,14 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
             return;
         }
 
+        var shaderProgressBar = new cesProgressBar(loadingprogressbar); //this weird syntax just picks up this name from the dom
+
         var location = _config.paths.shaders + '/' + name;
 
         LoadResource(location,
             //onProgress Update
-            function(loaded) {
-                _ProgressBar.Update('shader', loaded);
+            function(loaded, total) {
+                shaderProgressBar.Update(loaded, total);
             },
             //onSuccess
             function(response, status, jqXHR) {
@@ -918,13 +922,13 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
                 var xhr = new window.XMLHttpRequest();
                 xhr.upload.addEventListener('progress', function(event) {
                     if (event.loaded) {
-                        onProgressUpdate(event.loaded);
+                        onProgressUpdate(event.loaded, event.total);
                     }
                 }, false);
 
                 xhr.addEventListener('progress', function(event) {
                     if (event.loaded) {
-                        onProgressUpdate(event.loaded);
+                        onProgressUpdate(event.loaded, event.total);
                     }
                 }, false);
 

@@ -48,14 +48,28 @@ var cesTooltips = (function(_config, _Images, tooltipSelector, tooltipContentSel
         if ($el.hasClass(alreadyProcessedName)) {
             $el.tooltipster('destroy'); //remove any previus def
         }
+
+        //this will have multiple tooltips, one for loading
+
+        $el.tooltipster({
+            theme: 'tooltipster-shadow',
+            animation: 'grow',
+            delay: [1000, 100],
+            multiple: true,
+            animationDuration: [200, 300],
+            interactive: opt_interactive,
+            contentAsHTML: true,
+            content: '<div class="spinner"><div class="bounce1"></div><div class="bounce2"></div><div class="bounce3"></div></div>'
+        });
         
         $el.tooltipster({
             theme: 'tooltipster-shadow',
             animation: 'grow',
-            delay: [1200, 200],
+            delay: [1200, 100],
             animationDuration: [200, 300],
             interactive: opt_interactive,
             contentAsHTML: true,
+            multiple: true,
             content: $content,
             functionBefore: function(instance, helper) {
 
@@ -65,8 +79,15 @@ var cesTooltips = (function(_config, _Images, tooltipSelector, tooltipContentSel
                     //obtain the image
                     _Images.TitleScreen($imagewrapper, gameKey, 'a', function(success, response) {
                         
+                        //disable the loading tooltip
+                        var instances = $.tooltipster.instances($el);
+                        instances[0].disable();
+
                         $imagewrapper.addClass('titlescreenloaded'); //set the flag for the tooltip to allowed to be open and no more attempts to get it
                         instance.open(); //calling open will refire the functionBefore
+
+                        //change speed of this tooltip now
+                        instance.option ('delay', [1000, 100]);
 
                         //after openning remove flag to try again on the next tooltip show (it would be pulled from cache, or will try again over the network)
                         $imagewrapper.removeClass('titlescreenloaded');

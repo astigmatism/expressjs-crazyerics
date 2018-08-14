@@ -5,8 +5,8 @@
 		"box": "http://cdn.crazyerics.com/box",
 		"textures": "http://cdn.crazyerics.com/textures",
 		"shaders": "http://cdn.crazyerics.com/shaders/2017-12-27", /* shader image previews at https://buildbot.libretro.com/.docs/shader/introduction/ */
-		"boxes": "http://cdn.crazyerics.com/boxes",
 		"roms": "http://cdn.crazyerics.com/roms",
+		"game": "http://cdn.crazyerics.com/game",
 		"emulator_extensions": "emulatorextentions/",
 		"emulators": "http://cdn.crazyerics.com/emulators",
 		"supportfiles": "http://cdn.crazyerics.com/support",
@@ -34,7 +34,7 @@
 		"32x": {
 			"name": "Sega 32x",
 			"shortname": "Sega 32x",
-			"live": true,
+			"live": false,
 			"supportfilesize": 3025,
 			"romcdnversion": "GoodGen-3.14-32x-2018-07-07",
 			"emuextention": "1.6.9-stable",
@@ -46,7 +46,7 @@
 		"a2600": {
 			"name": "Atari 2600",
 			"shortname": "Atari 2600",
-			"live": true,
+			"live": false,
 			"supportfilesize": 0,
 			"collection": "Good2600 1.0.0",
 			"romcdnversion": "20180712",
@@ -58,7 +58,7 @@
 		"a7800": {
 			"name": "Atari 7800",
 			"shortname": "Atari 7800",
-			"live": true,
+			"live": false,
 			"romcdnversion": "20180712",
 			"supportfilesize": 0,
 			"collection": "Good7800 3.28",
@@ -107,7 +107,7 @@
 		"gb": {
 			"name": "Nintendo Game Boy",
 			"shortname": "Game Boy",
-			"live": true,
+			"live": false,
 			"supportfilesize": 0,
 			"romcdnversion": "20180712",
 			"collection": "GoodGBx 3.14",
@@ -129,7 +129,7 @@
 		"gbc": {
 			"name": "Nintendo Game Boy Color",
 			"shortname": "Game Boy Color",
-			"live": true,
+			"live": false,
 			"supportfilesize": 0,
 			"romcdnversion": "20180713",
 			"collection": "GoodGBx 3.14",
@@ -150,7 +150,7 @@
 		"gba": {
 			"name": "Nintendo Game Boy Advance",
 			"shortname": "Game Boy Advance",
-			"live": true,
+			"live": false,
 			"supportfilesize": 0,
 			"romcdnversion": "gba20180727",
 			"collection": "GoodGba3.23",
@@ -171,7 +171,7 @@
 		"gen": {
 			"name": "Sega Genesis / Mega Drive",
 			"shortname": "Sega Genesis",
-			"live": true,
+			"live": false,
 			"supportfilesize": 0,
 			"romcdnversion": "gen20180713",
 			"emuextention": "2017-03-27",
@@ -182,7 +182,7 @@
 		"gg": {
 			"name": "Sega Game Gear",
 			"shortname": "Sega Game Gear",
-			"live": true,
+			"live": false,
 			"collection": "GoodGG 3.20",
 			"romcdnversion": "gg20180713",
 			"supportfilesize": 0,
@@ -204,7 +204,7 @@
 			"name": "Atari Jaguar",
 			"shortname": "Atari Jaguar",
 			"collection":"GoodJag 2.01",
-			"live": true,
+			"live": false,
 			"supportfilesize": 0,
 			"romcdnversion": "jag20180713",
 			"emuextention": "1.6.9-stable",
@@ -214,7 +214,7 @@
 		"lynx": {
 			"name": "Atari Lynx",
 			"shortname": "Atari Lynx",
-			"live": true,
+			"live": false,
 			"supportfilesize": 0,
 			"collection":"GoodLynx 2.01",
 			"romcdnversion": "lynx20180713",
@@ -235,7 +235,7 @@
 		"n64": {
 			"name": "Nintendo 64",
 			"shortname": "Nintendo 64",
-			"live": true,
+			"live": false,
 			"supportfilesize": 0,
 			"collection": "GoodN64 3.27",
 			"romcdnversion": "n6420180715",
@@ -262,7 +262,7 @@
 		"nds": {
 			"name": "Nintendo DS",
 			"shortname": "Nintendo DS",
-			"live": true,
+			"live": false,
 			"supportfilesize": 0,
 			"romcdnversion": "nds20180801",
 			"emuextention": "1.6.9-stable",
@@ -282,7 +282,7 @@
 		"nes": {
 			"name": "Nintendo Entermainment System",
 			"shortname": "Nintendo",
-			"live": true,
+			"live": false,
 			"supportfilesize": 0,
 			"romcdnversion": "20180712",
 			"collection": "GoodNES 3.23b",
@@ -293,7 +293,7 @@
 		"ngpx": {
 			"name": "Neo Geo Pocket",
 			"shortname": "Neo Geo Pocket",
-			"live": true,
+			"live": false,
 			"supportfilesize": 0,
 			"romcdnversion": "ngpx20180713",
 			"collection": "GoodNGPx 3.14",
@@ -315,7 +315,7 @@
 		"pce": {
 			"name": "NEC TurboGrafx-16",
 			"shortname": "TurboGrafx-16",
-			"live": true,
+			"live": false,
 			"supportfilesize": 0,
 			"romcdnversion": "pce20180713",
 			"collection": "GoodPCE 1.09a GoodMerged",
@@ -348,7 +348,7 @@
 		"sms": {
 			"name": "Sega Master System / SG-1000 / SC-3000 / Mark III",
 			"shortname": "Sega Master System",
-			"live": true,
+			"live": false,
 			"supportfilesize": 0,
 			"romcdnversion": "sms20180713",
 			"emuextention": "1.6.9-stable",
@@ -369,7 +369,7 @@
 		"vb": {
 			"name": "Nintendo Virtual Boy",
 			"shortname": "Virtual Boy",
-			"live": true,
+			"live": false,
 			"supportfilesize": 0,
 			"collection": "GoodVBoy 3.1415",
 			"romcdnversion": "vb20180713",
@@ -390,7 +390,7 @@
 		"vect": {
 			"name": "Vectrex",
 			"shortname": "Vectrex",
-			"live": true,
+			"live": false,
 			"supportfilesize": 0,
 			"collection": "GoodVect 1.06",
 			"romcdnversion": "vect20180713",
