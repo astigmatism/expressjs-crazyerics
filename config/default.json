@@ -5,12 +5,12 @@
 		"boxfront": "http://cdn.crazyerics.com/box/front",
 		"audit": "http://cdn.crazyerics.com/audit",
 		"textures": "http://cdn.crazyerics.com/textures",
-		"shaders": "http://cdn.crazyerics.com:81/shaders/2017-12-27", /* shader image previews at https://buildbot.libretro.com/.docs/shader/introduction/ */
+		"shaders": "http://cdn.crazyerics.com/shaders/2017-12-27", /* shader image previews at https://buildbot.libretro.com/.docs/shader/introduction/ */
 		"boxes": "http://cdn.crazyerics.com/boxes",
-		"roms": "http://cdn.crazyerics.com:81/roms",
+		"roms": "http://cdn.crazyerics.com/roms",
 		"emulator_extensions": "emulatorextentions/",
 		"emulators": "http://cdn.crazyerics.com/emulators",
-		"supportfiles": "http://cdn.crazyerics.com:81/support",
+		"supportfiles": "http://cdn.crazyerics.com/support",
 		"screenupload": "http://cdn.crazyerics.com/contribute"
 		//"screenupload": "http://localhost:8001/contribute"
 	},
