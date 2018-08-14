@@ -13,7 +13,7 @@ var cesImages = (function(_config) {
     this.BoxFront = function(gameKey, cdnSizeModifier) {
         var img = new Image();
 
-        img.src = _config.paths.boxfront + '/' + cdnSizeModifier + '/' + encodeURIComponent(gameKey.gk);
+        img.src = _config.paths.box + '/front/' + cdnSizeModifier + '/' + encodeURIComponent(gameKey.gk);
         img.crossOrigin = 'anonymous'; //this is necessary when creating a new image from canvas
 
         return $(img);

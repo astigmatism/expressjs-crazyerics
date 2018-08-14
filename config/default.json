@@ -2,8 +2,7 @@
 	"paths": {
 		"images": "http://cdn.crazyerics.com/images",
 		"title": "http://cdn.crazyerics.com/title",
-		"boxfront": "http://cdn.crazyerics.com/box/front",
-		"audit": "http://cdn.crazyerics.com/audit",
+		"box": "http://cdn.crazyerics.com/box",
 		"textures": "http://cdn.crazyerics.com/textures",
 		"shaders": "http://cdn.crazyerics.com:81/shaders/2017-12-27", /* shader image previews at https://buildbot.libretro.com/.docs/shader/introduction/ */
 		"boxes": "http://cdn.crazyerics.com/boxes",
