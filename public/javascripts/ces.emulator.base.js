@@ -73,7 +73,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
      * @param {string} shader   a shader selection or pre-defined
      * @param {Object} deffered when complete
      */
-    this.Load = function(module, shader, supportFileSize, deffered) {
+    this.Load = function(module, shader, supportingFilesIncluded, deffered) {
 
         var emulatorLoadComplete = $.Deferred();
         var supportLoadComplete = $.Deferred();
@@ -99,7 +99,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
             
             var emulator = [a,b,c]; //combine as it were
 
-            LoadSupportFiles(_gameKey.system, supportFileSize, supportLoadComplete);
+            LoadSupportFiles(_gameKey.system, supportingFilesIncluded, supportLoadComplete);
             LoadGame(gameLoadComplete);
             LoadShader(shader, shaderLoadComplete);
 
@@ -787,10 +787,10 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
      * @param  {Object} deffered
      * @return {undef}
      */
-    var LoadSupportFiles = function(system, supportFileSize, deffered) {
+    var LoadSupportFiles = function(system, supportingFilesIncluded, deffered) {
 
         //rely entirely on the filesize from the config to inform us if we are to seek support files
-        if (supportFileSize === 0) {
+        if (!supportingFilesIncluded) {
             //system not handled, bail
             deffered.resolve();
             return;

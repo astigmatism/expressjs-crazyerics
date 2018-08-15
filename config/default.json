@@ -5,7 +5,6 @@
 		"box": "http://cdn.crazyerics.com/box",
 		"textures": "http://cdn.crazyerics.com/textures",
 		"shaders": "http://cdn.crazyerics.com/shaders/2017-12-27", /* shader image previews at https://buildbot.libretro.com/.docs/shader/introduction/ */
-		"roms": "http://cdn.crazyerics.com/roms",
 		"game": "http://cdn.crazyerics.com/game",
 		"emulator_extensions": "emulatorextentions/",
 		"emulators": "http://cdn.crazyerics.com/emulators",
@@ -282,8 +281,8 @@
 		"nes": {
 			"name": "Nintendo Entermainment System",
 			"shortname": "Nintendo",
-			"live": false,
-			"supportfilesize": 0,
+			"live": true,
+			"suportingfiles": false,
 			"romcdnversion": "20180712",
 			"collection": "GoodNES 3.23b",
 			"emuextention": "1.6.9-stable",
@@ -359,7 +358,7 @@
 			"name": "Super Nintendo Entermainment System",
 			"shortname": "Super Nintendo",
 			"live": true,
-			"supportfilesize": 0,
+			"supportingfiles": false,
 			"romcdnversion": "snes20180714",
 			"collection": "GoodSNES 3.23",
 			"emuextention": "1.6.9-stable",
