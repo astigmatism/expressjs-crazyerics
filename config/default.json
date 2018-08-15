@@ -149,8 +149,8 @@
 		"gba": {
 			"name": "Nintendo Game Boy Advance",
 			"shortname": "Game Boy Advance",
-			"live": false,
-			"supportfilesize": 0,
+			"live": true,
+			"suportingfiles": false,
 			"romcdnversion": "gba20180727",
 			"collection": "GoodGba3.23",
 			"emuextention": "1.6.9-stable",
