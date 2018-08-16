@@ -6,7 +6,7 @@
  * @param  {string} file         Super Mario Bros. 3 (U)[!].nes
  * @return {undef}
  */
-var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad, _Preferences, _gameKey, _ui, _ClientCache) {
+var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad, _Preferences, _gameKey, _ui, $loadingstatus, _Images, _ClientCache) {
 
     // private members
     var self = this;
@@ -81,15 +81,6 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
         var shaderLoadComplete = $.Deferred();
 
         _isLoading = true;
-
-        //setup progress bar
-        var emulatorFileSize = _config.systemdetails[_gameKey.system].emusize;
-
-        //only create the bucket for the emaultor script if not in cache
-        if (!_cacheEmulatorScripts || !_ClientCache.hasOwnProperty(_cacheName)) {
-
-            //_ProgressBar.AddBucket('emulator', emulatorFileSize);
-        }
 
         //loading technique 1 -> emulator first
 
@@ -756,12 +747,13 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
             return;
         }
 
-        var emulatorProgressBar = new cesProgressBar(loadingprogressbar); //this weird syntax just picks up this name from the dom
+        var emulatorProgressBar = new cesProgressBar(_Images, _gameKey, loadingprogressbar); //this weird syntax just picks up this name from the dom
 
         LoadResource(scriptPath,
             //onProgress Update
             function(loaded, total) {
-                emulatorProgressBar.Update(loaded, total);
+                var perc = emulatorProgressBar.Update(loaded, total);
+                $loadingstatus.text('Loading ' + _config.systemdetails[_gameKey.system].name);
             },
             //onSuccess
             function(response, status, jqXHR) {
@@ -796,7 +788,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
             return;
         }
 
-        var supportProgressBar = new cesProgressBar(loadingprogressbar); //this weird syntax just picks up this name from the dom
+        //var supportProgressBar = new cesProgressBar(_Images, _gameKey, loadingprogressbar); //this weird syntax just picks up this name from the dom
 
         //support location also includes a folder which must match the emulator version
         var location = _config.paths.supportfiles + '/' + _config.systemdetails[system].emuextention + '/' + system;
@@ -804,7 +796,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
         LoadResource(location,
             //onProgress Update
             function(loaded, total) {
-                supportProgressBar.Update(loaded, total);
+                //supportProgressBar.Update(loaded, total);
             },
             //onSuccess
             function(response, status, jqXHR) {
@@ -841,7 +833,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
         //var secondEncode = encodeURIComponent(firstEncode);
         
         //location += secondEncode;
-        var gameProgressBar = new cesProgressBar(loadingprogressbar); //this weird syntax just picks up this name from the dom
+        var gameProgressBar = new cesProgressBar(_Images, _gameKey, loadingprogressbar); //this weird syntax just picks up this name from the dom
         
 
         //converted from jsonp to straight up json. Seems to work. Going this route allows me to add
@@ -849,7 +841,8 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
         LoadResource(location,
             //onProgress Update
             function(loaded, total) {
-                gameProgressBar.Update(loaded, total);
+                var perc = gameProgressBar.Update(loaded, total);
+                $loadingstatus.text('Loading ' + _gameKey.title);
             },
             //onSuccess
             function(response, status, jqXHR) {
@@ -878,19 +871,20 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
     var LoadShader = function(name, deffered) {
 
         //if no shader selected or unknown filesize (shouls always be in the config), bail
-        if (name === "" || shaderFileSize === 0) {
+        if (name === "") {
             deffered.resolve();
             return;
         }
 
-        var shaderProgressBar = new cesProgressBar(loadingprogressbar); //this weird syntax just picks up this name from the dom
+        //var shaderProgressBar = new cesProgressBar(_Images, _gameKey, loadingprogressbar); //this weird syntax just picks up this name from the dom
 
         var location = _config.paths.shaders + '/' + name;
 
         LoadResource(location,
             //onProgress Update
             function(loaded, total) {
-                shaderProgressBar.Update(loaded, total);
+                var perc = shaderProgressBar.Update(loaded, total);
+                //$loadingstatus.text(perc + '% Retrieving Shader');
             },
             //onSuccess
             function(response, status, jqXHR) {

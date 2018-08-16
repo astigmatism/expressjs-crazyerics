@@ -16,8 +16,6 @@ router.post('/load', function(req, res, next) {
 
     var gk = decodeURIComponent(req.query.gk);
     var gameKey = null;                 //of type GameKey (see utilities)
-    var shader = req.body.shader;       //name of shader file to load
-    var shaderFileSize = 0;
 
     //sanitize expected values
     try {
@@ -47,17 +45,10 @@ router.post('/load', function(req, res, next) {
                     SaveService.Sync.Outgoing(userId, eGameKey, (err, initialSaveData) => {
                         if (err) return next(err);
 
-                        //if a shader was selected, return its filesize for the progress bar
-                        if (shader) {
-                            shaderFileSize = config.shaders.hasOwnProperty(shader) ? config.shaders[shader].s : 0;
-                        }
-
                         var result = {
                             saves: initialSaveData,         //initial save data
                             files: gameDetails.files,       //rom files
-                            info: gameDetails.info,         //thegamesdb data
-                            size: gameDetails.size,         //file size data
-                            shaderFileSize: shaderFileSize  //will be 0 if no shader to load
+                            info: gameDetails.info         //thegamesdb data
                         };
     
                         SyncService.Outgoing(result, userId, eGameKey, (err, compressedResult) => {

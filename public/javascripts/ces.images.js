@@ -13,7 +13,7 @@ var cesImages = (function(_config) {
     this.BoxFront = function(gameKey, cdnSizeModifier) {
         var img = new Image();
 
-        img.src = _config.paths.box + '/front/' + cdnSizeModifier + '/' + encodeURIComponent(gameKey.gk);
+        img.src = _self.BoxFrontSrc(gameKey, cdnSizeModifier);
         img.crossOrigin = 'anonymous'; //this is necessary when creating a new image from canvas
 
         return $(img);
@@ -22,6 +22,10 @@ var cesImages = (function(_config) {
     this.$BoxFront = function(gameKey, cdnSizeModifier) {
         return $(_self.BoxFront(gameKey, cdnSizeModifier));
     };
+
+    this.BoxFrontSrc = function(gameKey, cdnSizeModifier) {
+        return _config.paths.box + '/front/' + cdnSizeModifier + '/' + encodeURIComponent(gameKey.gk);
+    }
 
     /**
      * For obtaining title screens from the CDN and inserting (or not if error) them into the provided wrapper

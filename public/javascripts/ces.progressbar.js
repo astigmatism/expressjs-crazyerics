@@ -1,5 +1,5 @@
 //bar from: https://loading.io/progress/
-var cesProgressBar = (function(_wrapper, sytleConfig) {
+var cesProgressBar = (function(_Images, _gameKey, _wrapper, sytleConfig) {
 
     //private members
     var _self = this;
@@ -9,35 +9,20 @@ var cesProgressBar = (function(_wrapper, sytleConfig) {
 
     this.Update = function(amount, total) {
 
-        var percentage = (amount / total);
-
-        console.log('Progress :' + amount + '/' + total + ' (' + (percentage) * 100 + '%)');
-        
+        var ratio = (amount / total);
+        var percentage = Math.ceil(ratio * 100);
+        //console.log('Progress :' + amount + '/' + total + ' (' + (percentage) * 100 + '%)');
         _bar.set(percentage);
-    };
-
-    this.Reset = function() {
-        for (var bar in bars) {
-            bars[bar].set(0);
-        }
+        return percentage;
     };
 
     //private methods
 
     var Constructor = (function() {
 
-        $(document).ready(function() {
-
-            //progress bar
-            _bar = new ProgressBar.Line(_wrapper, {
-                strokeWidth: 4,
-                easing: 'easeInOut',
-                duration: 100,
-                color: '#00B7FF',
-                trailColor: '#eee',
-                trailWidth: 1,
-                svgStyle: {width: '100%', height: '100%'}
-            });
+        _bar = new ldBar(_wrapper, {
+            "type": "fill",
+            "img": _Images.BoxFrontSrc(_gameKey, 'a')
         });
     
     })();

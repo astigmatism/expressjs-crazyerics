@@ -724,11 +724,11 @@ p {
 	top: 100px;
 }
 
-#gameloadingname {
-	position: absolute;
-	bottom: 20px;
+#loadingstatus {
 	text-align: center;
 	width: 100%;
+	position: absolute;
+	bottom: 80px;
 }
 
 #tip {
@@ -751,7 +751,7 @@ p {
 #loadingprogressbar {
 
 	position: absolute;
-	bottom: 130px;
+	bottom: 180px;
 	left: 490px;
 	width: 300px;
   	height: 12px;

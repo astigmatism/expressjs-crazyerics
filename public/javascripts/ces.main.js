@@ -398,9 +398,10 @@ var cesMain = (function() {
         _Collections.SetCurrentGameLoading(gameKey); //inform collections what the current game is so that they don't attempt to delete it during load
 
         $('#loadingprogressbar').empty(); //didn't have a more convienent place for this!
+        $('#loadingstatus').text("Packaging Content");
 
         //which emulator to load?
-        EmulatorFactory(gameKey, function(err, emulator) {
+        EmulatorFactory(gameKey, $('#loadingstatus'), function(err, emulator) {
             if (err) {
                 //not sure how to handle this yet
                 console.error(err);
@@ -427,8 +428,8 @@ var cesMain = (function() {
                     //game load dialog show
                     _Dialogs.Open('GameLoading', [gameKey], false, function(tipInterval) {
 
+
                         var optionsToSendToServer = {
-                            shader: shaderSelection.shader,  //name of shader file
                         };
 
                         //this call is a POST. Unlike the others, it is destined for the mongo instance (MY DOMAIN not a cdn). we send user preference data to the server in addition to getting game details.
@@ -439,15 +440,13 @@ var cesMain = (function() {
 
                             var saves = gameDetails.saves;
                             var files = gameDetails.files;
-                            var shaderFileSize = gameDetails.shaderFileSize; //will be 0 if no shader to load
-                            var supportingFilesIncluded = _config.systemdetails[gameKey.system].supportingFiles; //will be 0 for systems without support
+                            var supportFilesIncluded = _config.systemdetails[gameKey.system].supportfiles; //will be 0 for systems without support
                             var info = {};
                             try {
                                 info = JSON.parse(gameDetails.info);
                             } catch (e) {
                                 //meh
                             }
-                            var filesize = gameDetails.size;
 
                             //add this bail for when bulding featured collections
                             if (_config.defaults.copyToFeatured) {
@@ -458,7 +457,7 @@ var cesMain = (function() {
                             //begin loading all content. I know it seems like some of these (game, emulator, etc) could load while the user
                             //is viewing the shader select, but I found that when treated as background tasks, it interfere with the performance
                             //of the shader selection ui. I think its best to wait until the loading animation is up to perform all of these
-                            _Emulator.Load(_Emulator.createModule(), shaderSelection.shader, supportingFilesIncluded, emulatorLoadComplete);
+                            _Emulator.Load(_Emulator.createModule(), shaderSelection.shader, supportFilesIncluded, emulatorLoadComplete);
 
                             //when all deffered calls are ready
                             $.when(emulatorLoadComplete).done(function(emulatorLoaded) {
@@ -640,7 +639,7 @@ var cesMain = (function() {
         });
     };
 
-    var EmulatorFactory = function(gameKey, callback) {
+    var EmulatorFactory = function(gameKey, $loadingstatus, callback) {
 
         var emuExtention = _config.systemdetails[gameKey.system].emuextention;
         var emuExtentionFileName = 'ces.' + emuExtention + '.js';
@@ -656,7 +655,7 @@ var cesMain = (function() {
                 };
 
                 //the class extention process: on the prototype of the ext, create using the base class.
-                cesEmulator.prototype = new cesEmulatorBase(_Compression, _PubSub, _config, _Sync, _Gamepad, _Preferences, gameKey, ui, _ClientCache);
+                cesEmulator.prototype = new cesEmulatorBase(_Compression, _PubSub, _config, _Sync, _Gamepad, _Preferences, gameKey, ui, $loadingstatus, _Images, _ClientCache);
 
                 var emulator = new cesEmulator(_Compression, _PubSub, _config, _Sync, _Gamepad, _Preferences, gameKey);
 

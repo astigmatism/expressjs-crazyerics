@@ -102,9 +102,7 @@ module.exports = new (function() {
                 file: null,
                 files: null,
                 gk: null,
-                boxart: null,
                 info: null,
-                size: null
             };
 
             //open data file for details
@@ -122,56 +120,24 @@ module.exports = new (function() {
                     data.gk = gameKey.gk;
                     data.files = masterFile[gameKey.title].f;
 
-                    //is there box art too?
-                    FileService.Get('/data/' + gameKey.system + '_boxfronts', function(err, boxFrontData) {
+                            
+                    //is there info?
+                    FileService.Get('/data/' + gameKey.system + '_thegamesdb', function(err, thegamesdb) {
                         if (err) {
+                            console.log(err);
                             //no need to trap here
                         } else {
 
-                            if (boxFrontData[gameKey.title]) {
-                                data.boxart = boxFrontData[gameKey.title];
+                            if (thegamesdb[gameKey.title]) {
+                                data.info = thegamesdb[gameKey.title];
                             }
                         }
-
-                        //get filesize so we have calc download progress
-                        FileService.Get('/data/' + gameKey.system + '_filedata', function(err, filedata) {
-                            if (err) {
-                                //no need to trap here
-                                console.log(err);
-                            } else {
-
-                                //see romsort project, cdnready task for file creation
-                                //var destinationFileName = Main.compress.string(title + fileorfolder);
-
-                                //the compressed file name matches the cdnready (or file uploaded to dropbox) filename
-                                var compressedFileName = UtilitiesService.Compress.string(gameKey.title + gameKey.file);
-                                var compressedFileName = encodeURIComponent(compressedFileName);
-
-                                if (filedata[compressedFileName] && filedata[compressedFileName].s) {
-                                    data.size = filedata[compressedFileName].s;
-                                }
-                            }
-
-                            
-                            //is there info?
-                            FileService.Get('/data/' + gameKey.system + '_thegamesdb', function(err, thegamesdb) {
-                                if (err) {
-                                    console.log(err);
-                                    //no need to trap here
-                                } else {
-
-                                    if (thegamesdb[gameKey.title]) {
-                                        data.info = thegamesdb[gameKey.title];
-                                    }
-                                }
                                 
-                                _gameDetailsCache.Set([gameKey.gk], data, (err, success) => {
-                                    if (err) {
-                                        return callback(err);
-                                    }
-                                    return callback(null, data);
-                                });
-                            });
+                        _gameDetailsCache.Set([gameKey.gk], data, (err, success) => {
+                            if (err) {
+                                return callback(err);
+                            }
+                            return callback(null, data);
                         });
                     });
 
