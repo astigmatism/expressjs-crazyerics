@@ -283,8 +283,7 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _GamePad, _Pr
 
                     //begin by decopressing all compressed file segments
                     for (i = 0; i < compressedGame.length; ++i) {
-                        var decompressed = _Compression.Unzip.string(compressedGame[i]);
-                        var view = pako.inflate(decompressed); //inflate compressed file contents (Uint8Array)
+                        var view = _Compression.Unzip.bytearray(compressedGame[i]);
                         bufferLength += view.length;
                         views[i] = view;
                     }
