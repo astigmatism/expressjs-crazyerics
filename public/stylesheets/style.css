@@ -694,7 +694,7 @@ p {
 /* game loading dialog */
 
 #dialogs div.GameLoading {
-	height: 600px;
+	height: 500px;
 }
 
 #dialogs div.GameLoading img {

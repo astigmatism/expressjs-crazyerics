@@ -834,7 +834,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
         
         //location += secondEncode;
         var gameProgressBar = new cesProgressBar(_Images, _gameKey, loadingprogressbar); //this weird syntax just picks up this name from the dom
-        
+        var startTime = Date.now();
 
         //converted from jsonp to straight up json. Seems to work. Going this route allows me to add
         //an event listener to progress for a download progress bar
@@ -846,6 +846,11 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
             },
             //onSuccess
             function(response, status, jqXHR) {
+                
+                var endTime = Date.now();
+
+                console.log('Game Loading took: ' + (endTime - startTime) + 'ms');
+                
                 try {
                     response = JSON.parse(response);
                 } catch (e) {

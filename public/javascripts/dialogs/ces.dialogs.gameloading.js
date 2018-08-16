@@ -40,7 +40,7 @@ var cesDialogsGameLoading = (function(_config, $el, $wrapper, args) {
             recipe = _config.loadingBoxRecipes[gameKey.system];
         }
         
-        var loadingWebGL = new cesLoadingWebGL(recipe, _Compression, _PubSub, _config.paths.textures, $('#webglloader'), img, texture, gameKey.system);
+        var loadingWebGL2 = new cesLoadingWebGL(recipe, _Compression, _PubSub, _config.paths.textures, $('#webglloader'), img, texture, gameKey.system);
 
         //show tips on loading
         var randomizedTips = shuffle(_tips);
