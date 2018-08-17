@@ -4,6 +4,7 @@ var cesLoadingWebGL = (function(_recipe, _Compression, _PubSub, _texturePath, $w
     var _self = this;
     var _width = $wrapper.parent().width();
     var _height = $wrapper.parent().height();
+    var _instances;
 
     var container, stats;
     var camera, scene, renderer;
@@ -16,7 +17,7 @@ var cesLoadingWebGL = (function(_recipe, _Compression, _PubSub, _texturePath, $w
         // geometry
         var vector = new THREE.Vector4();
         var triangles = 1;
-        var instances = 500;
+        _instances = 500;
         var positions = [];
         var offsets = [];
         var colors = [];
@@ -26,7 +27,7 @@ var cesLoadingWebGL = (function(_recipe, _Compression, _PubSub, _texturePath, $w
         positions.push( -0.025, 0.025, 0 );
         positions.push( 0, 0, 0.025 );
         // instanced attributes
-        for ( var i = 0; i < instances; i ++ ) {
+        for ( var i = 0; i < _instances; i ++ ) {
             // offsets
             offsets.push( Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5 );
             // colors
@@ -41,7 +42,7 @@ var cesLoadingWebGL = (function(_recipe, _Compression, _PubSub, _texturePath, $w
             orientationsEnd.push( vector.x, vector.y, vector.z, vector.w );
         }
         var geometry = new THREE.InstancedBufferGeometry();
-        geometry.maxInstancedCount = instances; // set so its initalized for dat.GUI, will be set in first draw otherwise
+        geometry.maxInstancedCount = _instances; // set so its initalized for dat.GUI, will be set in first draw otherwise
         geometry.addAttribute( 'position', new THREE.Float32BufferAttribute( positions, 3 ) );
         geometry.addAttribute( 'offset', new THREE.InstancedBufferAttribute( new Float32Array( offsets ), 3 ) );
         geometry.addAttribute( 'color', new THREE.InstancedBufferAttribute( new Float32Array( colors ), 4 ) );

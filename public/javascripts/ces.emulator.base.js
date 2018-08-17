@@ -753,7 +753,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
             //onProgress Update
             function(loaded, total) {
                 var perc = emulatorProgressBar.Update(loaded, total);
-                $loadingstatus.text('Loading ' + _config.systemdetails[_gameKey.system].name);
+                $loadingstatus.text(perc + '% Loading ' + _config.systemdetails[_gameKey.system].name);
             },
             //onSuccess
             function(response, status, jqXHR) {
@@ -842,7 +842,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
             //onProgress Update
             function(loaded, total) {
                 var perc = gameProgressBar.Update(loaded, total);
-                $loadingstatus.text('Loading ' + _gameKey.title);
+                $loadingstatus.text(perc + '% Loading ' + _gameKey.title);
             },
             //onSuccess
             function(response, status, jqXHR) {
@@ -888,7 +888,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
         LoadResource(location,
             //onProgress Update
             function(loaded, total) {
-                var perc = shaderProgressBar.Update(loaded, total);
+                //var perc = shaderProgressBar.Update(loaded, total);
                 //$loadingstatus.text(perc + '% Retrieving Shader');
             },
             //onSuccess

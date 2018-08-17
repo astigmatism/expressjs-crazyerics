@@ -721,7 +721,7 @@ p {
 	position: absolute;
 	text-align: center;
 	width: 100%;
-	top: 100px;
+	top: 80px;
 }
 
 #loadingstatus {
@@ -751,10 +751,11 @@ p {
 #loadingprogressbar {
 
 	position: absolute;
-	bottom: 180px;
-	left: 490px;
-	width: 300px;
-  	height: 12px;
+	bottom: 200px;
+	left: 50%;
+	margin: 0;
+	text-align: center;
+	display: inline-block;
 }
 
 /* save selection dialog */

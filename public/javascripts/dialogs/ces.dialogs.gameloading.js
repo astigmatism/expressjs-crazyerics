@@ -3,6 +3,7 @@ var cesDialogsGameLoading = (function(_config, $el, $wrapper, args) {
     var _Images = args[0];
     var _Compression = args[1];
     var _PubSub = args[2];
+    var _test;
 
     var _tipsCycleRate = 4000;
     var _tips = [
@@ -42,6 +43,10 @@ var cesDialogsGameLoading = (function(_config, $el, $wrapper, args) {
         
         var loadingWebGL2 = new cesLoadingWebGL(recipe, _Compression, _PubSub, _config.paths.textures, $('#webglloader'), img, texture, gameKey.system);
 
+        // _test = setInterval(function() {
+        //     loadingWebGL2._instances += 10000;
+        // }, 10);        
+
         //show tips on loading
         var randomizedTips = shuffle(_tips);
         var tipIndex = -1;
@@ -67,6 +72,10 @@ var cesDialogsGameLoading = (function(_config, $el, $wrapper, args) {
     };
 
     this.OnClose = function(callback) {
+
+        $('#webglloader').empty();
+        clearInterval(_test);
+
         return callback();
     };
 

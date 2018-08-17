@@ -12,18 +12,24 @@ var cesProgressBar = (function(_Images, _gameKey, _wrapper, sytleConfig) {
         var ratio = (amount / total);
         var percentage = Math.ceil(ratio * 100);
         //console.log('Progress :' + amount + '/' + total + ' (' + (percentage) * 100 + '%)');
-        _bar.set(percentage);
+        //_bar.set(percentage);
+        
         return percentage;
     };
 
     //private methods
 
     var Constructor = (function() {
-
-        _bar = new ldBar(_wrapper, {
-            "type": "fill",
-            "img": _Images.BoxFrontSrc(_gameKey, 'a')
-        });
+        
+        // _bar = new ProgressBar.Line(_wrapper, {
+        //     strokeWidth: 4,
+        //     easing: 'easeInOut',
+        //     duration: 100,
+        //     color: '#00B7FF',
+        //     trailColor: '#eee',
+        //     trailWidth: 1,
+        //     svgStyle: {width: '100%', height: '100%'}
+        // });
     
     })();
 
