@@ -54,7 +54,7 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _GamePad, _Pr
 
         //an override to prevent
         this.setWindowTitle = function(title) {
-            _PubSub.Publish('emulatorsetwindowtitle');
+            _PubSub.Publish('emulatorseemsready');
             console.log('Module wanted to rename title: ' + title);
         };
 
@@ -355,9 +355,9 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _GamePad, _Pr
             try { this.FS_createFolder('/home/web_user/', 'retroarch', true, true); } catch (e) {}
             try { this.FS_createFolder('/home/web_user/retroarch', 'userdata', true, true); } catch (e) {}
 
-            if (_config.retroarch) {
+            if (_config.retroarch['1.6.9-stable']) {
 
-                var retroArchConfig = _config.retroarch; //in json
+                var retroArchConfig = _config.retroarch['1.6.9-stable'].config; //in json
                 var configItem;
 
                 //system specific overrides

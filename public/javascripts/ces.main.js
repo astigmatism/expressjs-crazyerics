@@ -485,16 +485,11 @@ var cesMain = (function() {
                                         // load state? bails if not set
                                         _Emulator.WriteSaveData(selectedSaveTimeStamp, function(stateToLoad) { //if save not set, bails on null
 
-                                            //begin game, callback is function which handles expections for any emulator error
-                                            _Emulator.StartEmulator(function(e) {
-                                                _PubSub.Publish('error', ['There was an error with the emulator:', e]);
-                                            });
-
                                             //this is a weird one I know.
                                             //The most reliable way I've found that the emulator is running and ready for input is when it
                                             //attempts to write to the window title. When that occurs for the first time,
                                             //we can begin to load a state (or not)
-                                            _PubSub.SubscribeOnce('emulatorsetwindowtitle', self, function() {
+                                            _PubSub.SubscribeOnce('emulatorseemsready', self, function() {
                                                 
                                                 //load state? bails if null.. if valid, will show a new save loading dialog
                                                 //and will load state. callback occurs after state has loaded
@@ -557,6 +552,11 @@ var cesMain = (function() {
                                                     });
                                                 });
                                             }, true); //subscribe once, exclusive flag
+
+                                            //begin game, callback is function which handles expections for any emulator error
+                                            _Emulator.StartEmulator(function(e) {
+                                                _PubSub.Publish('error', ['There was an error with the emulator:', e]);
+                                            });
                                         });
                                     }, artificialDelayForLoadingScreen);
                                 });

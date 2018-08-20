@@ -302,7 +302,6 @@ module.exports = new (function() {
         
         var configdata = {};
         var systems = config.get('systems');
-        var emulators = config.get('emulators');
         var canned = config.get('cannedRecipes');
 
         configdata['systemdetails'] = {};
@@ -323,7 +322,6 @@ module.exports = new (function() {
                     'romcdnversion': systems[system].romcdnversion,
                     'emuextention': systems[system].emuextention,
                     'emuscript': systems[system].emuscript,
-                    'emusize': emulators[systems[system].emuextention][systems[system].emuscript].s, //the emu script is the key into this config
                     'retroarch': systems[system].retroarch,
                     'screenshotaspectratio': systems[system].screenshotaspectratio,
                     'supportfilesize': systems[system].supportfilesize,

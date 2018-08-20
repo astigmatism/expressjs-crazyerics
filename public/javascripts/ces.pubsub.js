@@ -8,12 +8,20 @@ var cesPubSub = (function() {
     var self = this;
     var _topics = {};
     var _muted = {};
-    var _debug = true; //when true, console logging
+    var _sustained = {};
+    var _debug = false; //when true, console logging
     
     //public members
 
-    this.Publish = function(topic, args) {
+    this.Publish = function(topic, args, _optSustained) {
 
+        //sustained means that anytime anyone subscribes to this topic, 
+        //a previously publish to the topic is saved and published back to that listener
+        if (_optSustained) {
+            _sustained[topic] = args;
+        }
+
+        //if a topic is not subscribed to, throw away publish
         if (!_topics.hasOwnProperty(topic)) {
             return;
         }
@@ -117,6 +125,11 @@ var cesPubSub = (function() {
             countdown: countdown
         });
         --index;
+
+        //if topic has been sustained, publish it again now
+        if (topic in _sustained) {
+            self.Publish(topic, _sustained[topic])
+        }
 
         //we can use this to allow a sub to remove itself, check first since I could have removed it through unsub
         return function() {
