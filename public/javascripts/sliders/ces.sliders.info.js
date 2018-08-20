@@ -11,7 +11,7 @@ var cesSlidersInfo = (function(_config, $li, $panel) {
         if (_images && _gameKey) {
             _images.TitleScreen($titleWrapper, _gameKey, 'b', function(success) {
                 //not really anything I care about here. Either it loaded or it didn't
-            }); 
+            });
         }
 
         callback(true);
