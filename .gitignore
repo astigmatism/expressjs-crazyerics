@@ -6,3 +6,4 @@ public/flattened
 public/zipped
 public/jsonify/
 public/build/build.js.map
+node_modules/*
