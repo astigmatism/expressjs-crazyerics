@@ -42,7 +42,7 @@ var cesDialogsGameLoading = (function(_config, $el, $wrapper, args) {
             recipe = _config.loadingBoxRecipes[gameKey.system];
         }
         
-        var cesWebGlParticleAnimation1 = new cesWebGlParticleAnimation1(recipe, _Compression, _PubSub, _config.paths.textures, $webgl, img, texture, gameKey.system);
+        var webgl = new cesWebGlParticleAnimation(recipe, _Compression, _PubSub, _config.paths.textures, $webgl, img, texture, gameKey.system);
 
         _openCallback();
     };

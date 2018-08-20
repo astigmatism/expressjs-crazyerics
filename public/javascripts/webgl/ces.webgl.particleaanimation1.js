@@ -1,4 +1,4 @@
-var cesWebGlParticleAnimation1 = (function(_recipe, _Compression, _PubSub, _texturePath, $wrapper, box, texture, system) {
+var cesWebGlParticleAnimation = (function(_recipe, _Compression, _PubSub, _texturePath, $wrapper, box, texture, system) {
     
     //private members
     var _self = this;
@@ -112,4 +112,6 @@ var cesWebGlParticleAnimation1 = (function(_recipe, _Compression, _PubSub, _text
         
     init();
     animate();
+
+    return this;
 });

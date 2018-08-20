@@ -52,6 +52,10 @@ var cesPreferences = (function(_Compression, _PubSub, initialData) {
         SetStorage();
     };
 
+    this.SetIndexedDB = function(key, value) {
+
+    };
+
     this.Remove = function(key) {
 
         var pieces = key.split('.');
@@ -132,7 +136,6 @@ var cesPreferences = (function(_Compression, _PubSub, initialData) {
         }
 
         _self.Sync.ready = true; //update the server with validated data
-
 
         //listen to these
         _PubSub.Subscribe('setpreference', _self, function(key, value) {

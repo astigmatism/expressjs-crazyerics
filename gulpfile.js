@@ -44,7 +44,7 @@ gulp.task('watch', function() {
 
 gulp.task('uglify', function(callback) {
     pump([
-        gulp.src(['./public/javascripts/*.js', './public/javascripts/*/*.js']),
+        gulp.src(['./public/javascripts/**/*.js', '!./public/javascripts/dev/*.js']),
         sourcemaps.init(),
         concat('app.min.js'),
         uglify(),

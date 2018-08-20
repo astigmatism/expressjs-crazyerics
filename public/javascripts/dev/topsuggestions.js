@@ -1,4 +1,4 @@
-var TopSuggestions = (function() {
+var cesdevTopSuggestions = (function() {
 
     var _self = this;
 	

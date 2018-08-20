@@ -6,7 +6,7 @@
  * @param  {string} file         Super Mario Bros. 3 (U)[!].nes
  * @return {undef}
  */
-var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad, _Preferences, _gameKey, _ui, $loadingstatus, _Images, _ClientCache) {
+var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad, _Preferences, _gameKey, _ui, _Images, _ClientCache) {
 
     // private members
     var self = this;
@@ -81,7 +81,6 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
         var shaderLoadComplete = $.Deferred();
 
         _isLoading = true;
-        $loadingstatus.text('Preparing ' + _config.systemdetails[_gameKey.system].name);
 
         //loading technique 1 -> emulator first
 
@@ -752,7 +751,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
             //onProgress Update
             function(loaded, total) {
                 var perc = emulatorProgressBar.Update(loaded, total);
-                $loadingstatus.text(perc + '% Loading ' + _config.systemdetails[_gameKey.system].name);
+                _ui.status.text(perc + '% Loading ' + _config.systemdetails[_gameKey.system].name);
             },
             //onSuccess
             function(response, status, jqXHR) {
@@ -831,7 +830,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
         //var firstEncode = encodeURIComponent(filename);
         //var secondEncode = encodeURIComponent(firstEncode);
 
-        $loadingstatus.text('Preparing ' + _gameKey.title);
+        _ui.status.text('Packaging Content');
         
         //location += secondEncode;
         var gameProgressBar = new cesProgressBar(_Images, _gameKey, loadingprogressbar); //this weird syntax just picks up this name from the dom
@@ -843,7 +842,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
             //onProgress Update
             function(loaded, total) {
                 var perc = gameProgressBar.Update(loaded, total);
-                $loadingstatus.text(perc + '% Loading ' + _gameKey.title);
+                _ui.status.text(perc + '% Loading ' + _gameKey.title);
             },
             //onSuccess
             function(response, status, jqXHR) {
@@ -890,7 +889,6 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
             //onProgress Update
             function(loaded, total) {
                 //var perc = shaderProgressBar.Update(loaded, total);
-                //$loadingstatus.text(perc + '% Retrieving Shader');
             },
             //onSuccess
             function(response, status, jqXHR) {

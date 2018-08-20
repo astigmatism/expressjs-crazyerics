@@ -391,9 +391,10 @@ var cesMain = (function() {
         _Collections.SetCurrentGameLoading(gameKey); //inform collections what the current game is so that they don't attempt to delete it during load
 
         $('#loadingprogressbar').empty(); //didn't have a more convienent place for this!
+        $('#loadingstatus').text('Preparing Content');
 
         //which emulator to load?
-        EmulatorFactory(gameKey, $('#loadingstatus'), function(err, emulator) {
+        EmulatorFactory(gameKey, function(err, emulator) {
             if (err) {
                 //not sure how to handle this yet
                 console.error(err);
@@ -626,7 +627,7 @@ var cesMain = (function() {
         });
     };
 
-    var EmulatorFactory = function(gameKey, $loadingstatus, callback) {
+    var EmulatorFactory = function(gameKey, callback) {
 
         var emuExtention = _config.systemdetails[gameKey.system].emuextention;
         var emuExtentionFileName = 'ces.' + emuExtention + '.js';
@@ -638,11 +639,12 @@ var cesMain = (function() {
                 var ui = {
                     'wrapper': $('#emulatorwrapper'),
                     'canvas': $('#emulator'),
-                    'helper': $('#emulatorpositionhelper')
+                    'helper': $('#emulatorpositionhelper'),
+                    'status': $('#loadingstatus')
                 };
 
                 //the class extention process: on the prototype of the ext, create using the base class.
-                cesEmulator.prototype = new cesEmulatorBase(_Compression, _PubSub, _config, _Sync, _Gamepad, _Preferences, gameKey, ui, $loadingstatus, _Images, _ClientCache);
+                cesEmulator.prototype = new cesEmulatorBase(_Compression, _PubSub, _config, _Sync, _Gamepad, _Preferences, gameKey, ui, _Images, _ClientCache);
 
                 var emulator = new cesEmulator(_Compression, _PubSub, _config, _Sync, _Gamepad, _Preferences, gameKey);
 
