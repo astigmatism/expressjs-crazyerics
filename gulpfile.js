@@ -37,7 +37,7 @@ watcher.on('change', function(event) {
 gulp.task('watch', function() {
     //run these sequences in this order:
     //runSequence('jscsfixjustwhitespace', 'jscs', 'lint', function() {
-    runSequence('jscs', 'lint', 'minify-css', 'js', function() {
+    runSequence('jscs', 'lint', 'minify-css', 'uglify', function() {
         return;
     });
 });

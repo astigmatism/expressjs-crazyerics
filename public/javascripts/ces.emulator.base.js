@@ -732,8 +732,6 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
             $.globalEval(script);
 
             var emulatorScriptInstance = new cesRetroArchEmulator(module);
-            
-            //console.log('emulator ready');
 
             //this timeout is important, it gives the previous steps (globalEval, instantiation) enough time
             //to sort themselves out. without this timeout, I get errors 
