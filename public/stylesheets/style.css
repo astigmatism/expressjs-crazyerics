@@ -487,7 +487,7 @@ p {
 	height: 40px;
 	display: inline-block;
 	margin-right: 5px;
-	background: #fff url("/images/toolbar-gamepad-disconnect.png") center center no-repeat;
+	background: #fff url("http://cdn.crazyerics.com/images/toolbar-gamepad-disconnect.png") center center no-repeat;
 
 	transition:All 200ms ease-in;
 	-webkit-transition:All 200ms ease-in;
@@ -496,7 +496,7 @@ p {
 }
 
 #toolbar .gamepads ul li.connected {
-	background: #fff url("/images/toolbar-gamepad-connected.png") center center no-repeat;
+	background: #fff url("http://cdn.crazyerics.com/images/toolbar-gamepad-connected.png") center center no-repeat;
 }
 
 #toolbar .gamepads ul li:last-child {
@@ -878,7 +878,7 @@ p {
 }
 
 #notificationwrapper div.spinner {
-	background-image: url('/images/notification.svg');
+	background-image: url('http://cdn.crazyerics.com/images/notification.svg');
 	background-position: center center;
 	background-repeat: no-repeat;
 	height: 40px;
