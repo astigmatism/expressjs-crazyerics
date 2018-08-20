@@ -4352,16 +4352,6 @@ var cesProgressBar = (function(_Images, _gameKey, _wrapper, sytleConfig) {
     //private methods
 
     var Constructor = (function() {
-        
-        // _bar = new ProgressBar.Line(_wrapper, {
-        //     strokeWidth: 4,
-        //     easing: 'easeInOut',
-        //     duration: 100,
-        //     color: '#00B7FF',
-        //     trailColor: '#eee',
-        //     trailWidth: 1,
-        //     svgStyle: {width: '100%', height: '100%'}
-        // });
     
     })();
 
