@@ -46,8 +46,8 @@ gulp.task('uglify', function(callback) {
     pump([
         gulp.src('./public/javascripts/*.js'),
         sourcemaps.init(),
-        concat('build.js'),
-        uglify(),
+        concat('app.min.js'),
+        //uglify(),
         //sourcemaps.write('./'),
         gulp.dest(DEST)
     ], callback);
