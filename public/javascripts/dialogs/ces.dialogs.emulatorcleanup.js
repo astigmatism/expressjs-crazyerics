@@ -11,7 +11,7 @@ var cesDialogsEmulatorCleanup = (function(_config, $el, $wrapper, args) {
     var Open = function() {
         setTimeout(function() {
             _openCallback();
-        }, _artificalTimeout)
+        }, _artificalTimeout);
     };
 
     this.OnClose = function(callback) {

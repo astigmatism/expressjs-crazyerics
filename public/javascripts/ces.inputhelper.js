@@ -376,7 +376,7 @@ var cesInputHelper = (function(_Emulator, _Preferences, _Gamepad, _ui) {
         //for each game pad, get input, returns array of array of input configurations (like _defaultKeyboardMapping)
         var mappings = _Gamepad.GetConfiguredGamepadInput(gameKey);
 
-        for (var playerIndex; playerIndex < mappings.length; playerIndex++) {
+        for (playerIndex; playerIndex < mappings.length; playerIndex++) {
 
             //inputConfig += 'input_player' + (playerIndex + 1) + '_joypad_index = ' + playerIndex + '\n';
 
@@ -394,7 +394,7 @@ var cesInputHelper = (function(_Emulator, _Preferences, _Gamepad, _ui) {
                     11: 8,
                     6: '\"+4\"',
                     7: '\"+5\"'
-                }
+                };
 
                 if (sdl2[assignment]) {
                     assignment = sdl2[assignment];

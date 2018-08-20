@@ -135,7 +135,7 @@ var cesGamePad = (function(_config, _Compression, _PubSub, _Tooltips, _Preferenc
 
     this.GetGamePadDetails = function() {
         return _gamepads;
-    }
+    };
 
     // private methods
 

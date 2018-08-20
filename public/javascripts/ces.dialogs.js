@@ -38,7 +38,7 @@ var cesDialogs = (function(_config, $wrapper) {
             'element': $el,
             'module': module,
             'height': height
-        }
+        };
 
         //if flagged as initial, open now
         //dont put close on the initial dialog as the animation out will run
@@ -67,7 +67,7 @@ var cesDialogs = (function(_config, $wrapper) {
             });
 
             ProcessQueue();
-        }
+        };
 
         //if dialog is already open, lets setup to close it first
         if (_currentDialog) {
@@ -97,7 +97,7 @@ var cesDialogs = (function(_config, $wrapper) {
             'callback': callback
         });
         ProcessQueue();
-    }
+    };
 
     var PriorityClose = function(callback) {
 

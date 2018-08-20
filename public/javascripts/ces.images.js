@@ -25,7 +25,7 @@ var cesImages = (function(_config) {
 
     this.BoxFrontSrc = function(gameKey, cdnSizeModifier) {
         return _config.paths.box + '/front/' + cdnSizeModifier + '/' + encodeURIComponent(gameKey.gk);
-    }
+    };
 
     /**
      * For obtaining title screens from the CDN and inserting (or not if error) them into the provided wrapper
