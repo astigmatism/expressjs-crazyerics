@@ -398,7 +398,7 @@ var cesMain = (function() {
         _Collections.SetCurrentGameLoading(gameKey); //inform collections what the current game is so that they don't attempt to delete it during load
 
         $('#loadingprogressbar').empty(); //didn't have a more convienent place for this!
-        $('#loadingstatus').text("Packaging Content");
+        $('#loadingstatus').text("Preparing Content");
 
         //which emulator to load?
         EmulatorFactory(gameKey, $('#loadingstatus'), function(err, emulator) {

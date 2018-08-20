@@ -831,6 +831,8 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
         //encode twice: once for the trip, the second because the files are saved that way on the CDN
         //var firstEncode = encodeURIComponent(filename);
         //var secondEncode = encodeURIComponent(firstEncode);
+
+        $loadingstatus.text('Preparing ' + _gameKey.title);
         
         //location += secondEncode;
         var gameProgressBar = new cesProgressBar(_Images, _gameKey, loadingprogressbar); //this weird syntax just picks up this name from the dom
