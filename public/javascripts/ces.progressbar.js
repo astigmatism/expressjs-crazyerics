@@ -13,7 +13,7 @@ var cesProgressBar = (function(_Images, _gameKey, _wrapper, sytleConfig) {
         var percentage = Math.ceil(ratio * 100);
         //console.log('Progress :' + amount + '/' + total + ' (' + (percentage) * 100 + '%)');
         //_bar.set(percentage);
-        
+
         return percentage;
     };
 

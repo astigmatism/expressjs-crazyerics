@@ -20,6 +20,7 @@
     "express-session": "^1.15.6",
     "fs-extra": "^7.0.0",
     "grunt-bower-task": "^0.5.0",
+    "gulp-csso": "^3.0.1",
     "gulp-minify": "^1.0.0",
     "js-beautify": "^1.7.5",
     "merge": "^1.2.0",

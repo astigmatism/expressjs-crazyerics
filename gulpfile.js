@@ -7,7 +7,7 @@ var concat = require('gulp-concat');
 var runSequence = require('run-sequence');
 var uglify = require('gulp-uglify');
 //var minify = require('gulp-minify');
-var cleancss = require('gulp-clean-css');
+var minifyCSS = require('gulp-csso');
 var sourcemaps = require('gulp-sourcemaps');
 var pump = require('pump');
 
@@ -121,7 +121,7 @@ gulp.task('closure', function() {
 gulp.task('minify-css', function(callback) {
     pump([
         gulp.src('./public/stylesheets/*.css'),
-        cleancss(),
+        minifyCSS(),
         concat('style.min.css'),
         gulp.dest(DEST)
     ], callback);
