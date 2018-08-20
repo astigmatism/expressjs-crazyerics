@@ -1,44 +1,44 @@
-// var TopSuggestions = (function() {
+var TopSuggestions = (function() {
 
-//     var _self = this;
+    var _self = this;
 	
-// 	$(document).ready(function() {
+	$(document).ready(function() {
 
-//         $ul = $('#grid');
+        $ul = $('#grid');
 
-// 		$.each(boxFronts, function(title, details) {
+		$.each(boxFronts, function(title, details) {
 
-//             var $li = $('<li class="grid-item" data-title="' + title + '" />');
+            var $li = $('<li class="grid-item" data-title="' + title + '" />');
 
-//             if (currentTs[title]) {
-//                 $li.addClass('selected');
-//             }
+            if (currentTs[title]) {
+                $li.addClass('selected');
+            }
 
-//             $li.append('<div>' + title + '</div>');
-//             var $img = $('<img src="' + cdn + '/' + encodeURIComponent(details.gk) + '" />');            
-//             $li.append($img);
-//             $li.append('<div>' + details.score + '</div>');
-//             $li.append('<div> cdn rank: ' + details.rank + '</div>');
+            $li.append('<div>' + title + '</div>');
+            var $img = $('<img src="' + cdn + '/' + encodeURIComponent(details.gk) + '" />');            
+            $li.append($img);
+            $li.append('<div>' + details.score + '</div>');
+            $li.append('<div> cdn rank: ' + details.rank + '</div>');
 
-//             $img.imagesLoaded().done(function(imgLoad, image) {
-//                 //_grid.isotope('layout');
-//             });
+            $img.imagesLoaded().done(function(imgLoad, image) {
+                //_grid.isotope('layout');
+            });
 
-//             $li.on('click', function() {
-//                 $li.toggleClass('selected');
+            $li.on('click', function() {
+                $li.toggleClass('selected');
 
-//                 $.ajax({
-//                     url: '/dev/ts/' + system,
-//                     type: $li.hasClass('selected') ? 'PUT' : 'DELETE',
-//                     data: {
-//                         t: title
-//                     }
-//                 });
+                $.ajax({
+                    url: '/dev/ts/' + system,
+                    type: $li.hasClass('selected') ? 'PUT' : 'DELETE',
+                    data: {
+                        t: title
+                    }
+                });
 
-//             });
-//             $ul.append($li);
+            });
+            $ul.append($li);
 
-//         });
-//     });
+        });
+    });
 
-// })();
+})();

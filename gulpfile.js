@@ -44,28 +44,20 @@ gulp.task('watch', function() {
 
 gulp.task('uglify', function(callback) {
     pump([
-        gulp.src('./public/javascripts/*.js'),
+        gulp.src(['./public/javascripts/*.js', './public/javascripts/*/*.js']),
         sourcemaps.init(),
         concat('app.min.js'),
-        //uglify(),
+        uglify(),
         //sourcemaps.write('./'),
         gulp.dest(DEST)
     ], callback);
 });
 
-gulp.task('js', function(){
-    return gulp.src('./public/javascript/*.js')
-      .pipe(sourcemaps.init())
-      .pipe(concat('build.js'))
-      .pipe(sourcemaps.write())
-      .pipe(gulp.dest(DEST))
-  });
-
 // gulp.task('minify', function(callback) {
 //     pump([
 //         gulp.src('./public/javascripts/*.js'),
 //         sourcemaps.init(),
-//         concat('build.js'),
+//         concat('app.min.js'),
 //         minify(),
 //         sourcemaps.write('./'),
 //         gulp.dest(DEST)

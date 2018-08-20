@@ -29,7 +29,7 @@ var cesImages = (function(_config) {
 
     /**
      * For obtaining title screens from the CDN and inserting (or not if error) them into the provided wrapper
-     * @param {*} $wrapper jQuery 
+     * @param {*} $wrapper jQuery
      * @param {*} gameKey cesGameKey
      */
     this.TitleScreen = function($wrapper, gameKey, cdnSizeModifier, callback) {
