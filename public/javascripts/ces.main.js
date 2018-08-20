@@ -418,7 +418,7 @@ var cesMain = (function() {
                     var gameLoadingStart = Date.now();
 
                     //game load dialog show
-                    _Dialogs.Open('GameLoading', [gameKey], false, function(tipInterval) {
+                    _Dialogs.Open('GameLoading', [gameKey], false, function() {
 
 
                         var optionsToSendToServer = {
@@ -486,7 +486,6 @@ var cesMain = (function() {
 
                                             //begin game, callback is function which handles expections for any emulator error
                                             _Emulator.StartEmulator(function(e) {
-                                                clearInterval(tipInterval);
                                                 _PubSub.Publish('error', ['There was an error with the emulator:', e]);
                                             });
 
@@ -502,10 +501,6 @@ var cesMain = (function() {
 
                                                     //close all dialogs (save loading or game loading), game begins!
                                                     _Dialogs.Close(function() {
-
-                                                        //stop rolling tips
-                                                        $('#tips').stop().hide();
-                                                        clearInterval(tipInterval);
 
                                                         //so I've found that tapping the fast forward key prevents the weird race condition on start.
                                                         //keep this until it seems disruptive

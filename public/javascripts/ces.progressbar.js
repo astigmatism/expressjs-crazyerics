@@ -8,7 +8,7 @@ var cesProgressBar = (function(_Images, _gameKey, _wrapper, sytleConfig) {
     //public members
 
     this.Update = function(amount, total) {
-
+        
         var ratio = (amount / total);
         var percentage = Math.ceil(ratio * 100);
         //console.log('Progress :' + amount + '/' + total + ' (' + (percentage) * 100 + '%)');

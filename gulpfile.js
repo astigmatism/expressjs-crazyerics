@@ -37,7 +37,7 @@ watcher.on('change', function(event) {
 gulp.task('watch', function() {
     //run these sequences in this order:
     //runSequence('jscsfixjustwhitespace', 'jscs', 'lint', function() {
-    runSequence('jscs', 'lint', 'minify-css', 'uglify', function() {
+    runSequence('jscs', 'lint', 'minify-css', 'js', function() {
         return;
     });
 });
@@ -52,6 +52,14 @@ gulp.task('uglify', function(callback) {
         gulp.dest(DEST)
     ], callback);
 });
+
+gulp.task('js', function(){
+    return gulp.src('./public/javascript/*.js')
+      .pipe(sourcemaps.init())
+      .pipe(concat('build.js'))
+      .pipe(sourcemaps.write())
+      .pipe(gulp.dest(DEST))
+  });
 
 // gulp.task('minify', function(callback) {
 //     pump([

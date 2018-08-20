@@ -3,7 +3,7 @@ html
     head
         title='Crazyerics.com'
         script(src='https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js')
-        if (process.env.NODE_ENV === 'production')
+        if (true)
             script(src='/build/build.js', type='text/javascript')
         else
             script(src='/javascripts/ces.main.js', type='text/javascript')
@@ -55,7 +55,7 @@ html
             script(src='/javascripts/three.min.js')
             script(src='/javascripts/color-thief.min.js')
 
-        if (process.env.NODE_ENV === 'production')
+        if (true)
             link(rel='stylesheet', href='/build/style.min.css')
         else
             link(rel='stylesheet', href='/stylesheets/style.css')

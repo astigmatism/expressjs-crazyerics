@@ -764,13 +764,6 @@ p {
 	height: 400px;
 }
 
-/* #dialogs div.SaveSelection h2{
-	position: absolute;
-	text-align: center;
-	width: 100%;
-	top: 100px;
-} */
-
 /* save loading dialog */
 
 #dialogs div.SaveLoading {

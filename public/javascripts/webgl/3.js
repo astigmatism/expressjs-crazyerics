@@ -1,4 +1,4 @@
-var cesLoadingWebGL = (function(_recipe, _Compression, _PubSub, _texturePath, $wrapper, box, texture, system) {
+var cesWebGlParticleAnimation1 = (function(_recipe, _Compression, _PubSub, _texturePath, $wrapper, box, texture, system) {
     
     //private members
     var _self = this;
