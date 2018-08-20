@@ -9,7 +9,6 @@ var cesMain = (function() {
     //var _preventGamePause = false; //condition for blur event of emulator, sometimes we don't want it to pause when we're giving it back focus
     var _minimumGameLoadingTime = 6000; //minimum amount of time to display the title loading. artificially longer for tips
     var _minimumSaveLoadingTime = 3000; //minimum amount of time to display the state loading screenshot
-    var _suggestionsLoading = false;
     var _toolbars = {}; //handles to elements in the toolbar ui (select, search, etc)
 
     // instances/libraries
@@ -134,7 +133,7 @@ var cesMain = (function() {
                 _toolbars.search.val('');
 
                 if (system === 'all' || _config.systemdetails[system].cannedSuggestion) {
-                    _Suggestions.Load(system, true, function() {
+                    _Suggestions.Load(system, function() {
                         _Tooltips.Any();
                     }, true); //<-- load canned results
                 }
@@ -148,7 +147,7 @@ var cesMain = (function() {
                         cache: 'above'
                     };
 
-                    _Suggestions.Load(recipe, true, function() {
+                    _Suggestions.Load(recipe, function() {
                         _Tooltips.Any();
                     });
                 }
@@ -230,13 +229,7 @@ var cesMain = (function() {
                 var y = $(document).height(); //- 100; //if you want "near bottom", sub from this amount
 
                 if (x == y) {
-                    if (_suggestionsLoading) {
-                        return;
-                    }
-                    _suggestionsLoading = true;
-
                     _Suggestions.LoadMore(function() {
-                        _suggestionsLoading = false;
                         _Tooltips.Any();
                     });
                 }
@@ -251,7 +244,7 @@ var cesMain = (function() {
         _Suggestions = new cesSuggestions(_config, _Images, _Compression, _Tooltips, PlayGame, $('#suggestionsgrid'), $('#suggestionswrapper'));
 
         //begin by showing all console suggestions
-        _Suggestions.Load('all', true, function() {
+        _Suggestions.Load('all', function() {
             _Tooltips.Any();
         }, true); //<-- canned
 
@@ -398,7 +391,6 @@ var cesMain = (function() {
         _Collections.SetCurrentGameLoading(gameKey); //inform collections what the current game is so that they don't attempt to delete it during load
 
         $('#loadingprogressbar').empty(); //didn't have a more convienent place for this!
-        $('#loadingstatus').text("Preparing Content");
 
         //which emulator to load?
         EmulatorFactory(gameKey, $('#loadingstatus'), function(err, emulator) {

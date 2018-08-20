@@ -15,7 +15,8 @@ example recipe: {
         }
     },
     randomize: true,                // default: true. randomize all results. otherwise all systems games are grouped together.
-    maximum: 80                     // default: 80, as grid is 8 across. The maximum number of results to return. -1 means there is no limit.
+    maximum: 80                     // default: 80, as grid is 8 across. The maximum number of results to return
+    page: 1                         // default: 0. Pagination. When positive, starts result set at n * maximum 
 }
 */
 
@@ -68,18 +69,28 @@ module.exports = new (function() {
                     return nextsystem(err);
                 }
 
+                var numberToStartSelection = 0;
+
                 //randomze the result for this system?
                 if (details.randomize !== false) {
                     cache = UtilitiesService.Shuffle(cache);
                 }
+                else {
+                    //if the result is not randomized, it is alphabetical. should we consider pagination?
+                    numberToStartSelection = recipe.page * maximum;
 
-                var numberToSelect = maximum * proportion;
+                }
+
+                var numberToSelect = numberToStartSelection + (maximum * proportion);
                 
                 //when maximum -1, doesn't restrict results, pulls from entire cache length
-                if (maximum < 0) {
-                    numberToSelect = cache.length;
-                }
-                for (var i = 0, len = cache.length; i < len && i < numberToSelect; ++i) {
+                // if (maximum < 0) {
+                //     numberToSelect = cache.length;
+                // }
+
+                var len = cache.length
+
+                for (var i = numberToStartSelection; i < len && i < numberToSelect; ++i) {
 
                     result.push(cache[i]);
                 }

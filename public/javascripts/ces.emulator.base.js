@@ -81,6 +81,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
         var shaderLoadComplete = $.Deferred();
 
         _isLoading = true;
+        $loadingstatus.text('Preparing ' + _config.systemdetails[_gameKey.system].name);
 
         //loading technique 1 -> emulator first
 

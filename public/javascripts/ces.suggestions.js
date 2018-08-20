@@ -10,17 +10,19 @@ var cesSuggestions = (function(_config, _Images, _Compression, _Tooltips, PlayGa
     var _lastRecipe = null;
     var _currentGameLinks = [];
     var _loading = false;
-    var _loadingRequestCount = 0;
-    var _allowMore = false;
+    var _loadingRequestCount = 0; //a handle on the number of requests send to the server
+    var _page = 0;
     var _loadingIcon = 'Blocks-1s-61px.svg';
     var $loading;
 
-    this.Load = function(recipe, allowMore, callback, opt_canned, _opt_alphaHelper) {
+    this.Load = function(recipe, callback, opt_canned, _opt_alphaHelper) {
 
         //are we fetching a canned result?
         opt_canned = (opt_canned == true) ? true : false;
-        _allowMore = (allowMore == true) ? true : false;
+        _page = 0;
 
+        //the option to allow requests to finish before loadng more. I decided to disable this even though
+        //it means multiple requests have to finish before new ones are made for the next set of suggestions
         if (_loading) {
             //return;
         }
@@ -30,6 +32,11 @@ var cesSuggestions = (function(_config, _Images, _Compression, _Tooltips, PlayGa
             $('#browse-show-obscure').removeAttr("disabled");
         } else {
             $('#browse-show-obscure').attr("disabled", true);
+        }
+
+        //include page on recipe, canned recipes are strings, normal are json
+        if (!opt_canned) {
+            recipe.page = _page;
         }
 
         _lastRecipe = {
@@ -43,11 +50,17 @@ var cesSuggestions = (function(_config, _Images, _Compression, _Tooltips, PlayGa
         FetchAndBuild(recipe, opt_canned, callback);
     };
 
+    //load more is triggered at bottom of window
     this.LoadMore = function(callback) {
 
-        if (!_lastRecipe || _loading || !_allowMore) {
+        //conditions for bail
+        if (!_lastRecipe || _loading) {
             return;
         }
+
+        _page++; //pagination increases. only matters for non-randominzed recipes
+
+        _lastRecipe.recipe.page = _page; //include new pagination on recipe
 
         FetchAndBuild(_lastRecipe.recipe, _lastRecipe.canned, callback);
     };
@@ -163,13 +176,11 @@ var cesSuggestions = (function(_config, _Images, _Compression, _Tooltips, PlayGa
                 
                 var all = {
                     systems: {},
-                    randomize: false,
-                    maximum: -1
+                    randomize: false
                 };
                 var above = {
                     systems: {},
-                    randomize: false,
-                    maximum: -1
+                    randomize: false
                 };
 
                 all.systems[system] = {
@@ -184,19 +195,18 @@ var cesSuggestions = (function(_config, _Images, _Compression, _Tooltips, PlayGa
                 $checkbox.off('change');
                 $checkbox.change(function() {
                     if($(this).is(':checked')) {
-                        self.Load(all, false, function() {
+                        self.Load(all, function() {
                             _Tooltips.Any();
                         }, false, true);
                     }
                     else {
-                        self.Load(above, false, function() {
+                        self.Load(above, function() {
                             _Tooltips.Any();
                         }, false, true);
                     }
                 });
 
-                //false says, don't continue to load more
-                self.Load($checkbox.is(':checked') ? all : above, false, function() {
+                self.Load($checkbox.is(':checked') ? all : above, function() {
                     _Tooltips.Any();
                 }, false, true); //<-- canned no but alpha helper yes :)
             });
