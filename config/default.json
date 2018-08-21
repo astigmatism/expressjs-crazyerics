@@ -9,7 +9,8 @@
 		"emulator_extensions": "emulatorextentions/",
 		"emulators": "emulators",
 		"supportfiles": "http://cdn.crazyerics.com/support",
-		"screenupload": "http://cdn.crazyerics.com/contribute"
+		"contributetitle": "http://cdn.crazyerics.com/title/contribute",
+		"contributescreen": "http://cdn.crazyerics.com/screen/contribute"
 		//"screenupload": "http://localhost:8001/contribute"
 	},
 	"defaults": {

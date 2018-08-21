@@ -100,8 +100,10 @@ var cesSlidersScreenshots = (function(_config, $li, $panel, Open) {
             gameKey: _gameKey
         });
 
+        var url = isTitleScreen ? _config.paths.contributetitle : _config.paths.contributescreen;
+
         $.ajax({
-            url: _config.paths.screenupload + '/' + ((isTitleScreen) ? 'titlescreen' : 'screenshot'),
+            url: url,
             type: 'POST',
             data: {
                 'cxhr': data 
