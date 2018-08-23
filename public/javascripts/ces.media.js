@@ -2,7 +2,7 @@
  * Image loading helper class. Since we now have unique methods of obtaining images from the CDN,
  * this class specializes in understanding the correct methods for obtaining them 
  */
-var cesImages = (function(_config) {
+var cesMedia = (function(_config) {
 
     // private members
     var _self = this;
@@ -34,21 +34,38 @@ var cesImages = (function(_config) {
      */
     this.TitleScreen = function($wrapper, gameKey, cdnSizeModifier, callback) {
 
-        Get(_config.paths.title, gameKey, cdnSizeModifier, function(status, content) {
+        GetScreenshot('title', gameKey, cdnSizeModifier, function(status, content) {
             
             if (content) {
-                $wrapper.imagesLoaded()
-                    .done(function() {
-                        return callback(true, status);
-                    });
-            
+                
                 var $img = $('<img src="data:image/jpg;base64,' + content + '" />');
-                $wrapper.empty().append($img); //empty the wrapper as a sanity check
+
+                 //empty the wrapper as a sanity check
+                $wrapper.empty().show().append($img).imagesLoaded()
+                    .done(function() {
+                        return callback(true, status, $img);
+                    });
             }
             else {
                 return callback(false, status);
             }
 
+        });
+    };
+
+    this.Video = function($wrapper, type, gameKey, opt_width, opt_height) {
+
+        var $video = $('<video />', {
+            src: _config.paths.video + '/' + type + '/' + encodeURIComponent(gameKey.gk),
+            type: 'video/mp4',
+            controls: false,
+            autoplay: true,
+            width: opt_width || $wrapper.width(),
+            height: opt_height || $wrapper.height()
+        });
+
+        $video.on('loadeddata', function() {
+            $wrapper.empty().append($video).fadeIn(500);
         });
     };
 
@@ -74,16 +91,16 @@ var cesImages = (function(_config) {
         }
     };
 
-    var Get = function(location, gameKey, cdnSizeModifier, callback) {
+    var GetScreenshot = function(type, gameKey, cdnSizeModifier, callback) {
 
         //first check client cache for this image to prevent going over the network
         if (gameKey.gk in clientImageCache && cdnSizeModifier in clientImageCache[gameKey.gk]) {
-            return callback(200, clientImageCache[gameKey.gk[cdnSizeModifier]]);
+            return callback(200, clientImageCache[gameKey.gk][cdnSizeModifier]);
         }
 
         //network request to CDN to obtain image
         $.ajax({
-            url: location + '/' + cdnSizeModifier + '/' + encodeURIComponent(gameKey.gk),
+            url: _config.paths.screenshot + '/' + type + '/' + cdnSizeModifier + '/' + encodeURIComponent(gameKey.gk),
             type: 'GET',
             crossDomain: true,
             cache: false,

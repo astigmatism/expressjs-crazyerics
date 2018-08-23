@@ -1194,6 +1194,10 @@ div.collection-tooltip {
 	text-align: center;
 }
 
+div.mediawrapper {
+	display: none;
+}
+
 /* game links */
 
 .gamelink {

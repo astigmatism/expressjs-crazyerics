@@ -6,7 +6,7 @@
  * @param  {string} file         Super Mario Bros. 3 (U)[!].nes
  * @return {undef}
  */
-var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad, _Preferences, _gameKey, _ui, _Images, _ClientCache) {
+var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad, _Preferences, _gameKey, _ui, _Media, _ClientCache) {
 
     // private members
     var self = this;
@@ -745,7 +745,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
             return;
         }
 
-        var emulatorProgressBar = new cesProgressBar(_Images, _gameKey, loadingprogressbar); //this weird syntax just picks up this name from the dom
+        var emulatorProgressBar = new cesProgressBar(_Media, _gameKey, loadingprogressbar); //this weird syntax just picks up this name from the dom
 
         LoadResource(scriptPath,
             //onProgress Update
@@ -786,7 +786,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
             return;
         }
 
-        //var supportProgressBar = new cesProgressBar(_Images, _gameKey, loadingprogressbar); //this weird syntax just picks up this name from the dom
+        //var supportProgressBar = new cesProgressBar(_Media, _gameKey, loadingprogressbar); //this weird syntax just picks up this name from the dom
 
         //support location also includes a folder which must match the emulator version
         var location = _config.paths.supportfiles + '/' + _config.systemdetails[system].emuextention + '/' + system;
@@ -833,7 +833,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
         _ui.status.text('Packaging Content');
         
         //location += secondEncode;
-        var gameProgressBar = new cesProgressBar(_Images, _gameKey, loadingprogressbar); //this weird syntax just picks up this name from the dom
+        var gameProgressBar = new cesProgressBar(_Media, _gameKey, loadingprogressbar); //this weird syntax just picks up this name from the dom
         var startTime = Date.now();
 
         //converted from jsonp to straight up json. Seems to work. Going this route allows me to add
@@ -881,7 +881,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
             return;
         }
 
-        //var shaderProgressBar = new cesProgressBar(_Images, _gameKey, loadingprogressbar); //this weird syntax just picks up this name from the dom
+        //var shaderProgressBar = new cesProgressBar(_Media, _gameKey, loadingprogressbar); //this weird syntax just picks up this name from the dom
 
         var location = _config.paths.shaders + '/' + name;
 

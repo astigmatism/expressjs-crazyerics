@@ -1,4 +1,4 @@
-var cesGameLink = (function(_config, _Images, _Tooltips, gameKey, cdnPathValue, opt_tooltip, opt_PlayGame, opt_OnImageLoaded, opt_removeSelector, opt_onRemove) {
+var cesGameLink = (function(_config, _Media, _Tooltips, gameKey, cdnPathValue, opt_tooltip, opt_PlayGame, opt_OnImageLoaded, opt_removeSelector, opt_onRemove) {
 
     //private members
     var self = this;
@@ -22,7 +22,7 @@ var cesGameLink = (function(_config, _Images, _Tooltips, gameKey, cdnPathValue, 
         var $div = $('<div class="gamelink"></div>');
         var $imagewrapper = $('<div class="box zoom close"></div>');
 
-        var $img = _Images.$BoxFront(gameKey, cdnPathValue);
+        var $img = _Media.$BoxFront(gameKey, cdnPathValue);
 
         $img.imagesLoaded().progress(function(imgLoad, image) {
             $imagewrapper.removeClass('close'); //remove close on parent to reveal image
@@ -49,10 +49,10 @@ var cesGameLink = (function(_config, _Images, _Tooltips, gameKey, cdnPathValue, 
             //generate new toolips content
             var $tooltipContent = $('<div class="gamelink-tooltip" />');
             $tooltipContent.append('<div class="tooltiptitle">' + gameKey.title + '</div>');
-            var $titlescreenwrapper = $('<div class="titlescreenplaceholder"></div>');
-            $tooltipContent.append($titlescreenwrapper);
+            var $mediawrapper = $('<div class="mediawrapper"></div>');
+            $tooltipContent.append($mediawrapper);
 
-            _Tooltips.SingleHTMLWithTitleScreen($imagewrapper, $tooltipContent, $titlescreenwrapper, gameKey, false);
+            _Tooltips.SingleHTMLWithTitleScreen($imagewrapper, $tooltipContent, $mediawrapper, gameKey, false);
         }
 
         $div.append($imagewrapper);

@@ -6,16 +6,16 @@ var cesSlidersScreenshots = (function(_config, $li, $panel, Open) {
     var _tooltips;
     var _gameKey;
     var _compression;
-    var _images;
+    var _media;
 
-    this.Activate = function(gameKey, _PubSub, _Tooltips, _Compression, _Images) {
+    this.Activate = function(gameKey, _PubSub, _Tooltips, _Compression, _Media) {
         
         _grid.isotope('remove', _grid.children()); //clear on activation (sanity)
         _pubSub = _PubSub;
         _tooltips = _Tooltips;
         _gameKey = gameKey;
         _compression = _Compression;
-        _images = _Images;
+        _media = _Media;
         _pubSub.Subscribe('screenshotWritten', self, OnNewScreenshot);
     };
 
@@ -111,7 +111,7 @@ var cesSlidersScreenshots = (function(_config, $li, $panel, Open) {
             complete: function(xhr, textStatus) {
 
                 //delete the cached image to pull the just contributed one
-                _images.ExpireImageCache(_gameKey);
+                _media.ExpireImageCache(_gameKey);
 
                 callback(xhr.status);
             }

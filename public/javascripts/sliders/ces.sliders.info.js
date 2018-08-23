@@ -1,15 +1,16 @@
 var cesSlidersInfo = (function(_config, $li, $panel) {
 
     var self = this;
-    var _images = null;
+    var _media = null;
     var _gameKey = null;
     var $titleWrapper = $('#infosilderTitleScreen');
 
     this.OnOpen = function(callback) {
 
         //on open, attempt to fetch new title screen
-        if (_images && _gameKey) {
-            _images.TitleScreen($titleWrapper, _gameKey, 'b', function(success) {
+        if (_media && _gameKey) {
+            //b is 320 width
+            _media.TitleScreen($titleWrapper, _gameKey, 'b', function(success) {
                 //not really anything I care about here. Either it loaded or it didn't
             }); 
         }
@@ -22,9 +23,9 @@ var cesSlidersInfo = (function(_config, $li, $panel) {
         callback(true);
     };
 
-    this.Activate = function(gameKey, info, _Images) {
+    this.Activate = function(gameKey, info, _Media) {
 
-        _images = _Images;
+        _media = _Media;
         _gameKey = gameKey;
 
         var $overview = $panel.find('p.overview');
@@ -84,7 +85,7 @@ var cesSlidersInfo = (function(_config, $li, $panel) {
     this.Deactivate = function() {
 
         _gameKey = null;
-        _images = null;
+        _media = null;
     };
 
     var Constructor = (function() {

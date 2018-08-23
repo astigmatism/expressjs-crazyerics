@@ -2,7 +2,7 @@
 This component is unique in that it depends upon Collections which was built just before it (see ces.main). It takes in references to the
 two isotope grids which the collections component initialized
 */
-var cesFeatured = (function(_config, _Compression, _Preferences, _Images, _Sync, _Tooltips, _PlayGameHandler, _Collections, _initialSyncPackage, _OnRemoveHandler) {
+var cesFeatured = (function(_config, _Compression, _Preferences, _Media, _Sync, _Tooltips, _PlayGameHandler, _Collections, _initialSyncPackage, _OnRemoveHandler) {
     
 //private members
 var _self = this;
@@ -57,7 +57,7 @@ var AddTitle = function(gk) {
 
     var gameKey = _Compression.Decompress.gamekey(gk);
 
-    var gameLink = new cesGameLink(_config, _Images, _Tooltips, gameKey, 'a', true, _PlayGameHandler);
+    var gameLink = new cesGameLink(_config, _Media, _Tooltips, gameKey, 'a', true, _PlayGameHandler);
 
     $griditem.append(gameLink.GetDOM()); //add all visual content from gamelink to grid
 

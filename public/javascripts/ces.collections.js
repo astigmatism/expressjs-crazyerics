@@ -1,4 +1,4 @@
-var cesCollections = (function(_config, _Compression, _Preferences, _Images, _Sync, _Tooltips, _PlayGameHandler, $collectionTitlesWrapper, $collectionNamesWrapper, _initialSyncPackage, copyToFeatured, _OnRemoveHandler) {
+var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Sync, _Tooltips, _PlayGameHandler, $collectionTitlesWrapper, $collectionNamesWrapper, _initialSyncPackage, copyToFeatured, _OnRemoveHandler) {
 		
     //private members
     var _self = this;
@@ -255,8 +255,8 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Images, _Sy
         
         var $tooltipContent = $('<div class="collection-tooltip" />');
         $tooltipContent.append('<div class="tooltiptitle">' + activeTitle.gameKey.title + '</div>');
-        var $titlescreenwrapper = $('<div />');
-        $tooltipContent.append($titlescreenwrapper);
+        var $mediawrapper = $('<div class="mediawrapper" />');
+        $tooltipContent.append($mediawrapper);
         $tooltipContent.append('<div>Last Played: ' + $.format.date(activeTitle.lastPlayed, 'MMM D h:mm:ss a') + '</div>'); //using the jquery dateFormat plugin
         $tooltipContent.append('<div>Play Count: ' + activeTitle.playCount + '</div>');
         $tooltipContent.append('<div>Number of Saves: ' + activeTitle.saveCount + '</div>');
@@ -272,7 +272,7 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Images, _Sy
         });
         $tooltipContent.append($remove);
         
-        _Tooltips.SingleHTMLWithTitleScreen(activeTitle.gridItem, $tooltipContent, $titlescreenwrapper, activeTitle.gameKey, true);
+        _Tooltips.SingleHTMLWithTitleScreen(activeTitle.gridItem, $tooltipContent, $mediawrapper, activeTitle.gameKey, true);
     };
 
     var GenerateCollectionTooltipContent = function(collection) {
@@ -639,7 +639,7 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Images, _Sy
                     };
 
                     //generate gamelink
-                    var gameLink = new cesGameLink(_config, _Images, _Tooltips, gameKey, 'a', false, _PlayGameHandler, OnImageLoaded);
+                    var gameLink = new cesGameLink(_config, _Media, _Tooltips, gameKey, 'a', false, _PlayGameHandler, OnImageLoaded);
 
                     //push to our local cache
                     _activeCollectionTitles.push({

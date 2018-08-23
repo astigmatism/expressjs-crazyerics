@@ -2,7 +2,7 @@
  Wrapper for tooltips
  Important not to pass in the $(selector) because you will have a subset at the time it was passed. needs to be live
  */
-var cesTooltips = (function(_config, _Images, tooltipSelector, tooltipContentSelector) {
+var cesTooltips = (function(_config, _Media, tooltipSelector, tooltipContentSelector) {
     
     //private members
     var self = this;
@@ -41,7 +41,7 @@ var cesTooltips = (function(_config, _Images, tooltipSelector, tooltipContentSel
         }
     };
 
-    this.SingleHTMLWithTitleScreen = function($el, $content, $imagewrapper, gameKey, opt_interactive) {
+    this.SingleHTMLWithTitleScreen = function($el, $content, $mediawrapper, gameKey, opt_interactive) {
 
         opt_interactive = opt_interactive == undefined ? true : opt_interactive;
 
@@ -74,24 +74,30 @@ var cesTooltips = (function(_config, _Images, tooltipSelector, tooltipContentSel
             functionBefore: function(instance, helper) {
 
                 //on the initial open, we won't have loaded the image from the cdn yet and the tooltip will appear without it
-                if (!$imagewrapper.hasClass('titlescreenloaded')) {
+                if (!$mediawrapper.hasClass('titlescreenloaded')) {
 
-                    //obtain the image
-                    _Images.TitleScreen($imagewrapper, gameKey, 'a', function(success, response) {
+                    //obtain the image (a 160, b 320, c is 240)
+                    _Media.TitleScreen($mediawrapper, gameKey, 'c', function(success, response, $img) {
                         
                         //disable the loading tooltip
                         var instances = $.tooltipster.instances($el);
                         instances[0].disable();
 
-                        $imagewrapper.addClass('titlescreenloaded'); //set the flag for the tooltip to allowed to be open and no more attempts to get it
-                        instance.open(); //calling open will refire the functionBefore
+                        $mediawrapper.addClass('titlescreenloaded'); //set the flag for the tooltip to allowed to be open and no more attempts to get it
+                        instance.open(); //calling open will refire this very functionBefore, which is why we added a class detection
+                        $mediawrapper.removeClass('titlescreenloaded'); //after openning remove flag to try again on the next tooltip show (it would be pulled from cache, or will try again over the network)
 
-                        //change speed of this tooltip now
+                        //change speed of this tooltip now since the titlescreen image is cached and we wont need to show the loader
                         instance.option ('delay', [1000, 100]);
-
-                        //after openning remove flag to try again on the next tooltip show (it would be pulled from cache, or will try again over the network)
-                        $imagewrapper.removeClass('titlescreenloaded');
-    
+                        
+                        //play video only if titlescreen retrieval was success
+                        if (success) {
+                            
+                            setTimeout(function() {
+                                
+                                _Media.Video($mediawrapper, 'sq', gameKey, null, $img.height());
+                            }, 1000);
+                        }
                     });
 
                     return false; //prevent from openning before getting art

@@ -1,5 +1,5 @@
 //bar from: https://loading.io/progress/
-var cesProgressBar = (function(_Images, _gameKey, _wrapper, sytleConfig) {
+var cesProgressBar = (function(_Media, _gameKey, _wrapper, sytleConfig) {
 
     //private members
     var _self = this;

@@ -1,6 +1,6 @@
 var cesDialogsGameLoading = (function(_config, $el, $wrapper, args) {
 
-    var _Images = args[0];
+    var _Media = args[0];
     var _Compression = args[1];
     var _PubSub = args[2];
     var _test;
@@ -34,8 +34,8 @@ var cesDialogsGameLoading = (function(_config, $el, $wrapper, args) {
         $('#tip').hide();
         //$('#gameloadingname').show().text(gameKey.title);
 
-        var img = _Images.BoxFront(gameKey, 'd');
-        var texture = null; //_Images.BoxFront(gameKey, 'e'); //256x256 texture
+        var img = _Media.BoxFront(gameKey, 'd');
+        var texture = null; //_Media.BoxFront(gameKey, 'e'); //256x256 texture
         var recipe = {};
 
         if (_config.loadingBoxRecipes[gameKey.system]) {

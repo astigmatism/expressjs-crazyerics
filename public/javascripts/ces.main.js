@@ -27,7 +27,7 @@ var cesMain = (function() {
     var _Notifications = null;
     var _Tooltips= null;
     var _Gamepad = null;
-    var _Images = null;
+    var _Media = null;
     var _ClientCache = {}; //a consistant location to store items in client memory during a non-refresh session
 
     // public members
@@ -47,11 +47,11 @@ var cesMain = (function() {
 
         _PubSub = new cesPubSub();
 
-        _Images = new cesImages(_config);
+        _Media = new cesMedia(_config);
 
         _Dialogs = new cesDialogs(_config, $('#dialogs'));
 
-        _Tooltips = new cesTooltips(_config, _Images, '.tooltip', '.tooltip-content');
+        _Tooltips = new cesTooltips(_config, _Media, '.tooltip', '.tooltip-content');
 
         _Notifications = new cesNotifications(_config, _Compression, _PubSub, $('#notificationwrapper'));
 
@@ -62,10 +62,10 @@ var cesMain = (function() {
 
         _Gamepad = new cesGamePad(_config, _Compression, _PubSub, _Tooltips, _Preferences, _Dialogs, $('#gameid0'), $('#gameid1'));
 
-        _Collections = new cesCollections(_config, _Compression, _Preferences, _Images, _Sync, _Tooltips, PlayGame, $('#openCollectionGrid'), $('#collectionsGrid'), clientdata.components.c, _config.defaults.copyToFeatured, null);
+        _Collections = new cesCollections(_config, _Compression, _Preferences, _Media, _Sync, _Tooltips, PlayGame, $('#openCollectionGrid'), $('#collectionsGrid'), clientdata.components.c, _config.defaults.copyToFeatured, null);
         _Sync.RegisterComponent('c', _Collections.Sync);
 
-        _Featured = new cesFeatured(_config, _Compression, _Preferences, _Images, _Sync, _Tooltips, PlayGame, _Collections, clientdata.components.f, null);
+        _Featured = new cesFeatured(_config, _Compression, _Preferences, _Media, _Sync, _Tooltips, PlayGame, _Collections, clientdata.components.f, null);
 
         //register dialogs after setting up components
         var welcomeBack =  _Collections.IsEmpty() ? false : true;
@@ -73,7 +73,7 @@ var cesMain = (function() {
         _Dialogs.Register('WelcomeBack', 150, [], welcomeBack);
         _Dialogs.Register('ConfigureGamepad', 700, [_Gamepad, _Compression]);
         _Dialogs.Register('ShaderSelection', 500, [_Preferences]);
-        _Dialogs.Register('GameLoading', 500, [_Images, _Compression, _PubSub]);
+        _Dialogs.Register('GameLoading', 500, [_Media, _Compression, _PubSub]);
         _Dialogs.Register('SaveSelection', 500);
         _Dialogs.Register('SaveLoading', 500);
         _Dialogs.Register('Exception', 500);
@@ -188,7 +188,7 @@ var cesMain = (function() {
 
                 var gameKey = _Compression.Decompress.gamekey(item[0]);
                 var $suggestion = $('<div class="autocomplete-suggestion" data-gk="' + gameKey.gk + '" data-searchscore="' + item[1] + '"></div>');
-                var $img = _Images.$BoxFront(gameKey, 'b');
+                var $img = _Media.$BoxFront(gameKey, 'b');
                 $suggestion.append($img);
                 $suggestion.append('<div>' + gameKey.title + '</div>');
                 
@@ -241,7 +241,7 @@ var cesMain = (function() {
 
         _Sliders = new cesSliders(_config, _Compression, $('#slidericons'));
 
-        _Suggestions = new cesSuggestions(_config, _Images, _Compression, _Tooltips, PlayGame, $('#suggestionsgrid'), $('#suggestionswrapper'));
+        _Suggestions = new cesSuggestions(_config, _Media, _Compression, _Tooltips, PlayGame, $('#suggestionsgrid'), $('#suggestionswrapper'));
 
         //begin by showing all console suggestions
         _Suggestions.Load('all', function() {
@@ -510,12 +510,12 @@ var cesMain = (function() {
 
                                                                 //activate certain sliders
                                                                 _Sliders.Activate('Controls', [gameKey, _Gamepad]);
-                                                                _Sliders.Activate('Screenshots', [gameKey, _PubSub, _Tooltips, _Compression, _Images]);
+                                                                _Sliders.Activate('Screenshots', [gameKey, _PubSub, _Tooltips, _Compression, _Media]);
                                                                 _Sliders.Activate('Roms', [gameKey, files, _Compression, PlayGame]);
                                                                 
                                                                 //reqiure gamedb data to have info slider
                                                                 if (!$.isEmptyObject(info)) {
-                                                                    _Sliders.Activate('Info', [gameKey, info, _Images]);
+                                                                    _Sliders.Activate('Info', [gameKey, info, _Media]);
                                                                 }
 
                                                                 //handle title and content fadein steps
@@ -644,7 +644,7 @@ var cesMain = (function() {
                 };
 
                 //the class extention process: on the prototype of the ext, create using the base class.
-                cesEmulator.prototype = new cesEmulatorBase(_Compression, _PubSub, _config, _Sync, _Gamepad, _Preferences, gameKey, ui, _Images, _ClientCache);
+                cesEmulator.prototype = new cesEmulatorBase(_Compression, _PubSub, _config, _Sync, _Gamepad, _Preferences, gameKey, ui, _Media, _ClientCache);
 
                 var emulator = new cesEmulator(_Compression, _PubSub, _config, _Sync, _Gamepad, _Preferences, gameKey);
 
@@ -692,7 +692,7 @@ var cesMain = (function() {
      */
     var DisplayGameContext = function(gameKey, callback) {
 
-        var $img = _Images.BoxFront(gameKey, 'c');
+        var $img = _Media.BoxFront(gameKey, 'c');
 
         $('#gamedetailsboxfront').empty().append($img);
         $('#gametitle').empty().hide().append(gameKey.title);
