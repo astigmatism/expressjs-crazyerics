@@ -1,0 +1,39 @@
+body {
+    font-family: 'Poppins', sans-serif;
+    font-size: 12px;
+}
+
+ul {
+    margin: 0;
+    padding: 0;
+}
+
+li {
+    width: 98%;
+    padding: 10px;
+    overflow: hidden;
+    background-color: #e2e2e2;
+    border: solid 1p slategray;
+    margin: 5px;
+    border-radius: 5px;
+    display: inline-block;
+}
+
+li.green {
+    background-color: lightgreen;
+}
+
+li.yellow {
+    background-color: lightyellow;
+}
+
+li.red {
+    background-color: lightpink;
+}
+
+li h3 {
+    margin: 0px 10px;
+    display: inline-block;
+    width: 200px;
+    overflow: hidden;
+}
