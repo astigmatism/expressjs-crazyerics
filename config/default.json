@@ -31,6 +31,18 @@
 			"connectionTimeoutMillis": 4000
 		}
 	},
+	"cdn": [
+		{
+			"host": "192.168.1.5",
+			"user": "root",
+			"root": "/media/data/expressjs-cdn-crazyerics"
+		},
+		{
+			"host": "192.168.1.6",
+			"user": "root",
+			"root": "/media/data/expressjs-cdn-crazyerics"
+		}
+	],
 	"retroarch": {
 		"notes-1.7.0": "lots of audio glitches (tested nes, snes)"
 	},

@@ -18,6 +18,7 @@ const routes = require('./routes/index');
 const saves = require('./routes/saves');
 const suggest = require('./routes/suggest');
 const dev = require('./routes/dev');
+const media = require('./routes/media');
 const games = require('./routes/games');
 const collections = require('./routes/collections');
 const featured = require('./routes/featured');
@@ -71,6 +72,7 @@ app.use('/featured', featured);
 //end point only accessable in dev
 if (app.get('env') === 'development') {
     app.use('/dev', dev);
+    app.use('/media', media);
 }
 
 // catch 404 and forward to error handler

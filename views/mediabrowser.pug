@@ -27,3 +27,26 @@ html
         input(type="checkbox")#hidegreen
         | Hide Green
     ul#list
+    ul#template
+      li(class="item")
+        div(class="head")
+          img
+          div(class="rankflag")
+          h2
+          div(class="boxfront count")
+        div(class="slider")
+          ul(class="panels")
+            li(class="panel info")
+              h3 Game Info
+              ul
+              p This is the entry from the masterfile. Edit as necessary (this will be overwritten the next time the masterfile is generated however)
+              textarea
+            li(class="panel boxfront")
+              h3 Media Box Front
+              img
+              p(class="dim")
+              input(type="button", class="boxfrontdelete", value="Delete")
+              input(type="button", class="googlesearch", value="Google")
+              p You can upload a replacement file here. This is overwrite the existing art:
+              div(class="dropzone")
+            li(class="panel sqvideo")
