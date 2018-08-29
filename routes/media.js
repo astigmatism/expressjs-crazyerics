@@ -4,36 +4,31 @@ var config = require('config');
 var FileService = require('../services/files.js');
 var multer  = require('multer');
 var upload = multer( { dest: '../uploads/' } );
-var scp = require('scp2');
-var exec = require('ssh-exec');
-var async = require('async');
+var CdnService = require('../services/cdn.js');
 
 router.post('/', upload.single( 'file' ), function(req, res, next) {
 
-	var system = req.body.system;
-	var title = req.body.title;
 	var filepath = req.body.filepath;
 
-    //for each cdn
-    async.eachSeries(config.cdn, (cdn, nextcdn) => {
+    CdnService.UploadFile(req.file.path, '/media' + filepath + '/0.jpg', (err) => {
+        if (err) return res.status(500).end(err);
 
-        var sshConnection = cdn.user + '@' + cdn.host;
-        scp.scp(req.file.path,  sshConnection + ':' + cdn.root + '/media' + filepath + '/0.jpg', function(err) {
-            if (err) return nextcdn(err);
-
-            //delete processed image
-            exec('rm -R ' + cdn.root + '/processed' + filepath, sshConnection, function (err, stdout, stderr) {
-                if (err) return nextcdn(err);
-
-                return nextcdn();
-            });
+        CdnService.DeleteFolders('/processed' + filepath, (err) => {
+            if (err) return res.status(500).end(err);
+            
+            res.status(200).end();
         });
-
-    }, (err) => {
-        if (err) return res.status(500).end('err 1');
-
-        res.status(200).end();
     });
+});
+
+router.delete('/', function(req, res, next) {
+
+    var filepath = req.body.filepath;
+
+    CdnService.DeleteFolders(['/media' + filepath, '/processed' + filepath], (err) => {
+        if (err) return res.status(500).end(err);
+        res.status(200).end();
+    }); 
 });
 
 router.get('/:system/:alpha?', function(req, res, next) {

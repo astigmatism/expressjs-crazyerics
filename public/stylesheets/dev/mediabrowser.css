@@ -69,12 +69,12 @@ ul.panels {
 }
 
 li.panel {
-    display: inline-grid;
+    display: inline-table;
     background-color: #cccccc;
     border-radius: 5px;
     padding: 10px;
     max-width: 300px;
-    margin: 0 5px;
+    margin: 5px;
 }
 
 textarea {
