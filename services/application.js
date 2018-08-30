@@ -79,7 +79,7 @@ module.exports = new (function() {
                     }
                 
                     //audit for boxart from the cdn server
-                    FileService.Request(config.paths.box + '/audit/front/' + system, (status, err, boxFrontData) => {
+                    FileService.Request(config.paths.audit + '/box/front/' + system, (status, err, boxFrontData) => {
                         if (err) {  
                             //in the case of error, continue because box fronts are not required, we just can't make suggestions for this system
                             console.log('Could not find boxart file for ' + system + '. No suggests can be made without boxart');

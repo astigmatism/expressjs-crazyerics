@@ -100,7 +100,7 @@ var cesMedia = (function(_config) {
 
         //network request to CDN to obtain image
         $.ajax({
-            url: _config.paths.screenshot + '/' + type + '/' + cdnSizeModifier + '/' + encodeURIComponent(gameKey.gk),
+            url: _config.paths.screen + '/' + type + '/' + cdnSizeModifier + '/' + encodeURIComponent(gameKey.gk),
             type: 'GET',
             crossDomain: true,
             cache: false,

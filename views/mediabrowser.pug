@@ -33,8 +33,12 @@ html
           img
           div(class="rankflag")
           h2
-          div(class="boxfront count")
-          div(class="sqvideo count")
+          div(class="boxfront count") 
+            | BF
+          div(class="titlescreen count") 
+            | TS
+          div(class="sqvideo count") 
+            | SQV
         div(class="slider")
           ul(class="panels")
             li(class="panel info")
@@ -44,22 +48,29 @@ html
               textarea
             li(class="panel boxfront")
               h3 Media Box Front
-              img
+              img(class="img")
               p(class="dim")
-              input(type="button", class="boxfrontdelete", value="Delete")
-              input(type="button", class="googlesearch", value="Google Images")
+              input(type="button", class="view", value="View Full Image")
+              input(type="button", class="googlesearch", value="Google Image Search")
+              input(type="button", class="delete", value="Delete")
               p You can upload a replacement file here. This is overwrite the existing art:
-              div(class="dropzone")
+              div(class="dz dropzone")
             li(class="panel titlescreen")
               h3 Media Titlescreen
-              img
+              img(class="img")
               p(class="dim")
-              input(type="button", class="titlescreendelete", value="Delete")
               input(type="button", class="googlesearch", value="Google Images")
+              input(type="button", class="delete", value="Delete")
               p You can upload a replacement file here. This is overwrite the existing art:
-              div(class="dropzone")
+              div(class="dz dropzone")
             li(class="panel sqvideo")
               h3 Media SQ Video
               div(class="videowrapper")
-              input(type="button", class="sqvideodelete", value="Delete")
-              div(class="dropzone")
+              a(class="downloadlink") Download
+              input(type="button", class="delete", value="Delete")
+              p Details of original movie file from emuMovies:
+              textarea(class="info")
+              p You can upload a replacement file here. This is overwrite the existing video:
+              div(class="dz dropzone")
+              p Include some notes to attach to the video info.json:
+              textarea(class="notes")

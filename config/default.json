@@ -1,8 +1,9 @@
 {
 	"paths": {
 		"images": "http://cdn.crazyerics.com/images",
-		"screenshot": "http://cdn.crazyerics.com/screenshot", // /title, /screen
+		"screen": "http://cdn.crazyerics.com/screen", // /title, /screen
 		"box": "http://cdn.crazyerics.com/box", // /front, /back
+		"audit": "http://cdn.crazyerics.com/audit",
 		"video": "http://cdn.crazyerics.com/video", // /sq
 		"textures": "http://cdn.crazyerics.com/textures",
 		"shaders": "http://cdn.crazyerics.com/shaders/2017-12-27", /* shader image previews at https://buildbot.libretro.com/.docs/shader/introduction/ */

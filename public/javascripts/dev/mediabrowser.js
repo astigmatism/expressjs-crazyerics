@@ -4,6 +4,7 @@ var cesdevMediaBrowser = (function() {
     
 	$(document).ready(function() {
 
+        Dropzone.autoDiscover = false;
         
         GenerateList(masterFile);
 
@@ -78,7 +79,7 @@ var cesdevMediaBrowser = (function() {
         var $li = $('#template li.item').clone();
 
         var styleClass = (bestFileRank >= 400) ? 'green' : (bestFileRank >= 250 ? 'yellow' : 'red');
-        $li.addClass(styleClass)
+        $li.addClass(styleClass);
         $li.data('title', title);
 
         //header
@@ -90,45 +91,122 @@ var cesdevMediaBrowser = (function() {
         $head.find('.rankflag').addClass(styleClass);
         $head.find('h2').text(title);
 
-        //details block
-        var $slider = $li.find('div.slider');
+        //audit all media from the cdn
+        $.get(paths.audit + '/' + encodeURIComponent(bestFileGk), function(response) {
+            console.log(title, response);
+            if (response.boxfront) {
+                $head.find('.boxfront').css('visibility', 'visible');
+            }
+            if (response.titlescreen) {
+                $head.find('.titlescreen').css('visibility', 'visible');
+            }
+            if (response.sqvideo) {
+                $head.find('.sqvideo').css('visibility', 'visible');
+            }
+
+            //slider
+            var $slider = $li.find('div.slider');
+
+            //slider action
+            $head.on('click', function() {
+                $li.toggleClass('open');
+
+                if ($li.hasClass('open')) {
+                    
+                    InfoSlider($li, $slider, title, details);
+                    
+                    BoxFrontPanel($li, $slider, title, details);
+                    
+                    TitlescreenPanel($li, $slider, title, details);
+
+                    SqVideoPanel($li, $slider, title, details, response.sqvideo);
+                    
+                    $slider.slideDown();
+                }
+                else {
+
+                    $slider.find('video')[0].pause();
+
+                    $slider.slideUp();
+                }
+
+            });
+            if (opt_Open) {
+                $head.click();
+            }
+        });
+        
+        return $li;
+    };
+
+    var RegenerateItem = function($li, title, details) {
+
+        var li = $('#list').find($li);
+        var newli = GenerateItem(title, details, true);
+        newli.insertAfter(li);
+        li.remove();
+    };
+
+    var InfoSlider = function($li, $slider, title, details) {
+
+        var bestFile = details.b;
+        var bestFileGk = details.f[details.b].gk;
+        var bestFileRank = details.f[details.b].rank;
 
         //info
         var $info = $slider.find('li.info');
+        $info.find('ul').empty();
         $info.find('ul').append('<li>Rank: ' + bestFileRank + '</li>');
         $info.find('ul').append('<li>Best File: ' + bestFile + '</li>');
-        $info.find('textarea').text(JSON.stringify(details));
+        $info.find('textarea').empty().text(JSON.stringify(details));
+    };
+
+    var BoxFrontPanel = function($li, $slider, title, details) {
+        
+        var bestFile = details.b;
+        var bestFileGk = details.f[details.b].gk;
+        var bestFileRank = details.f[details.b].rank;
 
         //media box front
         var $boxfront = $slider.find('li.boxfront');
-        var $boxfrontimg = $boxfront.find('img'); 
-        var $boxfrontDelete = $boxfront.find('.boxfrontdelete');
+        var $boxfrontimg = $boxfront.find('.img'); 
+        var $boxfrontDelete = $boxfront.find('.delete');
         $boxfrontDelete.hide();
-        $boxfrontimg.hide().attr('src', paths.box + '/front/z/' + encodeURIComponent(bestFileGk) + '?ts=' + Date.now()).imagesLoaded().done(function(img) {
+        var imageUrl = paths.box + '/front/z/' + encodeURIComponent(bestFileGk);
+        $boxfrontimg.removeClass('loaded').attr('src', imageUrl + '?ts=' + Date.now()).imagesLoaded().done(function(img) {
 
-            $boxfrontimg.show();
             $boxfrontDelete.show().off().on('click', function() {
-                $.ajax({
-                    url: '/media',
-                    method: 'DELETE',
-                    data: {
-                        filepath: '/box/front/' + system + '/' + title
-                    }
-                }).done(function() {
-                    RegenerateItem($li, title, details);
-                });
+                
+                if (confirm('Are you sure to want to delete this artwork? It cannot be recovered.')) {
+                
+                    $.ajax({
+                        url: '/media',
+                        method: 'DELETE',
+                        data: {
+                            filepath: '/box/front/' + system + '/' + title
+                        }
+                    }).done(function() {
+                        RegenerateItem($li, title, details);
+                    });
+                }
             });
 
             $boxfront.find('p.dim').text('Image Size: ' + img.images[0].img.width + 'x' + img.images[0].img.height);
 
-            $head.find('.boxfront').text('box front');
+            $boxfrontimg.addClass('loaded');
+        });
+        
+        $boxfront.find('input.googlesearch').off().on('click', function() {
+            OpenGoogle(title + ' box', 2);
+        });
 
-            $(img.images[0].img).css('width', '100%');
+        $boxfront.find('.view').off().on('click', function() {
+            window.open(imageUrl, '_blank');
         });
-        $boxfront.find('input.googlesearch').on('click', function() {
-            OpenGoogle(title + ' box');
-        });
-        $boxfront.find('.dropzone').dropzone({ 
+
+
+        //removing the class disallows this to be selected on the next open (dz cannot be init twice)
+        $boxfront.find('.dz').removeClass('dz').dropzone({
             url: '/media',
             sending: function(file, xhr, formData) {
                 
@@ -146,51 +224,73 @@ var cesdevMediaBrowser = (function() {
                 this.on('success', function() {
                     
                     $('.dz-preview').hide();
-                    
                     RegenerateItem($li, title, details);
                 });
             }
         });
+    };
+
+    var TitlescreenPanel = function($li, $slider, title, details) {
+
+        var bestFile = details.b;
+        var bestFileGk = details.f[details.b].gk;
+        var bestFileRank = details.f[details.b].rank;
 
         //titlescreen
         var $titlescreen = $slider.find('li.titlescreen');
-        var $titlescreenimg = $boxfront.find('img'); 
-        var $titlescreendelete = $boxfront.find('.titlescreendelete');
+        var $titlescreenimg = $titlescreen.find('.img'); 
+        var $titlescreendelete = $titlescreen.find('.delete');
         $titlescreendelete.hide();
-        //_config.paths.screenshot + '/' + type + '/' + cdnSizeModifier + '/' + encodeURIComponent(gameKey.gk)
-        // $titlescreenimg.hide().attr('src', paths.box + '/front/' + encodeURIComponent(bestFileGk) + '?location=media&ts=' + Date.now()).imagesLoaded().done(function(img) {
 
-        //     $boxfrontimg.show();
-        //     $boxfrontDelete.show().off().on('click', function() {
-        //         $.ajax({
-        //             url: '/media',
-        //             method: 'DELETE',
-        //             data: {
-        //                 filepath: '/box/front/' + system + '/' + title
-        //             }
-        //         }).done(function() {
-        //             RegenerateItem($li, title, details);
-        //         });
-        //     });
+        $titlescreenimg.imagesLoaded().done(function(img) {
 
-        //     $boxfront.find('p.dim').text('Image Size: ' + img.images[0].img.width + 'x' + img.images[0].img.height);
+            $titlescreendelete.show().off().on('click', function() {
+                
+                if (confirm('Are you sure to want to delete this artwork? It cannot be recovered.')) {
+                
+                    $.ajax({
+                        url: '/media',
+                        method: 'DELETE',
+                        data: {
+                            filepath: '/screen/title/' + system + '/' + title
+                        }
+                    }).done(function() {
+                        RegenerateItem($li, title, details);
+                    });
+                }
+            });
 
-        //     $head.find('.boxfront').text('box front');
-
-        //     $(img.images[0].img).css('width', '100%');
-        // });
-        $titlescreen.find('input.googlesearch').on('click', function() {
-            OpenGoogle(title + ' titlescreen');
+            $titlescreen.find('p.dim').text('Image Size: ' + img.images[0].img.width + 'x' + img.images[0].img.height);
         });
-        $titlescreen.find('.dropzone').dropzone({ 
+
+        $.ajax({
+            url: paths.screen + '/title/z/' + encodeURIComponent(bestFileGk),
+            type: 'GET',
+            cache: false,
+            complete: function(response) {
+
+                //the response code gives us the best impression of success and image source on the CDN
+                if (response.status == 200 || response.status == 201) {
+                    $titlescreenimg.attr('src', 'data:image/jpg;base64,' + response.responseText);   
+                }
+            }
+        });
+        
+        $titlescreen.find('input.googlesearch').off().on('click', function() {
+            OpenGoogle(title + ' ' + system + ' title screen');
+        });
+
+
+        //removing the class disallows this to be selected on the next open (dz cannot be init twice)
+        $titlescreen.find('.dz').removeClass('dz').dropzone({
             url: '/media',
             sending: function(file, xhr, formData) {
                 
-                // $('.dz-preview').hide();
+                $('.dz-preview').hide();
 
-                // formData.append('filepath', '/box/front/' + system + '/' + title);
-                // formData.append('title', title);
-                // formData.append('system', system);
+                formData.append('filepath', '/screen/title/' + system + '/' + title + '/' + bestFile);
+                formData.append('title', title);
+                formData.append('system', system);
             },
             init: function () {
                 this.on('error', function (file) {
@@ -200,57 +300,85 @@ var cesdevMediaBrowser = (function() {
                 this.on('success', function() {
                     
                     $('.dz-preview').hide();
-                    
                     RegenerateItem($li, title, details);
                 });
             }
         });
+    };
 
+    var SqVideoPanel = function($li, $slider, title, details, info) {
+
+        var bestFile = details.b;
+        var bestFileGk = details.f[details.b].gk;
+        var bestFileRank = details.f[details.b].rank;
 
         //sq video
         var $sqvideo = $slider.find('li.sqvideo');
-        var $sqvideoDelete = $boxfront.find('.boxfrontdelete');
+        var $sqvideoDelete = $sqvideo.find('.delete');
+        var $downloadLink = $sqvideo.find('.downloadlink');
         $sqvideoDelete.hide();
+        $downloadLink.hide();
         var $video = $('<video />', {
             src: paths.video + '/sq/' + encodeURIComponent(bestFileGk),
             type: 'video/mp4',
             controls: true,
             autoplay: false
         });
+        $downloadLink.attr('href', paths.video + '/sq/' + encodeURIComponent(bestFileGk)).attr('download', title + '.mp4');
+
 
         $video.on('loadeddata', function() {
-            $sqvideoDelete.show();
 
-            $head.find('.sqvideo').text('sq video');
+            if (info) {
+                $sqvideo.find('textarea.info').text(JSON.stringify(info));
+                $sqvideo.find('textarea.notes').text(JSON.stringify(info.notes));
+            }
+
+            $downloadLink.show();
+            $sqvideoDelete.show().off().on('click', function() {
+
+                if (confirm('Are you sure to want to delete this artwork? It cannot be recovered.')) {
+                    
+                    $.ajax({
+                        url: '/media',
+                        method: 'DELETE',
+                        data: {
+                            filepath: '/video/sq/' + system + '/' + title
+                        }
+                    }).done(function() {
+                        RegenerateItem($li, title, details);
+                    });
+                }
+            });
+
         });
         var $sqvideoWrap = $sqvideo.find('.videowrapper').empty().append($video);
 
+        //removing the class disallows this to be selected on the next open (dz cannot be init twice)
+        $sqvideo.find('.dz').removeClass('dz').dropzone({
+            url: '/media/video',
+            sending: function(file, xhr, formData) {
+                
+                $('.dz-preview').hide();
 
-
-
-        $head.on('click', function() {
-            $li.toggleClass('open');
-
-            if ($li.hasClass('open')) {
-                $slider.slideDown();
+                formData.append('notes', $sqvideo.find('textarea.notes').text());
+                formData.append('filename', file.name);
+                formData.append('filepath', '/video/sq/' + system + '/' + title);
+                formData.append('title', title);
+                formData.append('system', system);
+            },
+            init: function () {
+                this.on('error', function (file) {
+                    alert('There was an error saving the image. Please check the server!');
+                    RegenerateItem($li, title, details);
+                });
+                this.on('success', function() {
+                    
+                    $('.dz-preview').hide();
+                    RegenerateItem($li, title, details);
+                });
             }
-            else {
-                $slider.slideUp();
-            }
-
         });
-        if (opt_Open) {
-            $head.click();
-        }
-        return $li;
-    }
-
-    var RegenerateItem = function($li, title, details) {
-
-        var li = $('#list').find($li);
-        var newli = GenerateItem(title, details, true);
-        newli.insertAfter(li);
-        li.remove();
     };
 
     var OpenGoogle = function(term, size, type) {
@@ -282,8 +410,9 @@ var cesdevMediaBrowser = (function() {
             case 1:
                 size = "vga";
                 break;
-            default:
+            case 2:
                 size = "qsvga"
+                break;
         }
         
     

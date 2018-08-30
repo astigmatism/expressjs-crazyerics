@@ -21,6 +21,33 @@ router.post('/', upload.single( 'file' ), function(req, res, next) {
     });
 });
 
+router.post('/video', upload.single( 'file' ), function(req, res, next) {
+
+    var filepath = req.body.filepath;
+
+    CdnService.UploadFile(req.file.path, '/media' + filepath + '/0.mp4', (err) => {
+        if (err) return res.status(500).end(err);
+
+        var data = {
+            'originalfile': req.body.filename,
+            'dateprocessed': Date.now(),
+            'notes': req.body.notes
+        };
+
+        var temp = '../uploads/temp.json';
+
+        FileService.WriteJson(temp, data, (err) => {
+            if (err) return res.status(500).end(err);
+
+            CdnService.UploadFile(temp, '/media' + filepath + '/info.json', (err) => {
+                if (err) return res.status(500).end(err);
+
+                res.status(200).end();
+            });
+        });
+    });
+});
+
 router.delete('/', function(req, res, next) {
 
     var filepath = req.body.filepath;

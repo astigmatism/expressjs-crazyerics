@@ -1,1 +1,1 @@
-{"errno":-2,"code":"ENOENT","syscall":"scandir","path":"/Users/astigmatism/Projects/expressjs-cdn-crazyerics/media/box/front/wsx"}
+{"errno":-2,"code":"ENOENT","syscall":"scandir","path":"/media/data/expressjs-cdn-crazyerics/media/box/front/wsx"}

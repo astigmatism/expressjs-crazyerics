@@ -41,22 +41,34 @@ li.item {
 
 li div.head {
     cursor: pointer;
+    display: table;
 }
 
 li div.head * {
-    display: inline-block;
+    display: table-cell;
     padding: 0px 10px;
     margin: 0;
 }
 
 li h2 {
-    display: inline-block;
     overflow: hidden;
     width: 500px;
 }
 
 li div.head .count {
-    width: 50px;
+    visibility: hidden;
+}
+
+li div.head .boxfront {
+    background-color: lightblue;
+}
+
+li div.head .sqvideo {
+    background-color: lightgoldenrodyellow;
+}
+
+li div.head .titlescreen {
+    background-color: lightpink;
 }
 
 div.slider {
@@ -77,14 +89,23 @@ li.panel {
     margin: 5px;
 }
 
+li.panel .dropzone {
+    height: 50px;
+    width: 100%;
+}
+
+li.boxfront .img {
+    display: none;
+}
+
+li.boxfront .img.loaded {
+    display: block;
+    width: 100%;
+}
+
 textarea {
     width: 100%;
     min-height: 200px;
-}
-
-div.rankflag {
-    height: 20px;
-    border-radius: 8px;
 }
 
 .rankflag.green {
