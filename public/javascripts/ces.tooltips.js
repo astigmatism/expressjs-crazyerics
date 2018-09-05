@@ -81,6 +81,11 @@ var cesTooltips = (function(_config, _Media, tooltipSelector, tooltipContentSele
                         
                         //disable the loading tooltip
                         var instances = $.tooltipster.instances($el);
+
+                        //if the user is already moving away from the loading tooltip, bail showing the next content tooltip (the loading tooltip must be enabled of course, it won't be afterwards)
+                        if (instances[0].status().enabled && (instances[0].status().state === 'disappearing' || instances[0].status().state === 'closed'))
+                        return;
+
                         instances[0].disable();
 
                         $mediawrapper.addClass('titlescreenloaded'); //set the flag for the tooltip to allowed to be open and no more attempts to get it
@@ -94,8 +99,12 @@ var cesTooltips = (function(_config, _Media, tooltipSelector, tooltipContentSele
                         if (success) {
                             
                             setTimeout(function() {
-                                
-                                _Media.Video($mediawrapper, 'sq', gameKey, null, $img.height());
+
+                                //ensure the tooltip isnt closed or closing
+                                if (instance.status().state !== 'disappearing' || instance.status().state !== 'closed')
+                                {
+                                    _Media.Video($mediawrapper, 'sq', gameKey, null, $img.height());
+                                }
                             }, 1000);
                         }
                     });

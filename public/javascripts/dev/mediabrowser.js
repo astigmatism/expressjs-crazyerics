@@ -11,7 +11,8 @@ var cesdevMediaBrowser = (function() {
         $(window).on('keypress', function(e) {
             if (e.keyCode == 96)
             {
-                $('#search').val('').focus();
+                e.preventDefault();
+                $('#search').focus().val('');
             }
         });
 
