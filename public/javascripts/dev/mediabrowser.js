@@ -8,6 +8,13 @@ var cesdevMediaBrowser = (function() {
         
         GenerateList(masterFile);
 
+        $(window).on('keypress', function(e) {
+            if (e.keyCode == 96)
+            {
+                $('#search').val('').focus();
+            }
+        });
+
         $('#search').on('keyup', function(event) {
 
             var input = event.currentTarget.value;
