@@ -12,7 +12,6 @@ var cesLogging = (function(_config) {
 
         opt_css = opt_css || '';
         console.log('%c' + sender + ':%c ' + message, 'background-color: #eee; color: #' + toHexColour(sender) + ';', '');
-        
     };
 
     // Hash any string into an integer value
