@@ -2,7 +2,7 @@
  * Object which wraps common functions related to player preferences, data that comes form the server initially but can be changed
  * @type {Object}
  */
-var cesPubSub = (function() {
+var cesPubSub = (function(_Logging) {
 
     //private members
     var self = this;
@@ -14,6 +14,8 @@ var cesPubSub = (function() {
     //public members
 
     this.Publish = function(topic, args, _optSustained) {
+
+        _Logging.Console('cesPubSub', 'topic published: ' + topic, args);
 
         //sustained means that anytime anyone subscribes to this topic, 
         //a previously publish to the topic is saved and published back to that listener

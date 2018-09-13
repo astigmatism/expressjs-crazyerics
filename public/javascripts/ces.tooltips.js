@@ -2,7 +2,7 @@
  Wrapper for tooltips
  Important not to pass in the $(selector) because you will have a subset at the time it was passed. needs to be live
  */
-var cesTooltips = (function(_config, _Media, tooltipSelector, tooltipContentSelector) {
+var cesTooltips = (function(_config, _Media, _Logging, tooltipSelector, tooltipContentSelector) {
     
     //private members
     var self = this;
@@ -84,7 +84,10 @@ var cesTooltips = (function(_config, _Media, tooltipSelector, tooltipContentSele
 
                         //if the user is already moving away from the loading tooltip, bail showing the next content tooltip (the loading tooltip must be enabled of course, it won't be afterwards)
                         if (instances[0].status().enabled && (instances[0].status().state === 'disappearing' || instances[0].status().state === 'closed'))
-                        return;
+                        {
+                            _Logging.Console('ces.tooltips', 'state of "loading" tooltip: ' + instances[0].status().state + '. Not showing titlescreen tooltip');
+                            return;
+                        }
 
                         instances[0].disable();
 
@@ -95,17 +98,58 @@ var cesTooltips = (function(_config, _Media, tooltipSelector, tooltipContentSele
                         //change speed of this tooltip now since the titlescreen image is cached and we wont need to show the loader
                         instance.option ('delay', [1000, 100]);
                         
-                        //play video only if titlescreen retrieval was success
+                        //only consider video if a title screen was loaded
                         if (success) {
-                            
-                            setTimeout(function() {
 
-                                //ensure the tooltip isnt closed or closing
-                                if (instance.status().state !== 'disappearing' || instance.status().state !== 'closed')
-                                {
-                                    _Media.Video($mediawrapper, 'sq', gameKey, null, $img.height());
-                                }
-                            }, 1000);
+                            var checkTooltipState = function() {  
+                                _Logging.Console('ces.tooltips', 'checking state of tooltip: ' + instance.status().state);
+                                if (instance.status().state === 'disappearing' || instance.status().state === 'closed')
+                                return false;
+                                return true;
+                            };
+
+                            if (checkTooltipState())
+                            {
+                                //callback when video loaded
+                                _Media.Video($mediawrapper, 'sq', gameKey, function($video, videoLoadTime) {
+                                    
+                                    //hold the titlescreen for a minimum of a second before playing video
+                                    var delay = (1000 - videoLoadTime) > 0 ? 1000 - videoLoadTime : 0;
+
+                                    setTimeout(function() {
+                                        if (checkTooltipState()) {
+                                            $mediawrapper.empty().append($video).fadeIn(500);
+                                            $video.get(0).play(); //function of dom element
+                                        }
+                                    }, delay);
+                                
+                                }, null, $img.height()); //optional params
+                            }
+                            
+                            // setTimeout(function() {
+
+                            //     var checkTooltipState = function() {  
+                            //         _Logging.Console('ces.tooltips', 'checking state of tooltip: ' + instance.status().state);
+                            //         if (instance.status().state === 'disappearing' || instance.status().state === 'closed')
+                            //         return false;
+                            //         return true;
+                            //     };
+
+                            //     //ensure the tooltip isnt closed or closing
+                            //     if (checkTooltipState())
+                            //     {
+                            //         //callsback when video loaded
+                            //         _Media.Video($mediawrapper, 'sq', gameKey, function($video) {
+                                        
+
+                            //             if (checkTooltipState()) {
+                            //                 $mediawrapper.empty().append($video).fadeIn(500);
+                            //                 $video.play();
+                            //             }
+                                    
+                            //         }, null, $img.height()); //optional params
+                            //     }
+                            // }, 1000);
                         }
                     });
 

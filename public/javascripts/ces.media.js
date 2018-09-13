@@ -2,7 +2,7 @@
  * Image loading helper class. Since we now have unique methods of obtaining images from the CDN,
  * this class specializes in understanding the correct methods for obtaining them 
  */
-var cesMedia = (function(_config) {
+var cesMedia = (function(_config, _Logging) {
 
     // private members
     var _self = this;
@@ -53,19 +53,24 @@ var cesMedia = (function(_config) {
         });
     };
 
-    this.Video = function($wrapper, type, gameKey, opt_width, opt_height) {
+    this.Video = function($wrapper, type, gameKey, callback, opt_width, opt_height) {
+
+        var videoLoadingStart = Date.now();
 
         var $video = $('<video />', {
             src: _config.paths.video + '/' + type + '/' + encodeURIComponent(gameKey.gk),
             type: 'video/mp4',
             controls: false,
-            autoplay: true,
+            autoplay: false,
             width: opt_width || $wrapper.width(),
             height: opt_height || $wrapper.height()
         });
 
+        //callback on loaded
         $video.on('loadeddata', function() {
-            $wrapper.empty().append($video).fadeIn(500);
+            var videoLoadingDelay = Math.floor(Date.now() - videoLoadingStart);
+            _Logging.Console('ces.media','video loading took: ' + videoLoadingDelay);
+            return callback($video, videoLoadingDelay);
         });
     };
 

@@ -1,5 +1,5 @@
 
-var cesInputHelper = (function(_Emulator, _Preferences, _Gamepad, _ui) {
+var cesInputHelper = (function(_Emulator, _Preferences, _Gamepad, _ui, _Logging) {
 
     //private members
     var self = this;
@@ -13,6 +13,7 @@ var cesInputHelper = (function(_Emulator, _Preferences, _Gamepad, _ui) {
 
     var _keydownOperationHandlers = {}; // { keycode: function}
     var _keyupOperationHandlers = {};
+    var _keyUpDelay = 200; //the 1.6.7 emulator was happy with this value. make it no less
 
     //auto save
     var _idleKeyTimeout = null;
@@ -204,6 +205,8 @@ var cesInputHelper = (function(_Emulator, _Preferences, _Gamepad, _ui) {
             return;
         }
         var keycode = _operationMap[operation];
+        _Logging.Console('cesInputHelper', 'Simulating keypress for ' + operation);
+
         SimulateEmulatorKeypress(keycode, callback, args);
     };
 
@@ -319,7 +322,7 @@ var cesInputHelper = (function(_Emulator, _Preferences, _Gamepad, _ui) {
             return;
         }
 
-        keyUpDelay = keyUpDelay || 100; //the 1.6.7 emulator was happy with this value. make it no less
+        keyUpDelay = keyUpDelay || _keyUpDelay;
         
         var keydownHandler = _modifiedEmulatorKeydownHandlers[Object.keys(_modifiedEmulatorKeydownHandlers)[0]].handlerFunc; //take first handler, doesn't matter which really, its likely attached to window
         var keyupHandler = _modifiedEmulatorKeyupHandlers[Object.keys(_modifiedEmulatorKeyupHandlers)[0]].handlerFunc; //take first handler, doesn't matter which really
@@ -329,12 +332,15 @@ var cesInputHelper = (function(_Emulator, _Preferences, _Gamepad, _ui) {
 
         setTimeout(function() {
             keyupHandler(keyup, args); //send the keyup event
+            _Logging.Console('cesInputHelper', 'keyup for code ' + keycode + ' after ' + keyUpDelay + 'ms');
             
             if (callback) {
                 callback();
             }
         }, keyUpDelay);
         keydownHandler(keydown, args); //send the keydown event
+        
+        _Logging.Console('cesInputHelper', 'keydown with code ' + keycode);
     };
 
     var GenerateEvent = function(keyCode, eventType) {

@@ -7,7 +7,7 @@
  * @param  {string} file         Super Mario Bros. 3 (U)[!].nes
  * @return {undef}
  */
-var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _GamePad, _Preferences, _gameKey) {
+var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _GamePad, _Preferences, _gameKey, _Logging) {
 
     // private members
     var self = this;
@@ -54,8 +54,13 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _GamePad, _Pr
 
         //an override to prevent
         this.setWindowTitle = function(title) {
-            _PubSub.Publish('emulatorseemsready');
-            console.log('Module wanted to rename title: ' + title);
+            
+            //I use this function to know the emulator is ready for input. watch this in the future!
+            if (title) {
+                this.setWindowTitle = function(title) { return; }
+                _Logging.Console('ces.2017-03-27', 'Module wanted to rename title: ' + title + '. Disabling this function now');
+                _PubSub.Publish('emulatorseemsready');
+            }
         };
 
         this.setStatus = function(text) {

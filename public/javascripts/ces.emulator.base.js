@@ -6,7 +6,7 @@
  * @param  {string} file         Super Mario Bros. 3 (U)[!].nes
  * @return {undef}
  */
-var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad, _Preferences, _gameKey, _ui, _Media, _ClientCache) {
+var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad, _Preferences, _gameKey, _ui, _Media, _ClientCache, _Logging) {
 
     // private members
     var self = this;
@@ -43,7 +43,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
     //wait for document as this is an external script
     $(document).ready(function() {
 
-        self._InputHelper = new cesInputHelper(self, _Preferences, _GamePad, _ui);
+        self._InputHelper = new cesInputHelper(self, _Preferences, _GamePad, _ui, _Logging);
     });
 
     // public methods

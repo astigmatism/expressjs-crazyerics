@@ -13,6 +13,7 @@ var cesMain = (function() {
 
     // instances/libraries
     var _Sync = null;
+    var _Logging = null;
     var _Compression = null;
     var _PubSub = null;
     var _Preferences = null;
@@ -45,13 +46,15 @@ var cesMain = (function() {
 
         _config = clientdata.config;
 
-        _PubSub = new cesPubSub();
+        _Logging = new cesLogging(_config);
 
-        _Media = new cesMedia(_config);
+        _PubSub = new cesPubSub(_Logging);
+
+        _Media = new cesMedia(_config, _Logging);
 
         _Dialogs = new cesDialogs(_config, $('#dialogs'));
 
-        _Tooltips = new cesTooltips(_config, _Media, '.tooltip', '.tooltip-content');
+        _Tooltips = new cesTooltips(_config, _Media, _Logging, '.tooltip', '.tooltip-content');
 
         _Notifications = new cesNotifications(_config, _Compression, _PubSub, $('#notificationwrapper'));
 
@@ -644,9 +647,9 @@ var cesMain = (function() {
                 };
 
                 //the class extention process: on the prototype of the ext, create using the base class.
-                cesEmulator.prototype = new cesEmulatorBase(_Compression, _PubSub, _config, _Sync, _Gamepad, _Preferences, gameKey, ui, _Media, _ClientCache);
+                cesEmulator.prototype = new cesEmulatorBase(_Compression, _PubSub, _config, _Sync, _Gamepad, _Preferences, gameKey, ui, _Media, _ClientCache, _Logging);
 
-                var emulator = new cesEmulator(_Compression, _PubSub, _config, _Sync, _Gamepad, _Preferences, gameKey);
+                var emulator = new cesEmulator(_Compression, _PubSub, _config, _Sync, _Gamepad, _Preferences, gameKey, _Logging);
 
                 //KEEP IN MIND: this pattern is imperfect. only the resulting structure (var emulator and later _Emulator)
                 //will have access to data in both, cesEmulatorBase does not have knowledge of anything in cesEmulator
