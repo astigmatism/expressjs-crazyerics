@@ -1,4 +1,4 @@
-var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Sync, _Tooltips, _PlayGameHandler, $collectionTitlesWrapper, $collectionNamesWrapper, _initialSyncPackage, copyToFeatured, _OnRemoveHandler) {
+var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Sync, _Tooltips, _PlayGameHandler, _Logging, $collectionTitlesWrapper, $collectionNamesWrapper, _initialSyncPackage, copyToFeatured, _OnRemoveHandler) {
 		
     //private members
     var _self = this;
@@ -336,6 +336,7 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
                         
                         $input = $('<input type="text" class="tooltip" />');
                         $input.bind('keydown', function(e) {
+                            //_Logging.Console('ces.collections', 'keydown event with code: ' + e.which);
                             if (e.which === 13) {
                                 Confirm($input, $wrapper);
                             }
@@ -435,7 +436,7 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
                 }
             }
 
-            _Tooltips.Destory($gi); //remove tooltips from validation on text entry
+            _Tooltips.Destroy($gi); //remove tooltips from validation on text entry
             
             value = value.replace(/[^a-zA-Z0-9\s\-/]/g,''); //sanitize anyway ;)
             
