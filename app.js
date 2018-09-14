@@ -13,6 +13,7 @@ const pool = require('./db/pool.js');
 const ApplicationService = require('./services/application');
 const UsersService = require('./services/users');
 const SyncService = require('./services/sync');
+const RedisCache = require('./services/cache/cache.redis.js');
 
 const routes = require('./routes/index');
 const saves = require('./routes/saves');
@@ -81,6 +82,12 @@ app.use(function(req, res, next) {
     err.status = 404;
     next(err);
 });
+
+//flush all redis cache. I have no reason for this data to persist between restarts of the app
+//it is primarily used as a cache for all processes
+var redis = new RedisCache();
+redis.FlushAll();
+redis = null;
 
 //run on app start
 ApplicationService.ApplicationStart(function(err) {

@@ -20,6 +20,10 @@ module.exports = function(key, opt_options) {
     this.Set = _base.Set;
     this.Delete = _base.Delete;
 
+    this.FlushAll = function() {
+        _client.flushall();
+    };
+
     this.name = 'redis';
 
     _client.on('error', function (err) {

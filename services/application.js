@@ -37,7 +37,7 @@ module.exports = new (function() {
      * This runs on application start. The goal here is to mainly cache freqently accessed data.
      */
     this.ApplicationStart = function(callback) {
-
+        
         //put into cache all the data files
         var systems = config.get('systems');
         
