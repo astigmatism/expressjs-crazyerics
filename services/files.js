@@ -1,18 +1,12 @@
 const fs = require('fs-extra');
 const async = require('async');
 const colors = require('colors');
-const Cache = require('../services/cache');
-const NodeCache = require('node-cache');
+const Cache = require('./cache/cache.nodecache');
 const path = require('path');
 const request = require('request');
 
 //define custom cache for files
-const JsonFileCache = new Cache('file.$1', new NodeCache({
-        stdTTL: 0,                      //0 = unlimited. 
-        checkperiod: 0                  //0 = no periodic check
-    })
-);
-
+const JsonFileCache = new Cache('file.$1'); //uses default ttl of 0 (forever)
 const projectRoot = __dirname + '/..';
 
 module.exports = new (function() {

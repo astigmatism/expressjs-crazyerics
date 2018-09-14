@@ -1,7 +1,6 @@
 'use strict';
 const config = require('config');
-const NodeCache = require('node-cache');
-const Cache = require('./cache');
+const Cache = require('../services/cache/cache.redis.js');
 const UtilitiesService = require('./utilities');
 
 /**
@@ -19,7 +18,7 @@ const UtilitiesService = require('./utilities');
 module.exports = new (function() {
 
     var _self = this;
-    var _cache = new Cache('user.$1.preferences');
+    var _cache = new Cache('user.$1.preferences'); //uses default ttl of 1 hour
 
     this.Get = function(userId, callback, opt_key) {
 

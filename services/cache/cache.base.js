@@ -1,35 +1,22 @@
 'use strict';
 const config = require('config');
-const NodeCache = require('node-cache');
 const colors = require('colors');
 
-//standard cache if no custom was defined.
-//this definition is strongly designed around users and their estimated session length (1 hour max?)
-const nodecache = new NodeCache({
-    stdTTL: 60 * 60,             //1 hour
-    checkperiod: 60 * 7          //7 minutes
-});
-
-module.exports = function(key, opt_customCache) {
+module.exports = function(cacheController, key) {
 
     var _self = this;
-    var _cache = opt_customCache || nodecache;
-    var _key = key; //expecting key template with array replacements ex: users.$1.collections
+    var _key = key;
     
     var Envelope = (function(cache) {
         this.cache = cache;
         this.hits = 0;
     });
 
-    //node-cache listeners
-    _cache.on('del', function(key, envelope) {
-        console.log(colors.red('cache: exp <> ' + key + ', hits: ' + envelope.hits));
-    });
-
     this.Get = function(args, callback) {
         var key = MakeKey(args);
         var startTime = new Date().getTime();
-        _cache.get(key, (err, envelope) => {
+        
+        cacheController.get(key, (err, envelope) => {
             if (err) {
                 return callback(err);
             }
@@ -39,7 +26,7 @@ module.exports = function(key, opt_customCache) {
                 envelope.hits++;
                 var finishTime = (new Date().getTime()) - startTime;
 
-                console.log(('cache: get -> ' + key + ', hits: ' + envelope.hits + ', fetch time (ms): ' + finishTime).green);
+                console.log((cacheController.name + ': get -> ' + key + ', hits: ' + envelope.hits + ', fetch time (ms): ' + finishTime).green);
 
                 //set again but using envelope
                 _self.Set(args, null, (err, success)=> {
@@ -61,7 +48,7 @@ module.exports = function(key, opt_customCache) {
             cache = opt_envelope;
         }   
 
-        _cache.set(key, cache, (err, success) => {
+        cacheController.set(key, cache, (err, success) => {
             if (opt_callback) {
                 if (err) {
                     return opt_callback(err);
@@ -71,7 +58,7 @@ module.exports = function(key, opt_customCache) {
             
             //because a set with envelope is really and "update", don't bother showing it
             if (!opt_envelope) {
-                console.log(colors.blue('cache: set <- ' + key));
+                console.log(colors.blue(cacheController.name + ': set <- ' + key));
             }
         });
     };
@@ -87,9 +74,9 @@ module.exports = function(key, opt_customCache) {
                 return callback();
             }
 
-            console.log(colors.red('cache: del <> ' + key + ', hits: ' + envelope.hits));
+            console.log(colors.red(cacheController.name + ': del <> ' + key + ', hits: ' + envelope.hits));
 
-            _cache.del(key, (err, success) => {
+            cacheController.delete(key, (err, success) => {
                 if (callback) {
                     if (err) {
                         return callback(err);
@@ -107,6 +94,4 @@ module.exports = function(key, opt_customCache) {
         }
         return key;
     }
-    
-
 };

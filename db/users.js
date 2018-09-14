@@ -1,7 +1,7 @@
 const config = require('config');
 const pool = require('./pool.js');
-const Cache = require('../services/cache');
-const UserCache = new Cache('session.$1');
+const Cache = require('../services/cache/cache.redis.js');
+const UserCache = new Cache('session.$1'); //will use default ttl of 1 hour
 
 module.exports = new (function() {
 
@@ -50,6 +50,8 @@ module.exports = new (function() {
 
     this.GetUserWithSessionID = function(sessionId, callback) {
         
+        //get user our of cache first
+
         UserCache.Get([sessionId], (err, user) => {
             if (err) {
                 return callback(err);

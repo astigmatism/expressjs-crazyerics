@@ -1,7 +1,5 @@
 'use strict';
-const config = require('config');
 const pool = require('./pool.js');
-const Cache = require('../services/cache');
 
 module.exports = new (function() {
 

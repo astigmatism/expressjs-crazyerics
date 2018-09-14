@@ -5,19 +5,11 @@ const FeaturedSQL = require('../db/featured');
 const UtilitiesService = require('../services/utilities');
 const FileService = require('../services/files');
 const CronService = require('../services/cron');
-const Cache = require('../services/cache');
-const NodeCache = require('node-cache');
+const Cache = require('./cache/cache.nodecache');
 
-const FeaturedCache = new Cache('featured', new NodeCache({
-        stdTTL: 0,                      //0 = unlimited. 
-        checkperiod: 0                  //0 = no periodic check
-    })
-);
-const KeysCache = new Cache('featuredKeys', new NodeCache({
-        stdTTL: 0,                      //0 = unlimited. 
-        checkperiod: 0                  //0 = no periodic check
-    })
-);
+//both use default ttl of 0 (forever)
+const FeaturedCache = new Cache('featured');
+const KeysCache = new Cache('featuredKeys');
 
 module.exports = new (function() {
 

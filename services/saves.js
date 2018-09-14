@@ -2,13 +2,13 @@
 const async = require('async');
 const config = require('config');
 const SavesSQL = require('../db/saves');
-const Cache = require('./cache');
 const CollectionsService = require('./collections');
+const Cache = require('../services/cache/cache.redis.js');
 
 module.exports = new (function() {
 
     var _self = this;
-    var _savesCache = new Cache('saves.user.$1.file.$2');
+    var _savesCache = new Cache('saves.user.$1.file.$2'); //will use default ttl of 1 hour
     var maxSavesPerGame = parseInt(config.get('defaults.maxSavesPerGame'), 10);
 
     this.NewSave = function(userId, eGameKey, timestamp, screenData, stateData, type, callback) {

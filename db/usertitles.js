@@ -1,7 +1,5 @@
 const config = require('config');
 const pool = require('./pool.js');
-const Cache = require('../services/cache');
-const UserCache = new Cache('session.$1');
 
 module.exports = new (function() {
 

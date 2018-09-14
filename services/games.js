@@ -5,24 +5,19 @@ const FileService = require('../services/files.js');
 const UtilitiesService = require('../services/utilities.js');
 const TitlesSQL = require('../db/titles.js');
 const FilesSQL = require('../db/files.js');
-const Cache = require('../services/cache');
-const NodeCache = require('node-cache');
+const Cache = require('../services/cache/cache.redis.js');
 
 module.exports = new (function() {
 
     var _self = this;
 
-    var _gameDetailsCache = new Cache('games.details.$1', new NodeCache({
-            stdTTL: 0,                      //0 = unlimited. 
-            checkperiod: 0                  //0 = no periodic check
-        })
-    );
+    //this cache holds details given a gameKey (sysem, title, files, gk, info, etc)
+    //... will serve all nodejs processes so use redis
+    var _gameDetailsCache = new Cache('games.details.$1', { stdTTL: 0 });
 
-    var _gameRecordCache = new Cache('games.record.$1', new NodeCache({
-            stdTTL: 0,                      //0 = unlimited. 
-            checkperiod: 0                  //0 = no periodic check
-        })
-    );
+    //other services can use an ehanced gameKey which includes db specific id's
+    //never send this to the client, used for server-side services only
+    var _enhancedGameKeyCache = new Cache('games.enhancedgamekey.$1', { stdTTL: 0 });
 
     //a play request is initiated, update game tables, return game details...
     this.PlayRequest = function(gameKey, callback) {
@@ -54,7 +49,7 @@ module.exports = new (function() {
     this.EnhancedGameKey = function(gameKey, callback) {
         
         //pull from cache first of course
-        _gameRecordCache.Get([gameKey.gk], (err, cache) => {
+        _enhancedGameKeyCache.Get([gameKey.gk], (err, cache) => {
             if (err) {
                 return callback(err);
             }
@@ -73,7 +68,9 @@ module.exports = new (function() {
                 gameKey.fileId = fileRecord.file_id;
                 gameKey.titleId = titleRecord.title_id;
 
-                callback(null, gameKey);
+                _enhancedGameKeyCache.Set([gameKey.key], gameKey, (err, success) => {
+                    callback(null, gameKey);
+                });
             });
         });
     };
@@ -150,6 +147,7 @@ module.exports = new (function() {
     };
 
     //ensures the creation of an entry in the title table. there's no need to create it until a user interacts with a game
+    //once created, allows the creation of an enahced gamekey, which is cached
     var Exists = function(gameKey, callback) {
         
         TitlesSQL.GetTitle(gameKey.system, gameKey.title, (err, titleRecord) => {

@@ -1,11 +1,11 @@
 var config = require('config');
 const pool = require('./pool.js');
-var NodeCache = require('node-cache');
+// var NodeCache = require('node-cache');
 
-const nodecache = new NodeCache({
-    stdTTL: 0,          //unlimited, hold until I delete it
-    checkperiod: 0      //no check
-});
+// const nodecache = new NodeCache({
+//     stdTTL: 0,          //unlimited, hold until I delete it
+//     checkperiod: 0      //no check
+// });
 
 /**
  * Constructor
@@ -15,17 +15,17 @@ FilesSQL = function() {
 
 FilesSQL.GetFile = function(titleId, name, callback) {
 
-    var cacheKey = FilesSQL.MakeCacheKey(titleId, name);
+    //var cacheKey = FilesSQL.MakeCacheKey(titleId, name);
 
     //to avoid a select lookup, check cache first
-    nodecache.get(cacheKey, (err, fileCache) => {
-        if (err) {
-            return callback(err);
-        }
+    // nodecache.get(cacheKey, (err, fileCache) => {
+    //     if (err) {
+    //         return callback(err);
+    //     }
 
-        if (fileCache) {
-            return callback(null, fileCache);
-        }
+    //     if (fileCache) {
+    //         return callback(null, fileCache);
+    //     }
 
         //note: due to the frequency at which I might want to lookup files, I moved the "where not exists" check to AFTER the select attempt
 
@@ -38,12 +38,12 @@ FilesSQL.GetFile = function(titleId, name, callback) {
             //on compete for select or insert
             var onRecordRetrieval = function(fileRecord) {
 
-                FilesSQL.SetCache(cacheKey, fileRecord, (err, success) => {
-                    if (err) {
-                        return callback(err);
-                    }
+                // FilesSQL.SetCache(cacheKey, fileRecord, (err, success) => {
+                //     if (err) {
+                //         return callback(err);
+                //     }
                     callback(null, fileRecord);
-                });
+                //});
             };
 
             //insert check
@@ -60,33 +60,33 @@ FilesSQL.GetFile = function(titleId, name, callback) {
                 onRecordRetrieval(filesSelectResult.rows[0]);
             }
         });
-    });
+    //});
 };
 
-FilesSQL.MakeCacheKey = function(titleId, name) {
-    return titleId + '.' + name;
-};
+// FilesSQL.MakeCacheKey = function(titleId, name) {
+//     return titleId + '.' + name;
+// };
 
-FilesSQL.SetCache = function(key, fileRecord, callback) {
-    nodecache.set(key, fileRecord, (err, success) => {
-        if (err) {
-            return callback(err);
-        }
-        callback(null, success);
-    });
-};
+// FilesSQL.SetCache = function(key, fileRecord, callback) {
+//     nodecache.set(key, fileRecord, (err, success) => {
+//         if (err) {
+//             return callback(err);
+//         }
+//         callback(null, success);
+//     });
+// };
 
-FilesSQL.ExpireCache = function(titleId, name, callback) {
+// FilesSQL.ExpireCache = function(titleId, name, callback) {
     
-    var cacheKey = FilesSQL.MakeCacheKey(titleId, name);
+//     var cacheKey = FilesSQL.MakeCacheKey(titleId, name);
     
-    nodecache.del(cacheKey, (err, success) => {
-        if (err) {
-            return callback(err);
-        }
-        callback();
-    });
-};
+//     nodecache.del(cacheKey, (err, success) => {
+//         if (err) {
+//             return callback(err);
+//         }
+//         callback();
+//     });
+// };
 
 FilesSQL.NewFile = function(titleId, name, callback) {
 
@@ -107,12 +107,12 @@ FilesSQL.PlayFile = function(fileId, callback) {
         }
 
         var record = filesUpdateResult.rows[0];
-        var key = FilesSQL.MakeCacheKey(record.title_id, record.name);
+        //var key = FilesSQL.MakeCacheKey(record.title_id, record.name);
 
         //update cache
-        FilesSQL.SetCache(key, record, (err, success) => {
+        //FilesSQL.SetCache(key, record, (err, success) => {
             callback(null, record);
-        });
+        //});
     });
 };
 

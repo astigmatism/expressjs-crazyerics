@@ -2,7 +2,7 @@
 var cesLogging = (function(_config) {
 
     var self = this;
-    var disable = true; //global disable all logging
+    var disable = false; //global disable all logging
 
     //console.log('%c Oh my heavens! ', 'background: #222; color: #bada55');
 

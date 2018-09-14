@@ -1,15 +1,14 @@
 'use strict';
 const config = require('config');
 const CollectionsSQL = require('../db/collections');
-const Cache = require('./cache');
-const GameService = require('../services/games');
+const Cache = require('../services/cache/cache.redis.js');
 const UtilitiesService = require('./utilities');
 
 module.exports = new (function() {
 
     const _self = this;
-    var _cacheActiveCollection = new Cache('collections.user.$1.active');
-    var _cacheCollectionNames = new Cache('collections.user.$1.names');
+    var _cacheActiveCollection = new Cache('collections.user.$1.active'); //uses default ttl of 1 hour
+    var _cacheCollectionNames = new Cache('collections.user.$1.names'); //uses default ttl of 1 hour
 
     var CollectionEnvelope = (function() {
         this.collection = null;   //details about the current collection (from collections table)
