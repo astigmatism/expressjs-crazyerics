@@ -111,6 +111,10 @@ var cesdevMediaBrowser = (function() {
             if (response.sqvideo) {
                 $head.find('.sqvideo').css('visibility', 'visible');
             }
+            if (response.contributionstitlescreen) {
+                debugger;
+                $head.find('.contributionstitlescreen').css('visibility', 'visible');
+            }
 
             //slider
             var $slider = $li.find('div.slider');

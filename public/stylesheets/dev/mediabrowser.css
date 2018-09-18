@@ -71,6 +71,10 @@ li div.head .titlescreen {
     background-color: lightpink;
 }
 
+li div.head .contributionstitlescreen {
+    background-color: salmon;
+}
+
 div.slider {
     display: none;
 }

@@ -11,9 +11,8 @@
 		"emulator_extensions": "emulatorextentions/",
 		"emulators": "emulators",
 		"supportfiles": "http://cdn.crazyerics.com/support",
-		"contributetitle": "http://cdn.crazyerics.com/screenshot/title/contribute",
-		"contributescreen": "http://cdn.crazyerics.com/screenshot/screen/contribute"
-		//"screenupload": "http://localhost:8001/contribute"
+		"contributetitle": "http://cdn.crazyerics.com/screen/title/contribute",
+		"contributescreen": "http://cdn.crazyerics.com/screen/screen/contribute"
 	},
 	"defaults": {
 		"maxSavesPerGame": 40,
@@ -34,14 +33,19 @@
 	},
 	"cdn": [
 		{
-			"host": "192.168.1.5",
-			"user": "root",
-			"root": "/media/data/expressjs-cdn-crazyerics"
+			"host": "192.168.1.10",
+			"user": "astigmatism",
+			"root": "/home/astigmatism/expressjs-cdn-crazyerics"
 		},
 		{
-			"host": "192.168.1.6",
-			"user": "root",
-			"root": "/media/data/expressjs-cdn-crazyerics"
+			"host": "192.168.1.11",
+			"user": "astigmatism",
+			"root": "/home/astigmatism/expressjs-cdn-crazyerics"
+		},
+		{
+			"host": "192.168.1.12",
+			"user": "astigmatism",
+			"root": "/home/astigmatism/expressjs-cdn-crazyerics"
 		}
 	],
 	"retroarch": {
