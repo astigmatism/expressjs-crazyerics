@@ -112,7 +112,6 @@ var cesdevMediaBrowser = (function() {
                 $head.find('.sqvideo').css('visibility', 'visible');
             }
             if (response.contributionstitlescreen) {
-                debugger;
                 $head.find('.contributionstitlescreen').css('visibility', 'visible');
             }
 
@@ -132,6 +131,8 @@ var cesdevMediaBrowser = (function() {
                     TitlescreenPanel($li, $slider, title, details);
 
                     SqVideoPanel($li, $slider, title, details, response.sqvideo);
+
+                    ContributionsTitlePanel($li, $slider, title, details);
                     
                     $slider.slideDown();
                 }
@@ -195,6 +196,7 @@ var cesdevMediaBrowser = (function() {
                         url: '/media',
                         method: 'DELETE',
                         data: {
+                            root: '/media',
                             filepath: '/box/front/' + system + '/' + title
                         }
                     }).done(function() {
@@ -259,11 +261,13 @@ var cesdevMediaBrowser = (function() {
             $titlescreendelete.show().off().on('click', function() {
                 
                 if (confirm('Are you sure to want to delete this artwork? It cannot be recovered.')) {
-                
+                    
+                    //this call will delete the file path in root and processed
                     $.ajax({
                         url: '/media',
                         method: 'DELETE',
                         data: {
+                            root: '/media',
                             filepath: '/screen/title/' + system + '/' + title
                         }
                     }).done(function() {
@@ -351,10 +355,12 @@ var cesdevMediaBrowser = (function() {
 
                 if (confirm('Are you sure to want to delete this artwork? It cannot be recovered.')) {
                     
+                    //this call will delete the file path in root and processed
                     $.ajax({
                         url: '/media',
                         method: 'DELETE',
                         data: {
+                            root: '/media',
                             filepath: '/video/sq/' + system + '/' + title
                         }
                     }).done(function() {
@@ -389,6 +395,55 @@ var cesdevMediaBrowser = (function() {
                     $('.dz-preview').hide();
                     RegenerateItem($li, title, details);
                 });
+            }
+        });
+    };
+
+    var ContributionsTitlePanel = function($li, $slider, title, details) {
+
+        var bestFile = details.b;
+        var bestFileGk = details.f[details.b].gk;
+        var bestFileRank = details.f[details.b].rank;
+
+        //contributions title
+        var $titlescreen = $slider.find('li.contributionstitle');
+        var $titlescreenimg = $titlescreen.find('.img'); 
+        var $titlescreendelete = $titlescreen.find('.delete');
+        $titlescreendelete.hide();
+
+        $titlescreenimg.imagesLoaded().done(function(img) {
+
+            $titlescreendelete.show().off().on('click', function() {
+                
+                if (confirm('Are you sure to want to delete this artwork? It cannot be recovered.')) {
+                    
+                    //this call will delete the file path in root and processed
+                    $.ajax({
+                        url: '/media',
+                        method: 'DELETE',
+                        data: {
+                            root: '/contributions',
+                            filepath: '/screen/title/' + system + '/' + title
+                        }
+                    }).done(function() {
+                        RegenerateItem($li, title, details);
+                    });
+                }
+            });
+
+            $titlescreen.find('p.dim').text('Image Size: ' + img.images[0].img.width + 'x' + img.images[0].img.height);
+        });
+
+        $.ajax({
+            url: paths.screen + '/title/y/' + encodeURIComponent(bestFileGk),
+            type: 'GET',
+            cache: false,
+            complete: function(response) {
+
+                //the response code gives us the best impression of success and image source on the CDN
+                if (response.status == 200 || response.status == 201) {
+                    $titlescreenimg.attr('src', 'data:image/jpg;base64,' + response.responseText);   
+                }
             }
         });
     };

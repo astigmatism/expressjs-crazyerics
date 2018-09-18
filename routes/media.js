@@ -50,9 +50,14 @@ router.post('/video', upload.single( 'file' ), function(req, res, next) {
 
 router.delete('/', function(req, res, next) {
 
+    var root = req.body.root;
     var filepath = req.body.filepath;
 
-    CdnService.DeleteFolders(['/media' + filepath, '/processed' + filepath], (err) => {
+    if (!root) {
+        return res.status(400).end('err 0'); //400 Bad Request
+    }
+
+    CdnService.DeleteFolders([root + filepath, '/processed' + filepath], (err) => {
         if (err) return res.status(500).end(err);
         res.status(200).end();
     }); 
