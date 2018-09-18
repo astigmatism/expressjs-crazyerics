@@ -1,6 +1,5 @@
 const config = require('config');
 const pool = require('./pool.js');
-const NodeCache = require('node-cache');
 
 module.exports = new (function() {
 
