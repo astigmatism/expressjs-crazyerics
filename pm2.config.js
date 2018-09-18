@@ -5,8 +5,10 @@ module.exports = {
             script: "./app.js",
             watch: true,
             env: {
-                "NODE_ENV": "development"
-            }
+                "NODE_ENV": "production"
+            },
+            instances: -1,
+            exec_mode: "cluster"
         }
     ]
 }
