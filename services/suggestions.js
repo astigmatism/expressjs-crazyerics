@@ -137,7 +137,7 @@ module.exports = new (function() {
                     FileService.Set('suggestions.canned.' + definitionName + '.' + i, suggestions, (err) => {
                         if (err) return next(err);
 
-                        next();
+                        return next();
                     });
                     
                 });
