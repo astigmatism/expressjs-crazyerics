@@ -1,12 +1,12 @@
 const fs = require('fs-extra');
 const async = require('async');
 const colors = require('colors');
-const Cache = require('./cache/cache.nodecache');
+const Cache = require('../services/cache/cache.redis.js');
 const path = require('path');
 const request = require('request');
 
 //define custom cache for files
-const JsonFileCache = new Cache('file.$1'); //uses default ttl of 0 (forever)
+const fileCache = new Cache('file.$1'); //uses default ttl of 0 (forever)
 const projectRoot = __dirname + '/..';
 
 module.exports = new (function() {
@@ -17,7 +17,7 @@ module.exports = new (function() {
 
         opt_forceLoad        = opt_forceLoad || false; //ignore cache attempt and load data from source
 
-        JsonFileCache.Get([sourcePath], (err, jsonCache) => {
+        fileCache.Get([sourcePath], (err, jsonCache) => {
             if (err) {
                 return callback(err);
             }
@@ -46,7 +46,7 @@ module.exports = new (function() {
     //optionally you can also write the file with the path definition
     this.Set = function(destinationPath, json, opt_callback, opt_writeFile) {
 
-        JsonFileCache.Set([destinationPath], json, (err, success) => {
+        fileCache.Set([destinationPath], json, (err, success) => {
             if (err && opt_callback) return opt_callback(err);
 
             if (opt_writeFile) {
