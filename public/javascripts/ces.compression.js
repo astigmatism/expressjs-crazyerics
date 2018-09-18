@@ -66,10 +66,18 @@ var cesCompression = (function() {
 	     * @return {Object}
 	     */
 	    json: function(item) {
-	        var base64 = atob(item);
-	        var inflate = pako.inflate(base64, {to: 'string'});
-	        var json = JSON.parse(inflate);
-	        return json;
+			var base64;
+			try {
+				base64 = atob(item);
+			}
+			catch(e) {
+				console.log(e);
+			}
+			if (base64) {
+				var inflate = pako.inflate(base64, {to: 'string'});
+				var json = JSON.parse(inflate);
+				return json;
+			}
 	    },
 	    /**
 	     * decompress a string
