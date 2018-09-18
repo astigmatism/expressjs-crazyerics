@@ -2,7 +2,7 @@ module.exports = {
     apps : [
         {
             name: "crazyerics",
-            script: "./app.js",
+            script: "/home/astigmatism/expressjs-crazyerics/app.js",
             watch: true,
             env: {
                 "NODE_ENV": "production"
