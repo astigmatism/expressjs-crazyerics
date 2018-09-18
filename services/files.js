@@ -6,7 +6,9 @@ const path = require('path');
 const request = require('request');
 
 //define custom cache for files
-const fileCache = new Cache('file.$1'); //uses default ttl of 0 (forever)
+const fileCache = new Cache('file.$1', {
+    stdTTL: 0 //forever
+});
 const projectRoot = __dirname + '/..';
 
 module.exports = new (function() {
