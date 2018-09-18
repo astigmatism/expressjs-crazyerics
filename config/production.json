@@ -18,7 +18,7 @@
 					}
 				}
 			},
-			"samples": 50
+			"samples": 100
 		},
 		"snes": {
 			"recipe": {
@@ -28,7 +28,7 @@
 					}
 				}
 			},
-			"samples": 20
+			"samples": 50
 		},
 		"gb": {
 			"recipe": {
@@ -38,7 +38,7 @@
 					}
 				}
 			},
-			"samples": 20
+			"samples": 50
 		},
 		"gba": {
 			"recipe": {
@@ -48,7 +48,7 @@
 					}
 				}
 			},
-			"samples": 20
+			"samples": 50
 		},
 		"nes": {
 			"recipe": {
@@ -58,7 +58,7 @@
 					}
 				}
 			},
-			"samples": 20
+			"samples": 50
 		},
 		"gen": {
 			"recipe": {
@@ -68,7 +68,7 @@
 					}
 				}
 			},
-			"samples": 20
+			"samples": 50
 		}
 	}
 }
