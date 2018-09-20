@@ -5,6 +5,7 @@
 		"box": "http://cdn.crazyerics.com/box", // /front, /back
 		"audit": "http://cdn.crazyerics.com/audit",
 		"video": "http://cdn.crazyerics.com/video", // /sq
+		"metadata": "http://cdn.crazyerics.com/metadata",
 		"textures": "http://cdn.crazyerics.com/textures",
 		"shaders": "http://cdn.crazyerics.com/shaders/2017-12-27", /* shader image previews at https://buildbot.libretro.com/.docs/shader/introduction/ */
 		"game": "http://cdn.crazyerics.com/game",

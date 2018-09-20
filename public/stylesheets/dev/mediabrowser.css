@@ -71,6 +71,10 @@ li div.head .titlescreen {
     background-color: lightpink;
 }
 
+li div.head .launchboxmetadata {
+    background-color: lightcyan;
+}
+
 li div.head .contributionstitlescreen {
     background-color: salmon;
 }
@@ -91,6 +95,10 @@ li.panel {
     padding: 10px;
     max-width: 300px;
     margin: 5px;
+}
+
+li.metadata {
+    max-width: 600px;
 }
 
 li.panel .dropzone {

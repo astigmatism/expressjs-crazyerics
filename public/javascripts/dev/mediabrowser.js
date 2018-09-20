@@ -114,6 +114,9 @@ var cesdevMediaBrowser = (function() {
             if (response.contributionstitlescreen) {
                 $head.find('.contributionstitlescreen').css('visibility', 'visible');
             }
+            if (response.launchboxmetadata) {
+                $head.find('.launchboxmetadata').css('visibility', 'visible');
+            }
 
             //slider
             var $slider = $li.find('div.slider');
@@ -133,6 +136,8 @@ var cesdevMediaBrowser = (function() {
                     SqVideoPanel($li, $slider, title, details, response.sqvideo);
 
                     ContributionsTitlePanel($li, $slider, title, details);
+
+                    LaunchBoxMetadataPanel($li, $slider, title, details);
                     
                     $slider.slideDown();
                 }
@@ -444,6 +449,72 @@ var cesdevMediaBrowser = (function() {
                 if (response.status == 200 || response.status == 201) {
                     $titlescreenimg.attr('src', 'data:image/jpg;base64,' + response.responseText);   
                 }
+            }
+        });
+    };
+
+    var LaunchBoxMetadataPanel = function($li, $slider, title, details, info) {
+
+        var bestFile = details.b;
+        var bestFileGk = details.f[details.b].gk;
+        var bestFileRank = details.f[details.b].rank;
+
+        var $metadata = $slider.find('li.metadata');
+        var $metadataSave = $metadata.find('.save');
+        $metadataSave.hide();
+
+        var editor = new JSONEditor($slider.find('div.jsoneditor').get(0), {
+            mode: 'tree'
+        });
+
+        $metadataSave.show().off().on('click', function() {
+
+            //POST update
+            $.ajax({
+                url: '/media/metadata',
+                method: 'POST',
+                data: {
+                    data: JSON.stringify(editor.get()),
+                    filepath: '/metadata/launchbox/' + system + '/' + title
+                }
+            }).done(function() {
+                RegenerateItem($li, title, details);
+            });
+        });
+
+        $.ajax({
+            url: paths.metadata + '/lb/' + encodeURIComponent(bestFileGk),
+            type: 'GET',
+            cache: false,
+            complete: function(response) {
+
+                //the response code gives us the best impression of success and image source on the CDN
+                if (response.status == 200 || response.status == 201) {
+                    editor.set(JSON.parse(response.responseText));
+                }
+            }
+        });
+
+        //removing the class disallows this to be selected on the next open (dz cannot be init twice)
+        $metadata.find('.dz').removeClass('dz').dropzone({
+            url: '/media/metadata/file',
+            sending: function(file, xhr, formData) {
+                
+                $('.dz-preview').hide();
+                formData.append('filepath', '/metadata/launchbox/' + system + '/' + title);
+                formData.append('title', title);
+                formData.append('system', system);
+            },
+            init: function () {
+                this.on('error', function (file) {
+                    alert('There was an error saving the metadata. Please check the server!');
+                    RegenerateItem($li, title, details);
+                });
+                this.on('success', function() {
+                    
+                    $('.dz-preview').hide();
+                    RegenerateItem($li, title, details);
+                });
             }
         });
     };

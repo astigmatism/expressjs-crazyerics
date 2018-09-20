@@ -99,7 +99,7 @@ module.exports = new (function() {
     }
 
     this.DeleteFile = function(path, callback) {
-        fs.unlink(__dirname + '/..' + path, (err) => {
+        fs.unlink(path, (err) => {
             if (err) return callback(err);
             callback();
         });

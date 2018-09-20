@@ -5,6 +5,7 @@ var FileService = require('../services/files.js');
 var multer  = require('multer');
 var upload = multer( { dest: '../uploads/' } );
 var CdnService = require('../services/cdn.js');
+const fs = require('fs-extra');
 
 router.post('/', upload.single( 'file' ), function(req, res, next) {
 
@@ -34,7 +35,7 @@ router.post('/video', upload.single( 'file' ), function(req, res, next) {
             'notes': req.body.notes
         };
 
-        var temp = '../uploads/temp.json';
+        var temp = './temp/temp.json';
 
         FileService.WriteJson(temp, data, (err) => {
             if (err) return res.status(500).end(err);
@@ -42,9 +43,57 @@ router.post('/video', upload.single( 'file' ), function(req, res, next) {
             CdnService.UploadFile(temp, '/media' + filepath + '/info.json', (err) => {
                 if (err) return res.status(500).end(err);
 
+                FileService.DeleteFile(temp, err => {
+                    if (err) return res.status(500).end(err);
+    
+                    res.status(200).end();
+                });
+            });
+        });
+    });
+});
+
+//form upload
+router.post('/metadata', (req, res, next) => {
+
+    var data = JSON.parse(req.body.data);
+    var filepath = req.body.filepath;
+
+    //if an empty object, just delete the file from the cdn
+    if (data && Object.keys(data).length === 0) {
+
+        CdnService.DeleteFolders('/media' + filepath, (err) => {
+            if (err) return res.status(500).end(err);
+            res.status(200).end();
+        });
+        return;
+    }
+
+    var temp = './temp/temp.json';
+
+    FileService.WriteJson(temp, data, (err) => {
+        if (err) return res.status(500).end(err);
+
+        CdnService.UploadFile(temp, '/media' + filepath + '/0.json', (err) => {
+            if (err) return res.status(500).end(err);
+
+            FileService.DeleteFile(temp, err => {
+                if (err) return res.status(500).end(err);
+
                 res.status(200).end();
             });
         });
+    });
+});
+
+//file update of metadata
+router.post('/metadata/file', upload.single( 'file' ), function(req, res, next) {
+
+    var filepath = req.body.filepath;
+
+    CdnService.UploadFile(req.file.path, '/media' + filepath + '/0.json', (err) => {
+        if (err) return res.status(500).end(err);
+        res.status(200).end();
     });
 });
 
