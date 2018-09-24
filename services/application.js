@@ -192,11 +192,11 @@ module.exports = new (function() {
 
                                 //if the rank of the best playable file for the title is above the threshold for this system
                                 if (isAbove) {
-                                    all_search[totaltitles + titlecount] = {
+                                    all_search.push({
                                         t: title,
                                         r: bestrank,
                                         gk: gk
-                                    }
+                                    });
                                 }
 
                                 //okay, while we're at it, let's build a customized search file for this system
