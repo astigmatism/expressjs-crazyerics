@@ -20,9 +20,8 @@ module.exports = new (function() {
         opt_forceLoad        = opt_forceLoad || false; //ignore cache attempt and load data from source
 
         fileCache.Get([sourcePath], (err, jsonCache) => {
-            if (err) {
-                return callback(err);
-            }
+            if (err) return callback(err);
+            
             //if successful cache hit and we're not forcing to load data from source
             if (jsonCache && !opt_forceLoad) {
                 return callback(null, jsonCache);
@@ -85,10 +84,13 @@ module.exports = new (function() {
     //rudimentary file system operations
 
     this.WriteJson = function(path, json, callback) {
-        fs.writeJson(path, json, err => {
+        fs.ensureFile(path, err => {
             if (err) return callback(err);
-            return callback();
-        }); 
+            fs.writeJson(path, json, err => {
+                if (err) return callback(err);
+                return callback();
+            }); 
+        });
     };
 
     this.ReadJson = function(path, callback) {

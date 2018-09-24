@@ -90,10 +90,27 @@ router.post('/metadata', (req, res, next) => {
 router.post('/metadata/file', upload.single( 'file' ), function(req, res, next) {
 
     var filepath = req.body.filepath;
+    var system = req.body.system;
+    var title = req.body.title;
+    var emumoviestitletranslationfilepath = '/data/' + system + '_emumoviestitles';
 
-    CdnService.UploadFile(req.file.path, '/media' + filepath + '/0.json', (err) => {
-        if (err) return res.status(500).end(err);
-        res.status(200).end();
+    //let's save the association between the emumovies title name and our title name, 
+    //we could use it later
+    FileService.Get(emumoviestitletranslationfilepath, (err, data) => {
+        if (err) {
+            data = {};
+        }
+        data[title] = req.file.originalname;
+
+        FileService.Set(emumoviestitletranslationfilepath, data, err => {
+            if (err) return callback(err);
+
+            CdnService.UploadFile(req.file.path, '/media' + filepath + '/0.json', (err) => {
+                if (err) return res.status(500).end(err);
+                res.status(200).end();
+            });
+
+        }, true);
     });
 });
 

@@ -461,10 +461,27 @@ var cesdevMediaBrowser = (function() {
 
         var $metadata = $slider.find('li.metadata');
         var $metadataSave = $metadata.find('.save');
+        var $metadataDelete = $metadata.find('.delete');
         $metadataSave.hide();
+        $metadataDelete.hide();
 
         var editor = new JSONEditor($slider.find('div.jsoneditor').get(0), {
             mode: 'tree'
+        });
+
+        $metadataDelete.show().off().on('click', function() {
+
+            //POST update
+            $.ajax({
+                url: '/media/metadata',
+                method: 'POST',
+                data: {
+                    data: '{}', //an empty object will delete the file
+                    filepath: '/metadata/launchbox/' + system + '/' + title
+                }
+            }).done(function() {
+                RegenerateItem($li, title, details);
+            });
         });
 
         $metadataSave.show().off().on('click', function() {
@@ -475,6 +492,8 @@ var cesdevMediaBrowser = (function() {
                 method: 'POST',
                 data: {
                     data: JSON.stringify(editor.get()),
+                    system: system,
+                    title: title,
                     filepath: '/metadata/launchbox/' + system + '/' + title
                 }
             }).done(function() {
