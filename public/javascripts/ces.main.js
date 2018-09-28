@@ -84,6 +84,7 @@ var cesMain = (function() {
         _Dialogs.Register('PlayAgain', 150);
 
         _toolbars.select = $('#toolbar .systemfilter select');
+        _toolbars.genre = $('#toolbar .genrefilter select');
         _toolbars.search = $('#toolbar .search input');
 
         
@@ -118,6 +119,12 @@ var cesMain = (function() {
             _toolbars.select.append('<option value="' + shortnames[i].id + '">' + shortnames[i].shortname + '</option>');
         }
 
+        //build the genres select
+        _config.genres.sort();
+        for (var i = 0; i < _config.genres.length; ++i) {
+            _toolbars.genre.append('<option value="' + _config.genres[i] + '">' + _config.genres[i] + '</option>');
+        }
+
         //loading dial
         $('.dial').knob();
 
@@ -134,8 +141,9 @@ var cesMain = (function() {
 
                 //clear the search field
                 _toolbars.search.val('');
+                var genre = _toolbars.genre.val();
 
-                if (system === 'all' || _config.systemdetails[system].cannedSuggestion) {
+                if (genre === 'all' && (system === 'all' || _config.systemdetails[system].cannedSuggestion)) {
                     _Suggestions.Load(system, function() {
                         _Tooltips.Any();
                     }, true); //<-- load canned results
@@ -147,7 +155,8 @@ var cesMain = (function() {
                         systems: {}
                     };
                     recipe.systems[system] = {
-                        cache: 'above'
+                        cache: 'above',
+                        genre: genre
                     };
 
                     _Suggestions.Load(recipe, function() {
@@ -161,6 +170,35 @@ var cesMain = (function() {
                 } else {
                     $('#alphabar').show();
                 }
+            }
+        });
+
+        //genre select
+        _toolbars.genre.selectOrDie({
+            customID: 'selectordie',
+            customClass: 'tooltip',
+            /**
+             * when system filter is changed
+             * @return {undef}
+             */
+            onChange: function() {
+                var genre = $(this).val();
+
+                //clear the search field
+                _toolbars.search.val('');
+                var system = _toolbars.select.val();
+
+                var recipe = {
+                    systems: {}
+                };
+                recipe.systems[system] = {
+                    cache: 'above',
+                    genre: genre
+                };
+
+                _Suggestions.Load(recipe, function() {
+                    _Tooltips.Any();
+                });
             }
         });
 
@@ -439,7 +477,7 @@ var cesMain = (function() {
                             var supportFilesIncluded = _config.systemdetails[gameKey.system].supportfiles; //will be 0 for systems without support
                             var info = {};
                             try {
-                                info = JSON.parse(gameDetails.info);
+                                info = gameDetails.info;
                             } catch (e) {
                                 //meh
                             }
@@ -462,8 +500,7 @@ var cesMain = (function() {
 
                                 //date copmany
                                 if (info && info.Publisher && info.ReleaseDate) {
-                                    var year = info.ReleaseDate.match(/(\d{4})/);
-                                    $('#gametitlecaption').text(info.Publisher + ', ' +  year[0]);
+                                    $('#gametitlecaption').text(info.Publisher + ', ' + new Date(info.ReleaseDate).getFullYear());
                                 }
                                     
                                 _preventLoadingGame = false; //during save select, allow other games to load

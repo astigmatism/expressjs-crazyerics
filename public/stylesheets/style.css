@@ -425,13 +425,17 @@ p {
 }
 
 #toolbar .systemfilter {
-	width: 256px;
+	width: 200px;
+}
+
+#toolbar .genrefilter {
+	width: 200px;
 }
 
 #selectordie {
 	padding: 14px 10px;
 	border: none;
-	width: 256px;
+	width: 200px;
 	text-transform: none;
 	font-size: 12px;
 	font-weight: normal;
@@ -461,7 +465,7 @@ p {
 	box-shadow: none;
 	font-size: 12px;
     text-align: left;
-	width: 909px;
+	width: 760px;
   	outline: none;
   	background: #fff;
   	color: #444444;

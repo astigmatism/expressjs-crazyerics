@@ -118,15 +118,15 @@ module.exports = new (function() {
                     data.files = masterFile[gameKey.title].f;
 
                             
-                    //is there info?
-                    FileService.Get('/data/' + gameKey.system + '_thegamesdb', function(err, thegamesdb) {
+                    //get the metadata, cached during startup
+                    FileService.Get('/data/' + gameKey.system + '_metadata', function(err, metadata) {
                         if (err) {
                             console.log(err);
                             //no need to trap here
                         } else {
 
-                            if (thegamesdb[gameKey.title]) {
-                                data.info = thegamesdb[gameKey.title];
+                            if (metadata[gameKey.title]) {
+                                data.info = metadata[gameKey.title];
                             }
                         }
                                 

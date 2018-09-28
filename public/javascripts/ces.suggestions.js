@@ -128,6 +128,10 @@ var cesSuggestions = (function(_config, _Media, _Compression, _Tooltips, PlayGam
     var Build = function(suggestions, callback) {
 
         var gamelink;
+
+        if (!suggestions) {
+            return callback();
+        }
     
         for (var i = 0; i < suggestions.length; ++i) {
             
@@ -151,9 +155,7 @@ var cesSuggestions = (function(_config, _Media, _Compression, _Tooltips, PlayGam
         _grid.find('img').imagesLoaded()
             .done(function() {
 
-                if (callback) {
-                    callback();
-                }
+                return callback();
             });
 
         _currentGameLinks.push(gamelink);

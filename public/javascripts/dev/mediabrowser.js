@@ -160,7 +160,7 @@ var cesdevMediaBrowser = (function() {
     var RegenerateItem = function($li, title, details) {
 
         var li = $('#list').find($li);
-        var newli = GenerateItem(title, details, true);
+        var newli = GenerateItem(title, details, false);
         newli.insertAfter(li);
         li.remove();
     };

@@ -47,6 +47,14 @@ html
             | C-TS
         div(class="slider")
           ul(class="panels")
+            li(class="panel metadata")
+              h3 Media LaunchBox Metadata
+              p Current Metadata file contains:
+              div(class="jsoneditor")
+              input(type="button", class="save", value="Save Changes")
+              input(type="button", class="delete", value="Delete")
+              p You can upload a replacement file here. This is overwrite the existing metadata:
+              div(class="dz dropzone")
             li(class="panel info")
               h3 Game Info
               ul
@@ -85,11 +93,3 @@ html
               img(class="img")
               p(class="dim")
               input(type="button", class="delete", value="Delete")
-            li(class="panel metadata")
-              h3 Media LaunchBox Metadata
-              p Current Metadata file contains:
-              div(class="jsoneditor")
-              input(type="button", class="save", value="Save Changes")
-              input(type="button", class="delete", value="Delete")
-              p You can upload a replacement file here. This is overwrite the existing metadata:
-              div(class="dz dropzone")
