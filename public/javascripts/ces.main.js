@@ -83,8 +83,7 @@ var cesMain = (function() {
         _Dialogs.Register('EmulatorCleanup', 300);
         _Dialogs.Register('PlayAgain', 150);
 
-        _toolbars.select = $('#toolbar .systemfilter select');
-        _toolbars.genre = $('#toolbar .genrefilter select');
+        _toolbars.system = $('#toolbar .systemfilter select');
         _toolbars.search = $('#toolbar .search input');
 
         
@@ -116,20 +115,14 @@ var cesMain = (function() {
         });
         var shortnamesl = shortnames.length;
         for (var i = 0; i < shortnamesl; i++) {
-            _toolbars.select.append('<option value="' + shortnames[i].id + '">' + shortnames[i].shortname + '</option>');
-        }
-
-        //build the genres select
-        _config.genres.sort();
-        for (var i = 0; i < _config.genres.length; ++i) {
-            _toolbars.genre.append('<option value="' + _config.genres[i] + '">' + _config.genres[i] + '</option>');
+            _toolbars.system.append('<option value="' + shortnames[i].id + '">' + shortnames[i].shortname + '</option>');
         }
 
         //loading dial
         $('.dial').knob();
 
         //console select
-        _toolbars.select.selectOrDie({
+        _toolbars.system.selectOrDie({
             customID: 'selectordie',
             customClass: 'tooltip',
             /**
@@ -141,9 +134,8 @@ var cesMain = (function() {
 
                 //clear the search field
                 _toolbars.search.val('');
-                var genre = _toolbars.genre.val();
 
-                if (genre === 'all' && (system === 'all' || _config.systemdetails[system].cannedSuggestion)) {
+                if (system === 'all' || _config.systemdetails[system].cannedSuggestion) {
                     _Suggestions.Load(system, function() {
                         _Tooltips.Any();
                     }, true); //<-- load canned results
@@ -155,8 +147,7 @@ var cesMain = (function() {
                         systems: {}
                     };
                     recipe.systems[system] = {
-                        cache: 'above',
-                        genre: genre
+                        cache: 'above'
                     };
 
                     _Suggestions.Load(recipe, function() {
@@ -166,39 +157,10 @@ var cesMain = (function() {
 
                  //show or hide the alpha bar in the suggestions panel
                 if (system === 'all') {
-                    $('#alphabar').hide();
+                    $('#suggestionsfilters').hide();
                 } else {
-                    $('#alphabar').show();
+                    $('#suggestionsfilters').show();
                 }
-            }
-        });
-
-        //genre select
-        _toolbars.genre.selectOrDie({
-            customID: 'selectordie',
-            customClass: 'tooltip',
-            /**
-             * when system filter is changed
-             * @return {undef}
-             */
-            onChange: function() {
-                var genre = $(this).val();
-
-                //clear the search field
-                _toolbars.search.val('');
-                var system = _toolbars.select.val();
-
-                var recipe = {
-                    systems: {}
-                };
-                recipe.systems[system] = {
-                    cache: 'above',
-                    genre: genre
-                };
-
-                _Suggestions.Load(recipe, function() {
-                    _Tooltips.Any();
-                });
             }
         });
 
@@ -214,7 +176,7 @@ var cesMain = (function() {
              * @return {undef}
              */
             source: function(term, response) {
-                var system = _toolbars.select.val();
+                var system = _toolbars.system.val();
                 $.getJSON('/search/' + system + '/' + term, function(data) {
                     response(_Compression.Out.json(data));
                 });
