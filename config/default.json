@@ -26,7 +26,7 @@
 			"user": "crazyerics",
 			"password": "FU.BexZM2d9aTWXAWvxPFKsv",
 			"database": "crazyerics",
-			"port": 32771,
+			"port": 32772,
 			"max": 20,
 			"idleTimeoutMillis": 8000,
 			"connectionTimeoutMillis": 4000
