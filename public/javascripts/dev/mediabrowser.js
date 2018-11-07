@@ -19,7 +19,7 @@ var cesdevMediaBrowser = (function() {
         $('#search').on('keyup', function(event) {
 
             var input = event.currentTarget.value;
-            if (input.length > 3) {
+            if (input.length > 2) {
 
                 //filter based on search term
                 var set = {};

@@ -258,7 +258,7 @@ CREATE SEQUENCE public.collections_collection_id_seq
 ;
 
 ALTER SEQUENCE public.collections_collection_id_seq
-    OWNER TO postgres;
+    OWNER TO crazyerics;
 
 ----------------------------------
 

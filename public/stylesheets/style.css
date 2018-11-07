@@ -465,7 +465,7 @@ p {
 	box-shadow: none;
 	font-size: 12px;
     text-align: left;
-	width: 760px;
+	width: 965px;
   	outline: none;
   	background: #fff;
   	color: #444444;
@@ -1245,25 +1245,28 @@ div.tooltiptitle {
 	padding: 0px 10px;
 }
 
-#alphabar {
+#suggestionsfilters {
 	display: none;
+}
+
+div.suggestionsbar {
 	font-size: 1.2em;
 	margin: 10px 0px 20px 0px;
 	text-align: center;
 }
 
-#alphabar a {
+div.suggestionsbar a {
 	padding: 0px 8px;
 	cursor: pointer;
 	text-decoration: none;
 }
 
-#alphabar div, #alphabar input {
+div.suggestionsbar div, div.suggestionsbar input {
 	padding: 0px 5px;
 	display: inline-block;
 }
 
-#alphabar input {
+div.suggestionsbar input {
 	margin-left: 10px;
 }
 

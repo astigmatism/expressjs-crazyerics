@@ -53,6 +53,7 @@ module.exports = new (function() {
         var total_titles = 0;
 
         var all_genres = {};
+        var all_years = {};
 
         //operations for each system
         async.each(Object.keys(systems), function(system, nextsystem) {
@@ -88,7 +89,7 @@ module.exports = new (function() {
                         if (err) metadata = {};
 
                         //callback includes categories for "all" suggestions and search
-                        SuggestionService.CreateSystemSuggestions(system, masterfile, metadata, (err, search, top, above, genres, total) => {
+                        SuggestionService.CreateSystemSuggestions(system, masterfile, metadata, (err, search, top, above, genres, years, total) => {
                             if (err) return nextsystem(err);
 
                             //append the all_search which appropriate titles discovered for this system
@@ -102,6 +103,14 @@ module.exports = new (function() {
                                     all_genres[genre] = [];
                                 }
                                 all_genres[genre] = all_genres[genre].concat(genres[genre]);
+                            }
+
+                            //expand years object
+                            for (var year in years) {
+                                if (!all_years.hasOwnProperty(year)) {
+                                    all_years[year] = [];
+                                }
+                                all_years[year] = all_years[year].concat(years[year]);
                             }
 
                             total_titles += total;
@@ -139,8 +148,14 @@ module.exports = new (function() {
                 FileService.Set('suggestions.all.genre.' + genre, all_genres[genre]);
             }
 
+            //separate all years into their own cache
+            for (var year in all_years) {
+                FileService.Set('suggestions.all.year.' + year, all_years[year]);
+            }
+
             //put genre names in config object
-            FileService.Set('genre.names', Object.keys(all_genres));
+            FileService.Set('metadata.genres', Object.keys(all_genres));
+            FileService.Set('metadata.years', Object.keys(all_years));
             
 
             //i found that generating a unique suggestions (for all, system) was inefficient, so I will create canned versions instead, the player will not notice :)
@@ -216,14 +231,7 @@ module.exports = new (function() {
         //loading box art recipes
         configdata['loadingBoxRecipes'] = config.get('loadingBoxRecipes');
 
-        //genres
-        FileService.Get('genre.names', (err, genres) => {
-            if (err) {}
-
-            configdata['genres'] = genres;
-
-            return callback(null, configdata);
-        });
+        return callback(null, configdata);
     };
 
     //try only to include absolutely necessary data for entry

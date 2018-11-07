@@ -193,6 +193,7 @@ module.exports = new (function() {
                     noart: [],          //the remaining titles without any boxart (don't use these for suggestions but cache them anyway)
                     all: [],            //all titles for this system without any conditions
                     genres: {},          //by genre
+                    years: {},           //by year
                     alpha: {
                         all: {},
                         above: {}
@@ -254,6 +255,25 @@ module.exports = new (function() {
                                     }
                                     system_suggestions.genres[item].push(gk);
                                 });
+                            }
+                        }
+
+                        //separately, let's cache the suggestion in year cache
+                        if (metadata.hasOwnProperty(title)) {
+                            
+                            var year = null;
+                            if (metadata[title].hasOwnProperty('ReleaseYear') && typeof metadata[title].ReleaseYear === 'string') {
+                                year = parseInt(metadata[title].ReleaseYear, 10);
+                            }
+                            if (metadata[title].hasOwnProperty('ReleaseDate')) {
+                                var releaseDate = new Date(metadata[title].ReleaseDate);
+                                year = releaseDate.getFullYear();
+                            }
+                            if (!isNaN(year) && year !== null) {
+                                if (!system_suggestions.years.hasOwnProperty(year)) {
+                                    system_suggestions.years[year] = [];
+                                }
+                                system_suggestions.years[year].push(gk);
                             }
                         }
 
@@ -334,6 +354,11 @@ module.exports = new (function() {
                     FileService.Set('suggestions.' + system + '.genre.' + genre, system_suggestions.genres[genre]);
                 }
 
+                //each year in its own cache
+                for (var year in system_suggestions.years) {
+                    FileService.Set('suggestions.' + system + '.year.' + year, system_suggestions.years[year]);
+                }
+
                 for (var alpha in system_suggestions.alpha.all) {
                     FileService.Set('suggestions.' + system + '.alpha.all.' + alpha, system_suggestions.alpha.all[alpha]);    
                 }
@@ -357,7 +382,7 @@ module.exports = new (function() {
 
                 //console.log('suggestions.' + system + ' (threshold: ' + systemSuggestionThreshold + ') "inviting" suggestions --> ' + suggestions.top.length + '. suggestions above threshold --> ' + suggestions.above.length + '. suggestions below threshhold --> ' + suggestions.below.length + '. total with thegamesdb rating --> ' + titlesWithRating);
                 
-                return callback(null, all_search, all_suggestions_top, all_suggestions_above, system_suggestions.genres, total_titles);
+                return callback(null, all_search, all_suggestions_top, all_suggestions_above, system_suggestions.genres, system_suggestions.years, total_titles);
 
             });
         }, '/data/' + system + '_boxfronts'); //box front audit request. final param is the path to save the response to

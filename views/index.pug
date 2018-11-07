@@ -5,9 +5,6 @@ block content
         div(class="systemfilter")
             select(title="Filter your search to a specific system")
                 option(value='all') All Consoles
-        div(class="genrefilter")
-            select(title="Filter your search to a specific genre")
-                option(value='all') All Genres
         div(class="search")
             input(class="tooltip" title="Begin typing a name to see a list of results. Select a system for foreign or unofficial titles." type='text', name='search', data-hotkey='q', placeholder='Search')
         div(class="gamepads")
@@ -153,35 +150,38 @@ block content
         div#collectionsGrid(class="grid")
 
     div#suggestionswrapper
-        div#alphabar Browse: 
-            a A
-            a B
-            a C
-            a D
-            a E
-            a F
-            a G
-            a H
-            a I
-            a J
-            a K
-            a L
-            a M
-            a N
-            a O
-            a P
-            a Q
-            a R
-            a S
-            a T
-            a U
-            a V
-            a W
-            a X
-            a Y
-            a Z
-            a #
-            input#browse-show-obscure(type="checkbox")
-            div(class="tooltip" title="When browsing by letter, enable this to see all available games.") Reveal Obscure Titles
+        div#suggestionsfilters
+            div(class="suggestionsbar") Browse by name: 
+                a A
+                a B
+                a C
+                a D
+                a E
+                a F
+                a G
+                a H
+                a I
+                a J
+                a K
+                a L
+                a M
+                a N
+                a O
+                a P
+                a Q
+                a R
+                a S
+                a T
+                a U
+                a V
+                a W
+                a X
+                a Y
+                a Z
+                a #
+                input#browse-show-obscure(type="checkbox")
+                div(class="tooltip" title="When browsing by letter, enable this to see all available games.") Reveal Obscure Titles
+            //- div(class="suggestionsbar") Browse by year: (TODO: make cache for various sorted results)
+
         div#suggestionsgrid(class="grid")
         div#suggestionsloading(class="close")
