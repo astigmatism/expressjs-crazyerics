@@ -51,7 +51,7 @@ CREATE SEQUENCE public.users_user_id_seq
 ;
 
 ALTER SEQUENCE public.users_user_id_seq
-    OWNER TO postgres;
+    OWNER TO crazyerics;
 
 ----------------------------------
 
@@ -72,7 +72,8 @@ WITH (
 TABLESPACE pg_default;
 
 ALTER TABLE public.users
-    OWNER to postgres;
+    OWNER to crazyerics;
+
 ALTER TABLE public.users
     ADD COLUMN created timestamp(10) without time zone;
 
@@ -110,11 +111,9 @@ WITH (
 TABLESPACE pg_default;
 
 ALTER TABLE public.users_sessions
-    OWNER to postgres;
+    OWNER to crazyerics;
 
 GRANT ALL ON TABLE public.users_sessions TO crazyerics;
-
-GRANT ALL ON TABLE public.users_sessions TO postgres;
 
 ----------------------------------
 
@@ -130,7 +129,7 @@ WITH (
 );
 
 ALTER TABLE public.systems
-    OWNER to postgres;
+    OWNER to crazyerics;
 
 GRANT ALL ON TABLE public.systems TO crazyerics;
 
@@ -153,7 +152,7 @@ WITH (
 );
 
 ALTER TABLE public.titles
-    OWNER to postgres;
+    OWNER to crazyerics;
 
 GRANT ALL ON TABLE public.titles TO crazyerics;
 
@@ -185,7 +184,7 @@ WITH (
 );
 
 ALTER TABLE public.files
-    OWNER to postgres;
+    OWNER to crazyerics;
 
 GRANT ALL ON TABLE public.files TO crazyerics;
 
@@ -208,7 +207,8 @@ CREATE SEQUENCE public.saves_save_id_seq
 ;
 
 ALTER SEQUENCE public.saves_save_id_seq
-    OWNER TO postgres;
+    OWNER TO crazyerics;
+
 
 ----------------------------------
 
@@ -244,11 +244,9 @@ WITH (
 TABLESPACE pg_default;
 
 ALTER TABLE public.saves
-    OWNER to postgres;
+    OWNER to crazyerics;
 
 GRANT ALL ON TABLE public.saves TO crazyerics;
-
-GRANT ALL ON TABLE public.saves TO postgres;
 
 ----------------------------------
 
@@ -288,11 +286,9 @@ WITH (
 TABLESPACE pg_default;
 
 ALTER TABLE public.collections
-    OWNER to postgres;
+    OWNER to crazyerics;
 
 GRANT ALL ON TABLE public.collections TO crazyerics;
-
-GRANT ALL ON TABLE public.collections TO postgres;
 
 ----------------------------------
 
@@ -325,7 +321,7 @@ WITH (
 );
 
 ALTER TABLE public.users_titles
-    OWNER to postgres;
+    OWNER to crazyerics;
 
 GRANT ALL ON SEQUENCE public.users_titles_user_title_id_seq TO crazyerics;
 
@@ -355,7 +351,7 @@ WITH (
 );
 
 ALTER TABLE public.collections_titles
-    OWNER to postgres;
+    OWNER to crazyerics;
 
 GRANT ALL ON TABLE public.collections_titles TO crazyerics;
 
@@ -385,10 +381,8 @@ WITH (
 TABLESPACE pg_default;
 
 ALTER TABLE public.collections_active
-    OWNER to postgres;
+    OWNER to crazyerics;
 
 GRANT ALL ON TABLE public.collections_active TO crazyerics;
-
-GRANT ALL ON TABLE public.collections_active TO postgres;
 
 ----------------------------------
