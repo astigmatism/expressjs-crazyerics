@@ -536,10 +536,10 @@ p {
 	height: auto;
 	text-align: center;
 
-	transition:All 500ms cubic-bezier(.42,-0.44,.42,1.2);
-	-webkit-transition:All 500ms cubic-bezier(.42,-0.44,.42,1.2);
-	-moz-transition:All 500ms cubic-bezier(.42,-0.44,.42,1.2);
-	-o-transition:All 500ms cubic-bezier(.42,-0.44,.42,1.2);
+	transition:All 600ms cubic-bezier(.42,-0.44,.42,1.2);
+	-webkit-transition:All 600ms cubic-bezier(.42,-0.44,.42,1.2);
+	-moz-transition:All 600ms cubic-bezier(.42,-0.44,.42,1.2);
+	-o-transition:All 600ms cubic-bezier(.42,-0.44,.42,1.2);
 }
 
 .dialogwrapper {

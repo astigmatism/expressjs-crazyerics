@@ -70,7 +70,7 @@ var cesDialogsSaveSelection = (function(_config, $el, $wrapper, args) {
         var $imageWrapper = $('<div class="rel" />').append($ribbonOuter).append($image);
 
         $li.append($imageWrapper);
-        $('#savesselectlist').append($li);
+        $('#savesselectlist').prepend($li); //prepend to add them in reverse order so that they can be read left to right
 	};
 
     this.OnClose = function(callback) {
