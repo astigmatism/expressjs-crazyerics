@@ -7,14 +7,14 @@ var cesDialogs = (function(_config, $wrapper) {
     //private members
     var self = this;
     var _currentDialog = null;
-    var _cssTranstionTime = 300;    //magic number. see #dialogs definition in css
+    var _cssTranstionTime = 500;    //magic number. see #dialogs definition in css
     var _transitionQueue = [];
     var _inTransition = false;
     // var dialogOperational = false;
     // var currentOpenDialog = null;
     var _maxDialogHeight = 600;
-    var defaultHeightChangeDuration = 400;
-    var defaultHeightChangeEasing = 'easeInOutQuad'; // see more http://easings.net/#
+    var defaultHeightChangeDuration = 500;
+    var defaultHeightChangeEasing = 'easeOutBack'; // see more http://easings.net/#
 
     var registry = {};
 
