@@ -32,7 +32,7 @@ var cesDialogs = (function(_config, $wrapper) {
         var module = new window['cesDialogs' + name](_config, $el, $wrapper, args);
         
         //all dialogs start with these (and close below if not init)
-        $el.addClass('dialog hide');
+        $el.addClass('dialog dialog-animation hide');
         
         registry[name] = {
             'element': $el,

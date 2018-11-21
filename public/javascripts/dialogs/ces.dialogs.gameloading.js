@@ -3,8 +3,9 @@ var cesDialogsGameLoading = (function(_config, $el, $wrapper, args) {
     var _Media = args[0];
     var _Compression = args[1];
     var _PubSub = args[2];
-    var _test;
-    var $webgl = $('#webglloader');
+    var _webgl = null;
+    var $webgl = $('#dialogloadingbackground');
+    var $mediawrapper = $('#gameloadingimage');
 
     // var _tipsCycleRate = 4000;
     // var _tips = [
@@ -32,25 +33,74 @@ var cesDialogsGameLoading = (function(_config, $el, $wrapper, args) {
     var Open = function(gameKey) {
 
         $('#tip').hide();
-        //$('#gameloadingname').show().text(gameKey.title);
 
         var img = _Media.BoxFront(gameKey, 'd');
-        var texture = null; //_Media.BoxFront(gameKey, 'e'); //256x256 texture
-        var recipe = {};
 
         if (_config.loadingBoxRecipes[gameKey.system]) {
             recipe = _config.loadingBoxRecipes[gameKey.system];
         }
         
-        var webgl = new cesWebGlParticleAnimation(recipe, _Compression, _PubSub, _config.paths.textures, $webgl, img, texture, gameKey.system);
+        _webgl = new cesWebGlParticleAnimation(_Compression, _PubSub, _config.paths.textures, $webgl, img);
+        $webgl.fadeIn(1000);
+
+        _PubSub.SubscribeOnce('emulatorloading', this, OnEmulatorBeginsLoading);
+        _PubSub.SubscribeOnce('gameloading', this, OnGameBeginsLoading);
+
+        /*
+        _Media.Video($mediawrapper, 'sq', gameKey, function($video, videoLoadTime) {
+
+            $mediawrapper.empty().append($video).fadeIn(500);
+            $video.get(0).muted = true;
+            $video.get(0).loop = true;
+            $video.get(0).play(); //function of dom element
+
+        }, 200, 200); //opt_width, opt_height
+        */
 
         _openCallback();
     };
 
+    var OnEmulatorBeginsLoading = function(gameKey) {
+        
+        var image = new Image();
+        image.src = _config.paths.images + '/systems/' + gameKey.system + '/logo.png';
+        
+        var $image = $(image);
+
+        $image.addClass('hatch sepia').load(function() {
+            $mediawrapper.removeClass('close');
+        });
+
+        $mediawrapper.empty().append($image);
+    };
+
+    var OnGameBeginsLoading = function(gameKey) {
+        
+        //close emulator image
+        //$mediawrapper.find('img').removeClass('sepia');
+        $mediawrapper.addClass('close');
+
+        //wait for emulator image to disappear
+        setTimeout(function() {
+        
+            var $image = _Media.BoxFront(gameKey, 'd');
+            $image.addClass('hatch sepia').load(function() {
+                $mediawrapper.removeClass('close');
+            });
+
+            $mediawrapper.empty().append($image);
+        }, 1000);
+    };
+
     this.OnClose = function(callback) {
 
-        $('#webglloader').empty();
-        clearInterval(_test);
+        $webgl.fadeOut(1000, function() {
+            $webgl.empty();
+            _webgl = null;
+            $mediawrapper.empty(); //final clean up
+        });
+
+        $mediawrapper.addClass('close');
 
         return callback();
     };

@@ -78,7 +78,7 @@ var cesMain = (function() {
         _Dialogs.Register('ShaderSelection', 500, [_Preferences]);
         _Dialogs.Register('GameLoading', 500, [_Media, _Compression, _PubSub]);
         _Dialogs.Register('SaveSelection', 500);
-        _Dialogs.Register('SaveLoading', 500);
+        _Dialogs.Register('SaveLoading', 500, [_Media, _Compression, _PubSub]);
         _Dialogs.Register('Exception', 500);
         _Dialogs.Register('EmulatorCleanup', 300);
         _Dialogs.Register('PlayAgain', 150);

@@ -1,6 +1,6 @@
 {
 	"paths": {
-		"images": "http://cdn.crazyerics.com/images",
+		"images": "images",
 		"screen": "http://cdn.crazyerics.com/screen", // /title, /screen
 		"box": "http://cdn.crazyerics.com/box", // /front, /back
 		"audit": "http://cdn.crazyerics.com/audit",
@@ -9,8 +9,8 @@
 		"textures": "http://cdn.crazyerics.com/textures",
 		"shaders": "http://cdn.crazyerics.com/shaders/2017-12-27", /* shader image previews at https://buildbot.libretro.com/.docs/shader/introduction/ */
 		"game": "http://cdn.crazyerics.com/game",
-		"emulator_extensions": "emulatorextentions/",
-		"emulators": "emulators",
+		"emulator_extensions": "emulatorextentions/", //continue to load these locally since changes are made in this project a lot
+		"emulators": "http://cdn.crazyerics.com/emulators", //you'll need to manually move new emulators to each cdn
 		"supportfiles": "http://cdn.crazyerics.com/support",
 		"contributetitle": "http://cdn.crazyerics.com/screen/title/contribute",
 		"contributescreen": "http://cdn.crazyerics.com/screen/screen/contribute"

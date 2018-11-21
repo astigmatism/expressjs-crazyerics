@@ -1,10 +1,5 @@
 /**
  * Emulator class. Holds all properties and functions for managing the instance of a loaded emaultor and game
- * @param  {Object} _Compression compression library
- * @param  {Object} config       ces config
- * @param  {GameKey} _gameKey    see ces.compression for class definitions. members: system, title, file, gk
- * @param  {string} file         Super Mario Bros. 3 (U)[!].nes
- * @return {undef}
  */
 var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad, _Preferences, _gameKey, _ui, _Media, _ClientCache, _Logging) {
 
@@ -745,6 +740,8 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
             return;
         }
 
+        _PubSub.Publish('emulatorloading', [_gameKey]);
+        
         var emulatorProgressBar = new cesProgressBar(_Media, _gameKey, loadingprogressbar); //this weird syntax just picks up this name from the dom
 
         LoadResource(scriptPath,
@@ -830,6 +827,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
         //var firstEncode = encodeURIComponent(filename);
         //var secondEncode = encodeURIComponent(firstEncode);
 
+        _PubSub.Publish('gameloading', [_gameKey]);
         _ui.status.text('Packaging Content');
         
         //location += secondEncode;
@@ -858,7 +856,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
                     return;
                 }
 
-                deffered.resolve(null, response);
+                //deffered.resolve(null, response);
             },
             //onFailure
             function(jqXHR, status, error) {

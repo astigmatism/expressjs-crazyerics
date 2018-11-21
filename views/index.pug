@@ -15,6 +15,7 @@ block content
     div#content
         
         div#dialogs(class="darkgrad")
+            div#dialogloadingbackground
             div(class="dialogwrapper")
                 div(class="Welcome")
                     h2 Welcome!
@@ -54,9 +55,8 @@ block content
             div(class="dialogwrapper")
                 div(class="GameLoading")
                     h2 Now Loading
-                    //- div#gameloadingimage
-                    //-     img(class="tada")
-                    div#webglloader
+                    div#gameloadingwrapper(class="centered")
+                        div#gameloadingimage(class="dialog-animation close")
                     p#gameloadingname
                     div#loadingprogressbar
                     p#loadingstatus
@@ -69,7 +69,7 @@ block content
                 div(class="SaveLoading")
                     h2 Loading Saved Progress
                     div#saveloadingimage
-                        img(class="tada")
+                        img
             div(class="dialogwrapper")
                 div(class="EmulatorCleanup")
                     h2 Cleaning Up
