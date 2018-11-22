@@ -13,19 +13,9 @@ var cesProgressBar = (function(_Media, _gameKey, _wrapper, sytleConfig) {
         var ratio = (amount / total);
         var percentage = Math.ceil(ratio * 100);
         console.log('Progress :' + amount + '/' + total + ' (' + percentage + '%)');
-        //_bar.set(percentage);
-
-        var sepia = 1 - ratio; //range 0 (none) to 1 (fully sepia toned)
 
         var $image = $mediawrapper.find('img');
 
-        $image.css({
-            'filter'         : 'sepia(' + sepia + ')',
-            '-webkit-filter' : 'sepia(' + sepia + ')',
-            '-moz-filter'    : 'sepia(' + sepia + ')',
-            '-o-filter'      : 'sepia(' + sepia + ')',
-            '-ms-filter'     : 'sepia(' + sepia + ')'
-         });
 
         return percentage;
     };

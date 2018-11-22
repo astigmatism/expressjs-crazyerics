@@ -856,7 +856,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
                     return;
                 }
 
-                //deffered.resolve(null, response);
+                deffered.resolve(null, response);
             },
             //onFailure
             function(jqXHR, status, error) {

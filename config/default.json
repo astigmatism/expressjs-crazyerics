@@ -1,6 +1,6 @@
 {
 	"paths": {
-		"images": "images",
+		"images": "http://cdn.crazyerics.com/images",
 		"screen": "http://cdn.crazyerics.com/screen", // /title, /screen
 		"box": "http://cdn.crazyerics.com/box", // /front, /back
 		"audit": "http://cdn.crazyerics.com/audit",

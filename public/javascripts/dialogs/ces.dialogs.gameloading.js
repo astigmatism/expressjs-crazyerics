@@ -7,6 +7,9 @@ var cesDialogsGameLoading = (function(_config, $el, $wrapper, args) {
     var $webgl = $('#dialogloadingbackground');
     var $mediawrapper = $('#gameloadingimage');
 
+    var flipInXAnimationDuration = 2000;
+    var bounceAnimationDuration = 3000;
+
     // var _tipsCycleRate = 4000;
     // var _tips = [
     //     'Hold R = Rewind',
@@ -66,12 +69,32 @@ var cesDialogsGameLoading = (function(_config, $el, $wrapper, args) {
         image.src = _config.paths.images + '/systems/' + gameKey.system + '/logo.png';
         
         var $image = $(image);
+        $mediawrapper
+            .empty()
+            .append($image);
 
-        $image.addClass('hatch sepia').load(function() {
-            $mediawrapper.removeClass('close');
+        $image
+            .addClass('flipInX')
+            .css({
+                'animation-duration': (flipInXAnimationDuration / 1000) + 's',	
+                '-webkit-animation-duration': (flipInXAnimationDuration / 1000) + 's'
+            })
+            .load(function() {
+                
+                $mediawrapper.removeClass('close');
+
+                setTimeout(function() {
+
+                    $image
+                        .removeClass('flipInX')
+                        .addClass('bounce')
+                        .css({
+                            'animation-duration': (bounceAnimationDuration / 1000) + 's',	
+                            '-webkit-animation-duration': (bounceAnimationDuration / 1000) + 's'
+                        });
+
+                }, flipInXAnimationDuration);
         });
-
-        $mediawrapper.empty().append($image);
     };
 
     var OnGameBeginsLoading = function(gameKey) {
@@ -84,8 +107,23 @@ var cesDialogsGameLoading = (function(_config, $el, $wrapper, args) {
         setTimeout(function() {
         
             var $image = _Media.BoxFront(gameKey, 'd');
-            $image.addClass('hatch sepia').load(function() {
-                $mediawrapper.removeClass('close');
+            $image
+                .addClass('flipInX')
+                .css({
+                    'animation-duration': (flipInXAnimationDuration / 1000) + 's',	
+                    '-webkit-animation-duration': (flipInXAnimationDuration / 1000) + 's'
+                })
+                .load(function() {
+
+                    $mediawrapper.removeClass('close');
+
+                    $image
+                        .removeClass('flipInX')
+                        .addClass('bounce')
+                        .css({
+                            'animation-duration': (bounceAnimationDuration / 1000) + 's',	
+                            '-webkit-animation-duration': (bounceAnimationDuration / 1000) + 's'
+                        });
             });
 
             $mediawrapper.empty().append($image);
