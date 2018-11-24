@@ -14,6 +14,10 @@ var cesDialogsException= (function(_config, $el, $wrapper, args) {
         _openCallback();
     };
 
+    this.OnIntroAnimationComplete = function() {
+
+    };
+
     this.OnClose = function(callback) {
         return callback();
     };

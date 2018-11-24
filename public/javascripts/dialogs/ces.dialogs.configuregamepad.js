@@ -57,6 +57,10 @@ var cesDialogsConfigureGamepad = (function(_config, $el, $wrapper, args) {
         StartOver(); //clear field
     };
 
+    this.OnIntroAnimationComplete = function() {
+
+    };
+
     this.OnClose = function(callback) {
         return callback();
     };

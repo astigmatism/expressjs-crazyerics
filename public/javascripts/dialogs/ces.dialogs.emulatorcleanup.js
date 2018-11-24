@@ -14,6 +14,10 @@ var cesDialogsEmulatorCleanup = (function(_config, $el, $wrapper, args) {
         }, _artificalTimeout);
     };
 
+    this.OnIntroAnimationComplete = function() {
+
+    };
+
     this.OnClose = function(callback) {
         return callback();
     };

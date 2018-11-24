@@ -7,6 +7,10 @@ var cesDialogsPlayAgain = (function(_config, $el, $wrapper, args) {
         return callback();
     };
 
+    this.OnIntroAnimationComplete = function() {
+
+    };
+
     var Constructor = (function() {
     })();
 });

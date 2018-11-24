@@ -5,10 +5,29 @@ var cesDialogsGameLoading = (function(_config, $el, $wrapper, args) {
     var _PubSub = args[2];
     var _webgl = null;
     var $webgl = $('#dialogloadingbackground');
-    var $mediawrapper = $('#gameloadingimage');
+    var $mediawrapper = $('#gameloadingwrapper');
+    var $currentImage = null;
 
-    var flipInXAnimationDuration = 2000;
-    var bounceAnimationDuration = 3000;
+    var emulatorAppearAnimation = {
+        name: 'flipInX',
+        duration: 1000
+    };
+    var emulatorStayAnimation = {
+        name: 'bounce',
+        duration: 3000
+    };
+    var emulatorDisappearAnimation = {
+        name: 'flipOutX',
+        duration: 750
+    };
+    var gameAppearAnimation = {
+        name: 'flipInX',
+        duration: 1000
+    };
+    var gameStayAnimation = {
+        name: 'bounce',
+        duration: 3000
+    };
 
     // var _tipsCycleRate = 4000;
     // var _tips = [
@@ -49,17 +68,6 @@ var cesDialogsGameLoading = (function(_config, $el, $wrapper, args) {
         _PubSub.SubscribeOnce('emulatorloading', this, OnEmulatorBeginsLoading);
         _PubSub.SubscribeOnce('gameloading', this, OnGameBeginsLoading);
 
-        /*
-        _Media.Video($mediawrapper, 'sq', gameKey, function($video, videoLoadTime) {
-
-            $mediawrapper.empty().append($video).fadeIn(500);
-            $video.get(0).muted = true;
-            $video.get(0).loop = true;
-            $video.get(0).play(); //function of dom element
-
-        }, 200, 200); //opt_width, opt_height
-        */
-
         _openCallback();
     };
 
@@ -68,66 +76,43 @@ var cesDialogsGameLoading = (function(_config, $el, $wrapper, args) {
         var image = new Image();
         image.src = _config.paths.images + '/systems/' + gameKey.system + '/logo.png';
         
-        var $image = $(image);
+        $currentImage = $(image);
+
+        $currentImage.load(function() {
+
+            $currentImage.removeClass('transparent').cssAnimation(emulatorAppearAnimation.name, emulatorAppearAnimation.duration, false, function() {
+                $currentImage.cssAnimation(emulatorStayAnimation.name, emulatorStayAnimation.duration, true);
+            });
+        });
+        
         $mediawrapper
             .empty()
-            .append($image);
-
-        $image
-            .addClass('flipInX')
-            .css({
-                'animation-duration': (flipInXAnimationDuration / 1000) + 's',	
-                '-webkit-animation-duration': (flipInXAnimationDuration / 1000) + 's'
-            })
-            .load(function() {
-                
-                $mediawrapper.removeClass('close');
-
-                setTimeout(function() {
-
-                    $image
-                        .removeClass('flipInX')
-                        .addClass('bounce')
-                        .css({
-                            'animation-duration': (bounceAnimationDuration / 1000) + 's',	
-                            '-webkit-animation-duration': (bounceAnimationDuration / 1000) + 's'
-                        });
-
-                }, flipInXAnimationDuration);
-        });
+            .append($currentImage.addClass('transparent'));
     };
 
     var OnGameBeginsLoading = function(gameKey) {
-        
+
         //close emulator image
-        //$mediawrapper.find('img').removeClass('sepia');
-        $mediawrapper.addClass('close');
+        $currentImage.cssAnimation(emulatorDisappearAnimation.name, emulatorDisappearAnimation.duration, false, function() {
 
-        //wait for emulator image to disappear
-        setTimeout(function() {
-        
-            var $image = _Media.BoxFront(gameKey, 'd');
-            $image
-                .addClass('flipInX')
-                .css({
-                    'animation-duration': (flipInXAnimationDuration / 1000) + 's',	
-                    '-webkit-animation-duration': (flipInXAnimationDuration / 1000) + 's'
-                })
-                .load(function() {
+            $currentImage = _Media.BoxFront(gameKey, 'd');
 
-                    $mediawrapper.removeClass('close');
+            $currentImage.load(function() {
 
-                    $image
-                        .removeClass('flipInX')
-                        .addClass('bounce')
-                        .css({
-                            'animation-duration': (bounceAnimationDuration / 1000) + 's',	
-                            '-webkit-animation-duration': (bounceAnimationDuration / 1000) + 's'
-                        });
+                $currentImage.removeClass('transparent').cssAnimation(gameAppearAnimation.name, gameAppearAnimation.duration, false, function() {
+                    $currentImage.cssAnimation(gameStayAnimation.name, gameStayAnimation.duration, true);
+                });
             });
 
-            $mediawrapper.empty().append($image);
-        }, 1000);
+            $mediawrapper
+                .empty()
+                .append($currentImage.addClass('transparent'));
+
+        }, 'transparent');
+    };
+
+    this.OnIntroAnimationComplete = function() {
+
     };
 
     this.OnClose = function(callback) {
@@ -137,8 +122,6 @@ var cesDialogsGameLoading = (function(_config, $el, $wrapper, args) {
             _webgl = null;
             $mediawrapper.empty(); //final clean up
         });
-
-        $mediawrapper.addClass('close');
 
         return callback();
     };

@@ -20,12 +20,14 @@ var cesGameLink = (function(_config, _Media, _Tooltips, gameKey, cdnPathValue, o
         var _self = this;
 
         var $div = $('<div class="gamelink"></div>');
-        var $imagewrapper = $('<div class="box zoom close"></div>');
+        var $imagewrapper = $('<div class="box zoom transparent"></div>');
 
         var $img = _Media.$BoxFront(gameKey, cdnPathValue);
 
         $img.imagesLoaded().progress(function(imgLoad, image) {
-            $imagewrapper.removeClass('close'); //remove close on parent to reveal image
+            
+            //$imagewrapper.removeClass('close'); //remove close on parent to reveal image
+            $imagewrapper.removeClass('transparent').cssAnimation('flipInY', 1000);
 
             //attach play game event only when image is available
             $imagewrapper.on('mousedown', function() {

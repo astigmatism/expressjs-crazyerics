@@ -11,6 +11,11 @@ var cesDialogsTemplate = (function(_config, $el, $wrapper, args) {
 
     };
 
+    //when the dialog intro animation is complete (when user can begin interacting)
+    this.OnIntroAnimationComplete = function() {
+
+    };
+
     this.OnClose = function(callback) {
         return callback();
     };

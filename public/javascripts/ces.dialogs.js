@@ -15,6 +15,7 @@ var cesDialogs = (function(_config, $wrapper) {
     var _maxDialogHeight = 600;
     var defaultHeightChangeDuration = 600;
     var defaultHeightChangeEasing = 'easeOutBack'; // see more http://easings.net/#
+    var dialogIntroAnimationDuration = 600;
 
     var registry = {};
 
@@ -150,7 +151,12 @@ var cesDialogs = (function(_config, $wrapper) {
                 }
                 _currentDialog = name;
 
-                dialog.element.removeClass('hide');
+                dialog.element
+                    .css({
+                        'transition-duration': dialogIntroAnimationDuration + 'ms',
+                        '-webkit-transition-duration': dialogIntroAnimationDuration + 'ms'
+                    })
+                    .removeClass('hide');
 
                 //result is selection result from dialog
                 dialog.module.OnOpen(args, function(result) {
@@ -167,6 +173,13 @@ var cesDialogs = (function(_config, $wrapper) {
                         return ($.isArray(result)) ? callback.apply(null, result) : callback(result);
                     }
                 });
+
+                //on animation finished
+                setTimeout(function() {
+                    
+                    dialog.module.OnIntroAnimationComplete();
+
+                }, dialogIntroAnimationDuration);
 
                 //animate to ideal height
                 self.SetHeight(dialog.height, function() {

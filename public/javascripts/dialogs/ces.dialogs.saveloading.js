@@ -6,10 +6,16 @@ var cesDialogsSaveLoading = (function(_config, $el, $wrapper, args) {
     var _openCallback = null;
     var _webgl = null;
     var $webgl = $('#dialogloadingbackground');
-    var $mediawrapper = $('#saveloadingimage');
+    var $mediawrapper = $('#saveloadingwrapper');
 
-    var flipInXAnimationDuration = 2000;
-    var bounceAnimationDuration = 3000;
+    var introAnimation = {
+        name: 'flipInX',
+        duration: 1000
+    };
+    var stayAnimation = {
+        name: 'bounce',
+        duration: 3000
+    };
 
     this.OnOpen = function(args, callback) {
         _openCallback = callback;
@@ -18,31 +24,26 @@ var cesDialogsSaveLoading = (function(_config, $el, $wrapper, args) {
 
     var Open = function(system, screenshotData) {
 
-        var $image = $(BuildScreenshot(_config, system, screenshotData, null, 200));
-        
-        $image
-            .addClass('flipInX')
-            .css({
-                'animation-duration': (flipInXAnimationDuration / 1000) + 's',	
-                '-webkit-animation-duration': (flipInXAnimationDuration / 1000) + 's'
-            })
-            .load(function() {
-                
-                $mediawrapper.removeClass('close');
+        var $image = $(BuildScreenshot(_config, system, screenshotData, null, 200)).addClass('transparent');
 
-                $image
-                    .removeClass('flipInX')
-                    .addClass('bounce')
-                    .css({
-                        'animation-duration': (bounceAnimationDuration / 1000) + 's',	
-                        '-webkit-animation-duration': (bounceAnimationDuration / 1000) + 's'
-                    });
+        $mediawrapper
+            .empty()
+            .append($image);
+
+        $image.load(function() {
+
+            $image.removeClass('transparent').cssAnimation(introAnimation.name, introAnimation.duration, false, function() {
+
+                $image.cssAnimation(stayAnimation.name, stayAnimation.duration, true);
+            });
         });
-
-        $mediawrapper.empty().append($image);
 
         _webgl = new cesWebGlParticleAnimation(_Compression, _PubSub, _config.paths.textures, $webgl, $image);
         $webgl.fadeIn(1000);
+    };
+
+    this.OnIntroAnimationComplete = function() {
+
     };
 
     this.OnClose = function(callback) {

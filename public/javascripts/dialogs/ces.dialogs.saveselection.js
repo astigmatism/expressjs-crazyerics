@@ -9,6 +9,19 @@ var cesDialogsSaveSelection = (function(_config, $el, $wrapper, args) {
     
     var _openCallback = null;
 
+    var appearAnimation = 'flipInX';
+    var _appearDuration = 1000;
+    var _appearDelay = 200;     //between items
+
+    var disappearAnimation = 'flipOutX';
+    var disappearDuration = 1000;
+    var disappearDelay = 200; //wait time between icons disappearing
+
+    var selectedAnimation = 'tada';
+    var selectedAnimationDuration = 1500;
+
+    var selection = null;
+
     this.OnOpen = function(args, callback) {
         _openCallback = callback;
         Open.apply(this, args);
@@ -20,6 +33,7 @@ var cesDialogsSaveSelection = (function(_config, $el, $wrapper, args) {
         _system = system;
         
         $('#savesselectlist').empty(); //clear from last time
+        selection = null;
 
         $('#loadnosaves').off().on('mouseup', function() {
             _openCallback(['Player chose not to load a game']);
@@ -60,18 +74,82 @@ var cesDialogsSaveSelection = (function(_config, $el, $wrapper, args) {
 
         var $image = $(BuildScreenshot(_config, _system, saveData.save.screenshot, 200));
 
-        var $li = $('<li class="zoom" data-shader=""><h3>#' + (saveData.total - saveData.i) + ' of ' + saveData.total + ': ' + saveData.save.time + '</h3></li>').on('click', function(e) {
+        var $li = $('<li class="zoom transparent" data-timestamp="' + timestamp + '"></li>').on('click', function(e) {
             
-            _openCallback([null, timestamp, saveData.save.screenshot]);
+            OnSaveSelected(timestamp, saveData.save.screenshot);
         });
 
+        //title
+        if (saveData.total > 1 && saveData.i == 0) {
+            $li.append('<h3>Newest</h3>');
+        }
+
+        //image
         var $ribbonInner = $('<div class="ribbon-' + ribbonColor + ' ribbon" />').text(ribbonText);
         var $ribbonOuter = $('<div class="ribbon-wrapper" />').append($ribbonInner);
         var $imageWrapper = $('<div class="rel" />').append($ribbonOuter).append($image);
-
         $li.append($imageWrapper);
+        
+        //caption
+        var $caption = $('<p>#' + (saveData.total - saveData.i) + ' of ' + saveData.total + ': ' + saveData.save.time + '</p>');
+        $li.append($caption);
+
         $('#savesselectlist').prepend($li); //prepend to add them in reverse order so that they can be read left to right
-	};
+    };
+
+    var OnSaveSelected = function(timestamp, screenshot) {
+        
+        //bail if selection was already made on this dialog
+        if (selection) {
+            return;
+        }
+        selection = timestamp; //assign any value to boolean
+
+        OutroAnimations(timestamp, function() {
+
+            _openCallback([null, timestamp, screenshot]);
+        });
+    };
+    
+    this.OnIntroAnimationComplete = function() {
+
+        //stagger in animations
+        $('#savesselectlist li').each(function(index, item) {
+            
+            setTimeout(function() {
+                $(item).removeClass('transparent').cssAnimation(appearAnimation, _appearDuration);
+            }, _appearDelay * (index + 1)); //wait one full delay cycle before bringing first in
+        });
+    };
+
+    var OutroAnimations = function(timestamp, animationsComplete) {
+
+        var totalDisappearDuration = disappearDuration;
+
+        //animate out others
+        $('#savesselectlist li').each(function(index, li) {
+            
+            //the items not selected
+            if ($(li).attr('data-timestamp') != timestamp) {
+
+                var delay = disappearDelay * (index + 1);
+                
+                setTimeout(function() {
+                    $(li).cssAnimation(disappearAnimation, disappearDuration, false, null, 'transparent');    
+                }, delay);
+                
+                totalDisappearDuration += (disappearDelay);
+            }
+            //the item selected
+            else {
+                $(li).cssAnimation(selectedAnimation, selectedAnimationDuration);
+            }
+        });
+
+        setTimeout(function() {
+            animationsComplete();
+        }, totalDisappearDuration);
+    };
 
     this.OnClose = function(callback) {
         return callback();

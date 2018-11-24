@@ -825,6 +825,63 @@ var cesMain = (function() {
 
 })();
 
+//assigns css animations at runtime.
+//see https://daneden.github.io/animate.css/ for animation demos
+//see animations.css for structure
+$.fn.cssAnimation = function(name, ms, loop, onComplete, restoreClass) {
+
+    var _self = this;
+    
+    //clear animation values
+    var classList = _self.attr('class') ? _self.attr('class').split(/\s+/) : [];
+    $.each(classList, function(index, item) {
+        if (/^anim-/.test(item)) {
+            _self.removeClass(item); //removes all classes that begin with anim
+        }
+    });
+    
+    //clear duration values
+    _self.css({
+        '-webkit-animation-duration': '', 
+        'animation-duration': '',
+        '-webkit-animation-iteration-count': '1',
+        'animation-iteration-count': '1'
+    });
+
+    if (name) {
+        _self.addClass('anim-' + name); //prefix
+
+        if (loop) {
+            _self.css({
+                '-webkit-animation-iteration-count': 'infinite',
+                'animation-iteration-count': 'infinite'
+            });
+        }
+
+        if (ms) {
+
+            _self.css({
+                '-webkit-animation-duration': ms + 'ms', 
+                'animation-duration': ms + 'ms'
+            });
+
+            //on animation completion
+            setTimeout(function() {
+                
+                if (restoreClass) {
+                    _self.removeClass().addClass(restoreClass);
+                }
+
+                if (onComplete) {
+                    onComplete(_self);
+                }
+            }, ms);
+        }
+    }
+    return this;
+};
+
+
 /**
  * css rotation animation helper and jquery extension
  * @param  {number} startingangle

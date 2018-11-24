@@ -7,6 +7,10 @@ var cesDialogsWelcome = (function($el, $wrapper, args) {
         return callback();
     };
 
+    this.OnIntroAnimationComplete = function() {
+
+    };
+
     var Constructor = (function() {
     })();
 });

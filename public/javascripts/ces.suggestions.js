@@ -14,6 +14,7 @@ var cesSuggestions = (function(_config, _Media, _Compression, _Tooltips, PlayGam
     var _page = 0;
     var _loadingIcon = 'Blocks-1s-61px.svg';
     var $loading;
+    var $loadingAnimations = ['flipInX', 'pulse', 'flipOutX']; //in, stay, out
 
     this.Load = function(recipe, callback, opt_canned, _opt_alphaHelper) {
 
@@ -75,7 +76,9 @@ var cesSuggestions = (function(_config, _Media, _Compression, _Tooltips, PlayGam
                 _loadingRequestCount--;
 
                 if (_loadingRequestCount < 1) {
-                    $loading.addClass('close');
+                    
+                    //outro 
+                    $loading.addClass('transparent').cssAnimation($loadingAnimations[2], 1000);
                 }
 
                 if (callback) {
@@ -89,7 +92,11 @@ var cesSuggestions = (function(_config, _Media, _Compression, _Tooltips, PlayGam
     var Fetch = function(recipe, callback, opt_canned) {
 
         _loadingRequestCount++;
-        $loading.removeClass('close');
+
+        //animation intro and stay
+        $loading.removeClass('transparent').cssAnimation($loadingAnimations[0], 1000, false, function(item) {
+            $loading.cssAnimation($loadingAnimations[1], 1000, true);
+        });
 
         //are we fetching a canned result?
         opt_canned = (opt_canned == true) ? true : false;
