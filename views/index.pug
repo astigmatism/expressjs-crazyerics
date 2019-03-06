@@ -103,7 +103,7 @@ block content
                                 li(class="screenshots tooltip", data-slider="Screenshots", title="Screenshots")
                                 li(class="saves tooltip", title="Saves")
                                 li(class="info tooltip", data-slider="Info", title="Info")
-                                li(class="roms tooltip", data-slider="Roms", title="Game Collection")
+                                li(class="versions tooltip", data-slider="Roms", title="Alternate Versions")
                             //- sliding panels
                             div#sliderpanels
                                 div#Controls-slider(class="slidingpanel closed")
@@ -136,10 +136,11 @@ block content
                                     div#screenshotsGrid(class="grid")
                                     p All screenshots here will be lost when you leave or play another game.
                                 div#Roms-slider(class="slidingpanel closed")
-                                    p This title contains these versions of the game. Select one to play (requires restart):
+                                    p You can also play one of these alernative versions of the game (a selection automatically restarts):
                                     select
-                                    p * Note: Saved progress is specific to each game version.
-                                    p Reset to the original version
+                                    p(style='white-space:pre;')
+                                        | * Your game collection will be updated to use this version of the game from now on. 
+                                        | * Saves are specific to the game version you have selected.
                     div#gamedetailsboxfront
 
     div#collectionsWrapper

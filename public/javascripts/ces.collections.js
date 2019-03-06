@@ -128,6 +128,7 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
                     //found this title in the grid, update its attributes to keep it up to date
                     $gridTitle.attr('data-lastPlayed', activeTitle.lastPlayed); //store as epoch time for sorting
                     $gridTitle.attr('data-playCount', activeTitle.playCount);
+                    $gridTitle.attr('data-topRanked', activeTitle.topRanked);
                 }
             }
 
@@ -163,6 +164,7 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
         $griditem.data('system', activeTitle.gameKey.system);
         $griditem.data('playCount', activeTitle.playCount);
         $griditem.data('type', 'personal'); //to denote collection type (personal/featured)
+        $griditem.data('topRanked', activeTitle.topRanked); //bool. is this the top ranked file (true) or an alternate version?
 
         $griditem.append(activeTitle.gameLink.GetDOM()); //add all visual content from gamelink to grid
 
@@ -257,6 +259,10 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
         $tooltipContent.append('<div class="tooltiptitle">' + activeTitle.gameKey.title + '</div>');
         var $mediawrapper = $('<div class="mediawrapper" />');
         $tooltipContent.append($mediawrapper);
+        //if playing an alternate version, append the tooltip with that info
+        if (!activeTitle.topRanked) {
+            $tooltipContent.append('<div class="tooltipfile">You are playing an alternate version: ' + activeTitle.gameKey.file + '</div>');
+        }
         $tooltipContent.append('<div>Last Played: ' + $.format.date(activeTitle.lastPlayed, 'MMM D h:mm:ss a') + '</div>'); //using the jquery dateFormat plugin
         $tooltipContent.append('<div>Play Count: ' + activeTitle.playCount + '</div>');
         $tooltipContent.append('<div>Number of Saves: ' + activeTitle.saveCount + '</div>');
@@ -271,7 +277,7 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
             });
         });
         $tooltipContent.append($remove);
-        
+
         _Tooltips.SingleHTMLWithTitleScreen(activeTitle.gridItem, $tooltipContent, $mediawrapper, activeTitle.gameKey, true);
     };
 
@@ -649,6 +655,7 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
                         lastPlayedServerDate: utcDate,
                         playCount: payload[i].playCount,
                         saveCount: payload[i].saveCount,
+                        topRanked: payload[i].topRanked,
                         gameLink: gameLink
                     });
                 }

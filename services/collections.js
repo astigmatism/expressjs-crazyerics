@@ -282,7 +282,8 @@ module.exports = new (function() {
                         gk: envelope.titles[i].game_key,
                         lastPlayed: envelope.titles[i].last_played,
                         playCount: envelope.titles[i].play_count,
-                        saveCount: envelope.titles[i].save_count
+                        saveCount: envelope.titles[i].save_count,
+                        topRanked: envelope.titles[i].top_ranked
                     });
                 }
 

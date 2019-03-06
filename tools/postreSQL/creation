@@ -330,6 +330,9 @@ GRANT ALL ON TABLE public.users_titles TO crazyerics;
 ALTER TABLE public.users_titles
     ALTER COLUMN created SET DEFAULT now();
 
+ALTER TABLE public.users_titles
+    ADD COLUMN top_ranked boolean DEFAULT True;
+
 ----------------------------------
 
 CREATE TABLE public.collections_titles

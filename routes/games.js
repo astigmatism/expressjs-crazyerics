@@ -33,8 +33,10 @@ router.post('/load', function(req, res, next) {
         GameService.PlayRequest(gameKey, function(err, eGameKey, gameDetails) {
             if (err) return next(err);
 
+            var _isPlayingTopRanked = (gameDetails.file == gameDetails.toprank);
+
             //add a record for this user playing this title
-            UserService.PlayTitle(userId, eGameKey, (err, userTitleRecord) => {
+            UserService.PlayTitle(userId, eGameKey, _isPlayingTopRanked, (err, userTitleRecord) => {
                 if (err) return next(err);
 
                 //add to active collection, if already there, no problem

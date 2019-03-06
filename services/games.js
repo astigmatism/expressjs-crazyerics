@@ -100,6 +100,7 @@ module.exports = new (function() {
                 files: null,
                 gk: null,
                 info: null,
+                toprank: null
             };
 
             //open data file for details
@@ -116,7 +117,7 @@ module.exports = new (function() {
                     data.file = gameKey.file;
                     data.gk = gameKey.gk;
                     data.files = masterFile[gameKey.title].f;
-
+                    data.toprank = masterFile[gameKey.title].b;
                             
                     //get the metadata, cached during startup
                     FileService.Get('/data/' + gameKey.system + '_metadata', function(err, metadata) {

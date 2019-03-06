@@ -1,6 +1,7 @@
 var cesSlidersRoms = (function(_config, $li, $panel) {
 
     var self = this;
+    var heightOfSelect = '500px'; //a css definition. needs to include px
 
     this.Activate = function(gameKey, files, _Compression, _PlayGameHandler) {
         
@@ -25,25 +26,26 @@ var cesSlidersRoms = (function(_config, $li, $panel) {
             $select.append('<option value="' + files[file].gk + '"' + selected + '>' + file + '</option>');
         }
 
-        //console select
+        //romfile select
         $select.selectOrDie({
             customID: 'romsselectordie',
-            customClass: 'tooltip',
             size: 20,
-            /**
-             * when system filter is changed
-             * @return {undef}
-             */
             onChange: function() {
                 var gk = $(this).val();
                 var newGameKey = _Compression.Decompress.gamekey(gk);
                 _PlayGameHandler(newGameKey);
             }
         });
+
+        //selectordie fails to calculate outerHeight() when the display is set to none. this is a correction
+        $panel.find('.sod_list').css('max-height', heightOfSelect);
     };
 
     this.Deactivate = function() {
 
+        var $select = $panel.find('select');
+        $select.selectOrDie('destroy');
+        $select.empty();
     };
 
     this.OnOpen = function(callback) {

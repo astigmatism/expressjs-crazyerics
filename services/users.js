@@ -66,9 +66,9 @@ module.exports = new (function() {
         });
     };
 
-    this.PlayTitle = function(userId, eGameKey, callback) {
+    this.PlayTitle = function(userId, eGameKey, isPlayingTopRanked, callback) {
         
-        UserTitlesSQL.PlayTitle(userId, eGameKey.gk, eGameKey.titleId, eGameKey.fileId, (err, userTitle) => {
+        UserTitlesSQL.PlayTitle(userId, eGameKey.gk, eGameKey.titleId, eGameKey.fileId, isPlayingTopRanked, (err, userTitle) => {
             if (err) {
                 return callback(err);
             }

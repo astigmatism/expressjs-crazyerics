@@ -982,19 +982,19 @@ div.slidingpanel.closed {
 }
 
 #slidericons .info {
-	background: url("http://cdn.crazyerics.com/images/info.png") center center no-repeat;
+	background: url("http://cdn.crazyerics.com/images/sliders/info.png") center center no-repeat;
 }
 
 #slidericons .controls {
-	background: url("http://cdn.crazyerics.com/images/controls.png") center center no-repeat;
+	background: url("http://cdn.crazyerics.com/images/sliders/controls.png") center center no-repeat;
 }
 
 #slidericons .screenshots {
-	background: url("http://cdn.crazyerics.com/images/screenshot.png") center center no-repeat;
+	background: url("http://cdn.crazyerics.com/images/sliders/screenshots.png") center center no-repeat;
 }
 
-#slidericons .saves {
-	background: url("http://cdn.crazyerics.com/images/saves.png") center center no-repeat;
+#slidericons .versions {
+	background: url("http://cdn.crazyerics.com/images/sliders/versions.png") center center no-repeat;
 }
 
 #slidericons .on {
@@ -1231,6 +1231,10 @@ div.tooltiptitle {
 	font-size: 1.2em;
 	line-height: 30px;
 	font-weight: bold;
+}
+
+div.tooltipfile {
+	color: green;
 }
 
 /* suggestions */
