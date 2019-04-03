@@ -353,12 +353,12 @@ p {
 	-o-transition:All 100ms ease-in;
 }
 
-.zoom:hover {
-	transform: scale(1.1, 1.1);
-	-webkit-transform: scale(1.1, 1.1);
-	-moz-transform: scale(1.1, 1.1);
-	-o-transform: scale(1.1, 1.1);
-	-ms-transform: scale(1.1, 1.1);
+.zoom-on {
+	transform: scale(1.15, 1.15);
+	-webkit-transform: scale(1.15, 1.15);
+	-moz-transform: scale(1.15, 1.15);
+	-o-transform: scale(1.15, 1.15);
+	-ms-transform: scale(1.15, 1.15);
 }
 
 

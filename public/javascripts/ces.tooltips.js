@@ -19,14 +19,16 @@ var cesTooltips = (function(_config, _Media, _Logging, tooltipSelector, tooltipC
         });
     };
 
-    this.SingleHTML = function($el, $content, opt_interactive, opt_functionBefore) {
+    this.SingleHTML = function($el, $content, opt_interactive, opt_functionBefore, opt_trigger) {
 
         opt_interactive = opt_interactive == undefined ? true : opt_interactive;
+        opt_trigger = opt_trigger || 'hover';
 
         if (!$el.hasClass(alreadyProcessedName)) {
             $el.tooltipster({
                 theme: 'tooltipster-shadow',
                 animation: 'grow',
+                trigger: opt_trigger,
                 delay: [1200, 200],
                 animationDuration: [200, 300],
                 interactive: opt_interactive,
@@ -51,9 +53,18 @@ var cesTooltips = (function(_config, _Media, _Logging, tooltipSelector, tooltipC
 
         //this will have multiple tooltips, one for loading
 
+        //this is the loading tooltip
         $el.tooltipster({
             theme: 'tooltipster-shadow',
             animation: 'grow',
+            trigger: 'custom',
+            triggerOpen: {
+                click: true
+            },
+            triggerClose: {
+                click: true,
+                mouseleave: true
+            },
             delay: [1000, 100],
             multiple: true,
             animationDuration: [200, 300],
@@ -62,9 +73,18 @@ var cesTooltips = (function(_config, _Media, _Logging, tooltipSelector, tooltipC
             content: '<div class="spinner"><div class="bounce1"></div><div class="bounce2"></div><div class="bounce3"></div></div>'
         });
         
+        //this is the content tooltip
         $el.tooltipster({
             theme: 'tooltipster-shadow',
             animation: 'grow',
+            trigger: 'custom',
+            triggerOpen: {
+                click: true
+            },
+            triggerClose: {
+                click: true,
+                mouseleave: true
+            },
             delay: [1200, 100],
             animationDuration: [200, 300],
             interactive: opt_interactive,

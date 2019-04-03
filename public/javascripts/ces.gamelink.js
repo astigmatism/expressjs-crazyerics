@@ -22,22 +22,25 @@ var cesGameLink = (function(_config, _Media, _Tooltips, gameKey, cdnPathValue, o
         var $div = $('<div class="gamelink"></div>');
         var $imagewrapper = $('<div class="box zoom transparent"></div>');
 
+        //zoom on click, if zoomed (selected, trigger play)
+        $div.on('click', function() {
+
+            if (opt_PlayGame && $imagewrapper.hasClass('zoom-on')) {
+                _Tooltips.Close($imagewrapper); //sometimes the tooltip was staying up after clicking
+                opt_PlayGame(gameKey);
+            }
+            $imagewrapper.addClass('zoom-on');
+        });
+        $div.on('mouseout', function() {
+            $imagewrapper.removeClass('zoom-on');
+        });
+
         var $img = _Media.$BoxFront(gameKey, cdnPathValue);
 
         $img.imagesLoaded().progress(function(imgLoad, image) {
             
             //$imagewrapper.removeClass('close'); //remove close on parent to reveal image
             $imagewrapper.removeClass('transparent').cssAnimation('flipInY', 1000);
-
-            //attach play game event only when image is available
-            $imagewrapper.on('mousedown', function() {
-                
-                _Tooltips.Close($imagewrapper); //sometimes the tooltip was staying up after clicking
-
-                if (opt_PlayGame) {
-                    opt_PlayGame(gameKey);
-                }
-            });
 
             if (opt_OnImageLoaded) {
                 opt_OnImageLoaded(image);
@@ -53,6 +56,7 @@ var cesGameLink = (function(_config, _Media, _Tooltips, gameKey, cdnPathValue, o
             $tooltipContent.append('<div class="tooltiptitle">' + gameKey.title + '</div>');
             var $mediawrapper = $('<div class="mediawrapper"></div>');
             $tooltipContent.append($mediawrapper);
+            $tooltipContent.append('<div class="tooltipcaption">Click again to play</div>');
 
             _Tooltips.SingleHTMLWithTitleScreen($imagewrapper, $tooltipContent, $mediawrapper, gameKey, false);
         }

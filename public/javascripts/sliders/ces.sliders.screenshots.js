@@ -27,6 +27,8 @@ var cesSlidersScreenshots = (function(_config, $li, $panel, Open) {
 
     this.OnOpen = function(callback) {
 
+        //TODO: show different messages
+        (_grid.children().length > 0) ? ToggleEmptyList(false) : ToggleEmptyList(true);
         callback(true);
     };
 
@@ -38,6 +40,7 @@ var cesSlidersScreenshots = (function(_config, $li, $panel, Open) {
     var OnNewScreenshot = function(filename, contents, screenDataUnzipped, system, title) {
         
         //create the grid item
+        ToggleEmptyList(false);
         var $griditem = $('<div class="grid-item" />');
 
         $griditem.data('ts', Date.now());
@@ -130,6 +133,17 @@ var cesSlidersScreenshots = (function(_config, $li, $panel, Open) {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+    };
+
+    var ToggleEmptyList = function(isEmpty) {
+        if (isEmpty) {
+            $panel.find('.havescreens').hide();
+            $panel.find('.noscreens').show();
+        }
+        else {
+            $panel.find('.havescreens').show();
+            $panel.find('.noscreens').hide();
+        }
     };
     
     var Constructor = (function() {

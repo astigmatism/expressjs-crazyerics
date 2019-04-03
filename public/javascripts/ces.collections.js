@@ -200,7 +200,7 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
 
             //generate new toolips content
             var $tooltipContent = GenerateCollectionTooltipContent(collection);   //generate html specific for collections
-            _Tooltips.SingleHTML(collection.gridItem, $tooltipContent); //reapply tooltips
+            _Tooltips.SingleHTML(collection.gridItem, $tooltipContent, null, null, 'click'); //reapply tooltips
         }
     };
 

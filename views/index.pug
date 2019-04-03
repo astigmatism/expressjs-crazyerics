@@ -132,15 +132,18 @@ block content
                                                 p(class="developer")
                                                 p(class="players")
                                 div#Screenshots-slider(class="slidingpanel closed")
-                                    p Click to download a screenshot. Hover to optionally contribute it back to Crazyerics (and thank you!)
-                                    div#screenshotsGrid(class="grid")
-                                    p All screenshots here will be lost when you leave or play another game.
+                                    div(class="havescreens")
+                                        p Click to download a screenshot. Hover to optionally contribute it back to Crazyerics (and thank you!)
+                                        div#screenshotsGrid(class="grid")
+                                        p All screenshots here will be lost when you leave or play another game.
+                                    div(class="noscreens")
+                                        p You have not taken any screenshots yet.
                                 div#Roms-slider(class="slidingpanel closed")
-                                    p You can also play one of these alernative versions of the game (a selection automatically restarts):
+                                    p You can also play one of these alernative versions of this game (making a selection will restart your current game):
                                     select
                                     p(style='white-space:pre;')
-                                        | * Your game collection will be updated to use this version of the game from now on. 
-                                        | * Saves are specific to the game version you have selected.
+                                        | * Your game collection will be updated to use the version of the game you have selected. 
+                                        | * Save progress is specific to the game version you have selected.
                     div#gamedetailsboxfront
 
     div#collectionsWrapper
