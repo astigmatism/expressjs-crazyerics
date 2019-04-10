@@ -5,11 +5,12 @@ var cesSlidersControls = (function(_config, $li, $panel) {
 
     this.Activate = function(gameKey, _GamePad) {
         
-        _inputAssignmentMap = _config.mappings[gameKey.system];
+        _inputAssignmentMap = _config.mappings[gameKey.system]; //just internal names to display names
 
         //gamepad list
         var $tr = $panel.find('tr.controllers');
 
+        //get gamepad assignment map
         var gamepads = _GamePad.GetGamePadDetails();
         if ($.isEmptyObject(gamepads)) {
             
@@ -18,14 +19,20 @@ var cesSlidersControls = (function(_config, $li, $panel) {
 
         }
 
-        //controller image
-        // var $controller = $panel.find('img.controller');
+        //update display with current input mappings
+        for (input in _inputAssignmentMap)
+        {
 
-        // $controller.addClass('close');
-        // $controller.imagesLoaded().done(function() {
-        //     $controller.removeClass('close'); //remove close on parent to reveal image
-        // });
-        // $controller.attr('src', _config.paths.images + '/gamepads/' + gameKey.system + '/configure_dialog_bg.png');
+        }
+
+        //controller image
+        var $controller = $panel.find('img.controller');
+
+        $controller.addClass('close');
+        $controller.imagesLoaded().done(function() {
+            $controller.removeClass('close'); //remove close on parent to reveal image
+        });
+        $controller.attr('src', _config.paths.images + '/gamepads/' + gameKey.system + '/configure_dialog_bg.png');
     };
 
     this.Deactivate = function() {

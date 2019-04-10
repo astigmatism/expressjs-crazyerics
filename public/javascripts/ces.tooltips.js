@@ -103,7 +103,7 @@ var cesTooltips = (function(_config, _Media, _Logging, tooltipSelector, tooltipC
                         var instances = $.tooltipster.instances($el);
 
                         //if the user is already moving away from the loading tooltip, bail showing the next content tooltip (the loading tooltip must be enabled of course, it won't be afterwards)
-                        if (instances[0].status().enabled && (instances[0].status().state === 'disappearing' || instances[0].status().state === 'closed'))
+                        if (instances[0].status().enabled && (instances[0].status().state === 'disappearing'))
                         {
                             _Logging.Console('ces.tooltips', 'state of "loading" tooltip: ' + instances[0].status().state + '. Not showing titlescreen tooltip', $el);
                             return;

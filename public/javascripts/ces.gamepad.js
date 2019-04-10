@@ -33,6 +33,11 @@ var cesGamePad = (function(_config, _Compression, _PubSub, _Tooltips, _Preferenc
         window.addEventListener("gamepaddisconnected", function(e) {
             RemoveGamepad(e.gamepad);
         });
+
+        //default gamepad tooltips
+        for (var i = 0, len = _$gamepads.length; i < len; ++i) {
+            _Tooltips.SingleHTML(_$gamepads[i], 'Connect a Gamepad!');
+        }
     });
 
     // public methods

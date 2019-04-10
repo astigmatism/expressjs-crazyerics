@@ -68,7 +68,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
      * @param {string} shader   a shader selection or pre-defined
      * @param {Object} deffered when complete
      */
-    this.Load = function(module, shader, supportingFilesIncluded, deffered) {
+    this.Load = function(module, shader, loadSupportFiles, deffered) {
 
         var emulatorLoadComplete = $.Deferred();
         var supportLoadComplete = $.Deferred();
@@ -85,7 +85,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
             
             var emulator = [a,b,c]; //combine as it were
 
-            LoadSupportFiles(_gameKey.system, supportingFilesIncluded, supportLoadComplete);
+            LoadSupportFiles(_gameKey.system, loadSupportFiles, supportLoadComplete);
             LoadGame(gameLoadComplete);
             LoadShader(shader, shaderLoadComplete);
 
@@ -774,11 +774,11 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
      * @param  {Object} deffered
      * @return {undef}
      */
-    var LoadSupportFiles = function(system, supportingFilesIncluded, deffered) {
+    var LoadSupportFiles = function(system, loadSupportFiles, deffered) {
 
-        //rely entirely on the filesize from the config to inform us if we are to seek support files
-        if (!supportingFilesIncluded) {
+        if (!loadSupportFiles) {
             //system not handled, bail
+            console.log('Support files are not needed for ' + system);
             deffered.resolve();
             return;
         }
@@ -787,6 +787,9 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
 
         //support location also includes a folder which must match the emulator version
         var location = _config.paths.supportfiles + '/' + _config.systemdetails[system].emuextention + '/' + system;
+
+        _PubSub.Publish('supportFilesLoading', [_gameKey]);
+        var startTime = Date.now();
 
         LoadResource(location,
             //onProgress Update
@@ -797,6 +800,11 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
             function(response, status, jqXHR) {
                 try {
                     response = JSON.parse(response);
+
+                    var endTime = Date.now();
+
+                    console.log('Support Files Loading took: ' + (endTime - startTime) + 'ms');
+
                 } catch (e) {
                     _PubSub.Publish('error', ['Support Files Parse Error:', e]);
                     return;

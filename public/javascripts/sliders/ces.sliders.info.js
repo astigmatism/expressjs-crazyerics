@@ -50,14 +50,17 @@ var cesSlidersInfo = (function(_config, $li, $panel) {
 
             if (info.Genres) {
                 var genres = '';
-                for (var genre in info.Genres) {
-                    genres += info.Genres[genre] + ', ';
+                var genreArray = info.Genres.split(';'); //data seems to suggest this is the delimeter
+                for (var genre in genreArray) {
+                    genres += genreArray[genre] + ', ';
                 }
                 $genre.text('Genre: ' + genres.slice(0, -2));
             }
 
             if (info.ReleaseDate) {
-                $release.text('Release Date: ' + info.ReleaseDate);
+                //convert
+                var date = new Date(info.ReleaseDate);
+                $release.text('Release Date: ' + $.format.date(date, 'dddd, MMMM dd yyyy'));
             }
 
             if (info.Publisher) {

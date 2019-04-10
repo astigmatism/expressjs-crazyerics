@@ -202,7 +202,7 @@ module.exports = new (function() {
                     'emuscript': systems[system].emuscript,
                     'retroarch': systems[system].retroarch,
                     'screenshotaspectratio': systems[system].screenshotaspectratio,
-                    'supportfilesize': systems[system].supportfilesize,
+                    'supportfiles': systems[system].supportfiles,
                     'cannedSuggestion': false
                 };
 

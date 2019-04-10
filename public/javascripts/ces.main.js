@@ -436,7 +436,7 @@ var cesMain = (function() {
 
                             var saves = gameDetails.saves;
                             var files = gameDetails.files;
-                            var supportFilesIncluded = _config.systemdetails[gameKey.system].supportfiles; //will be 0 for systems without support
+                            var loadSupportFiles = _config.systemdetails[gameKey.system].supportfiles; //will be 0 for systems without support
                             var info = {};
                             try {
                                 info = gameDetails.info;
@@ -453,7 +453,7 @@ var cesMain = (function() {
                             //begin loading all content. I know it seems like some of these (game, emulator, etc) could load while the user
                             //is viewing the shader select, but I found that when treated as background tasks, it interfere with the performance
                             //of the shader selection ui. I think its best to wait until the loading animation is up to perform all of these
-                            _Emulator.Load(_Emulator.createModule(), shaderSelection.shader, supportFilesIncluded, emulatorLoadComplete);
+                            _Emulator.Load(_Emulator.createModule(), shaderSelection.shader, loadSupportFiles, emulatorLoadComplete);
 
                             //when all deffered calls are ready
                             $.when(emulatorLoadComplete).done(function(emulatorLoaded) {

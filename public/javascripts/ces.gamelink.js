@@ -56,7 +56,7 @@ var cesGameLink = (function(_config, _Media, _Tooltips, gameKey, cdnPathValue, o
             $tooltipContent.append('<div class="tooltiptitle">' + gameKey.title + '</div>');
             var $mediawrapper = $('<div class="mediawrapper"></div>');
             $tooltipContent.append($mediawrapper);
-            $tooltipContent.append('<div class="tooltipcaption">Click again to play</div>');
+            $tooltipContent.append('<div class="tooltipcaption clickplay">Click again to play!</div>');
 
             _Tooltips.SingleHTMLWithTitleScreen($imagewrapper, $tooltipContent, $mediawrapper, gameKey, false);
         }

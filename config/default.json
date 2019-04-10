@@ -55,11 +55,11 @@
 	"systems": {
 		"32x": {
 			"name": "Sega 32x",
-			"shortname": "Sega 32x",
+			"shortname": "Sega 32x (Prototype)",
 			"live": true,
 			"supportfiles": true,
 			"romcdnversion": "GoodGen-3.14-32x-2018-07-07",
-			"emuextention": "1.7.3-stable",
+			"emuextention": "1.7.6-stable",
 			"collection": "",
 			"screenshotaspectratio": 1.333333333333333,
 			"emuscript": "picodrive_libretro.js",
@@ -224,7 +224,7 @@
 		},
 		"jag": {
 			"name": "Atari Jaguar",
-			"shortname": "Atari Jaguar",
+			"shortname": "Atari Jaguar (Prototype)",
 			"collection":"GoodJag 2.01",
 			"live": true,
 			"supportfiles": false,
@@ -256,12 +256,12 @@
 		},
 		"n64": {
 			"name": "Nintendo 64",
-			"shortname": "Nintendo 64",
+			"shortname": "Nintendo 64 (Prototype)",
 			"live": true,
 			"supportfiles": false,
 			"collection": "GoodN64 3.27",
 			"romcdnversion": "n6420180715",
-			"emuextention": "1.7.3-stable",
+			"emuextention": "1.7.6-stable",
 			"emuscript": "parallel_n64_libretro.js",
 			"screenshotaspectratio": 1.142857143,
 			"retroarch": {
@@ -283,7 +283,7 @@
 		},
 		"nds": {
 			"name": "Nintendo DS",
-			"shortname": "Nintendo DS",
+			"shortname": "Nintendo DS (Prototype)",
 			"live": true,
 			"supportfiles": false,
 			"romcdnversion": "nds20180801",
@@ -704,12 +704,12 @@
 				"input_cheat_toggle": "u",
 				"audio_latency": 16,
 				"audio_sync": true,
-				"audio_out_rate": 44100, 				//48000 default. Got better perf when lower, less crackling
+				"audio_out_rate": 32040, 				//48000 default. Got better perf when lower, less crackling (try 44100, 32040, 22050)
 				"rewind_enable": true,
 				"rewind_buffer_size": 100,
 				"input_frame_advance": "nul",
 				"video_force_aspect": true,
-				"video_vsync": true,				// (when false, fps dropped noticibly)
+				"video_vsync": false,				// (when false, I got much better perf, this time without cracking audio)
 				"video_hard_sync": false,			//# Attempts to hard-synchronize CPU and GPU. Can reduce latency at cost of performance. (Seems to have no effect when true)
 				"video_scale": 5, 					// (above 5 i have best looking image, effects some shaders)
 				"video_fullscreen": false,
