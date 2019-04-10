@@ -710,7 +710,7 @@
 				"input_frame_advance": "nul",
 				"video_force_aspect": true,
 				"video_vsync": false,				// (when false, I got much better perf, this time without cracking audio)
-				"video_hard_sync": false,			//# Attempts to hard-synchronize CPU and GPU. Can reduce latency at cost of performance. (Seems to have no effect when true)
+				"video_hard_sync": true,			//# Attempts to hard-synchronize CPU and GPU. Can reduce latency at cost of performance. (Seems to have no effect when true)
 				"video_scale": 5, 					// (above 5 i have best looking image, effects some shaders)
 				"video_fullscreen": false,
 				"video_windowed_fullscreen": false, //# If fullscreen, prefer using a windowed fullscreen mode. (I had better luck with false)
