@@ -584,6 +584,23 @@
 			"notes": "I got the script working with crazyerics and tested with nes. It's SLOW! 32x does seem to start up, but not playable. I can get the menu with f1 and it looks impressive."
 		}
 	},
+	"input": {
+		"notes": "i dont use this yet :P",
+		"1": {
+			"input_player1_a": "x",
+			"input_player1_b": "z",
+			"input_player1_y": "a",
+			"input_player1_x": "s",
+			"input_player1_start": "enter",
+			"input_player1_select": "rshift",
+			"input_player1_l": "q",
+			"input_player1_r": "w",
+			"input_player1_left": "left",
+			"input_player1_right": "right",
+			"input_player1_up": "up",
+			"input_player1_down": "down"
+		}
+	},
 	"mappings": {
 		"32x": {
 			"up_axis": "Up",

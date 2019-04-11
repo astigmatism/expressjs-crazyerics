@@ -91,7 +91,7 @@ var cesDialogsSaveSelection = (function(_config, $el, $wrapper, args) {
         $li.append($imageWrapper);
         
         //caption
-        var $caption = $('<p>#' + (saveData.total - saveData.i) + ' of ' + saveData.total + ': ' + saveData.save.time + '</p>');
+        var $caption = $('<p>#' + (saveData.total - saveData.i) + ' of ' + saveData.total + '</p><p>' + $.format.prettyDate(saveData.save.timestamp) + '</p>');
         $li.append($caption);
 
         $('#savesselectlist').prepend($li); //prepend to add them in reverse order so that they can be read left to right
