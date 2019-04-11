@@ -460,146 +460,6 @@
 		"suggestionThreshold": 400, //default score for suggestions (generally english, translated or US. Override with each system)
 		"foreignMixPerc": 0
 	},
-	//color for each face is "dominant unless specified
-	"loadingBoxRecipes": {
-		"32x": {
-			"faces": {
-				"back": "texture",
-				"left": "texture",
-				"right": "texture"
-			}
-		},
-		"fds": {
-			"faces": {
-				"back": "texture"
-			}
-		},
-		"snes": {
-			"faces": {
-				"back": "texture",
-				"top": "texture",
-				"bottom": "texture",
-				"left": "texture",
-				"right": "texture"
-			}
-		},
-		"nes": {
-			"faces": {
-				"back": "combine",
-				"left": "combine",
-				"right": "combine"
-			}
-		},
-		"nds": {
-			"faces": {
-				"back": "texture",
-				"left": "texture"
-			}
-		},
-		"n64": {
-			"faces": {
-				"back": "combine",
-				"left": "texture",
-				"right": "texture"
-			}
-		},
-		"ngpx": {
-			"faces": {
-				"back": "texture",
-				"left": "texture",
-				"right": "texture"
-			}
-		},
-		"gb": {
-			"faces": {
-				"back": "combine",
-				"left": "combine",
-				"right": "combine"
-			}
-		},
-		"gbc": {
-			"faces": {
-				"back": "combine",
-				"left": "combine",
-				"right": "combine"
-			}
-		},
-		"gba": {
-			"faces": {
-				"back": "combine"
-			}
-		},
-		"gen": {
-			"faces": {
-				"back": "combine",
-				"left": "texture",
-				"right": "texture"
-			}
-		},
-		"sms": {
-			"faces": {
-				"left": "texture",
-				"right": "texture",
-				"back": "texture"
-			}
-		},
-		"gg": {
-			"faces": {
-				"back": "combine",
-				"left": "texture",
-				"right": "texture"
-			}
-		},
-		"a2600": {
-			"faces": {
-				"back": "combine",
-				"left": "combine",
-				"right": "combine"
-			}
-		},
-		"jag": {
-			"faces": {
-				"back": "texture",
-				"left": "texture",
-				"right": "texture"
-			}
-		},
-		"pce": {
-			"faces": {
-				"back": "texture",
-				"left": "texture",
-				"right": "texture"
-			}
-		},
-		"vect": {
-			"faces": {
-				"back": "texture",
-				"left": "texture",
-				"right": "texture"
-			}
-		},
-		"vb": {
-			"faces": {
-				"back": "texture",
-				"left": "texture",
-				"right": "texture"
-			}
-		},
-		"lynx": {
-			"faces": {
-				"back": "texture",
-				"left": "texture",
-				"right": "texture"
-			}
-		},
-		"wsx": {
-			"faces": {
-				"back": "texture",
-				"left": "texture",
-				"right": "texture"
-			}
-		}
-	},
 	"cannedRecipes": {
 		"all": {
 			"recipe": {
@@ -702,7 +562,7 @@
 				"input_hold_fast_forward": "space",
 				"input_player1_select": "shift",
 				"input_cheat_toggle": "u",
-				"audio_latency": 16,
+				"audio_latency": 64,
 				"audio_sync": true,
 				"audio_out_rate": 32040, 				//48000 default. Got better perf when lower, less crackling (try 44100, 32040, 22050)
 				"rewind_enable": true,
@@ -710,7 +570,7 @@
 				"input_frame_advance": "nul",
 				"video_force_aspect": true,
 				"video_vsync": false,				// (when false, I got much better perf, this time without cracking audio)
-				"video_hard_sync": true,			//# Attempts to hard-synchronize CPU and GPU. Can reduce latency at cost of performance. (Seems to have no effect when true)
+				"video_hard_sync": false,			//# Attempts to hard-synchronize CPU and GPU. Can reduce latency at cost of performance. (Seems to have no effect when true)
 				"video_scale": 5, 					// (above 5 i have best looking image, effects some shaders)
 				"video_fullscreen": false,
 				"video_windowed_fullscreen": false, //# If fullscreen, prefer using a windowed fullscreen mode. (I had better luck with false)

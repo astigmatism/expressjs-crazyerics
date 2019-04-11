@@ -1017,7 +1017,7 @@ div.slidingpanel.closed {
 #infosilderTitleScreen {
 	width: 320px; /* we fetch a 320w image from cdn, reserve space in the dom for this */
 	background-color: #232323;
-	min-height: 240px;
+	min-height: 200px;
 	margin-right: 20px;
 }
 

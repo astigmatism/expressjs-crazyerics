@@ -57,10 +57,6 @@ var cesDialogsGameLoading = (function(_config, $el, $wrapper, args) {
         $('#tip').hide();
 
         var img = _Media.BoxFront(gameKey, 'd');
-
-        if (_config.loadingBoxRecipes[gameKey.system]) {
-            recipe = _config.loadingBoxRecipes[gameKey.system];
-        }
         
         _webgl = new cesWebGlParticleAnimation(_Compression, _PubSub, _config.paths.textures, $webgl, img);
         $webgl.fadeIn(1000);

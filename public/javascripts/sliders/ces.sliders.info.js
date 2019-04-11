@@ -60,7 +60,7 @@ var cesSlidersInfo = (function(_config, $li, $panel) {
             if (info.ReleaseDate) {
                 //convert
                 var date = new Date(info.ReleaseDate);
-                $release.text('Release Date: ' + $.format.date(date, 'dddd, MMMM dd yyyy'));
+                $release.text('Release Date: ' + $.format.date(date, 'ddd, MMMM dd, yyyy'));
             }
 
             if (info.Publisher) {

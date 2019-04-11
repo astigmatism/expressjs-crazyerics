@@ -264,7 +264,8 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
             $tooltipContent.append('<div class="tooltipfile">You are playing an alternate version: ' + activeTitle.gameKey.file + '</div>');
         }
         $tooltipContent.append('<div class="clickplay">Click box again to play!</div>'); //using the jquery dateFormat plugin
-        $tooltipContent.append('<div>Last Played: ' + $.format.date(activeTitle.lastPlayed, 'MMM D h:mm:ss a') + '</div>'); //using the jquery dateFormat plugin
+        //$tooltipContent.append('<div>Last Played: ' + $.format.date(activeTitle.lastPlayed, 'MMM D h:mm:ss a') + '</div>'); //using the jquery dateFormat plugin
+        $tooltipContent.append('<div>Last Played: ' + $.format.prettyDate(activeTitle.lastPlayed) + '</div>'); //using the jquery dateFormat plugin
         $tooltipContent.append('<div>Play Count: ' + activeTitle.playCount + '</div>');
         $tooltipContent.append('<div>Number of Saves: ' + activeTitle.saveCount + '</div>');
 

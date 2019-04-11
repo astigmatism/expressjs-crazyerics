@@ -228,9 +228,6 @@ module.exports = new (function() {
         //settings defaults for client
         configdata['defaults'] = config.get('defaults');
 
-        //loading box art recipes
-        configdata['loadingBoxRecipes'] = config.get('loadingBoxRecipes');
-
         return callback(null, configdata);
     };
 
