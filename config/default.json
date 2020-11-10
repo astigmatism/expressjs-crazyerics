@@ -565,7 +565,7 @@
 				"audio_latency": 140,				//seems to be the minimum value before popping and crackling set in
 				"audio_rate_control": true,
 				"audio_sync": true,
-				"audio_out_rate": 48000, 				//48000 default. Lower this did not improve perf
+				"audio_out_rate": 22050, 				//48000 default. Lower this did not improve perf
 				"rewind_enable": true,
 				"rewind_buffer_size": 100,
 				"input_frame_advance": "nul",
