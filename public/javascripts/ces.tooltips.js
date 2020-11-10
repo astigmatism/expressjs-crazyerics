@@ -43,9 +43,10 @@ var cesTooltips = (function(_config, _Media, _Logging, tooltipSelector, tooltipC
         }
     };
 
-    this.SingleHTMLWithTitleScreen = function($el, $content, $mediawrapper, gameKey, opt_interactive) {
+    this.SingleHTMLWithTitleScreen = function($el, $content, $mediawrapper, gameKey, opt_interactive, opt_loadMovie) {
 
         opt_interactive = opt_interactive == undefined ? true : opt_interactive;
+        opt_loadMovie = opt_loadMovie == undefined ? true : opt_loadMovie;
 
         if ($el.hasClass(alreadyProcessedName)) {
             $el.tooltipster('destroy'); //remove any previus def
@@ -85,7 +86,7 @@ var cesTooltips = (function(_config, _Media, _Logging, tooltipSelector, tooltipC
                 mouseleave: true
             },
             delay: [1200, 100],
-            animationDuration: [200, 300],
+            animationDuration: [100, 200],
             interactive: opt_interactive,
             contentAsHTML: true,
             multiple: true,
@@ -127,7 +128,7 @@ var cesTooltips = (function(_config, _Media, _Logging, tooltipSelector, tooltipC
                                 return true;
                             };
 
-                            if (checkTooltipState())
+                            if (checkTooltipState() && opt_loadMovie)
                             {
                                 //callback when video loaded
                                 _Media.Video($mediawrapper, 'sq', gameKey, function($video, videoLoadTime) {

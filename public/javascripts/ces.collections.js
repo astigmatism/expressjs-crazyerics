@@ -278,7 +278,7 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
         $tooltipContent.append('<div>Number of Saves: ' + activeTitle.saveCount + '</div>');
 
         
-        var $playbutton = $('<span class="button play noselect">Play Now!</span>');
+        var $playbutton = $('<span class="button play first noselect">Play Now!</span>');
         $playbutton.click(function(e) { 
 
             _Tooltips.Close(activeTitle.gridItem); //sometimes the tooltip was staying up after clicking
@@ -295,35 +295,34 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
         });
         $tooltipContent.append($remove);
 
-        _Tooltips.SingleHTMLWithTitleScreen(activeTitle.gridItem, $tooltipContent, $mediawrapper, activeTitle.gameKey, true);
+        _Tooltips.SingleHTMLWithTitleScreen(activeTitle.gridItem, $tooltipContent, $mediawrapper, activeTitle.gameKey, true, false);
     };
 
     var GenerateCollectionTooltipContent = function(collection) {
         
         //create the tooltip content
         var $tooltipContent = $('<div class="collection-tooltip" />');
-        
-        $lastPlayed = $('<div class="pointer">Sort Titles by Last Played</div>');
-        $lastPlayed.on('click', function() {
+
+        var $lastPlayed = $('<span class="button first noselect">Sort: Last Played</span>');
+        $lastPlayed.on('click', function(e) { 
             _TitlesSort.Change('lastPlayed', false);
         });
         $tooltipContent.append($lastPlayed);
-        
-        
-        $nameSort = $('<div class="pointer">Sort Titles by Name</div>');
-        $nameSort.on('click', function() {
-            _TitlesSort.Change('name', true);
+
+        var $nameSort = $('<span class="button noselect">Sort: Name</span>');
+        $nameSort.on('click', function(e) { 
+            _TitlesSort.Change('name', false);
         });
         $tooltipContent.append($nameSort);
 
-        $playCountSort = $('<div class="pointer">Sort Titles by Most Played</div>');
-        $playCountSort.on('click', function() {
+        var $playCountSort = $('<span class="button noselect">Sort: Play Count</span>');
+        $playCountSort.on('click', function(e) { 
             _TitlesSort.Change('playCount', false);
         });
         $tooltipContent.append($playCountSort);
-        
-        $remove = $('<div class="remove">Delete this Collection</div>');
-        $remove.on('click', function() {
+    
+        var $remove = $('<span class="button remove noselect">Delete</span>');
+        $remove.on('click', function(e) { 
             $remove.off('click');
             _Preferences.Remove('collections.sort.' + collection.name);
             RemoveCollection(collection, function() {
@@ -331,6 +330,7 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
             });
         });
         $tooltipContent.append($remove);
+
         return $tooltipContent;
     };
 

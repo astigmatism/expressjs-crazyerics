@@ -1109,10 +1109,25 @@ div.screenshot-tooltip div {
     color: #1a1f26;
 	border-radius: 3px;
 	display: inline-block;
+	color: #eee;
+	margin-left: 10px;
+}
+
+.tooltipster-sidetip.tooltipster-shadow .tooltipster-content .button.first {
+	margin-left: 0px;
+}
+
+.tooltipster-sidetip.tooltipster-shadow .tooltipster-content .button {
+	background-image: linear-gradient(#727272, #303030);
+}
+
+.tooltipster-sidetip.tooltipster-shadow .tooltipster-content .button:active {
+	background-image: linear-gradient(#303030, #727272);
 }
 
 .tooltipster-sidetip.tooltipster-shadow .tooltipster-content .play {
 	background-image: linear-gradient(#8fdb46, #73d216);
+	color: #303030;
 }
 
 .tooltipster-sidetip.tooltipster-shadow .tooltipster-content .play:active {
@@ -1121,7 +1136,7 @@ div.screenshot-tooltip div {
 
 .tooltipster-sidetip.tooltipster-shadow .tooltipster-content .remove {
 	background-image: linear-gradient(#db4646, #d21616);
-	margin-left: 10px;
+	color: #303030;
 }
 
 .tooltipster-sidetip.tooltipster-shadow .tooltipster-content .remove:active {
