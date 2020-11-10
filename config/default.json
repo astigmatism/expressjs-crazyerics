@@ -562,13 +562,17 @@
 				"input_hold_fast_forward": "space",
 				"input_player1_select": "shift",
 				"input_cheat_toggle": "u",
-				"audio_latency": 64,
+				"audio_latency": 140,				//seems to be the minimum value before popping and crackling set in
+				"audio_rate_control": true,
 				"audio_sync": true,
-				"audio_out_rate": 32040, 				//48000 default. Got better perf when lower, less crackling (try 44100, 32040, 22050)
+				"audio_out_rate": 48000, 				//48000 default. Lower this did not improve perf
 				"rewind_enable": true,
 				"rewind_buffer_size": 100,
 				"input_frame_advance": "nul",
+				"video_refresh_rate": 59.94,
+				"crt_video_refresh_rate": 59.94,
 				"video_force_aspect": true,
+				"video_shared_context": false,
 				"video_vsync": false,				// (when false, I got much better perf, this time without cracking audio)
 				"video_hard_sync": false,			//# Attempts to hard-synchronize CPU and GPU. Can reduce latency at cost of performance. (Seems to have no effect when true)
 				"video_scale": 5, 					// (above 5 i have best looking image, effects some shaders)
