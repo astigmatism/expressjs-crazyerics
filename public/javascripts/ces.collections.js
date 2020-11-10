@@ -206,9 +206,9 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
                 collection.gridItem.addClass('on');
             }
 
-            //generate new toolips content
-            var $tooltipContent = GenerateCollectionTooltipContent(collection);   //generate html specific for collections
-            _Tooltips.SingleHTML(collection.gridItem, $tooltipContent, null, null, 'click'); //reapply tooltips
+            //generate new toolips content for collection buttons (sort options, remove etc)
+            var $tooltipContent = GenerateCollectionTooltipContent(collection);
+            _Tooltips.SingleHTML(collection.gridItem, $tooltipContent, true); //reapply tooltips
         }
     };
 

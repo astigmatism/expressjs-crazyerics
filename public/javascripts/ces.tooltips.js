@@ -29,7 +29,7 @@ var cesTooltips = (function(_config, _Media, _Logging, tooltipSelector, tooltipC
                 theme: 'tooltipster-shadow',
                 animation: 'grow',
                 trigger: opt_trigger,
-                delay: [1200, 200],
+                delay: [500, 200],
                 animationDuration: [200, 300],
                 interactive: opt_interactive,
                 contentAsHTML: true,

@@ -63,20 +63,11 @@ var cesGameLink = (function(_config, _Media, _Tooltips, gameKey, cdnPathValue, o
             var $mediawrapper = $('<div class="mediawrapper"></div>');
             $tooltipContent.append($mediawrapper);
 
-            /*
-            
-            should future eric ever find this, I attempted a "add to collection" from the suggestions
-            area on 11-9-2020 (COVID!). I havent worked on ces in over a year and I just couldn't make it 
-            happen. It appears the title is added to the current collection but the payload always returns
-            that it didn't :( Not going any further on this, why? Because games from the search bar are
-            play immediately and wont have a "add to collection" feature (yet)
-
             var $addbutton = $('<span class="button add noselect">Add to Collection</span>');
             $addbutton.click(function(e) { 
                 opt_AddToCollection(gameKey);
             });
             $tooltipContent.append($addbutton);
-            */
 
             var $playbutton = $('<span class="button play noselect">Play Now!</span>');
             $playbutton.click(function(e) { 
