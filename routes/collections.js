@@ -64,6 +64,44 @@ router.post('/', function(req, res, next) {
     }
 });
 
+//put's title into current collection 
+router.put('/', function(req, res, next) {
+    var gk = decodeURIComponent(req.query.gk);
+    var gameKey = null;                 //of type GameKey (see utilities)
+
+    //sanitize expected values
+    try {
+        gameKey = UtilitiesService.Decompress.gamekey(gk); //extract values
+    }
+    catch (e) {
+        return next('The server failed to parse required post data or query strings.');
+    }
+
+    if (req.user && req.session && gameKey) {
+
+        var userId = req.user.user_id;        
+
+        //ensure a record of this game exists in the db (since I dynmically add them when consumed)
+        GamesService.PlayRequest(gameKey, function(err, eGameKey, gameDetails) {
+            if (err) return next(err);
+
+            //add to active collection, if already there, no problem
+            CollectionsService.AddTitle(userId, eGameKey, (err, addTitleResult) => {
+                if (err) return next(err);
+                
+                SyncService.Outgoing({}, userId, eGameKey, (err, compressedResult) => {
+                    if (err) return res.json(err);
+                    
+                    res.json(compressedResult);
+                });
+            });
+        });
+    }
+    else {
+        return next('No user or session on request');
+    }
+});
+
 //delete collection
 router.delete('/', function(req, res, next) {
 

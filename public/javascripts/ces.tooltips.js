@@ -82,7 +82,6 @@ var cesTooltips = (function(_config, _Media, _Logging, tooltipSelector, tooltipC
                 click: true
             },
             triggerClose: {
-                click: true,
                 mouseleave: true
             },
             delay: [1200, 100],
@@ -180,9 +179,9 @@ var cesTooltips = (function(_config, _Media, _Logging, tooltipSelector, tooltipC
     };
 
     this.Close = function($el) {
-
         if ($el.hasClass(alreadyProcessedName)) {
             $el.tooltipster('close');
+            $el.trigger('mouseleave');
         }
     };
 

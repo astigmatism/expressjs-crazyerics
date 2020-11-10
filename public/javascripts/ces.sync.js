@@ -39,6 +39,11 @@ var cesSync = (function(_config, _Compression) {
         Request(url, 'GET', null, callback);
     };
 
+    this.Put = function(url, callback) {
+
+        Request(url, 'PUT', null, callback);
+    };
+
     //common assembly of request object before sending
     var Request = function(url, type, body, callback) {
 

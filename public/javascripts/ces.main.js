@@ -244,7 +244,7 @@ var cesMain = (function() {
 
         _Sliders = new cesSliders(_config, _Compression, $('#slidericons'));
 
-        _Suggestions = new cesSuggestions(_config, _Media, _Compression, _Tooltips, PlayGame, $('#suggestionsgrid'), $('#suggestionswrapper'));
+        _Suggestions = new cesSuggestions(_config, _Media, _Compression, _Tooltips, PlayGame, $('#suggestionsgrid'), $('#suggestionswrapper'), _Collections.AddTitleWithoutPlaying);
 
         //begin by showing all console suggestions
         _Suggestions.Load('all', function() {

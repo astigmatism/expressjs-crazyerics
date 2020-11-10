@@ -58,6 +58,14 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
     this.SetActiveCollectionId = function(id) {
         _activeCollectionId = id; 
     };
+
+    this.AddTitleWithoutPlaying = function(gameKey) {
+        //use sync for outgoing. will update this object on response
+        var url = _baseUrl + '/?gk=' + encodeURIComponent(gameKey.gk);
+        _Sync.Put(url, function(data) {
+            //sync will take care of updating the collection
+        });
+    };
     
     var RemoveTitle = function(activeTitle, onRemoveComplete) {
 
@@ -263,15 +271,22 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
         if (!activeTitle.topRanked) {
             $tooltipContent.append('<div class="tooltipfile">You are playing an alternate version: ' + activeTitle.gameKey.file + '</div>');
         }
-        $tooltipContent.append('<div class="clickplay">Click box again to play!</div>'); //using the jquery dateFormat plugin
+        
         //$tooltipContent.append('<div>Last Played: ' + $.format.date(activeTitle.lastPlayed, 'MMM D h:mm:ss a') + '</div>'); //using the jquery dateFormat plugin
         $tooltipContent.append('<div>Last Played: ' + $.format.prettyDate(activeTitle.lastPlayed) + '</div>'); //using the jquery dateFormat plugin
         $tooltipContent.append('<div>Play Count: ' + activeTitle.playCount + '</div>');
         $tooltipContent.append('<div>Number of Saves: ' + activeTitle.saveCount + '</div>');
 
-        //
         
-        $remove = $('<div class="remove">Click here to remove from collection</div>');
+        var $playbutton = $('<span class="button play noselect">Play Now!</span>');
+        $playbutton.click(function(e) { 
+
+            _Tooltips.Close(activeTitle.gridItem); //sometimes the tooltip was staying up after clicking
+            _PlayGameHandler(activeTitle.gameKey);
+        });
+        $tooltipContent.append($playbutton);
+
+        var $remove = $('<span class="button remove noselect">Remove</span>');
         $remove.on('click', function() {
             $remove.off('click');
             RemoveTitle(activeTitle, function() {

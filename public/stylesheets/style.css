@@ -347,18 +347,26 @@ p {
 }
 
 .zoom {
-	transition:All 100ms ease-in;
-	-webkit-transition:All 100ms ease-in;
-	-moz-transition:All 100ms ease-in;
-	-o-transition:All 100ms ease-in;
+	transition:All 60ms ease-in;
+	-webkit-transition:All 60ms ease-in;
+	-moz-transition:All 60ms ease-in;
+	-o-transition:All 60ms ease-in;
 }
 
 .zoom-on {
-	transform: scale(1.15, 1.15);
-	-webkit-transform: scale(1.15, 1.15);
-	-moz-transform: scale(1.15, 1.15);
-	-o-transform: scale(1.15, 1.15);
-	-ms-transform: scale(1.15, 1.15);
+	transform: scale(1.1, 1.1);
+	-webkit-transform: scale(1.1, 1.1);
+	-moz-transform: scale(1.1, 1.1);
+	-o-transform: scale(1.1, 1.1);
+	-ms-transform: scale(1.1, 1.1);
+}
+
+.zoom-down {
+	transform: scale(0.95, 0.95);
+	-webkit-transform: scale(0.95, 0.95);
+	-moz-transform: scale(0.95, 0.95);
+	-o-transform: scale(0.95, 0.95);
+	-ms-transform: scale(0.95, 0.95);
 }
 
 
@@ -1004,7 +1012,7 @@ div.slidingpanel.closed {
     -o-transform: rotate(180deg);
     -ms-transform: rotate(180deg);
     transform: rotate(180deg);
-}\
+}
 
 #Controls-slider td {
 	vertical-align: top;
@@ -1091,8 +1099,33 @@ div.screenshot-tooltip div {
 	cursor: pointer;
 }
 
-.tooltipster-sidetip.tooltipster-shadow .tooltipster-content .clickplay {
-	color: green;
+.tooltipster-sidetip.tooltipster-shadow .tooltipster-content .button {
+	margin: 10px 0px;
+	height: 25px;
+	line-height: 25px;
+	padding: 5px 10px;
+	font-weight: bold;
+    cursor: pointer;
+    color: #1a1f26;
+	border-radius: 3px;
+	display: inline-block;
+}
+
+.tooltipster-sidetip.tooltipster-shadow .tooltipster-content .play {
+	background-image: linear-gradient(#8fdb46, #73d216);
+}
+
+.tooltipster-sidetip.tooltipster-shadow .tooltipster-content .play:active {
+	background-image: linear-gradient(#73d216, #8fdb46);
+}
+
+.tooltipster-sidetip.tooltipster-shadow .tooltipster-content .remove {
+	background-image: linear-gradient(#db4646, #d21616);
+	margin-left: 10px;
+}
+
+.tooltipster-sidetip.tooltipster-shadow .tooltipster-content .remove:active {
+	background-image: linear-gradient(#d21616, #db4646);
 }
 
 #openCollectionGrid {
@@ -1513,4 +1546,14 @@ div.suggestionsbar input {
 	  -webkit-transform: scale(1.0);
 	  transform: scale(1.0);
 	}
+  }
+
+  .noselect {
+	-webkit-touch-callout: none; /* iOS Safari */
+	  -webkit-user-select: none; /* Safari */
+	   -khtml-user-select: none; /* Konqueror HTML */
+		 -moz-user-select: none; /* Old versions of Firefox */
+		  -ms-user-select: none; /* Internet Explorer/Edge */
+			  user-select: none; /* Non-prefixed version, currently
+									supported by Chrome, Edge, Opera and Firefox */
   }

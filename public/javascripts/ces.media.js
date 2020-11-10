@@ -56,6 +56,7 @@ var cesMedia = (function(_config, _Logging) {
     this.Video = function($wrapper, type, gameKey, callback, opt_width, opt_height) {
 
         var videoLoadingStart = Date.now();
+        var muted = false;
 
         var $video = $('<video />', {
             src: _config.paths.video + '/' + type + '/' + encodeURIComponent(gameKey.gk),

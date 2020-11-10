@@ -201,7 +201,7 @@ module.exports = new (function() {
                 //reset collection cache
                 _cacheActiveCollection.Delete([userId], (err) => {
                     _self.Sync.ready = true; //inform sync that new data is ready for the client to consume
-                    return callback();
+                    return callback(null, collectionsTitlesRecord);
                 }); 
             });
         });
