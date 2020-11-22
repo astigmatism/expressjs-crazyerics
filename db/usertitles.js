@@ -14,16 +14,29 @@ module.exports = new (function() {
             //if update failed to return rows, must be new, insert instead
             if (result.rows.length === 0) {
                 
-                pool.query('INSERT INTO users_titles (user_id, title_id, active_file, last_played, game_key, top_ranked) VALUES ($1, $2, $3, now(), $4, $5) RETURNING *', [userId, titleId, fileId, gk, isPlayingTopRanked], (err, result) => {
-                    if (err) {
-                        return callback(err);
-                    }
-                    return callback(null, result.rows[0]); //insert result
+                _self.AddTitle(userId, gk, titleId, fileId, 1, new Date(), isPlayingTopRanked, (err, result) => {
+                    return callback(err, result); //insert result
                 });
             }
             else {
                 return callback(null, result.rows[0]); //update result
             }
+        });
+    };
+
+    this.AddTitle = function(userId, gk, titleId, fileId, play_count, lastPlayed, isPlayingTopRanked, callback) {
+        
+        pool.query('ALTER TABLE ONLY users_titles ALTER COLUMN play_count SET DEFAULT 0', [], (err, result) => {
+            if (err) {
+                return callback(err);
+            }
+        });
+
+        pool.query('INSERT INTO users_titles (user_id, title_id, active_file, play_count, last_played, game_key, top_ranked) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *', [userId, titleId, fileId, play_count, lastPlayed, gk, isPlayingTopRanked], (err, result) => {
+            if (err) {
+                return callback(err);
+            }
+            return callback(null, result.rows[0]); //insert result
         });
     };
 

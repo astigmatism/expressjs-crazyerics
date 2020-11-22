@@ -17,7 +17,7 @@
 	},
 	"defaults": {
 		"maxSavesPerGame": 40,
-		"firstCollection": "My Collection",
+		"firstCollection": "$",
 		"copyToFeatured": false
 	},
 	"db": {

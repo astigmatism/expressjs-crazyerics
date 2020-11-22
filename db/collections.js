@@ -75,12 +75,26 @@ module.exports = new (function() {
         });
     };
 
+    this.RenameCollection = function(userId, existingCollectionId, name, callback) {
+        
+        pool.query('UPDATE collections SET name=$1 WHERE collection_id=$2 AND user_id=$3 RETURNING *', [name, existingCollectionId, userId], (err, result) => {
+            if (err) { return callback(err); }
+            callback(null, result.rows[0]);
+        });
+    };
+
     //ensure the user owns this collection ahead of time
     this.DeleteCollection = function(userId, collectionId, callback) {
         
-        pool.query('DELETE from collections WHERE user_id=$1 AND collection_id=$2', [userId, collectionId], (err, result) => {
+        pool.query('DELETE from collections WHERE user_id=$1 AND collection_id=$2 RETURNING *', [userId, collectionId], (err, deleteResult) => {
             if (err) { return callback(err); }
-            callback(null, result.rows);
+
+            //get remaining collections to inform service of which collection to switch to
+            _self.GetCollectionNames(userId, (err, namesResult) => {
+                if (err) { return callback(err); }
+
+                callback(null, deleteResult.rows, namesResult);
+            });
         });
     };
 

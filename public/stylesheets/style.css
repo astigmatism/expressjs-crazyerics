@@ -1092,6 +1092,11 @@ div.screenshot-tooltip div {
 
 .tooltip-content-wrapper {
 	display: none;
+	overflow: hidden;
+}
+
+.tooltipster-sidetip.tooltipster-shadow .tooltipster-content {
+	overflow: hidden;
 }
 
 .tooltipster-sidetip.tooltipster-shadow .tooltipster-content .remove {
@@ -1168,6 +1173,19 @@ div.screenshot-tooltip div {
 #collectionsGrid .grid-item.on {
 	background: #ccc;
 	color: #000;
+}
+
+#collectionsGrid .grid-item.on div.context{
+	display: inline-block;
+	background: url("http://cdn.crazyerics.com/images/add.png") center center no-repeat;
+	width: 20px;
+	height: 10px;
+	margin-left: 20px;
+
+	transition:All 200ms ease-in;
+	-webkit-transition:All 200ms ease-in;
+	-moz-transition:All 200ms ease-in;
+	-o-transition:All 200ms ease-in;
 }
 
 #collectionsGrid .grid-item div.button {

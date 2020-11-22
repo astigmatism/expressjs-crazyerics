@@ -6,6 +6,7 @@ const GamesService = require('../services/games');
 const CollectionsService = require('../services/collections');
 const UtilitiesService = require('../services/utilities');
 const SyncService = require('../services/sync');
+const UserService = require('../services/users');
 
 //gets collection (also sets that collection to active)
 router.get('/', function(req, res, next) {
@@ -43,7 +44,7 @@ router.get('/', function(req, res, next) {
 //creates collection
 router.post('/', function(req, res, next) {
     
-    var name = req.body.name;
+    var name = req.body.name; //the name entered by the user (sanitized at client)
 
     if (req.user && name && name !== '' && name !== '!') {
         
@@ -58,6 +59,40 @@ router.post('/', function(req, res, next) {
                 res.json(compressedResult);
             });
         }, true); //true say to make it active
+    }
+    else {
+        return next('Missing input parameters');
+    }
+});
+
+//renames collection
+router.post('/rename', function(req, res, next) {
+    
+    var name = req.body.name;                                 //the name entered by the user (sanitized at client)
+    var clientCollectionId = decodeURIComponent(req.body.c); //this will be populated with the name of the current collection wished to take on the new name
+    var collectionId;
+
+    //sanitize expected values
+    try {
+        collectionId = CollectionsService.DecodeClientCollectionId(clientCollectionId);
+    }
+    catch (e) {
+        return next('The server failed to parse required post data or query strings.');
+    }
+
+    if (req.user && collectionId && name && name !== '' && name !== '!') {
+        
+        var userId = req.user.user_id;
+
+        CollectionsService.RenameCollection(userId, collectionId, name, (err, result) => {
+            if (err) return next(err);
+
+            SyncService.Outgoing({}, userId, null, (err, compressedResult) => {
+                if (err) return res.json(err);
+                
+                res.json(compressedResult);
+            });
+        }, false); //this flag to make the collection active, not needed yet?
     }
     else {
         return next('Missing input parameters');
@@ -82,17 +117,21 @@ router.put('/', function(req, res, next) {
         var userId = req.user.user_id;        
 
         //ensure a record of this game exists in the db (since I dynmically add them when consumed)
-        GamesService.PlayRequest(gameKey, function(err, eGameKey, gameDetails) {
+        GamesService.EnhancedGameKey(gameKey, function(err, eGameKey) {
             if (err) return next(err);
 
-            //add to active collection, if already there, no problem
-            CollectionsService.AddTitle(userId, eGameKey, (err, addTitleResult) => {
+            UserService.AddTitle(userId, eGameKey, (err, userTitleRecord) => {
                 if (err) return next(err);
-                
-                SyncService.Outgoing({}, userId, eGameKey, (err, compressedResult) => {
-                    if (err) return res.json(err);
+
+                //add to active collection, if already there, no problem
+                CollectionsService.AddTitle(userId, eGameKey, (err, addTitleResult) => {
+                    if (err) return next(err);
                     
-                    res.json(compressedResult);
+                    SyncService.Outgoing({}, userId, eGameKey, (err, compressedResult) => {
+                        if (err) return res.json(err);
+                        
+                        res.json(compressedResult);
+                    });
                 });
             });
         });

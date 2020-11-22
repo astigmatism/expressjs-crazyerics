@@ -73,7 +73,18 @@ module.exports = new (function() {
                 return callback(err);
             }
             callback(null, userTitle);
-        })
+        });
     };
+
+    //for adding a title to a user's collection without playing it right away
+    this.AddTitle = function(userId, eGameKey, callback) {
+
+        UserTitlesSQL.AddTitle(userId, eGameKey.gk, eGameKey.titleId, eGameKey.fileId, 0, null, null, (err, userTitle) => {
+            if (err) {
+                return callback(err);
+            }
+            callback(null, userTitle);
+        });
+    }
 
 })();

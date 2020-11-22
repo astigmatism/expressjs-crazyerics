@@ -15,6 +15,7 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
 
     var _activeCollectionTitles = [];
     var _collectionNames = [];
+    var _collectionControls = null;
 
 	//public members
 
@@ -33,9 +34,13 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
         });
     };
 
+    this.HasDefaultCollection = function() {
+        return _collectionNames.length === 1 && _collectionNames[0].name === '$';
+    };
+
     //do we meet the conditions for which the user has no games in their collection? (new user, etc)
     this.IsEmpty = function() {
-        return _activeCollectionTitles.length === 0 && _collectionNames.length === 1; //there will always be one name (the default)
+        return _self.HasDefaultCollection() && _activeCollectionTitles.length === 0;
     };
 
     //asked for by the featured component
@@ -189,6 +194,13 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
 
         var gridCollections = _collectionsGrid.isotope('getItemElements');
         
+        //in this case, we have a default collection with titles. prompt the player to name the default set
+        //the "+" button will handle the rest
+        if (_self.HasDefaultCollection() || _self.IsEmpty()) {
+
+            return;
+        }
+
         //remove select
         _collectionsGrid.find('.grid-item').removeClass('on');
 
@@ -197,13 +209,16 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
 
             var collection = _collectionNames[i];
 
-            //if not in grid, wont have griditem
+            //if not in grid, wont have griditem so create one
             if (!collection.hasOwnProperty('gridItem')) {
-                collection.gridItem = AddCollection(collection);
+               collection.gridItem = CreateCollectionGirdItem(collection);
             }
 
             if (_activeCollectionId === collection.id) {
                 collection.gridItem.addClass('on');
+
+                //apend with settings button
+                //AddContentMenuToActiveCollection($(collection.gridItem));
             }
 
             //generate new toolips content for collection buttons (sort options, remove etc)
@@ -212,7 +227,22 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
         }
     };
 
-    var AddCollection = function(collection) {
+    var AddContentMenuToActiveCollection = function($gi) {
+
+        var currentWidth = $gi.width();
+        setTimeout(function() {
+            $gi.animate({width: currentWidth + 40});
+
+            var $context = $('<div class="context" />');
+            $gi.append($context);
+
+            $context.fadeIn();
+
+        }, 2000);
+        
+    };
+
+    var CreateCollectionGirdItem = function(collection) {
         
         //create the grid item
         var $griditem = $('<div class="grid-item" />');
@@ -271,9 +301,11 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
         if (!activeTitle.topRanked) {
             $tooltipContent.append('<div class="tooltipfile">You are playing an alternate version: ' + activeTitle.gameKey.file + '</div>');
         }
+
+        var lastPlayed = activeTitle.lastPlayed < 0 ? 'Never' : $.format.prettyDate(activeTitle.lastPlayed);
         
         //$tooltipContent.append('<div>Last Played: ' + $.format.date(activeTitle.lastPlayed, 'MMM D h:mm:ss a') + '</div>'); //using the jquery dateFormat plugin
-        $tooltipContent.append('<div>Last Played: ' + $.format.prettyDate(activeTitle.lastPlayed) + '</div>'); //using the jquery dateFormat plugin
+        $tooltipContent.append('<div>Last Played: ' + lastPlayed + '</div>'); //using the jquery dateFormat plugin
         $tooltipContent.append('<div>Play Count: ' + activeTitle.playCount + '</div>');
         $tooltipContent.append('<div>Number of Saves: ' + activeTitle.saveCount + '</div>');
 
@@ -340,6 +372,8 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
         var $gi = $griditem;
 
         var Show = function() {
+
+            __self.Update(true);
 
             $gi.animate({
                 width: 200    
@@ -422,6 +456,8 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
                     });
 
                     _collectionsGrid.isotope('layout');
+
+                    __self.Update();
                 }
             });
         };
@@ -465,22 +501,54 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
             
             $wrapper.hide();
 
-            _Sync.Post(_baseUrl, {
-                name: value
-            }, function(data) {
+            SaveToServer(value);
+        };
+
+        var SaveToServer = function(name) {
+
+            var postBody = {
+                name: name
+            };
+            var url = _baseUrl;
+
+            //rename the default temp value (which the client does not see)
+            if (_self.HasDefaultCollection()) {
+                postBody.c = _activeCollectionId;
+                url += '/rename';
+            }
+
+            _Sync.Post(url, postBody, function(data) {
                 
                 //show spinner?
-
                 Reset();
             });
         };
 
+        //changes to how the control should work or appear can be handled here
+        this.Update = function(controlsOpenned) {
+            
+            _Tooltips.Destroy($griditem); //remove any existing tooltip
+
+            //early exit if the controls are openned (dont want tooltips to get in the way)
+            if (controlsOpenned) return;
+
+            //add a tooltip depending on context
+            if (_self.IsEmpty()) {
+
+            }
+            else if (_self.HasDefaultCollection()) {
+                $griditem.attr('title', 'Click here to name this game colletion');
+                $griditem.addClass('tooltip-static-right');
+            }
+            else {
+                $griditem.attr('title', 'Create a new personal game collection');
+                $griditem.addClass('tooltip');
+            }
+            _Tooltips.Any(); //reapply any changes
+        };
+
+        //to avoid confusion, this is the constructor for the "New Collection" controls
         var Constructor = (function() {
-
-            //add a tooltip
-            $griditem.attr('title', 'Create a New Personal Game Collection');
-            $griditem.addClass('tooltip');
-
             Reset(); //start by resetting
         })();
     });
@@ -563,12 +631,12 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
             var isNewCollection = true;
 
             //handle active collection titles
-            ParseActiveTitles(payload.titles);
+            ParseActiveTitles(payload.active.titles);
 
             //determine if this collection is not the collection currently on display
-            isNewCollection = (_activeCollectionId != payload.id);
-            _activeCollectionId = payload.id;
-            _activeCollectionName = payload.name;
+            isNewCollection = (_activeCollectionId != payload.active.id);
+            _activeCollectionId = payload.active.id;
+            _activeCollectionName = payload.active.name;
 
             //handle other collection names data
             ParseCollectionNames(payload.collections);
@@ -582,8 +650,19 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
                 $collectionNamesWrapper.parent().addClass('new-user');
             } else {
                 $collectionNamesWrapper.parent().removeClass('new-user');
-                _collectionsGrid.isotope('layout'); //reapply layout
+                
+                //in this condition, the default collection is present with titles but unnamed
+                if (_self.HasDefaultCollection()) {
+
+                }
+                //otherwise show all collections
+                else {
+                    _collectionsGrid.isotope('layout'); //reapply layout for any new or removed
+                }
             }
+
+            //update tooltips for collection controls
+            _collectionControls.Update();
         };
 
         //not used (yet). delete forces update on server
@@ -599,6 +678,10 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
                 var newCollection = true;
                 for (var j = 0, jlen = _collectionNames.length; j < jlen; ++j) {
                     if (_collectionNames[j].id === payload[i].id) {
+
+                        //retake this collections name in case of rename
+                        _collectionNames[j].name = payload[i].name;
+
                         newCollection = false;
                         break;
                     }
@@ -663,7 +746,7 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
                     };
 
                     //generate gamelink
-                    var gameLink = new cesGameLink(_config, _Media, _Tooltips, gameKey, 'a', false, _PlayGameHandler, OnImageLoaded);
+                    var gameLink = new cesGameLink(_config, _Media, _Tooltips, _self, gameKey, 'a', false, _PlayGameHandler, OnImageLoaded);
 
                     //push to our local cache
                     _activeCollectionTitles.push({
@@ -739,15 +822,15 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
             }
         });
 
-        $add = AddCollection({
+        $add = CreateCollectionGirdItem({
             name: '', 
             type: 'a'
         });
-        new NewCollectionControls($add);
+        _collectionControls = new NewCollectionControls($add);
 
         //will also disable on the server for prod
         if (_copyToFeaturedButton) {
-            $featureAdd = AddCollection({
+            $featureAdd = CreateCollectionGirdItem({
                 name: '!', 
                 type: 'b'
             }); //! since this name cannot be entered by a user

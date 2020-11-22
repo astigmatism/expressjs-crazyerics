@@ -57,7 +57,7 @@ var AddTitle = function(gk) {
 
     var gameKey = _Compression.Decompress.gamekey(gk);
 
-    var gameLink = new cesGameLink(_config, _Media, _Tooltips, gameKey, 'a', true, _PlayGameHandler);
+    var gameLink = new cesGameLink(_config, _Media, _Tooltips, _Collections, gameKey, 'a', true, _PlayGameHandler);
 
     $griditem.append(gameLink.GetDOM()); //add all visual content from gamelink to grid
 

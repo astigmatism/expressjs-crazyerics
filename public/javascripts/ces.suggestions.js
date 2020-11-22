@@ -2,7 +2,7 @@
  * Object which wraps common functions related to player preferences, data that comes form the server initially but can be changed
  * @type {Object}
  */
-var cesSuggestions = (function(_config, _Media, _Compression, _Tooltips, PlayGameHandler, $grid, $wrapper, opt_AddToCollection) {
+var cesSuggestions = (function(_config, _Media, _Compression, _Tooltips, _Collections, PlayGameHandler, $grid, $wrapper) {
 
     //private members
     var self = this;
@@ -149,7 +149,7 @@ var cesSuggestions = (function(_config, _Media, _Compression, _Tooltips, PlayGam
             };
 
             //spawn new gamelink
-            gamelink = new cesGameLink(_config, _Media, _Tooltips, gameKey, 'a', true, PlayGameHandler, OnImageLoaded, opt_AddToCollection);
+            gamelink = new cesGameLink(_config, _Media, _Tooltips, _Collections, gameKey, 'a', true, PlayGameHandler, OnImageLoaded);
 
             //create the grid item and insert it
             var $griditem = $('<div class="grid-item" />');

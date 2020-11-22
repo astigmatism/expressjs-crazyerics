@@ -15,7 +15,14 @@ var cesTooltips = (function(_config, _Media, _Logging, tooltipSelector, tooltipC
         $(tooltipSelector + ':not(' + alreadyProcessedSelector + ')').tooltipster({
             theme: 'tooltipster-shadow',
             animation: 'grow',
-            delay: [1200, 0]
+            delay: [1000, 0]
+        });
+
+        //static tooltip to the right
+        $(tooltipSelector + '-static-right:not(' + alreadyProcessedSelector + ')').tooltipster({
+            theme: 'tooltipster-shadow',
+            animation: 'grow',
+            position: 'right'
         });
     };
 
@@ -43,7 +50,7 @@ var cesTooltips = (function(_config, _Media, _Logging, tooltipSelector, tooltipC
         }
     };
 
-    this.SingleHTMLWithTitleScreen = function($el, $content, $mediawrapper, gameKey, opt_interactive, opt_loadMovie) {
+    this.SingleHTMLWithTitleScreen = function($el, $content, $mediawrapper, gameKey, opt_interactive, opt_loadMovie, opt_functionBefore) {
 
         opt_interactive = opt_interactive == undefined ? true : opt_interactive;
         opt_loadMovie = opt_loadMovie == undefined ? true : opt_loadMovie;
@@ -63,7 +70,6 @@ var cesTooltips = (function(_config, _Media, _Logging, tooltipSelector, tooltipC
                 click: true
             },
             triggerClose: {
-                click: true,
                 mouseleave: true
             },
             delay: [1000, 100],
@@ -86,12 +92,18 @@ var cesTooltips = (function(_config, _Media, _Logging, tooltipSelector, tooltipC
                 mouseleave: true
             },
             delay: [1200, 100],
-            animationDuration: [100, 200],
+            animationDuration: [200, 200],
             interactive: opt_interactive,
             contentAsHTML: true,
             multiple: true,
             content: $content,
             functionBefore: function(instance, helper) {
+
+                if (opt_functionBefore) {
+                    if (!opt_functionBefore()) {
+                        return;
+                    }
+                }
 
                 //on the initial open, we won't have loaded the image from the cdn yet and the tooltip will appear without it
                 if (!$mediawrapper.hasClass('titlescreenloaded')) {
@@ -179,6 +191,18 @@ var cesTooltips = (function(_config, _Media, _Logging, tooltipSelector, tooltipC
         });
     };
 
+    this.Show = function($el) {
+        if ($el.hasClass(alreadyProcessedName)) {
+            $el.tooltipster('show');
+        }
+    }
+
+    this.Hide = function($el) {
+        if ($el.hasClass(alreadyProcessedName)) {
+            $el.tooltipster('hide');
+        }
+    }
+
     this.Close = function($el) {
         if ($el.hasClass(alreadyProcessedName)) {
             $el.tooltipster('close');
@@ -187,8 +211,10 @@ var cesTooltips = (function(_config, _Media, _Logging, tooltipSelector, tooltipC
     };
 
     this.Destroy = function($el) {
-        $el.find(alreadyProcessedSelector).tooltipster('destroy');
-        $el.tooltipster('destroy');
+        if ($el.hasClass(alreadyProcessedName)) {
+            $el.find(alreadyProcessedSelector).tooltipster('destroy');
+            $el.tooltipster('destroy');
+        }
     };
     
     //constructor

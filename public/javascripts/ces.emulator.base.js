@@ -249,8 +249,8 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
         _PubSub.Mute('notification');
         self._InputHelper.Keypress('mute', function() {
 
-            //make a final auto save before exiting
-            self.MakeAutoSave(function(err) {
+            //make a final auto save before exiting (removing this 11-11-2020, rethinking my auto-save stategy)
+            //self.MakeAutoSave(function(err) {
 
                 //for graceful exit to complete we will wait _timeToWaitForSrmFileOnExit secs for a srm file to be written, if not, then clean up anyway
                 
@@ -272,7 +272,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
                 
                 }, [true]); //true argument says to allow the emulator to process the input
             });
-        }); 
+        //}); 
     };
 
     this.CleanUp = function(callback) {

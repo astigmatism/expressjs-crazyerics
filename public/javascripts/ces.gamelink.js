@@ -1,4 +1,4 @@
-var cesGameLink = (function(_config, _Media, _Tooltips, gameKey, cdnPathValue, opt_tooltip, opt_PlayGame, opt_OnImageLoaded, opt_AddToCollection) {
+var cesGameLink = (function(_config, _Media, _Tooltips, _Collections, gameKey, cdnPathValue, opt_tooltip, opt_PlayGame, opt_OnImageLoaded) {
 
     //private members
     var self = this;
@@ -63,21 +63,28 @@ var cesGameLink = (function(_config, _Media, _Tooltips, gameKey, cdnPathValue, o
             var $mediawrapper = $('<div class="mediawrapper"></div>');
             $tooltipContent.append($mediawrapper);
 
+            
             var $addbutton = $('<span class="button add noselect">Add to Collection</span>');
-            $addbutton.click(function(e) { 
-                opt_AddToCollection(gameKey);
+            $addbutton.on('click', function(e) { 
+                _Collections.AddTitleWithoutPlaying(gameKey);
             });
             $tooltipContent.append($addbutton);
+            
 
             var $playbutton = $('<span class="button play noselect">Play Now!</span>');
-            $playbutton.click(function(e) { 
+            $playbutton.on('click', function(e) { 
 
                 _Tooltips.Close($imagewrapper); //sometimes the tooltip was staying up after clicking
                 opt_PlayGame(gameKey);
             });
             $tooltipContent.append($playbutton);
 
-            _Tooltips.SingleHTMLWithTitleScreen($imagewrapper, $tooltipContent, $mediawrapper, gameKey, true);
+            var CheckCollectionOnTooltipOpen = (function() {
+                _Collections.IsEmpty() ? $addbutton.hide() : $addbutton.show();
+                return true; //returning true allows the dialog to continue openning (false would be early exit)
+            });
+
+            _Tooltips.SingleHTMLWithTitleScreen($imagewrapper, $tooltipContent, $mediawrapper, gameKey, true, true, CheckCollectionOnTooltipOpen);
         }
 
         $div.append($imagewrapper);

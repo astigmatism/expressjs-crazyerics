@@ -19,7 +19,7 @@ var cesInputHelper = (function(_Emulator, _Preferences, _Gamepad, _ui, _Logging)
     var _idleKeyTimeout = null;
     var _idleKeyDuration = 10000; //the amount of time to required to be idle to fire the OnIdleKeys functionality when checked
     var _lastInputKeyCode = null;
-    var _disableAutoSave = false;
+    var _disableAutoSave = true; //i'd like to disable this for now to explore auto-saving only when paused (11-10-2020)
 
     var _operationMap = {
         'statesave': 49,        //1
