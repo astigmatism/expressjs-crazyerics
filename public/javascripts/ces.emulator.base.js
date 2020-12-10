@@ -699,6 +699,11 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
 
     this.AdjustPlayArea = function(toggle) {
 
+        //for now, always the more limited size, if they want larger, full screen in an option
+        _ui.canvas.addClass('limited');
+        _ui.helper.addClass('limited');
+
+        /*
         if ($(window).height() < 1000) {
             _ui.canvas.addClass('limited');
             _ui.helper.addClass('limited');
@@ -707,6 +712,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
             _ui.canvas.removeClass('limited');
             _ui.helper.removeClass('limited');
         }
+        */
     };
 
     /**
