@@ -6,7 +6,7 @@
     "start": "node ./bin/www"
   },
   "dependencies": {
-    "async": "^2.6.1",
+    "async": "^2.6.4",
     "atob": "^2.1.2",
     "authenticate": "^0.1.5",
     "body-parser": "^1.18.3",
