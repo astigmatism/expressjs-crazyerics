@@ -22,32 +22,22 @@
 	},
 	"db": {
 		"postgre": {
-			"host": "192.168.1.2",
+			"host": "127.0.0.1",
 			"user": "crazyerics",
 			"password": "FU.BexZM2d9aTWXAWvxPFKsv",
 			"database": "crazyerics",
-			"port": 32772,
+			"port": 5432,
 			"max": 20,
 			"idleTimeoutMillis": 8000,
 			"connectionTimeoutMillis": 4000
 		}
 	},
 	"cdn": [
-		{
-			"host": "192.168.1.10",
-			"user": "astigmatism",
-			"root": "/home/astigmatism/expressjs-cdn-crazyerics"
-		},
-		{
-			"host": "192.168.1.11",
-			"user": "astigmatism",
-			"root": "/home/astigmatism/expressjs-cdn-crazyerics"
-		},
-		{
-			"host": "192.168.1.12",
-			"user": "astigmatism",
-			"root": "/home/astigmatism/expressjs-cdn-crazyerics"
-		}
+    		{
+        		"host": "192.168.1.4",
+        		"user": "astigmatism",
+        		"root": "/home/astigmatism/expressjs-cdn-crazyerics"
+    		}
 	],
 	"retroarch": {
 		"notes-1.7.0": "lots of audio glitches (tested nes, snes)"
@@ -467,9 +457,10 @@
 					"all": {
 						"cache": "top"
 					}
-				}
+				},
+				"maximum": 120
 			},
-			"samples": 100
+			"samples": 400
 		},
 		"snes": {
 			"recipe": {
@@ -477,9 +468,10 @@
 					"snes": {
 						"cache": "above"
 					}
-				}
+				},
+				"maximum": 120
 			},
-			"samples": 20
+			"samples": 200
 		},
 		"gb": {
 			"recipe": {
@@ -487,9 +479,10 @@
 					"gb": {
 						"cache": "above"
 					}
-				}
+				},
+				"maximum": 120
 			},
-			"samples": 20
+			"samples": 200
 		},
 		"gba": {
 			"recipe": {
@@ -497,9 +490,10 @@
 					"gba": {
 						"cache": "above"
 					}
-				}
+				},
+				"maximum": 120
 			},
-			"samples": 20
+			"samples": 200
 		},
 		"gbc": {
 			"recipe": {
@@ -507,9 +501,10 @@
 					"gbc": {
 						"cache": "above"
 					}
-				}
+				},
+				"maximum": 120
 			},
-			"samples": 20
+			"samples": 200
 		},
 		"nes": {
 			"recipe": {
@@ -517,9 +512,10 @@
 					"nes": {
 						"cache": "above"
 					}
-				}
+				},
+				"maximum": 120
 			},
-			"samples": 20
+			"samples": 200
 		},
 		"gen": {
 			"recipe": {
@@ -527,9 +523,10 @@
 					"gen": {
 						"cache": "above"
 					}
-				}
+				},
+				"maximum": 120
 			},
-			"samples": 20
+			"samples": 200
 		}
 	},
 	"retroarch": 
