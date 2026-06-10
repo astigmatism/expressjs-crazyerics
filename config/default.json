@@ -186,102 +186,102 @@
 					{
 						"input": "l_btn",
 						"label": "L",
-						"x": 11,
-						"y": 14,
-						"lineX": 28,
-						"lineY": 24,
-						"targetX": 33,
-						"targetY": 35
+						"x": 14.0,
+						"y": 15.0,
+						"lineX": 22.5,
+						"lineY": 23.5,
+						"targetX": 33.0,
+						"targetY": 35.0
 					},
 					{
 						"input": "r_btn",
 						"label": "R",
-						"x": 88,
-						"y": 14,
-						"lineX": 72,
-						"lineY": 24,
-						"targetX": 67,
-						"targetY": 35
+						"x": 74.0,
+						"y": 15.0,
+						"lineX": 67.0,
+						"lineY": 25.0,
+						"targetX": 67.0,
+						"targetY": 35.0
 					},
 					{
 						"input": "up_axis",
 						"label": "D-pad Up",
-						"x": 31,
-						"y": 14,
-						"lineX": 24,
-						"lineY": 17,
-						"targetX": 30,
-						"targetY": 45
+						"x": 34.0,
+						"y": 15.0,
+						"lineX": 34.2,
+						"lineY": 25.0,
+						"targetX": 34.2,
+						"targetY": 45.3
 					},
 					{
 						"input": "left_axis",
 						"label": "D-pad Left",
-						"x": 11,
-						"y": 46,
-						"lineX": 24,
-						"lineY": 41,
-						"targetX": 26,
-						"targetY": 54
+						"x": 12.0,
+						"y": 47.0,
+						"lineX": 20.8,
+						"lineY": 48.5,
+						"targetX": 32.5,
+						"targetY": 48.5
 					},
 					{
 						"input": "right_axis",
 						"label": "D-pad Right",
-						"x": 51,
-						"y": 14,
-						"lineX": 24,
-						"lineY": 65,
-						"targetX": 34,
-						"targetY": 54
+						"x": 54.0,
+						"y": 15.0,
+						"lineX": 45.2,
+						"lineY": 25.0,
+						"targetX": 35.9,
+						"targetY": 48.5
 					},
 					{
 						"input": "down_axis",
 						"label": "D-pad Down",
-						"x": 11,
-						"y": 68,
-						"lineX": 24,
-						"lineY": 89,
-						"targetX": 30,
-						"targetY": 63
+						"x": 12.0,
+						"y": 68.0,
+						"lineX": 20.8,
+						"lineY": 63.0,
+						"targetX": 34.2,
+						"targetY": 51.8
 					},
 					{
 						"input": "select_btn",
 						"label": "Select",
-						"x": 51,
-						"y": 90,
-						"lineX": 43,
-						"lineY": 80,
-						"targetX": 43,
-						"targetY": 63
+						"x": 53.0,
+						"y": 87.0,
+						"lineX": 44.2,
+						"lineY": 77.0,
+						"targetX": 37.2,
+						"targetY": 63.4
 					},
 					{
 						"input": "start_btn",
 						"label": "Start",
-						"x": 31,
-						"y": 90,
-						"lineX": 52,
-						"lineY": 80,
-						"targetX": 48,
-						"targetY": 60
+						"x": 34.0,
+						"y": 87.0,
+						"lineX": 34.0,
+						"lineY": 77.0,
+						"targetX": 37.2,
+						"targetY": 59.1
 					},
 					{
 						"input": "b_btn",
 						"label": "B",
-						"x": 88,
-						"y": 68,
-						"lineX": 74,
-						"lineY": 64,
-						"targetX": 69,
-						"targetY": 60
+						"x": 88.0,
+						"y": 68.0,
+						"lineX": 79.2,
+						"lineY": 61.2,
+						"targetX": 64.2,
+						"targetY": 49.9
 					},
 					{
 						"input": "a_btn",
 						"label": "A",
-						"x": 88,
-						"y": 46,
-						"lineX": 77,
-						"lineY": 45,
-						"targetX": 75,
-						"targetY": 53
+						"x": 88.0,
+						"y": 47.0,
+						"lineX": 79.2,
+						"lineY": 47.2,
+						"targetX": 68.1,
+						"targetY": 47.2
 					}
 				]
 			},
@@ -441,82 +441,82 @@
 					{
 						"input": "up_axis",
 						"label": "D-pad Up",
-						"x": 31,
-						"y": 14,
-						"lineX": 24,
-						"lineY": 17,
-						"targetX": 30,
-						"targetY": 45
+						"x": 31.0,
+						"y": 14.0,
+						"lineX": 31.4,
+						"lineY": 24.0,
+						"targetX": 31.4,
+						"targetY": 48.0
 					},
 					{
 						"input": "left_axis",
 						"label": "D-pad Left",
-						"x": 12,
-						"y": 64,
-						"lineX": 24,
-						"lineY": 41,
-						"targetX": 26,
-						"targetY": 54
+						"x": 12.0,
+						"y": 56.0,
+						"lineX": 20.5,
+						"lineY": 56.0,
+						"targetX": 27.9,
+						"targetY": 54.7
 					},
 					{
 						"input": "right_axis",
 						"label": "D-pad Right",
-						"x": 51,
-						"y": 14,
-						"lineX": 24,
-						"lineY": 65,
-						"targetX": 34,
-						"targetY": 54
+						"x": 49.0,
+						"y": 14.0,
+						"lineX": 45.0,
+						"lineY": 24.0,
+						"targetX": 35.0,
+						"targetY": 54.7
 					},
 					{
 						"input": "down_axis",
 						"label": "D-pad Down",
-						"x": 31,
-						"y": 88,
-						"lineX": 24,
-						"lineY": 89,
-						"targetX": 30,
-						"targetY": 63
+						"x": 31.0,
+						"y": 87.0,
+						"lineX": 31.4,
+						"lineY": 76.8,
+						"targetX": 31.4,
+						"targetY": 61.2
 					},
 					{
 						"input": "select_btn",
 						"label": "Select",
-						"x": 51,
-						"y": 88,
-						"lineX": 44,
-						"lineY": 81,
-						"targetX": 43,
-						"targetY": 57
+						"x": 50.0,
+						"y": 87.0,
+						"lineX": 44.5,
+						"lineY": 76.8,
+						"targetX": 44.2,
+						"targetY": 59.7
 					},
 					{
 						"input": "start_btn",
 						"label": "Start",
-						"x": 70,
-						"y": 88,
-						"lineX": 55,
-						"lineY": 81,
-						"targetX": 50,
-						"targetY": 57
+						"x": 69.0,
+						"y": 87.0,
+						"lineX": 60.6,
+						"lineY": 76.8,
+						"targetX": 50.7,
+						"targetY": 59.8
 					},
 					{
 						"input": "b_btn",
 						"label": "B",
-						"x": 89,
-						"y": 39,
-						"lineX": 76,
-						"lineY": 46,
-						"targetX": 62,
-						"targetY": 59
+						"x": 89.0,
+						"y": 39.0,
+						"lineX": 80.6,
+						"lineY": 47.8,
+						"targetX": 61.1,
+						"targetY": 59.6
 					},
 					{
 						"input": "a_btn",
 						"label": "A",
-						"x": 89,
-						"y": 63,
-						"lineX": 77,
-						"lineY": 72,
-						"targetX": 70,
-						"targetY": 59
+						"x": 89.0,
+						"y": 63.0,
+						"lineX": 80.6,
+						"lineY": 60.0,
+						"targetX": 68.6,
+						"targetY": 59.6
 					}
 				]
 			},

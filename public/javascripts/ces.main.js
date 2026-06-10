@@ -1035,11 +1035,6 @@ var cesMain = (function() {
 
                                 _Emulator.InitializeSavesManager(saves, gameKey);
 
-                                //date copmany
-                                if (info && info.Publisher && info.ReleaseDate) {
-                                    $('#gametitlecaption').text(info.Publisher + ', ' + new Date(info.ReleaseDate).getFullYear());
-                                }
-                                    
                                 _preventLoadingGame = false; //during save select, allow other games to load
 
                                 // Keep the GameLoading dialog visible before advancing to SaveSelection.
@@ -1115,7 +1110,7 @@ var cesMain = (function() {
 
                                                                     //handle title and content fadein steps
                                                                     //wait until height change before they appear
-                                                                    DisplayGameContext(gameKey, function() {
+                                                                    DisplayGameContext(gameKey, info, function() {
 
                                                                         //show controls slider by default (because it is always activated)
                                                                         _Sliders.Open('Controls');
@@ -1902,21 +1897,155 @@ var cesMain = (function() {
         }
     };
 
+    var CleanBoxFrontFactValue = function(value) {
+
+        if (value === null || typeof value === 'undefined') {
+            return '';
+        }
+
+        if (typeof value == 'string') {
+            return $.trim(value);
+        }
+
+        if (typeof value == 'number') {
+            return value.toString();
+        }
+
+        return '';
+    };
+
+    var FormatBoxFrontGenres = function(genres) {
+
+        if (typeof genres != 'string') {
+            return '';
+        }
+
+        var genreArray = genres.split(';');
+        var displayGenres = [];
+
+        for (var i = 0; i < genreArray.length; i++) {
+            var genre = $.trim(genreArray[i]);
+
+            if (genre) {
+                displayGenres.push(genre);
+            }
+        }
+
+        return displayGenres.join(', ');
+    };
+
+    var FormatBoxFrontReleaseDate = function(info) {
+
+        if (!info) {
+            return '';
+        }
+
+        var monthNames = [
+            'January',
+            'February',
+            'March',
+            'April',
+            'May',
+            'June',
+            'July',
+            'August',
+            'September',
+            'October',
+            'November',
+            'December'
+        ];
+        var releaseDate = CleanBoxFrontFactValue(info.ReleaseDate);
+        var releaseYear = CleanBoxFrontFactValue(info.ReleaseYear || info.Year);
+
+        if (releaseDate) {
+            var compactDateMatch = releaseDate.match(/^\s*(\d{4})(?:[-\/](\d{1,2})(?:[-\/]\d{1,2})?)?(?:[T\s].*)?\s*$/);
+
+            if (compactDateMatch) {
+                var year = compactDateMatch[1];
+                var month = compactDateMatch[2] ? parseInt(compactDateMatch[2], 10) : null;
+
+                if (month && month >= 1 && month <= 12) {
+                    return monthNames[month - 1] + ' ' + year;
+                }
+
+                return year;
+            }
+
+            var parsedDate = new Date(releaseDate);
+
+            if (!isNaN(parsedDate.getTime())) {
+                return monthNames[parsedDate.getMonth()] + ' ' + parsedDate.getFullYear();
+            }
+
+            if (releaseYear) {
+                return releaseYear;
+            }
+
+            return releaseDate;
+        }
+
+        return releaseYear;
+    };
+
+    var AddBoxFrontFact = function($facts, label, value) {
+
+        value = CleanBoxFrontFactValue(value);
+
+        if (!value) {
+            return;
+        }
+
+        $('<dt />').text(label).appendTo($facts);
+        $('<dd />').text(value).appendTo($facts);
+    };
+
+    var ClearBoxFrontDetails = function() {
+
+        $('#gamedetailsboxfronttitle').empty();
+        $('#gamedetailsboxfrontfacts').empty().hide();
+        $('#gamedetailsboxfrontmetadata').hide();
+    };
+
+    var UpdateBoxFrontDetails = function(gameKey, info) {
+
+        var $metadata = $('#gamedetailsboxfrontmetadata');
+        var $title = $('#gamedetailsboxfronttitle');
+        var $facts = $('#gamedetailsboxfrontfacts');
+
+        // $title.empty().text(gameKey.title);
+        $facts.empty();
+
+        if (info) {
+            AddBoxFrontFact($facts, 'Genre', FormatBoxFrontGenres(info.Genres));
+            AddBoxFrontFact($facts, 'Released', FormatBoxFrontReleaseDate(info));
+            AddBoxFrontFact($facts, 'Publisher', info.Publisher || info.Manufacturer);
+            AddBoxFrontFact($facts, 'Developer', info.Developer);
+        }
+
+        if ($facts.children().length > 0) {
+            $facts.show();
+        } else {
+            $facts.hide();
+        }
+
+        $metadata.show();
+    };
+
     /**
      * build content area underneath emulator canvas
-     * @param  {string}   system
-     * @param  {string}   title
+     * @param  {Object}   gameKey
+     * @param  {Object}   info
      * @param  {Function} callback
      * @return {undef}
      */
-    var DisplayGameContext = function(gameKey, callback) {
+    var DisplayGameContext = function(gameKey, info, callback) {
 
         var $img = _Media.BoxFront(gameKey, 'c');
 
         _currentGameKey = gameKey;
 
         $('#gamedetailsboxfrontimage').empty().append($img);
-        $('#gametitle').empty().hide().append(gameKey.title);
+        UpdateBoxFrontDetails(gameKey, info);
 
         // slide down background
         $('#gamedetailsboxfrontimage img').addClass('close');
@@ -1932,12 +2061,6 @@ var cesMain = (function() {
 
             callback();
         });
-
-        //needs to occur after fade in to understand dimensions
-        $('#gametitle').bigText({
-            textAlign: 'left',
-            horizontalAlign: 'left'
-        }); //auto size text to fit
     };
 
     var HideGameContext = function(callback) {
@@ -1945,7 +2068,7 @@ var cesMain = (function() {
         //fade out game details
         $('#gamedetailsboxfrontimage img').addClass('close');
         $('#gamedetailswrapper').fadeOut();
-        $('#gametitlecaption').empty();
+        ClearBoxFrontDetails();
         _currentGameKey = null;
 
         _Sliders.DeactivateAll();

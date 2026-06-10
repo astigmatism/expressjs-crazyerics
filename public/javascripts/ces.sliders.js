@@ -31,6 +31,10 @@ var cesSliders = (function(_config, _Compression, $silderIcons) {
                     
                     $(data.panel).slideDown(function() {
                         $(data.panel).addClass('opened');
+
+                        if (data.module && data.module.OnOpened) {
+                            data.module.OnOpened();
+                        }
                     });
 
                     _currentOpen = name;

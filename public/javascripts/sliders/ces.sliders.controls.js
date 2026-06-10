@@ -6,6 +6,11 @@ var cesSlidersControls = (function(_config, $li, $panel) {
     var _gamePad = null;
     var _gameKey = null;
     var _notAssignedLabel = 'Not assigned';
+    var _manualCalloutLineObserver = null;
+    var _manualCalloutLineVisibilityObserver = null;
+    var _manualCalloutLineResizeObserver = null;
+    var _manualCalloutLineRefreshTimer = null;
+    var _manualCalloutLineRefreshSequenceTimers = [];
 
     var _retroarchInputNames = {
         up_axis: 'input_player1_up',
@@ -122,6 +127,8 @@ var cesSlidersControls = (function(_config, $li, $panel) {
 
     this.Activate = function(gameKey, GamePad) {
 
+        TeardownManualCalloutLines();
+
         _gameKey = gameKey || {};
         _gamePad = GamePad || null;
         _inputAssignmentMap = GetInputAssignmentMap(_gameKey.system);
@@ -141,6 +148,8 @@ var cesSlidersControls = (function(_config, $li, $panel) {
     };
 
     this.Deactivate = function() {
+        TeardownManualCalloutLines();
+
         $panel.empty();
         _gamePad = null;
         _gameKey = null;
@@ -152,6 +161,12 @@ var cesSlidersControls = (function(_config, $li, $panel) {
     this.OnOpen = function(callback) {
 
         callback(true);
+        ScheduleManualCalloutLineRefreshPasses();
+    };
+
+    this.OnOpened = function() {
+
+        ScheduleManualCalloutLineRefreshPasses();
     };
 
     this.OnClose = function(callback) {
@@ -251,6 +266,198 @@ var cesSlidersControls = (function(_config, $li, $panel) {
         return 50;
     };
 
+    var FormatCalloutCoordinate = function(value) {
+
+        value = parseFloat(value);
+
+        if (isNaN(value)) {
+            return '50';
+        }
+
+        return String(Math.round(value * 1000) / 1000);
+    };
+
+    var ScheduleManualCalloutLineRefresh = function(delay) {
+
+        delay = parseInt(delay, 10);
+
+        if (isNaN(delay) || delay < 0) {
+            delay = 0;
+        }
+
+        if (_manualCalloutLineRefreshTimer) {
+            window.clearTimeout(_manualCalloutLineRefreshTimer);
+        }
+
+        _manualCalloutLineRefreshTimer = window.setTimeout(function() {
+            _manualCalloutLineRefreshTimer = null;
+            RefreshManualCalloutLines();
+        }, delay);
+    };
+
+    var QueueManualCalloutLineRefresh = function(delay) {
+
+        var timer;
+
+        delay = parseInt(delay, 10);
+
+        if (isNaN(delay) || delay < 0) {
+            delay = 0;
+        }
+
+        timer = window.setTimeout(function() {
+            var index = _manualCalloutLineRefreshSequenceTimers.indexOf(timer);
+
+            if (index !== -1) {
+                _manualCalloutLineRefreshSequenceTimers.splice(index, 1);
+            }
+
+            RefreshManualCalloutLines();
+        }, delay);
+
+        _manualCalloutLineRefreshSequenceTimers.push(timer);
+    };
+
+    var ClearManualCalloutLineRefreshPasses = function() {
+
+        var timer;
+
+        while (_manualCalloutLineRefreshSequenceTimers.length) {
+            timer = _manualCalloutLineRefreshSequenceTimers.pop();
+            window.clearTimeout(timer);
+        }
+    };
+
+    var ScheduleManualCalloutLineRefreshPasses = function() {
+
+        ClearManualCalloutLineRefreshPasses();
+
+        QueueManualCalloutLineRefresh(0);
+        QueueManualCalloutLineRefresh(60);
+        QueueManualCalloutLineRefresh(160);
+        QueueManualCalloutLineRefresh(320);
+        QueueManualCalloutLineRefresh(650);
+    };
+
+    var BindManualCalloutLines = function($lineLayer) {
+
+        var diagramNode;
+
+        TeardownManualCalloutLines();
+
+        if (!$lineLayer || !$lineLayer.length) {
+            return;
+        }
+
+        diagramNode = $lineLayer.closest('.controls-manual-diagram')[0];
+
+        if (window.MutationObserver) {
+            _manualCalloutLineObserver = new window.MutationObserver(function(mutations) {
+
+                var shouldRefresh = false;
+                var i;
+
+                for (i = 0; i < mutations.length; i++) {
+                    if (mutations[i].type === 'attributes') {
+                        shouldRefresh = true;
+                        break;
+                    }
+                }
+
+                if (shouldRefresh) {
+                    ScheduleManualCalloutLineRefresh();
+                }
+            });
+
+            _manualCalloutLineObserver.observe($lineLayer[0], {
+                attributes: true,
+                attributeFilter: [
+                    'data-line-x',
+                    'data-line-y',
+                    'data-target-x',
+                    'data-target-y'
+                ],
+                subtree: true
+            });
+
+            _manualCalloutLineVisibilityObserver = new window.MutationObserver(function() {
+                ScheduleManualCalloutLineRefresh(80);
+            });
+
+            if ($panel && $panel.length) {
+                _manualCalloutLineVisibilityObserver.observe($panel[0], {
+                    attributes: true,
+                    attributeFilter: [
+                        'class',
+                        'style'
+                    ]
+                });
+            }
+
+            if (diagramNode) {
+                _manualCalloutLineVisibilityObserver.observe(diagramNode, {
+                    attributes: true,
+                    attributeFilter: [
+                        'class',
+                        'style'
+                    ]
+                });
+            }
+        }
+
+        if (window.ResizeObserver) {
+            _manualCalloutLineResizeObserver = new window.ResizeObserver(function() {
+                ScheduleManualCalloutLineRefresh(40);
+            });
+
+            _manualCalloutLineResizeObserver.observe($lineLayer[0]);
+
+            if (diagramNode) {
+                _manualCalloutLineResizeObserver.observe(diagramNode);
+            }
+
+            if ($panel && $panel.length) {
+                _manualCalloutLineResizeObserver.observe($panel[0]);
+            }
+        }
+
+        $(window).off('resize.controlsManualCalloutLines');
+        $(window).on('resize.controlsManualCalloutLines', function() {
+            ScheduleManualCalloutLineRefresh(40);
+        });
+
+        window.cesRefreshControlsManualCalloutLines = function() {
+            RefreshManualCalloutLines();
+        };
+    };
+
+    var TeardownManualCalloutLines = function() {
+
+        if (_manualCalloutLineObserver) {
+            _manualCalloutLineObserver.disconnect();
+            _manualCalloutLineObserver = null;
+        }
+
+        if (_manualCalloutLineVisibilityObserver) {
+            _manualCalloutLineVisibilityObserver.disconnect();
+            _manualCalloutLineVisibilityObserver = null;
+        }
+
+        if (_manualCalloutLineResizeObserver) {
+            _manualCalloutLineResizeObserver.disconnect();
+            _manualCalloutLineResizeObserver = null;
+        }
+
+        if (_manualCalloutLineRefreshTimer) {
+            window.clearTimeout(_manualCalloutLineRefreshTimer);
+            _manualCalloutLineRefreshTimer = null;
+        }
+
+        ClearManualCalloutLineRefreshPasses();
+
+        $(window).off('resize.controlsManualCalloutLines');
+    };
+
     var RenderInstructionManual = function(diagram) {
 
         var systemName = GetSystemName();
@@ -259,10 +466,8 @@ var cesSlidersControls = (function(_config, $li, $panel) {
         var $main = $('<div />').addClass('controls-manual-main controls-manual-main-' + systemClass);
         var $header = BuildHeader(diagram.title || (systemName + ' Controls'), diagram.subtitle, diagram.badge);
         var $diagram = $('<div />').addClass('controls-manual-diagram controls-manual-diagram-' + systemClass);
-        var $lineLayer = $(document.createElementNS('http://www.w3.org/2000/svg', 'svg'))
+        var $lineLayer = $('<div />')
             .addClass('controls-callout-lines')
-            .attr('viewBox', '0 0 100 100')
-            .attr('preserveAspectRatio', 'none')
             .attr('aria-hidden', 'true');
         var $image = $('<img />')
             .addClass('controller controls-controller-photo controls-controller-photo-' + systemClass + ' close')
@@ -271,6 +476,7 @@ var cesSlidersControls = (function(_config, $li, $panel) {
 
         $image.on('load', function() {
             $(this).removeClass('close');
+            ScheduleManualCalloutLineRefresh(40);
         });
 
         $image.on('error', function() {
@@ -281,12 +487,13 @@ var cesSlidersControls = (function(_config, $li, $panel) {
         });
 
         $diagram.append($lineLayer);
+        $lineLayer.append(BuildManualCoordinateGuides());
         $diagram.append($image);
 
         for (var i = 0; i < diagram.callouts.length; i++) {
             var callout = diagram.callouts[i];
             $diagram.append(BuildCallout(callout));
-            AddCalloutLine($lineLayer, callout);
+            $lineLayer.append(BuildCalloutLine(callout));
         }
 
         $main.append($header);
@@ -296,6 +503,9 @@ var cesSlidersControls = (function(_config, $li, $panel) {
         $layout.append(BuildCommandPanel());
 
         $panel.append($layout);
+
+        BindManualCalloutLines($lineLayer);
+        ScheduleManualCalloutLineRefreshPasses();
     };
 
     var RenderGenericControls = function() {
@@ -385,20 +595,162 @@ var cesSlidersControls = (function(_config, $li, $panel) {
         return $callout;
     };
 
-    var AddCalloutLine = function($lineLayer, callout) {
+    var BuildCalloutLine = function(callout) {
 
-        var $line = $(document.createElementNS('http://www.w3.org/2000/svg', 'line'))
-            .attr('x1', callout.targetX)
-            .attr('y1', callout.targetY)
-            .attr('x2', callout.lineX)
-            .attr('y2', callout.lineY);
-        var $dot = $(document.createElementNS('http://www.w3.org/2000/svg', 'circle'))
-            .attr('cx', callout.targetX)
-            .attr('cy', callout.targetY)
-            .attr('r', 0.85);
+        var startX = ReadCoordinate(callout.lineX, callout.x, callout.targetX);
+        var startY = ReadCoordinate(callout.lineY, callout.y, callout.targetY);
+        var targetX = ReadCoordinate(callout.targetX, callout.lineX, callout.x);
+        var targetY = ReadCoordinate(callout.targetY, callout.lineY, callout.y);
+        var inputClass = GetSystemClassSuffix(callout.input);
+        var $connector = $('<div />')
+            .addClass('controls-callout-connector controls-callout-connector-' + inputClass)
+            .attr({
+                'data-input': callout.input,
+                'data-label': callout.label || GetMappingLabel(callout.input),
+                'data-line-x': FormatCalloutCoordinate(startX),
+                'data-line-y': FormatCalloutCoordinate(startY),
+                'data-target-x': FormatCalloutCoordinate(targetX),
+                'data-target-y': FormatCalloutCoordinate(targetY)
+            });
 
-        $lineLayer.append($line);
-        $lineLayer.append($dot);
+        $connector.append($('<div />').addClass('controls-manual-callout-line'));
+        $connector.append($('<div />').addClass('controls-manual-callout-target'));
+
+        return $connector;
+    };
+
+    var BuildManualCoordinateGuides = function() {
+        var corners = [
+            {
+                className: 'top-left',
+                x: 0,
+                y: 0,
+                label: '0,0'
+            },
+            {
+                className: 'top-right',
+                x: 100,
+                y: 0,
+                label: '100,0'
+            },
+            {
+                className: 'bottom-left',
+                x: 0,
+                y: 100,
+                label: '0,100'
+            },
+            {
+                className: 'bottom-right',
+                x: 100,
+                y: 100,
+                label: '100,100'
+            }
+        ];
+
+        var $guides = $('<div />')
+            .addClass('controls-manual-coordinate-guides')
+            .attr('aria-hidden', 'true');
+
+        for (var i = 0; i < corners.length; i++) {
+            var corner = corners[i];
+
+            var $guide = $('<div />')
+                .addClass('controls-manual-coordinate-guide controls-manual-coordinate-guide-' + corner.className)
+                .attr({
+                    'data-guide-x': corner.x,
+                    'data-guide-y': corner.y,
+                    'data-guide-label': corner.label
+                })
+                .css({
+                    left: corner.x + '%',
+                    top: corner.y + '%'
+                });
+
+            $guide.append(
+                $('<span />')
+                    .addClass('controls-manual-coordinate-guide-label')
+                    .text(corner.label)
+            );
+
+            $guides.append($guide);
+        }
+
+        return $guides;
+    };
+
+    var RefreshManualCalloutLines = function() {
+
+        var refreshed = false;
+
+        $panel.find('.controls-callout-connector').each(function() {
+            if (RefreshManualCalloutLine($(this))) {
+                refreshed = true;
+            }
+        });
+
+        return refreshed;
+    };
+
+    var RefreshManualCalloutLine = function($connector) {
+
+        var $layer = $connector.parent();
+        var $line = $connector.find('.controls-manual-callout-line');
+        var $target = $connector.find('.controls-manual-callout-target');
+        var layerWidth = $layer.width();
+        var layerHeight = $layer.height();
+        var startX;
+        var startY;
+        var targetX;
+        var targetY;
+        var startLeft;
+        var startTop;
+        var targetLeft;
+        var targetTop;
+        var deltaX;
+        var deltaY;
+        var length;
+        var angle;
+        var transform;
+
+        if (!layerWidth || !layerHeight) {
+            $connector.removeClass('controls-callout-connector-ready');
+            return false;
+        }
+
+        startX = ReadCoordinate($connector.attr('data-line-x'), 50);
+        startY = ReadCoordinate($connector.attr('data-line-y'), 50);
+        targetX = ReadCoordinate($connector.attr('data-target-x'), 50);
+        targetY = ReadCoordinate($connector.attr('data-target-y'), 50);
+
+        startLeft = (startX / 100) * layerWidth;
+        startTop = (startY / 100) * layerHeight;
+        targetLeft = (targetX / 100) * layerWidth;
+        targetTop = (targetY / 100) * layerHeight;
+        deltaX = targetLeft - startLeft;
+        deltaY = targetTop - startTop;
+        length = Math.sqrt((deltaX * deltaX) + (deltaY * deltaY));
+        angle = Math.atan2(deltaY, deltaX) * (180 / Math.PI);
+        transform = 'translateY(-50%) rotate(' + angle + 'deg)';
+
+        $line.css({
+            left: startLeft + 'px',
+            top: startTop + 'px',
+            width: length + 'px',
+            '-webkit-transform': transform,
+            '-moz-transform': transform,
+            '-o-transform': transform,
+            '-ms-transform': transform,
+            transform: transform
+        });
+
+        $target.css({
+            left: targetLeft + 'px',
+            top: targetTop + 'px'
+        });
+
+        $connector.addClass('controls-callout-connector-ready');
+
+        return true;
     };
 
     var BuildGenericMapping = function(inputName, fallbackLabel) {
@@ -430,7 +782,7 @@ var cesSlidersControls = (function(_config, $li, $panel) {
         ];
 
         var $panel = $('<aside />').addClass('controls-extra-panel');
-        var $title = $('<h4 />').text('Emulator Commands');
+        var $title = $('<h4 />').text('System Commands');
         var $intro = $('<p />').text('System shortcuts that are separate from the original controller.');
         var $list = $('<ul />');
         var commands = GetCommandAssignments();
@@ -452,7 +804,7 @@ var cesSlidersControls = (function(_config, $li, $panel) {
         }
 
         $panel.append($title);
-        $panel.append($intro);
+        // $panel.append($intro);
         $panel.append($list);
 
         return $panel;

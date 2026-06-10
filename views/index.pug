@@ -93,9 +93,6 @@ block content
             div#gamedetailswrapper(class="darkgrad")
                 div#gamedetailstable
                     div#gamedetailscontent
-                        div#gametitlewrapper
-                            span#gametitle
-                            span#gametitlecaption
                         div#sliderwrapper
                             ul#slidericons
                                 li(class="controls tooltip", data-slider="Controls", title="Controls") Controls
@@ -134,8 +131,11 @@ block content
                                         | * Your game collection will be updated to use the version of the game you have selected. 
                                         | * Save progress is specific to the game version you have selected.
                     div#gamedetailsboxfront
-                        button#emulatorfullscreenbutton(type="button", class="button zoom noselect", title="Enter fullscreen emulator play area", aria-label="Enter fullscreen emulator play area") Fullscreen
+                        button#emulatorfullscreenbutton(type="button", class="button zoom noselect", title="Enter fullscreen emulator play area", aria-label="Enter fullscreen emulator play area") Play Fullscreen
                         div#gamedetailsboxfrontimage
+                        div#gamedetailsboxfrontmetadata
+                            div#gamedetailsboxfronttitle
+                            dl#gamedetailsboxfrontfacts
 
     div#collectionsWrapper
         div#collectionTitle
