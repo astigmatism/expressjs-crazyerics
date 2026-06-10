@@ -109,6 +109,8 @@ var cesSliders = (function(_config, _Compression, $silderIcons) {
             //if a data reference was found along with the dom element
             if (sliderId && $('#' + sliderId + '-slider')) {
 
+                $li.attr('tabindex', '0');
+
                 var module;
 
                 if (window.hasOwnProperty('cesSliders' + sliderId)) {
@@ -124,8 +126,19 @@ var cesSliders = (function(_config, _Compression, $silderIcons) {
                     activated: false
                 };
 
-                $li.on('click', function() {
+                var OpenSlider = function() {
                     _self.Open(sliderId);
+                };
+
+                $li.on('click', OpenSlider);
+
+                $li.on('keydown', function(e) {
+                    var key = e.which || e.keyCode;
+
+                    if (key == 13 || key == 32) {
+                        e.preventDefault();
+                        OpenSlider();
+                    }
                 });
             }
         });

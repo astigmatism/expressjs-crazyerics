@@ -8,12 +8,24 @@ const defaultOptions = {
     stdTTL: 60 * 60,             //1 hour
 };
 
+const redisConfig = config.has('db.redis') ? config.get('db.redis') : {};
+
+const redisOptions = {
+    host: redisConfig.host || '127.0.0.1',
+    port: redisConfig.port || 6379,
+    db: redisConfig.db || 0
+};
+
+if (redisConfig.password) {
+    redisOptions.password = redisConfig.password;
+}
+
 module.exports = function(key, opt_options) {
 
     var _self = this;
     
     var options = opt_options || defaultOptions;
-    var _client = Redis.createClient();
+    var _client = Redis.createClient(redisOptions);
     var _base = new CacheBase(this, key);
 
     this.Get = _base.Get;

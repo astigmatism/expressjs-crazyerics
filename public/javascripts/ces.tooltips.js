@@ -8,6 +8,7 @@ var cesTooltips = (function(_config, _Media, _Logging, tooltipSelector, tooltipC
     var self = this;
     var alreadyProcessedName = 'tooltipstered';
     var alreadyProcessedSelector = '.' + alreadyProcessedName;
+    var gameTooltipSide = 'top';
 
     this.Any = function() {
 
@@ -50,10 +51,11 @@ var cesTooltips = (function(_config, _Media, _Logging, tooltipSelector, tooltipC
         }
     };
 
-    this.SingleHTMLWithTitleScreen = function($el, $content, $mediawrapper, gameKey, opt_interactive, opt_loadMovie, opt_functionBefore) {
+    this.SingleHTMLWithTitleScreen = function($el, $content, $mediawrapper, gameKey, opt_interactive, opt_loadMovie, opt_functionBefore, opt_side) {
 
         opt_interactive = opt_interactive == undefined ? true : opt_interactive;
         opt_loadMovie = opt_loadMovie == undefined ? true : opt_loadMovie;
+        opt_side = opt_side == undefined ? gameTooltipSide : opt_side;
 
         if ($el.hasClass(alreadyProcessedName)) {
             $el.tooltipster('destroy'); //remove any previus def
@@ -65,6 +67,7 @@ var cesTooltips = (function(_config, _Media, _Logging, tooltipSelector, tooltipC
         $el.tooltipster({
             theme: 'tooltipster-shadow',
             animation: 'grow',
+            side: opt_side,
             trigger: 'custom',
             triggerOpen: {
                 click: true
@@ -84,6 +87,7 @@ var cesTooltips = (function(_config, _Media, _Logging, tooltipSelector, tooltipC
         $el.tooltipster({
             theme: 'tooltipster-shadow',
             animation: 'grow',
+            side: opt_side,
             trigger: 'custom',
             triggerOpen: {
                 click: true

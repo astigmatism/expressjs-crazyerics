@@ -16,7 +16,7 @@ body {
 	background-repeat: repeat-x;
 	
 	background: rgb(52,63,74,1); /* Old browsers */
-	background: -moz-linear-gradient(top, rgba(81,97,112,1) 0%, rgba(52,63,74,1) 300px) fixed; /* FF3.6+ */
+	background: -moz-linear-gradient(top, rgb(110, 131, 151) 0%, rgba(52,63,74,1) 300px) fixed; /* FF3.6+ */
 	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(81,97,112,1)), color-stop(300px,rgba(52,63,74,1))) fixed; /* Chrome,Safari4+ */
 	background: -webkit-linear-gradient(top, rgba(81,97,112,1) 0%,rgba(52,63,74,1) 300px) fixed; /* Chrome10+,Safari5.1+ */
 	background: -o-linear-gradient(top,rgba(81,97,112,1) 0%,rgba(52,63,74,1) 300px) fixed; /* Opera 11.10+ */
@@ -129,7 +129,7 @@ p {
 	margin: 0;
 }
 #titlebanner h1 {
-	font-size: 40px;
+	font-size: 54px;
 	font-family: 'Kanit', sans-serif;
 	line-height: 1.0;
 }
@@ -526,11 +526,10 @@ p {
 }
 
 #dialogs {
-
 	position: relative;
 	margin: 0;
 	width: 100%;
-	height: 150px;
+	height: 200px;
 }
 
 .centered {
@@ -609,14 +608,18 @@ p {
 	display: inline-block;
 }
 
-#startgamepadover {
-	cursor: pointer;
-	display: inline-block;
+#gamepadconfigactions {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: center;
+	text-align: center;
 }
-#skipgamepadconfig {
-	display: inline-block;
+
+#startgamepadover,
+#skipgamepadconfig,
+#usegamepadsavedconfig {
 	cursor: pointer;
-	margin-left: 30px;
 }
 
 /* select another game dialog */
@@ -706,8 +709,6 @@ p {
 }
 
 #loadnosaves {
-	font-size: 1.2em;
-	margin-left: 10px;	
 	cursor: pointer;
 }
 
@@ -743,6 +744,7 @@ p {
 }
 
 #loadingstatus {
+	display: none;
 	text-align: center;
 	width: 100%;
 	position: absolute;
@@ -863,7 +865,7 @@ p {
 	width: 1250px;
 	max-height: 40px;
 	position: absolute;
-	bottom: 0px;
+	top: 0px;
 	padding: 0px 15px;
 	overflow: hidden;
 	color: #000;
@@ -904,60 +906,204 @@ p {
 /* game details wrapper */
 
 #gamedetailsbackground {
-	padding: 10px 0px;
+	padding: 14px 0px 18px 0px;
 	width: 100%;
-	background: rgba(0,0,0,1);
+	background: #05070a;
+	border-top: 1px solid rgba(255,255,255,0.06);
+	box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
 }
 
 #gamedetailswrapper {
 	display: none;
-	width: 100%;
-	height: 100%;
+	width: auto;
+	height: auto;
+	margin: 0px 12px;
+	padding: 16px 18px;
+	box-sizing: border-box;
+	border-radius: 20px;
+	background: rgb(0,0,0); /* Old browsers */
+	background: -moz-linear-gradient(top, rgba(24,34,44,1) 0%, rgba(9,15,22,1) 100%); /* FF3.6+ */
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(24,34,44,1)), color-stop(100%,rgba(9,15,22,1))); /* Chrome,Safari4+ */
+	background: -webkit-linear-gradient(top, rgba(24,34,44,1) 0%,rgba(9,15,22,1) 100%); /* Chrome10+,Safari5.1+ */
+	background: -o-linear-gradient(top, rgba(24,34,44,1) 0%,rgba(9,15,22,1) 100%); /* Opera 11.10+ */
+	background: -ms-linear-gradient(top, rgba(24,34,44,1) 0%,rgba(9,15,22,1) 100%); /* IE10+ */
+	background: linear-gradient(to bottom, rgba(24,34,44,1) 0%,rgba(9,15,22,1) 100%); /* W3C */
+	box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0px 8px 20px rgba(0,0,0,0.45);
 }
 
 #gamedetailstable {
 	width: 100%;
 	display: table;
 	table-layout: fixed;
+	border-spacing: 0px;
 }
 
 #gamedetailsboxfront {
 	display: table-cell;
-	width: 200px;
+	width: 210px;
+	padding-left: 18px;
+	text-align: center;
+	vertical-align: top;
 }
 
-#gamedetailsboxfront img {
-	margin: 0px 15px;
-	vertical-align: middle;
+#emulatorfullscreenbutton {
+    margin: 16px 0px 29px 0px;
+    height: 24px;
+    min-width: 100px;
+    line-height: 24px;
+    padding: 4px 12px;
+    box-sizing: content-box;
+    font-family: 'Poppins', sans-serif;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    color: #eee;
+    border: 0;
+    border-radius: 3px;
+    background-image: linear-gradient(#727272, #303030);
+    box-shadow: 0px 3px 8px rgba(0, 0, 0, 0.35);
+}
+
+#emulatorfullscreenbutton:hover,
+#emulatorfullscreenbutton:focus {
+	outline: none;
+	box-shadow: 0px 0px 0px 1px rgba(255,255,255,0.18), 0px 3px 8px rgba(0,0,0,0.35);
+}
+
+#emulatorfullscreenbutton:active {
+	background-image: linear-gradient(#303030, #727272);
+}
+
+#emulatorfullscreenbutton.disabled {
+	cursor: default;
+	opacity: 0.55;
+}
+
+#gamedetailsboxfrontimage img {
+	margin: 0px;
+	vertical-align: top;
 	transition:All 200ms ease-in;
 	-webkit-transition:All 200ms ease-in;
 	-moz-transition:All 200ms ease-in;
 	-o-transition:All 200ms ease-in;
 	max-height: 250px;
+	max-width: 190px;
+	border: 1px solid rgba(255,255,255,0.18);
+	border-radius: 4px;
+	box-shadow: 0px 6px 16px rgba(0,0,0,0.55);
+}
+
+#emulatorwrapper.ces-emulator-fullscreen {
+	position: relative;
+	top: 0px;
+	left: 0px;
+	width: 100%;
+	height: 100%;
+	padding-top: 0px;
+	overflow: hidden;
+	background-color: #000;
+}
+
+#emulatorwrapper.ces-emulator-fullscreen #emulatorcanvas {
+	position: absolute;
+	top: 0px;
+	right: 0px;
+	bottom: 0px;
+	left: 0px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+#emulatorwrapper.ces-emulator-fullscreen #emulatorpositionhelper,
+#emulatorwrapper.ces-emulator-fullscreen #emulatorpositionhelper.limited {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	max-width: 100%;
+	max-height: 100%;
+	padding: 0px;
+	margin: 0px auto;
+}
+
+#emulatorwrapper.ces-emulator-fullscreen #emulator,
+#emulatorwrapper.ces-emulator-fullscreen #emulator.limited {
+	display: block;
+	width: 100%;
+	height: 100%;
+	max-width: 100%;
+	max-height: 100%;
+	background-color: #000;
+}
+
+#emulatorwrapper.ces-emulator-fullscreen #notificationwrapper {
+	width: calc(100% - 30px);
 }
 
 #gamedetailscontent {
 	display: table-cell;
 	vertical-align: top;
 	position: relative;
-	padding-left: 15px;
+	padding: 0px 18px 0px 4px;
 }
 
 #gametitlewrapper {
-	height: 32px;
+	height: 34px;
+	margin-bottom: 10px;
+	overflow: hidden;
+}
+
+#gametitle {
+	color: #fff;
+	text-shadow: 2px 2px 8px #000;
 }
 
 #gametitlecaption {
+	display: inline-block;
+	float: left;
+	margin-top: 6px;
 	font-size: 16px;
+	line-height: 22px;
+	color: #9da9b5;
+	text-shadow: 1px 1px 4px #000;
+	white-space: nowrap;
+	max-width: 40%;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+#gametitlecaption:before {
+	content: "\00b7";
+	display: inline-block;
+	padding: 0px 10px;
+	color: #6f7b87;
+	font-weight: normal;
+}
+
+#gametitlecaption:empty {
+	display: none;
+}
+
+#gametitlecaption:empty:before {
+	content: none;
 }
 
 /* sliders */
 
+#sliderwrapper {
+	margin-top: 10px;
+}
+
 #sliderpanels {
+	clear: both;
+	padding: 0px 14px;
+	border-radius: 0px 20px 20px 20px;
+	background: rgba(10,16,22,0.96);
+	box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
 }
 
 div.slidingpanel {
-	padding: 10px 0px;
+	padding: 14px 0px;
 }
 
 div.slidingpanel.closed { 
@@ -967,17 +1113,32 @@ div.slidingpanel.closed {
 
 #slidericons {
 	padding: 0px;
-	margin: 10px 0 0 0;
+	margin: 0px;
 	list-style-type: none;
-	overflow: hidden;
+	overflow: visible;
 }
 
 #slidericons li {
 	display: inline-block;
-	height: 20px;
-	width: 20px;
-	margin-right: 10px;
+	width: auto;
+	min-width: 72px;
+	min-height: 34px;
+	line-height: 34px;
+	padding: 0px 14px 0px 38px;
+	margin: 0px 5px -1px 0px;
+	box-sizing: border-box;
 	cursor: pointer;
+	color: #c3ced8;
+	font-size: 12px;
+	font-weight: bold;
+	letter-spacing: 0.06em;
+	text-align: left;
+	text-shadow: 1px 1px 2px #000;
+	border-bottom-color: #232b34;
+	border-radius: 5px 5px 0px 0px;
+	background-color: rgba(81,97,112,0.28);
+	background-position: 12px center;
+	background-repeat: no-repeat;
 
 	transition:All 200ms ease-in;
 	-webkit-transition:All 200ms ease-in;
@@ -985,37 +1146,555 @@ div.slidingpanel.closed {
 	-o-transition:All 200ms ease-in;
 }
 
+#slidericons li:hover,
+#slidericons li:focus {
+	color: #fff;
+	outline: none;
+	border-color: #5f7184;
+	background-color: rgba(81,97,112,0.62);
+	box-shadow: inset 0 1px 0 rgba(255,255,255,0.10);
+}
+
 #slidericons li.deactivated {
 	display: none;
 }
 
 #slidericons .info {
-	background: url("http://cdn.crazyerics.com/images/sliders/info.png") center center no-repeat;
+	background-image: url("http://cdn.crazyerics.com/images/sliders/info.png");
 }
 
 #slidericons .controls {
-	background: url("http://cdn.crazyerics.com/images/sliders/controls.png") center center no-repeat;
+	background-image: url("http://cdn.crazyerics.com/images/sliders/controls.png");
 }
 
 #slidericons .screenshots {
-	background: url("http://cdn.crazyerics.com/images/sliders/screenshots.png") center center no-repeat;
+	background-image: url("http://cdn.crazyerics.com/images/sliders/screenshots.png");
 }
 
 #slidericons .versions {
-	background: url("http://cdn.crazyerics.com/images/sliders/versions.png") center center no-repeat;
+	background-image: url("http://cdn.crazyerics.com/images/sliders/versions.png");
 }
 
 #slidericons .on {
+	color: #fff;
+	border-bottom-color: #0a1016;
+	background-color: rgba(10,16,22,0.96);
 
-	-webkit-transform: rotate(180deg);
-    -moz-transform: rotate(180deg);
-    -o-transform: rotate(180deg);
-    -ms-transform: rotate(180deg);
-    transform: rotate(180deg);
+	-webkit-transform: none;
+    -moz-transform: none;
+    -o-transform: none;
+    -ms-transform: none;
+    transform: none;
+}
+
+#slidericons .on:hover,
+#slidericons .on:focus {
+	background-color: rgba(10,16,22,0.96);
 }
 
 #Controls-slider td {
 	vertical-align: top;
+}
+
+#Controls-slider {
+	color: #d7e2ee;
+}
+
+#Controls-slider .controls-slider-empty {
+	padding: 18px;
+	color: #98a6b5;
+	font-size: 13px;
+	text-align: center;
+	border: 1px dashed rgba(255,255,255,0.16);
+	border-radius: 8px;
+	background: rgba(255,255,255,0.03);
+}
+
+.controls-manual {
+	display: -webkit-box;
+	display: -webkit-flex;
+	display: -ms-flexbox;
+	display: flex;
+	gap: 16px;
+	align-items: stretch;
+}
+
+.controls-manual-main,
+.controls-extra-panel {
+	box-sizing: border-box;
+	border-radius: 12px;
+	background: rgba(18,27,38,0.72);
+	box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), 0px 10px 22px rgba(0,0,0,0.26);
+}
+
+.controls-manual-main {
+	-webkit-box-flex: 1;
+	-webkit-flex: 1 1 690px;
+	-ms-flex: 1 1 690px;
+	flex: 1 1 690px;
+	min-width: 0;
+	padding: 15px;
+}
+
+.controls-manual-header {
+	display: -webkit-box;
+	display: -webkit-flex;
+	display: -ms-flexbox;
+	display: flex;
+	-webkit-box-pack: justify;
+	-webkit-justify-content: space-between;
+	-ms-flex-pack: justify;
+	justify-content: space-between;
+	-webkit-box-align: start;
+	-webkit-align-items: flex-start;
+	-ms-flex-align: start;
+	align-items: flex-start;
+	gap: 12px;
+	margin: 0px 0px 12px 0px;
+	padding-bottom: 10px;
+	border-bottom: 1px solid rgba(255,255,255,0.10);
+}
+
+.controls-manual-titlegroup h3 {
+	margin: 0px;
+	color: #fff;
+	font-family: Poppins, "Open Sans", sans-serif;
+	font-size: 20px;
+	line-height: 24px;
+	font-weight: bold;
+	letter-spacing: 0.02em;
+	text-shadow: 2px 2px 6px #000;
+}
+
+.controls-manual-titlegroup p {
+	margin: 4px 0px 0px 0px;
+	color: #aebdca;
+	font-size: 12px;
+	line-height: 17px;
+}
+
+.controls-manual-badge {
+	padding: 5px 8px;
+	white-space: nowrap;
+	color: #ffefea;
+	font-size: 10px;
+	font-weight: bold;
+	letter-spacing: 0.09em;
+	text-transform: uppercase;
+	border: 1px solid rgba(230,71,56,0.52);
+	border-radius: 999px;
+	background: rgba(188,36,28,0.24);
+	box-shadow: inset 0 1px 0 rgba(255,255,255,0.10);
+}
+
+.controls-manual-diagram {
+	position: relative;
+	min-height: 348px;
+	overflow: hidden;
+	border-radius: 10px;
+	background: #111923;
+	background: -moz-radial-gradient(center, ellipse cover, rgba(52,70,86,0.58) 0%, rgba(16,24,34,0.96) 56%, rgba(7,11,16,1) 100%);
+	background: -webkit-radial-gradient(center, ellipse cover, rgba(52,70,86,0.58) 0%, rgba(16,24,34,0.96) 56%, rgba(7,11,16,1) 100%);
+	background: radial-gradient(ellipse at center, rgba(52,70,86,0.58) 0%, rgba(16,24,34,0.96) 56%, rgba(7,11,16,1) 100%);
+}
+
+.controls-manual-diagram:before {
+	content: "";
+	position: absolute;
+	top: 0px;
+	right: 0px;
+	bottom: 0px;
+	left: 0px;
+	background-image: linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.026) 1px, transparent 1px);
+	background-size: 24px 24px;
+	pointer-events: none;
+}
+
+.controls-controller-photo {
+	position: absolute;
+	z-index: 1;
+	left: 50%;
+	top: 52%;
+	width: 58%;
+	max-width: 560px;
+	min-width: 360px;
+	height: auto;
+	-webkit-transform: translate(-50%, -50%);
+	-moz-transform: translate(-50%, -50%);
+	-o-transform: translate(-50%, -50%);
+	-ms-transform: translate(-50%, -50%);
+	transform: translate(-50%, -50%);
+	filter: drop-shadow(0px 18px 18px rgba(0,0,0,0.56));
+	transition: All 200ms ease-in;
+	-webkit-transition: All 200ms ease-in;
+	-moz-transition: All 200ms ease-in;
+	-o-transition: All 200ms ease-in;
+}
+
+.controls-manual-diagram-gba {
+	min-height: 370px;
+}
+
+.controls-controller-photo-gba {
+	top: 53%;
+	width: 72%;
+	max-width: 650px;
+	min-width: 420px;
+}
+
+.controls-manual-gba .controls-callout {
+	width: 112px;
+}
+
+.controls-callout-lines {
+	position: absolute;
+	z-index: 2;
+	top: 0px;
+	right: 0px;
+	bottom: 0px;
+	left: 0px;
+	width: 100%;
+	height: 100%;
+	pointer-events: none;
+}
+
+.controls-callout-lines line {
+	stroke: rgba(220,235,250,0.70);
+	stroke-width: 0.55;
+	vector-effect: non-scaling-stroke;
+}
+
+.controls-callout-lines circle {
+	fill: #f1f7ff;
+	stroke: rgba(7,11,16,0.85);
+	stroke-width: 0.45;
+	vector-effect: non-scaling-stroke;
+}
+
+.controls-callout {
+	position: absolute;
+	text-align: center;
+	z-index: 3;
+	width: 108px;
+	min-height: 54px;
+	padding: 8px 9px;
+	box-sizing: border-box;
+	border: 1px solid rgba(190,213,232,0.42);
+	border-radius: 8px;
+	background: rgba(8,13,19,0.88);
+	box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0px 8px 15px rgba(0,0,0,0.34);
+	-webkit-transform: translate(-50%, -50%);
+	-moz-transform: translate(-50%, -50%);
+	-o-transform: translate(-50%, -50%);
+	-ms-transform: translate(-50%, -50%);
+	transform: translate(-50%, -50%);
+}
+
+.controls-callout-action {
+	margin-bottom: 5px;
+	color: #fff;
+	font-size: 12px;
+	font-weight: bold;
+	letter-spacing: 0.05em;
+	text-transform: uppercase;
+	text-shadow: 1px 1px 2px #000;
+}
+
+.controls-callout-assignment,
+.controls-generic-assignment {
+	display: block;
+	font-size: 0px;
+}
+
+.controls-assignment-chip {
+	display: inline-block;
+	margin: 0px 4px 4px 0px;
+	padding: 3px 6px;
+	vertical-align: top;
+	color: #e6f0fb;
+	font-size: 11px;
+	line-height: 15px;
+	border: 1px solid rgba(255,255,255,0.13);
+	border-radius: 5px;
+	background: rgba(255,255,255,0.08);
+}
+
+.controls-assignment-chip strong {
+	margin-left: 5px;
+	color: #fff;
+	font-weight: bold;
+}
+
+.controls-assignment-source {
+	color: #97a8b8;
+	font-size: 9px;
+	font-weight: bold;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+}
+
+.controls-assignment-keyboard {
+	border-color: rgba(96,149,198,0.38);
+	background: rgba(42,86,126,0.28);
+}
+
+.controls-assignment-gamepad {
+	border-color: rgba(230,71,56,0.38);
+	background: rgba(165,42,34,0.28);
+}
+
+.controls-assignment-missing {
+	display: inline-block;
+	padding: 3px 6px;
+	color: #aeb8c2;
+	font-size: 11px;
+	line-height: 15px;
+	font-style: italic;
+	border: 1px solid rgba(255,255,255,0.10);
+	border-radius: 5px;
+	background: rgba(255,255,255,0.04);
+}
+
+.controls-extra-panel {
+	-webkit-box-flex: 0;
+	-webkit-flex: 0 0 255px;
+	-ms-flex: 0 0 255px;
+	flex: 0 0 255px;
+	padding: 15px;
+}
+
+.controls-extra-panel h4,
+.controls-generic-mappings-card h4 {
+	margin: 0px 0px 8px 0px;
+	color: #fff;
+	font-family: Poppins, "Open Sans", sans-serif;
+	font-size: 15px;
+	line-height: 20px;
+	font-weight: bold;
+	text-shadow: 1px 1px 3px #000;
+}
+
+.controls-extra-panel p {
+	margin: 0px 0px 12px 0px;
+	color: #9eacba;
+	font-size: 12px;
+	line-height: 17px;
+}
+
+.controls-extra-panel ul,
+.controls-generic-mappings {
+	margin: 0px;
+	padding: 0px;
+	list-style: none;
+}
+
+.controls-extra-panel li {
+	display: -webkit-box;
+	display: -webkit-flex;
+	display: -ms-flexbox;
+	display: flex;
+	-webkit-box-pack: justify;
+	-webkit-justify-content: space-between;
+	-ms-flex-pack: justify;
+	justify-content: space-between;
+	gap: 10px;
+	padding: 7px 0px;
+	border-top: 1px solid rgba(255,255,255,0.07);
+}
+
+.controls-extra-panel li:first-child {
+	border-top: 0px;
+}
+
+.controls-command-name {
+	color: #c4d0dc;
+	font-size: 12px;
+	line-height: 18px;
+}
+
+.controls-command-key {
+	min-width: 46px;
+	padding: 2px 7px;
+	box-sizing: border-box;
+	color: #fff;
+	font-size: 11px;
+	font-weight: bold;
+	line-height: 16px;
+	text-align: center;
+	white-space: nowrap;
+	border: 1px solid rgba(255,255,255,0.13);
+	border-radius: 999px;
+	background: rgba(255,255,255,0.08);
+}
+
+.controls-generic-body {
+	display: -webkit-box;
+	display: -webkit-flex;
+	display: -ms-flexbox;
+	display: flex;
+	gap: 16px;
+}
+
+.controls-generic-image-card {
+	-webkit-box-flex: 0;
+	-webkit-flex: 0 0 330px;
+	-ms-flex: 0 0 330px;
+	flex: 0 0 330px;
+	display: -webkit-box;
+	display: -webkit-flex;
+	display: -ms-flexbox;
+	display: flex;
+	-webkit-box-align: center;
+	-webkit-align-items: center;
+	-ms-flex-align: center;
+	align-items: center;
+	-webkit-box-pack: center;
+	-webkit-justify-content: center;
+	-ms-flex-pack: center;
+	justify-content: center;
+	min-height: 210px;
+	padding: 12px;
+	box-sizing: border-box;
+	border: 1px solid rgba(255,255,255,0.10);
+	border-radius: 10px;
+	background: rgba(0,0,0,0.22);
+}
+
+.controls-generic-controller {
+	max-width: 100%;
+	max-height: 210px;
+	height: auto;
+	transition: All 200ms ease-in;
+	-webkit-transition: All 200ms ease-in;
+	-moz-transition: All 200ms ease-in;
+	-o-transition: All 200ms ease-in;
+}
+
+.controls-generic-mappings-card {
+	-webkit-box-flex: 1;
+	-webkit-flex: 1 1 auto;
+	-ms-flex: 1 1 auto;
+	flex: 1 1 auto;
+	min-width: 210px;
+}
+
+.controls-generic-mappings li {
+	padding: 7px 0px;
+	border-top: 1px solid rgba(255,255,255,0.07);
+}
+
+.controls-generic-mappings li:first-child {
+	border-top: 0px;
+}
+
+.controls-generic-action {
+	display: block;
+	margin-bottom: 4px;
+	color: #fff;
+	font-size: 12px;
+	font-weight: bold;
+	letter-spacing: 0.03em;
+}
+
+.controls-generic-empty {
+	color: #98a6b5;
+	font-size: 12px;
+	font-style: italic;
+}
+
+@media screen and (max-width: 980px) {
+	.controls-manual {
+		display: block;
+	}
+
+	.controls-extra-panel {
+		margin-top: 14px;
+	}
+
+	.controls-manual-diagram {
+		min-height: 0px;
+		padding: 18px;
+		overflow: visible;
+	}
+
+	.controls-callout-lines {
+		display: none;
+	}
+
+	.controls-controller-photo {
+		position: relative;
+		left: auto;
+		top: auto;
+		display: block;
+		width: 100%;
+		max-width: 520px;
+		min-width: 0px;
+		margin: 0px auto 16px auto;
+		-webkit-transform: none;
+		-moz-transform: none;
+		-o-transform: none;
+		-ms-transform: none;
+		transform: none;
+	}
+
+	.controls-controller-photo-gba {
+		width: 100%;
+		max-width: 560px;
+		min-width: 0px;
+	}
+
+	.controls-callout {
+		position: static;
+		display: inline-block;
+		width: 47%;
+		min-height: 0px;
+		margin: 0px 1% 8px 1%;
+		vertical-align: top;
+		-webkit-transform: none;
+		-moz-transform: none;
+		-o-transform: none;
+		-ms-transform: none;
+		transform: none;
+	}
+
+	.controls-generic-body {
+		display: block;
+	}
+
+	.controls-generic-image-card {
+		margin-bottom: 14px;
+	}
+}
+
+@media screen and (max-width: 620px) {
+	.controls-manual-main,
+	.controls-extra-panel {
+		padding: 12px;
+	}
+
+	.controls-manual-header {
+		display: block;
+	}
+
+	.controls-manual-badge {
+		display: inline-block;
+		margin-top: 8px;
+	}
+
+	.controls-callout {
+		display: block;
+		width: auto;
+		margin: 0px 0px 8px 0px;
+	}
+
+	.controls-extra-panel li {
+		display: block;
+	}
+
+	.controls-command-key {
+		display: inline-block;
+		margin-top: 4px;
+	}
 }
 
 #Info-slider td {
@@ -1104,48 +1783,89 @@ div.screenshot-tooltip div {
 	cursor: pointer;
 }
 
-.tooltipster-sidetip.tooltipster-shadow .tooltipster-content .button {
+.tooltipster-sidetip.tooltipster-shadow .tooltipster-content .button,
+.gamepadconfigactions .button,
+#loadnosaves.button {
 	margin: 10px 0px;
 	height: 25px;
 	line-height: 25px;
 	padding: 5px 10px;
+	box-sizing: content-box;
 	font-weight: bold;
     cursor: pointer;
     color: #1a1f26;
 	border-radius: 3px;
 	display: inline-block;
+	vertical-align: middle;
 	color: #eee;
 	margin-left: 10px;
 }
 
-.tooltipster-sidetip.tooltipster-shadow .tooltipster-content .button.first {
+.gamepadconfigactions .button,
+#loadnosaves.button {
+	border: 0;
+	font-family: 'Poppins', sans-serif;
+	font-size: 12px;
+}
+
+#loadnosaves.button {
+	margin-left: 0;
+}
+
+.tooltipster-sidetip.tooltipster-shadow .tooltipster-content .button.first,
+.gamepadconfigactions .button.first {
 	margin-left: 0px;
 }
 
-.tooltipster-sidetip.tooltipster-shadow .tooltipster-content .button {
+.tooltipster-sidetip.tooltipster-shadow .tooltipster-content .button,
+.gamepadconfigactions .button,
+#loadnosaves.button {
 	background-image: linear-gradient(#727272, #303030);
 }
 
-.tooltipster-sidetip.tooltipster-shadow .tooltipster-content .button:active {
+.tooltipster-sidetip.tooltipster-shadow .tooltipster-content .button:active,
+.gamepadconfigactions .button:active,
+#loadnosaves.button:active {
 	background-image: linear-gradient(#303030, #727272);
 }
 
-.tooltipster-sidetip.tooltipster-shadow .tooltipster-content .play {
+.tooltipster-sidetip.tooltipster-shadow .tooltipster-content .play,
+.gamepadconfigactions .play {
 	background-image: linear-gradient(#8fdb46, #73d216);
 	color: #303030;
 }
 
-.tooltipster-sidetip.tooltipster-shadow .tooltipster-content .play:active {
+.tooltipster-sidetip.tooltipster-shadow .tooltipster-content .play:active,
+.gamepadconfigactions .play:active {
 	background-image: linear-gradient(#73d216, #8fdb46);
 }
 
-.tooltipster-sidetip.tooltipster-shadow .tooltipster-content .remove {
+.tooltipster-sidetip.tooltipster-shadow .tooltipster-content .remove,
+.gamepadconfigactions .remove,
+#loadnosaves.remove {
 	background-image: linear-gradient(#db4646, #d21616);
 	color: #303030;
 }
 
-.tooltipster-sidetip.tooltipster-shadow .tooltipster-content .remove:active {
+.tooltipster-sidetip.tooltipster-shadow .tooltipster-content .remove:active,
+.gamepadconfigactions .remove:active,
+#loadnosaves.remove:active {
 	background-image: linear-gradient(#d21616, #db4646);
+}
+
+.gamepadconfigactions .map {
+	background-image: linear-gradient(#f0d350, #e5a800);
+	color: #303030;
+}
+
+.gamepadconfigactions .map:active {
+	background-image: linear-gradient(#e5a800, #f0d350);
+}
+
+.gamepadconfigactions .button:focus,
+#loadnosaves.button:focus {
+	outline: 1px dotted #fff;
+	outline-offset: 2px;
 }
 
 #openCollectionGrid {

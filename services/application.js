@@ -199,8 +199,10 @@ module.exports = new (function() {
                     'boxcdnversion': systems[system].boxcdnversion,
                     'romcdnversion': systems[system].romcdnversion,
                     'emuextention': systems[system].emuextention,
+                    'emulatorpath': systems[system].emulatorpath,
                     'emuscript': systems[system].emuscript,
                     'retroarch': systems[system].retroarch,
+                    'controllerDiagram': systems[system].controllerDiagram,
                     'screenshotaspectratio': systems[system].screenshotaspectratio,
                     'supportfiles': systems[system].supportfiles,
                     'cannedSuggestion': false
@@ -224,6 +226,9 @@ module.exports = new (function() {
 
         //button mappings
         configdata['mappings'] = config.get('mappings');
+
+        //keyboard input defaults used by the client controls reference
+        configdata['input'] = config.get('input');
 
         //settings defaults for client
         configdata['defaults'] = config.get('defaults');

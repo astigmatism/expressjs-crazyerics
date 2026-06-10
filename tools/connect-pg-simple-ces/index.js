@@ -1,9 +1,10 @@
 'use strict';
 
+const path = require('path');
 const url = require('url');
 const util = require('util');
 const oneDay = 86400;
-const UserService = require('../../services/users.js');
+const UserService = require(path.join(process.cwd(), 'services/users.js'));
 
 const currentTimestamp = function () {
   return Math.ceil(Date.now() / 1000);
@@ -222,9 +223,9 @@ module.exports = function (session) {
         const query = 'INSERT INTO ' + self.quotedTable() + ' (sess, expire, sid) SELECT $1, to_timestamp($2), $3 WHERE NOT EXISTS (SELECT 1 FROM ' + self.quotedTable() + ' WHERE sid = $4)';
 
         self.query(query, [sess, expireTime, sid, sid], function (err) {
-          if (fn) { 
+          if (fn) {
             fn.apply(this, err);
-            //UserService.OnSessionCreation(sid);
+            // UserService.OnSessionCreation(sid);
           }
         });
       } else {
@@ -242,7 +243,7 @@ module.exports = function (session) {
 
   PGStore.prototype.destroy = function (sid, fn) {
     this.query('DELETE FROM ' + this.quotedTable() + ' WHERE sid = $1', [sid], function (err) {
-      if (fn) { 
+      if (fn) {
         fn(err);
         UserService.OnSessionPrune();
       }

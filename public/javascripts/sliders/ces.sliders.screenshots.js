@@ -11,6 +11,7 @@ var cesSlidersScreenshots = (function(_config, $li, $panel, Open) {
     this.Activate = function(gameKey, _PubSub, _Tooltips, _Compression, _Media) {
         
         _grid.isotope('remove', _grid.children()); //clear on activation (sanity)
+        _grid.css('min-height', '');
         _pubSub = _PubSub;
         _tooltips = _Tooltips;
         _gameKey = gameKey;
@@ -22,6 +23,7 @@ var cesSlidersScreenshots = (function(_config, $li, $panel, Open) {
     this.Deactivate = function() {
 
         _grid.isotope('remove', _grid.children()); //clear on deactivation
+        _grid.css('min-height', '');
         _pubSub.Unsubscribe('screenshotWritten');
     };
 
@@ -30,11 +32,65 @@ var cesSlidersScreenshots = (function(_config, $li, $panel, Open) {
         //TODO: show different messages
         (_grid.children().length > 0) ? ToggleEmptyList(false) : ToggleEmptyList(true);
         callback(true);
+        ScheduleGridLayout('screenshots slider open');
     };
 
     this.OnClose = function(callback) {
 
         callback(true);
+    };
+
+    var ScheduleGridLayout = function(reason) {
+
+        var delays = [0, 50, 150, 300, 650, 1100];
+        var i;
+
+        for (i = 0; i < delays.length; i++) {
+            setTimeout(function() {
+                LayoutGrid(reason);
+            }, delays[i]);
+        }
+    };
+
+    var LayoutGrid = function(reason) {
+
+        if (!_grid || !_grid.length) {
+            return;
+        }
+
+        try {
+            if ($.fn && $.fn.isotope && _grid.data('isotope')) {
+                _grid.isotope('layout');
+            }
+        }
+        catch (e) {
+        }
+
+        EnsureGridHeight();
+    };
+
+    var EnsureGridHeight = function() {
+
+        var requiredHeight = 0;
+
+        if (!_grid || !_grid.length) {
+            return;
+        }
+
+        _grid.children('.grid-item').each(function() {
+            var $item = $(this);
+            var top = parseFloat($item.css('top'));
+
+            if (isNaN(top)) {
+                top = $item.position().top || 0;
+            }
+
+            requiredHeight = Math.max(requiredHeight, top + $item.outerHeight(true));
+        });
+
+        if (requiredHeight > 20 && _grid.height() < requiredHeight) {
+            _grid.css('min-height', Math.ceil(requiredHeight) + 'px');
+        }
     };
 
     var OnNewScreenshot = function(filename, contents, screenDataUnzipped, system, title) {
@@ -47,6 +103,14 @@ var cesSlidersScreenshots = (function(_config, $li, $panel, Open) {
 
         var $img = $('<img class="close" />');
         var base64String = btoa(String.fromCharCode.apply(null, new Uint8Array(contents)));
+        var revealAndLayout = function() {
+            $img.removeClass('close');
+            ScheduleGridLayout('new screenshot image ready');
+        };
+
+        $img.on('load', function() {
+            revealAndLayout();
+        });
         $img.attr('src', 'data:image/jpg;base64,' + base64String);
         $img.on('click', function(e) {
             ImageDownload(e, filename);
@@ -79,10 +143,15 @@ var cesSlidersScreenshots = (function(_config, $li, $panel, Open) {
         
         $griditem.append($img); //add all visual content from gamelink to grid
         
-        $img.imagesLoaded().progress(function(imgLoad, image) {
-            $img.removeClass('close'); //remove close on parent to reveal image
-            _grid.isotope('layout');
-        });
+        if ($.fn && $.fn.imagesLoaded) {
+            $img.imagesLoaded().progress(function(imgLoad, image) {
+                revealAndLayout();
+            });
+        }
+
+        if ($img[0] && $img[0].complete) {
+            revealAndLayout();
+        }
 
         _grid.isotope('insert', $griditem);
 
@@ -93,6 +162,7 @@ var cesSlidersScreenshots = (function(_config, $li, $panel, Open) {
 
         //open myself
         Open();
+        ScheduleGridLayout('new screenshot inserted');
     };
 
     var Contribute = function(isTitleScreen, contents, callback) {

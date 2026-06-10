@@ -4,6 +4,7 @@ var cesInputHelper = (function(_Emulator, _Preferences, _Gamepad, _ui, _Logging)
     //private members
     var self = this;
     var _keypresslocked = false; //if we are simulating a keypress (down and up) this boolean prevents another keypress until the current one is complete
+    var _disposed = false;
     
     var _originalEmulatorKeydownHandlerFunctions = {}; //the separated original work functions attached to the keydown handlers
     var _modifiedEmulatorKeydownHandlers = {};
@@ -14,6 +15,8 @@ var cesInputHelper = (function(_Emulator, _Preferences, _Gamepad, _ui, _Logging)
     var _keydownOperationHandlers = {}; // { keycode: function}
     var _keyupOperationHandlers = {};
     var _keyUpDelay = 200; //the 1.6.7 emulator was happy with this value. make it no less
+    var _simulatedKeyupTimeouts = [];
+    var _keyboardListener = null;
 
     //auto save
     var _idleKeyTimeout = null;
@@ -75,6 +78,10 @@ var cesInputHelper = (function(_Emulator, _Preferences, _Gamepad, _ui, _Logging)
      */
 
     this.OverrideEmulatorKeydownHandler = function(eventHandler) {
+
+        if (_disposed) {
+            return eventHandler;
+        }
         
         if (!eventHandler.hasOwnProperty('target')) {
             return eventHandler;
@@ -91,8 +98,16 @@ var cesInputHelper = (function(_Emulator, _Preferences, _Gamepad, _ui, _Logging)
                     
         eventHandler.handlerFunc = function(event, args) {
 
+            if (_disposed) {
+                return false;
+            }
+
             //sometimes I want to influence behaviors of keystokes before the emulator
             OnBeforeEmulatorKeydown(event, function(proceed) {
+
+                if (_disposed) {
+                    return;
+                }
 
                 //perform original handler function
                 if (proceed) {
@@ -125,10 +140,42 @@ var cesInputHelper = (function(_Emulator, _Preferences, _Gamepad, _ui, _Logging)
 
         if (_idleKeyTimeout) {
             clearTimeout(_idleKeyTimeout);
+            _idleKeyTimeout = null;
         }
     };
 
+    this.Dispose = function() {
+
+        if (_disposed) {
+            return;
+        }
+
+        _disposed = true;
+
+        self.CancelIdleTimeout();
+        RemoveKeyboardListener();
+        ClearSimulatedKeyupTimeouts();
+
+        _keydownOperationHandlers = {};
+        _keyupOperationHandlers = {};
+        _originalEmulatorKeydownHandlerFunctions = {};
+        _modifiedEmulatorKeydownHandlers = {};
+        _originalEmulatorKeyupHandlerFunctions = {};
+        _modifiedEmulatorKeyupHandlers = {};
+
+        _Logging.Console('cesInputHelper', 'Disposed input helper handlers');
+    };
+
+    this.IsDisposed = function() {
+
+        return _disposed;
+    };
+
     this.OverrideEmulatorKeyupHandler = function(eventHandler) {
+
+        if (_disposed) {
+            return eventHandler;
+        }
 
         if (!eventHandler.hasOwnProperty('target')) {
             return eventHandler;
@@ -145,8 +192,16 @@ var cesInputHelper = (function(_Emulator, _Preferences, _Gamepad, _ui, _Logging)
 
         eventHandler.handlerFunc = function(event, args) {
 
+            if (_disposed) {
+                return false;
+            }
+
             //sometimes I want to influence behaviors of keyups before the emulator
             OnBeforeEmulatorKeyup(event, function(proceed) {
+
+                if (_disposed) {
+                    return;
+                }
 
                 //perform original handler function
                 if (proceed) {
@@ -163,6 +218,10 @@ var cesInputHelper = (function(_Emulator, _Preferences, _Gamepad, _ui, _Logging)
 
     this.RegisterKeydownOperationHandler = function(operation, handler) {
 
+        if (_disposed) {
+            return;
+        }
+
         if (!_operationMap.hasOwnProperty(operation)) {
             return;
         }
@@ -172,6 +231,10 @@ var cesInputHelper = (function(_Emulator, _Preferences, _Gamepad, _ui, _Logging)
     };
 
     this.RegisterKeyupOperationHandler = function(operation, handler) {
+
+        if (_disposed) {
+            return;
+        }
 
         if (!_operationMap.hasOwnProperty(operation)) {
             return;
@@ -201,32 +264,88 @@ var cesInputHelper = (function(_Emulator, _Preferences, _Gamepad, _ui, _Logging)
 
     this.Keypress = function(operation, callback, args) {
 
-        if (!_operationMap.hasOwnProperty(operation) || _keypresslocked || $.isEmptyObject(_originalEmulatorKeydownHandlerFunctions)) {
-            return;
+        if (_disposed) {
+            _Logging.Console('cesInputHelper', 'Unable to simulate keypress for ' + operation + ': input helper is disposed');
+            if (callback) {
+                callback('input helper disposed');
+            }
+            return false;
         }
+
+        if (!_operationMap.hasOwnProperty(operation)) {
+            _Logging.Console('cesInputHelper', 'Unable to simulate keypress for unknown operation: ' + operation);
+            if (callback) {
+                callback('unknown operation');
+            }
+            return false;
+        }
+
+        if (_keypresslocked) {
+            _Logging.Console('cesInputHelper', 'Unable to simulate keypress for ' + operation + ': keypress helper is locked');
+            if (callback) {
+                callback('keypress locked');
+            }
+            return false;
+        }
+
+        if ($.isEmptyObject(_originalEmulatorKeydownHandlerFunctions)) {
+            _Logging.Console('cesInputHelper', 'Unable to simulate keypress for ' + operation + ': emulator keydown handlers are not available yet');
+            if (callback) {
+                callback('emulator keydown handlers unavailable');
+            }
+            return false;
+        }
+
         var keycode = _operationMap[operation];
         _Logging.Console('cesInputHelper', 'Simulating keypress for ' + operation);
 
-        SimulateEmulatorKeypress(keycode, callback, args);
+        return SimulateEmulatorKeypress(keycode, callback, args);
     };
 
     this.GiveEmulatorControlOfInput = function(giveInput) {
 
+        if (_disposed) {
+            if (!giveInput) {
+                self.CancelIdleTimeout();
+                RemoveKeyboardListener();
+            }
+            return;
+        }
+
         if (giveInput) {
 
-            //common listener definition
-            var keyboardListener = function (e) {
-                if (_keysWhichHaveFunctionalityInTheBrowserWeWantToPrevent[e.which]) {
-                    e.preventDefault();
-                }
-            };
-            $(window).on('keydown', keyboardListener); //using jQuerys on and off here worked :P
+            AddKeyboardListener();
 
         } else {
             
             self.CancelIdleTimeout(); //in case its running
-            $(window).off('keydown');
+            RemoveKeyboardListener();
         }
+    };
+
+    var AddKeyboardListener = function() {
+
+        RemoveKeyboardListener();
+
+        //common listener definition
+        _keyboardListener = function (e) {
+            if (_keysWhichHaveFunctionalityInTheBrowserWeWantToPrevent[e.which]) {
+                e.preventDefault();
+            }
+        };
+        $(window).on('keydown.cesInputHelper', _keyboardListener); //using jQuerys on and off here worked :P
+    };
+
+    var RemoveKeyboardListener = function() {
+
+        if (_keyboardListener) {
+            $(window).off('keydown.cesInputHelper', _keyboardListener);
+            $(window).off('keydown', _keyboardListener);
+            _keyboardListener = null;
+            return;
+        }
+
+        $(window).off('keydown.cesInputHelper');
     };
 
     /**
@@ -238,10 +357,20 @@ var cesInputHelper = (function(_Emulator, _Preferences, _Gamepad, _ui, _Logging)
      */
     var OnBeforeEmulatorKeydown = function(event, proceedToEmulatorCallback, args) {
 
+        if (_disposed) {
+            proceedToEmulatorCallback(false);
+            return;
+        }
+
         var keycode = event.keyCode;
 
         if (keycode in _keydownOperationHandlers) {
             _keydownOperationHandlers[keycode](event, function(result) {
+
+                if (_disposed) {
+                    proceedToEmulatorCallback(false);
+                    return;
+                }
                 
                 //a true result will allow the input to each the emulator, false stops it here
                 proceedToEmulatorCallback(result);
@@ -266,6 +395,10 @@ var cesInputHelper = (function(_Emulator, _Preferences, _Gamepad, _ui, _Logging)
 
     var ResetIdleTimeout = function() {
 
+        if (_disposed) {
+            return;
+        }
+
         //bail early is disabled
         if (_disableAutoSave) {
             return;
@@ -274,6 +407,10 @@ var cesInputHelper = (function(_Emulator, _Preferences, _Gamepad, _ui, _Logging)
         self.CancelIdleTimeout(); //clear the current
 
         _idleKeyTimeout = setTimeout(function() {
+
+            if (_disposed) {
+                return;
+            }
 
             //catch if an operational input was last used
             var operationalKeyUsed = false;
@@ -284,7 +421,7 @@ var cesInputHelper = (function(_Emulator, _Preferences, _Gamepad, _ui, _Logging)
                 }
             }
 
-            if (!operationalKeyUsed) {
+            if (!operationalKeyUsed && _Emulator && _Emulator.OnInputIdle) {
                 _Emulator.OnInputIdle();
             }
 
@@ -293,10 +430,20 @@ var cesInputHelper = (function(_Emulator, _Preferences, _Gamepad, _ui, _Logging)
 
     var OnBeforeEmulatorKeyup = function(event, proceedToEmulatorCallback, args) {
 
+        if (_disposed) {
+            proceedToEmulatorCallback(false);
+            return;
+        }
+
         var keycode = event.keyCode;
 
         if (keycode in _keyupOperationHandlers) {
             _keyupOperationHandlers[keycode](event, function(result) {
+
+                if (_disposed) {
+                    proceedToEmulatorCallback(false);
+                    return;
+                }
                 
                 //a true result will allow the input to each the emulator, false stops it here
                 proceedToEmulatorCallback(result);
@@ -316,21 +463,50 @@ var cesInputHelper = (function(_Emulator, _Preferences, _Gamepad, _ui, _Logging)
      */
     var SimulateEmulatorKeypress = function(keycode, callback, args, keyUpDelay) {
 
+        if (_disposed) {
+            _Logging.Console('cesInputHelper', 'Unable to simulate keypress for code ' + keycode + ': input helper is disposed');
+            if (callback) {
+                callback('input helper disposed');
+            }
+            return false;
+        }
+
         //we need to have keydown and up handlers cached to simulate keypresses
         if ($.isEmptyObject(_modifiedEmulatorKeydownHandlers) || $.isEmptyObject(_modifiedEmulatorKeyupHandlers)) {
-            callback();
-            return;
+            _Logging.Console('cesInputHelper', 'Unable to simulate keypress for code ' + keycode + ': modified emulator handlers are not available yet');
+            if (callback) {
+                callback('modified emulator handlers unavailable');
+            }
+            return false;
         }
 
         keyUpDelay = keyUpDelay || _keyUpDelay;
         
-        var keydownHandler = _modifiedEmulatorKeydownHandlers[Object.keys(_modifiedEmulatorKeydownHandlers)[0]].handlerFunc; //take first handler, doesn't matter which really, its likely attached to window
-        var keyupHandler = _modifiedEmulatorKeyupHandlers[Object.keys(_modifiedEmulatorKeyupHandlers)[0]].handlerFunc; //take first handler, doesn't matter which really
+        var keydownHandlerRecord = _modifiedEmulatorKeydownHandlers[Object.keys(_modifiedEmulatorKeydownHandlers)[0]]; //take first handler, doesn't matter which really, its likely attached to window
+        var keyupHandlerRecord = _modifiedEmulatorKeyupHandlers[Object.keys(_modifiedEmulatorKeyupHandlers)[0]]; //take first handler, doesn't matter which really
+
+        if (!keydownHandlerRecord || !keydownHandlerRecord.handlerFunc || !keyupHandlerRecord || !keyupHandlerRecord.handlerFunc) {
+            _Logging.Console('cesInputHelper', 'Unable to simulate keypress for code ' + keycode + ': emulator handlers are not usable');
+            if (callback) {
+                callback('emulator handlers unusable');
+            }
+            return false;
+        }
+
+        var keydownHandler = keydownHandlerRecord.handlerFunc;
+        var keyupHandler = keyupHandlerRecord.handlerFunc;
         
         var keydown = GenerateEvent(keycode, 'keydown');
         var keyup = GenerateEvent(keycode, 'keyup');
 
-        setTimeout(function() {
+        var keyupTimeout = setTimeout(function() {
+
+            RemoveSimulatedKeyupTimeout(keyupTimeout);
+
+            if (_disposed) {
+                return;
+            }
+
             keyupHandler(keyup, args); //send the keyup event
             _Logging.Console('cesInputHelper', 'keyup for code ' + keycode + ' after ' + keyUpDelay + 'ms');
             
@@ -338,9 +514,31 @@ var cesInputHelper = (function(_Emulator, _Preferences, _Gamepad, _ui, _Logging)
                 callback();
             }
         }, keyUpDelay);
+
+        _simulatedKeyupTimeouts.push(keyupTimeout);
         keydownHandler(keydown, args); //send the keydown event
         
         _Logging.Console('cesInputHelper', 'keydown with code ' + keycode);
+        return true;
+    };
+
+    var ClearSimulatedKeyupTimeouts = function() {
+
+        for (var i = 0; i < _simulatedKeyupTimeouts.length; i++) {
+            clearTimeout(_simulatedKeyupTimeouts[i]);
+        }
+
+        _simulatedKeyupTimeouts = [];
+    };
+
+    var RemoveSimulatedKeyupTimeout = function(timeout) {
+
+        for (var i = 0; i < _simulatedKeyupTimeouts.length; i++) {
+            if (_simulatedKeyupTimeouts[i] === timeout) {
+                _simulatedKeyupTimeouts.splice(i, 1);
+                return;
+            }
+        }
     };
 
     var GenerateEvent = function(keyCode, eventType) {
@@ -374,24 +572,119 @@ var cesInputHelper = (function(_Emulator, _Preferences, _Gamepad, _ui, _Logging)
         return oEvent;
     };
 
-    this.BuildInputConfiguration = function(gameKey) {
+    var IsAxisAssignment = function(assignment) {
+        return (typeof assignment === 'string' && /^[+-]\d+$/.test(assignment));
+    };
+
+    var IsButtonAssignment = function(assignment) {
+        return (typeof assignment === 'number' || (typeof assignment === 'string' && (/^\d+$/.test(assignment) || /^h\d+(up|down|left|right)$/i.test(assignment))));
+    };
+
+    var GetInputBaseName = function(configName) {
+        return String(configName).replace(/_(btn|axis)$/, '');
+    };
+
+    var ResolveConfigNameForAssignment = function(configName, assignment, normalizeAssignmentType) {
+
+        if (!normalizeAssignmentType) {
+            return configName;
+        }
+
+        var inputBaseName = GetInputBaseName(configName);
+        if (IsAxisAssignment(assignment)) {
+            return inputBaseName + '_axis';
+        }
+
+        if (IsButtonAssignment(assignment)) {
+            return inputBaseName + '_btn';
+        }
+
+        return configName;
+    };
+
+    var SerializeInputAssignment = function(assignment, quoteAxisAssignments) {
+
+        if (assignment === '') {
+            return '';
+        }
+
+        if (!quoteAxisAssignments) {
+            return assignment;
+        }
+
+        if (typeof assignment === 'number') {
+            return assignment;
+        }
+
+        if (typeof assignment === 'string' && /^\d+$/.test(assignment)) {
+            return assignment;
+        }
+
+        return '"' + String(assignment).replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '"';
+    };
+
+    var LogInputConfiguration = function(message, options) {
+
+        var logName = (options && options.logPrefix) ? options.logPrefix : 'cesInputHelper';
+        if (_Logging && _Logging.Console) {
+            _Logging.Console(logName, message);
+            return;
+        }
+
+        if (window.console && console.log) {
+            console.log('[' + logName + '] ' + message);
+        }
+    };
+
+    this.BuildInputConfiguration = function(gameKey, options) {
+
+        options = options || {};
 
         var inputConfig = '';
         var playerIndex = 0;
 
+        var inputProfile = options.inputProfile || 'legacy-sdl2';
+        var applyLegacySdl2Conversion = (typeof options.applyLegacySdl2Conversion === 'boolean') ? options.applyLegacySdl2Conversion : (inputProfile !== 'browser-gamepad');
+        var includeJoypadIndex = !!options.includeJoypadIndex;
+        var normalizeAssignmentType = !!options.normalizeAssignmentType;
+        var quoteAxisAssignments = !!options.quoteAxisAssignments;
+
         //for each game pad, get input, returns array of array of input configurations (like _defaultKeyboardMapping)
-        var mappings = _Gamepad.GetConfiguredGamepadInput(gameKey);
+        var mappings = _Gamepad.GetConfiguredGamepadInput(gameKey, {
+            includeMetadata: true,
+            logMissing: true
+        });
+
+        LogInputConfiguration('Building controller input config for system=' + gameKey.system + ', mappings=' + mappings.length + ', profile=' + inputProfile + ', includeJoypadIndex=' + includeJoypadIndex + ', normalizeAssignmentType=' + normalizeAssignmentType + ', legacySdl2Conversion=' + applyLegacySdl2Conversion + '. Keyboard bindings remain in the base RetroArch config; appending joypad bindings here.', options);
 
         for (playerIndex; playerIndex < mappings.length; playerIndex++) {
 
-            //inputConfig += 'input_player' + (playerIndex + 1) + '_joypad_index = ' + playerIndex + '\n';
+            var mappingRecord = mappings[playerIndex] || {};
+            var mapping = mappingRecord.inputconfig || mappingRecord;
+            var joypadIndex = (typeof mappingRecord.index !== 'undefined') ? mappingRecord.index : playerIndex;
 
-            for (var configName in mappings[playerIndex]) {
-                var assignment = mappings[playerIndex][configName];
+            if (includeJoypadIndex) {
+                inputConfig += 'input_player' + (playerIndex + 1) + '_joypad_index = ' + joypadIndex + '\n';
+                LogInputConfiguration('Mapped player ' + (playerIndex + 1) + ' to browser gamepad index=' + joypadIndex + ', id=' + (mappingRecord.id || '(unknown)'), options);
+            }
 
-                //we don't save the "input_playerx_" in preferences, so add it here
-                inputConfig += 'input_player' + (playerIndex + 1) + '_' + configName + ' = ';
+            for (var configName in mapping) {
+                if (!mapping.hasOwnProperty(configName)) {
+                    continue;
+                }
 
+                var assignment = mapping[configName];
+
+                if (assignment === null || typeof assignment === 'undefined') {
+                    LogInputConfiguration('Skipping missing input field for player ' + (playerIndex + 1) + ': ' + configName, options);
+                    continue;
+                }
+
+                if (assignment === '') {
+                    LogInputConfiguration('Writing blank/unassigned input field for player ' + (playerIndex + 1) + ': ' + configName, options);
+                }
+
+                var retroArchConfigName = ResolveConfigNameForAssignment(configName, assignment, normalizeAssignmentType);
 
                 //HACK!!!  browser input to sdl2 conversion:
                 var sdl2 = {
@@ -402,11 +695,22 @@ var cesInputHelper = (function(_Emulator, _Preferences, _Gamepad, _ui, _Logging)
                     7: '\"+5\"'
                 };
 
-                if (sdl2[assignment]) {
+                if (applyLegacySdl2Conversion && sdl2.hasOwnProperty(assignment)) {
                     assignment = sdl2[assignment];
                 }
-                inputConfig += assignment + '\n';
+
+                if (retroArchConfigName !== configName) {
+                    LogInputConfiguration('Normalized input_player' + (playerIndex + 1) + '_' + configName + ' to input_player' + (playerIndex + 1) + '_' + retroArchConfigName + ' for assignment=' + assignment, options);
+                }
+
+                //we don't save the "input_playerx_" in preferences, so add it here
+                inputConfig += 'input_player' + (playerIndex + 1) + '_' + retroArchConfigName + ' = ';
+                inputConfig += SerializeInputAssignment(assignment, quoteAxisAssignments) + '\n';
             }
+        }
+
+        if (!mappings.length) {
+            LogInputConfiguration('No configured gamepad mappings were available; no joypad fields were appended to RetroArch config.', options);
         }
 
         //ok, gamepads have been added (or not), playerIndex now equals the next available player

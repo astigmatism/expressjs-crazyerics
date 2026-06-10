@@ -80,7 +80,12 @@ var cesGameLink = (function(_config, _Media, _Tooltips, _Collections, gameKey, c
             $tooltipContent.append($playbutton);
 
             var CheckCollectionOnTooltipOpen = (function() {
-                _Collections.IsEmpty() ? $addbutton.hide() : $addbutton.show();
+                if (_Collections.IsEmpty()) {
+                    $addbutton.hide();
+                }
+                else {
+                    $addbutton.css('display', 'inline-block');
+                }
                 return true; //returning true allows the dialog to continue openning (false would be early exit)
             });
 

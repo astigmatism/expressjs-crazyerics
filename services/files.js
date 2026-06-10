@@ -69,15 +69,25 @@ module.exports = new (function() {
 
     this.Request = function(url, callback, opt_filePath) {
         request(url, (err, response, body) => {
-            if (err) return callback(response.statusCode, err);
+            var statusCode = response && response.statusCode ? response.statusCode : 0;
 
-            body = JSON.parse(body);
+            if (err) {
+                console.log('FileService.Request failed for ' + url + ': ' + (err.message || err));
+                return callback(statusCode, err);
+            }
+
+            try {
+                body = JSON.parse(body);
+            } catch (parseErr) {
+                console.log('FileService.Request could not parse JSON from ' + url + ': ' + (parseErr.message || parseErr));
+                return callback(statusCode, parseErr);
+            }
 
             if (opt_filePath) {
                 _self.Set(opt_filePath, body, null, true); //cache and write file
             }
 
-            return callback(response.statusCode, null, body);
+            return callback(statusCode, null, body);
         });
     }
 

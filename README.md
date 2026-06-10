@@ -1,7 +1,38 @@
 expressjs-crazyerics
 =====
 
-buliding the application
+Running locally
+__________________
+
+The Pug layout references generated frontend assets from `./public/build`:
+
+- `./public/build/app.min.js`
+- `./public/build/style.min.css`
+
+These files are created by the Gulp tasks in `./gulpfile.js`. If they are missing or stale, build them before starting the app.
+
+From the project root, install dependencies once:
+
+```bash
+npm install
+```
+
+Then use the convenience script to rebuild the minified frontend assets and start the application:
+
+```bash
+./run-local.sh
+```
+
+The script runs these commands in order:
+
+```bash
+./node_modules/.bin/gulp minify-css
+./node_modules/.bin/gulp uglify
+node app.js
+```
+
+After startup, the app listens on port 3000.
+
 __________________
 
 Gulp.

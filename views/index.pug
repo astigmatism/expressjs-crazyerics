@@ -35,9 +35,9 @@ block content
                     div#gamepadwrapper
                         div#gamepadvoid
                         ul#gamepadinputs
-                    div
-                        h3#startgamepadover(class="zoom") Start Over
-                        h3#skipgamepadconfig(class="zoom") Don't Use this Gamepad
+                    div#gamepadconfigactions(class="gamepadconfigactions")
+                        button#startgamepadover(type="button", class="button map first zoom noselect") Start Over
+                        button#skipgamepadconfig(type="button", class="button remove zoom noselect") Skip Using This Gamepad
             div(class="dialogwrapper")
                 div(class="ShaderSelection")
                     h2 How do you want your game to appear?
@@ -48,7 +48,7 @@ block content
                 div(class="SaveSelection")
                     h2 Load recent saved progress?
                     ul#savesselectlist
-                    h3#loadnosaves(class="zoom") Skip
+                    button#loadnosaves(type="button", class="button remove zoom noselect") Skip
                     p(class="hide max") * You have reached the maximum number of saves allowed for this game. New saves will now replace the oldest saves.
                     p(class="hide near") * You are nearing the maximum number of saves allowed for this game. Delete some later to avoid new saves replacing the oldest saves. Unless that doesn't bother you.
             div(class="dialogwrapper")
@@ -95,32 +95,19 @@ block content
                     div#gamedetailscontent
                         div#gametitlewrapper
                             span#gametitle
-                        div#gametitlecaption
+                            span#gametitlecaption
                         div#sliderwrapper
                             ul#slidericons
-                                li(class="controls tooltip", data-slider="Controls", title="Controls")
-                                li(class="screenshots tooltip", data-slider="Screenshots", title="Screenshots")
-                                li(class="saves tooltip", title="Saves")
-                                li(class="info tooltip", data-slider="Info", title="Info")
-                                li(class="versions tooltip", data-slider="Roms", title="Alternate Versions")
+                                li(class="controls tooltip", data-slider="Controls", title="Controls") Controls
+                                li(class="screenshots tooltip", data-slider="Screenshots", title="Screenshots") Screenshots
+                                li(class="saves tooltip", title="Saves") Saves
+                                li(class="info tooltip", data-slider="Info", title="Info") Info
+                                li(class="versions tooltip", data-slider="Roms", title="Alternate Versions") Versions
                             //- sliding panels
                             div#sliderpanels
                                 div#Controls-slider(class="slidingpanel closed")
-                                    table
-                                        tr(class="controllers")
-                                            td
-                                                ul(class="mappings")
-                                            td
-                                                img(class="controller")
-                                            td
-                                                ul
-                                                    li R = Rewind
-                                                    li 1 = Save Progress
-                                                    li 4 = Load Last Progress
-                                                    li Space = Fast Forward
-                                                    li T = Take Screenshot
-                                                    li H = Reset System
-                                                    li P = Pause
+                                    div(class="controls-slider-content")
+                                        div(class="controls-slider-empty") Controls will appear when the game starts.
                                 div#Info-slider(class="slidingpanel closed")
                                     table
                                         tr
@@ -147,6 +134,8 @@ block content
                                         | * Your game collection will be updated to use the version of the game you have selected. 
                                         | * Save progress is specific to the game version you have selected.
                     div#gamedetailsboxfront
+                        button#emulatorfullscreenbutton(type="button", class="button zoom noselect", title="Enter fullscreen emulator play area", aria-label="Enter fullscreen emulator play area") Fullscreen
+                        div#gamedetailsboxfrontimage
 
     div#collectionsWrapper
         div#collectionTitle

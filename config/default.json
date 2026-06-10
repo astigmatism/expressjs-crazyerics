@@ -7,7 +7,8 @@
 		"video": "http://cdn.crazyerics.com/video", // /sq
 		"metadata": "http://cdn.crazyerics.com/metadata",
 		"textures": "http://cdn.crazyerics.com/textures",
-		"shaders": "http://cdn.crazyerics.com/shaders/2017-12-27", /* shader image previews at https://buildbot.libretro.com/.docs/shader/introduction/ */
+		"shaders": "http://cdn.crazyerics.com/shaders/2017-12-27", /* old CES packaged shader JSON artifacts */
+		"shaders_glsl": "/shaders_glsl", /* raw RetroArch .glslp/.glsl shader assets served from public/shaders_glsl */
 		"game": "http://cdn.crazyerics.com/game",
 		"emulator_extensions": "emulatorextentions/", //continue to load these locally since changes are made in this project a lot
 		"emulators": "http://cdn.crazyerics.com/emulators", //you'll need to manually move new emulators to each cdn
@@ -22,7 +23,7 @@
 	},
 	"db": {
 		"postgre": {
-			"host": "127.0.0.1",
+			"host": "192.168.1.4",
 			"user": "crazyerics",
 			"password": "FU.BexZM2d9aTWXAWvxPFKsv",
 			"database": "crazyerics",
@@ -129,11 +130,13 @@
 			"recommendedshaders": [
 				{
 					"title": "Game Boy",
-					"shader": "handheld-console-border-dmg-3x"
+					"shader": "handheld-console-border-dmg-3x",
+					"glslp": "handheld/console-border/dmg-3x.glslp"
 				},
 				{
 					"title": "Smoothed",
-					"shader": "xbrz-4xbrz-linear"
+					"shader": "xbrz-4xbrz-linear",
+					"glslp": "xbrz/4xbrz-linear.glslp"
 				}
 			],
 			"notes": "Collection is devided between gb and gbc and decompression step"
@@ -151,11 +154,13 @@
 			"recommendedshaders": [
 				{
 					"title": "Game Boy Color",
-					"shader": "handheld-console-border-gbc-3x"
+					"shader": "handheld-console-border-gbc-3x",
+					"glslp": "handheld/console-border/gbc-3x.glslp"
 				},
 				{
 					"title": "Smoothed",
-					"shader": "xbrz-4xbrz-linear"
+					"shader": "xbrz-4xbrz-linear",
+					"glslp": "xbrz/4xbrz-linear.glslp"
 				}
 			]
 		},
@@ -166,17 +171,134 @@
 			"supportfiles": false,
 			"romcdnversion": "gba20180727",
 			"collection": "GoodGba3.23",
-			"emuextention": "1.6.9-stable",
-			"emuscript": "vba_next_libretro.js",
+			"emuextention": "1.22.2-stable",
+			"emulatorpath": "emulators",
+			"emuscript": "mgba_libretro.js",
 			"screenshotaspectratio": 1.5,
+			"controllerDiagram": {
+				"type": "instructionManual",
+				"title": "Player 1 Controller Reference",
+				"subtitle": "",
+				"badge": "Instruction Card",
+				"image": "/images/gamepads/gba/configure_dialog_bg.png",
+				"imageAlt": "Nintendo Game Boy Advance handheld",
+				"callouts": [
+					{
+						"input": "l_btn",
+						"label": "L",
+						"x": 11,
+						"y": 14,
+						"lineX": 28,
+						"lineY": 24,
+						"targetX": 33,
+						"targetY": 35
+					},
+					{
+						"input": "r_btn",
+						"label": "R",
+						"x": 88,
+						"y": 14,
+						"lineX": 72,
+						"lineY": 24,
+						"targetX": 67,
+						"targetY": 35
+					},
+					{
+						"input": "up_axis",
+						"label": "D-pad Up",
+						"x": 31,
+						"y": 14,
+						"lineX": 24,
+						"lineY": 17,
+						"targetX": 30,
+						"targetY": 45
+					},
+					{
+						"input": "left_axis",
+						"label": "D-pad Left",
+						"x": 11,
+						"y": 46,
+						"lineX": 24,
+						"lineY": 41,
+						"targetX": 26,
+						"targetY": 54
+					},
+					{
+						"input": "right_axis",
+						"label": "D-pad Right",
+						"x": 51,
+						"y": 14,
+						"lineX": 24,
+						"lineY": 65,
+						"targetX": 34,
+						"targetY": 54
+					},
+					{
+						"input": "down_axis",
+						"label": "D-pad Down",
+						"x": 11,
+						"y": 68,
+						"lineX": 24,
+						"lineY": 89,
+						"targetX": 30,
+						"targetY": 63
+					},
+					{
+						"input": "select_btn",
+						"label": "Select",
+						"x": 51,
+						"y": 90,
+						"lineX": 43,
+						"lineY": 80,
+						"targetX": 43,
+						"targetY": 63
+					},
+					{
+						"input": "start_btn",
+						"label": "Start",
+						"x": 31,
+						"y": 90,
+						"lineX": 52,
+						"lineY": 80,
+						"targetX": 48,
+						"targetY": 60
+					},
+					{
+						"input": "b_btn",
+						"label": "B",
+						"x": 88,
+						"y": 68,
+						"lineX": 74,
+						"lineY": 64,
+						"targetX": 69,
+						"targetY": 60
+					},
+					{
+						"input": "a_btn",
+						"label": "A",
+						"x": 88,
+						"y": 46,
+						"lineX": 77,
+						"lineY": 45,
+						"targetX": 75,
+						"targetY": 53
+					}
+				]
+			},
+			"retroarch": {
+				"video_force_aspect": true,
+				"video_aspect_ratio": 1.5
+			},
 			"recommendedshaders": [
 				{
 					"title": "Game Boy Advance",
-					"shader": "handheld-console-border-gba-3x"
+					"shader": "handheld-console-border-gba-3x",
+					"glslp": "handheld/console-border/gba-3x.glslp"
 				},
 				{
 					"title": "Smoothed",
-					"shader": "xbrz-4xbrz-linear"
+					"shader": "xbrz-4xbrz-linear",
+					"glslp": "xbrz/4xbrz-linear.glslp"
 				}
 			]
 		},
@@ -204,11 +326,13 @@
 			"recommendedshaders": [
 				{
 					"title": "Game Gear",
-					"shader": "handheld-console-border-gg-3x"
+					"shader": "handheld-console-border-gg-3x",
+					"glslp": "handheld/console-border/gg-3x.glslp"
 				},
 				{
 					"title": "Smoothed",
-					"shader": "xbrz-4xbrz-linear"
+					"shader": "xbrz-4xbrz-linear",
+					"glslp": "xbrz/4xbrz-linear.glslp"
 				}
 			]
 		},
@@ -236,11 +360,13 @@
 			"recommendedshaders": [
 				{
 					"title": "Vintage LCD",
-					"shader": "handheld-lcd-shader"
+					"shader": "handheld-lcd-shader",
+					"glslp": "handheld/lcd-shader.glslp"
 				},
 				{
 					"title": "Smoothed",
-					"shader": "xbrz-4xbrz-linear"
+					"shader": "xbrz-4xbrz-linear",
+					"glslp": "xbrz/4xbrz-linear.glslp"
 				}
 			]
 		},
@@ -283,11 +409,13 @@
 			"recommendedshaders": [
 				{
 					"title": "Vintage LCD",
-					"shader": "handheld-lcd-shader"
+					"shader": "handheld-lcd-shader",
+					"glslp": "handheld/lcd-shader.glslp"
 				},
 				{
 					"title": "Smoothed",
-					"shader": "xbrz-4xbrz-linear"
+					"shader": "xbrz-4xbrz-linear",
+					"glslp": "xbrz/4xbrz-linear.glslp"
 				}
 			]
 		},
@@ -298,9 +426,104 @@
 			"supportfiles": false,
 			"romcdnversion": "20180712",
 			"collection": "GoodNES 3.23b",
-			"emuextention": "1.6.9-stable",
+			"emuextention": "1.22.2-stable",
+			"emulatorpath": "emulators",
 			"emuscript": "nestopia_libretro.js",
-			"screenshotaspectratio": 1.142857142857143
+			"screenshotaspectratio": 1.142857142857143,
+			"controllerDiagram": {
+				"type": "instructionManual",
+				"title": "Player 1 Controller Reference",
+				"subtitle": "",
+				"badge": "Instruction Card",
+				"image": "/images/controllers/nes/configure_dialog_bg.png",
+				"imageAlt": "Nintendo Entertainment System controller",
+				"callouts": [
+					{
+						"input": "up_axis",
+						"label": "D-pad Up",
+						"x": 31,
+						"y": 14,
+						"lineX": 24,
+						"lineY": 17,
+						"targetX": 30,
+						"targetY": 45
+					},
+					{
+						"input": "left_axis",
+						"label": "D-pad Left",
+						"x": 12,
+						"y": 64,
+						"lineX": 24,
+						"lineY": 41,
+						"targetX": 26,
+						"targetY": 54
+					},
+					{
+						"input": "right_axis",
+						"label": "D-pad Right",
+						"x": 51,
+						"y": 14,
+						"lineX": 24,
+						"lineY": 65,
+						"targetX": 34,
+						"targetY": 54
+					},
+					{
+						"input": "down_axis",
+						"label": "D-pad Down",
+						"x": 31,
+						"y": 88,
+						"lineX": 24,
+						"lineY": 89,
+						"targetX": 30,
+						"targetY": 63
+					},
+					{
+						"input": "select_btn",
+						"label": "Select",
+						"x": 51,
+						"y": 88,
+						"lineX": 44,
+						"lineY": 81,
+						"targetX": 43,
+						"targetY": 57
+					},
+					{
+						"input": "start_btn",
+						"label": "Start",
+						"x": 70,
+						"y": 88,
+						"lineX": 55,
+						"lineY": 81,
+						"targetX": 50,
+						"targetY": 57
+					},
+					{
+						"input": "b_btn",
+						"label": "B",
+						"x": 89,
+						"y": 39,
+						"lineX": 76,
+						"lineY": 46,
+						"targetX": 62,
+						"targetY": 59
+					},
+					{
+						"input": "a_btn",
+						"label": "A",
+						"x": 89,
+						"y": 63,
+						"lineX": 77,
+						"lineY": 72,
+						"targetX": 70,
+						"targetY": 59
+					}
+				]
+			},
+			"retroarch": {
+				"video_force_aspect": true,
+				"video_aspect_ratio": 1.333333333333333
+			}
 		},
 		"ngpx": {
 			"name": "Neo Geo Pocket",
@@ -315,11 +538,13 @@
 			"recommendedshaders": [
 				{
 					"title": "Vintage LCD",
-					"shader": "handheld-lcd-shader"
+					"shader": "handheld-lcd-shader",
+					"glslp": "handheld/lcd-shader.glslp"
 				},
 				{
 					"title": "Smoothed",
-					"shader": "xbrz-4xbrz-linear"
+					"shader": "xbrz-4xbrz-linear",
+					"glslp": "xbrz/4xbrz-linear.glslp"
 				}
 			]
 			// { "title": "Neo Geo Pocket Color", "shader": "handheld-console-border-ngpc-4x" } working, but looks like crap
@@ -391,11 +616,13 @@
 			"recommendedshaders": [
 				{
 					"title": "Vintage LCD",
-					"shader": "handheld-lcd-shader"
+					"shader": "handheld-lcd-shader",
+					"glslp": "handheld/lcd-shader.glslp"
 				},
 				{
 					"title": "Smoothed",
-					"shader": "xbrz-4xbrz-linear"
+					"shader": "xbrz-4xbrz-linear",
+					"glslp": "xbrz/4xbrz-linear.glslp"
 				}
 			]
 		},
@@ -425,11 +652,13 @@
 			"recommendedshaders": [
 				{
 					"title": "Vintage LCD",
-					"shader": "handheld-lcd-shader"
+					"shader": "handheld-lcd-shader",
+					"glslp": "handheld/lcd-shader.glslp"
 				},
 				{
 					"title": "Smoothed",
-					"shader": "xbrz-4xbrz-linear"
+					"shader": "xbrz-4xbrz-linear",
+					"glslp": "xbrz/4xbrz-linear.glslp"
 				}
 			]
 		},
@@ -437,11 +666,13 @@
 			"recommendedshaders": [
 				{
 					"title": "Vintage Television",
-					"shader": "crt-crt-lottes"
+					"shader": "crt-crt-lottes",
+					"glslp": "crt/crt-lottes.glslp"
 				},
 				{
 					"title": "Smoothed",
-					"shader": "xbrz-4xbrz-linear"
+					"shader": "xbrz-4xbrz-linear",
+					"glslp": "xbrz/4xbrz-linear.glslp"
 				}
 			]
 		}
@@ -583,6 +814,26 @@
 		"1.7.3-stable": 
 		{
 			"notes": "I got the script working with crazyerics and tested with nes. It's SLOW! 32x does seem to start up, but not playable. I can get the menu with f1 and it looks impressive."
+		},
+		"1.22.2-stable":
+		{
+			"notes": "Per-system 1.22.2 test path. Emulator files must be supplied under public/emulators/1.22.2-stable. The 1.22.2 extension starts from the 1.6.9-stable CES config and layers these browser/video overrides on top.",
+			"config":
+			{
+				"video_driver": "gl",
+				"audio_driver": "rwebaudio",
+				"input_autodetect_enable": false,
+				"video_fullscreen": false,
+				"video_windowed_fullscreen": false,
+				"video_shader_enable": false,
+				"video_shared_context": false,
+				"video_force_aspect": false,
+				"video_smooth": false,
+				"video_gpu_screenshot": false,
+				"sort_savestates_enable": false,
+				"sort_savestates_by_content_enable": false,
+				"input_toggle_fullscreen": "nul"
+			}
 		}
 	},
 	"input": {

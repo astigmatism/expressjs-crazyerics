@@ -327,7 +327,7 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
         });
         $tooltipContent.append($remove);
 
-        _Tooltips.SingleHTMLWithTitleScreen(activeTitle.gridItem, $tooltipContent, $mediawrapper, activeTitle.gameKey, true, false);
+        _Tooltips.SingleHTMLWithTitleScreen(activeTitle.gridItem, $tooltipContent, $mediawrapper, activeTitle.gameKey, true, false, null, ['top']);
     };
 
     var GenerateCollectionTooltipContent = function(collection) {
