@@ -3,7 +3,9 @@ const async = require('async');
 const colors = require('colors');
 const Cache = require('../services/cache/cache.redis.js');
 const path = require('path');
-const request = require('request');
+const http = require('http');
+const https = require('https');
+const urlModule = require('url');
 
 //define custom cache for files
 const fileCache = new Cache('file.$1', {
@@ -68,28 +70,55 @@ module.exports = new (function() {
     };
 
     this.Request = function(url, callback, opt_filePath) {
-        request(url, (err, response, body) => {
-            var statusCode = response && response.statusCode ? response.statusCode : 0;
+        var maxRedirects = 10;
 
-            if (err) {
-                console.log('FileService.Request failed for ' + url + ': ' + (err.message || err));
-                return callback(statusCode, err);
-            }
+        var makeRequest = function(requestUrl, redirectsLeft) {
+            var transport = /^https:/i.test(requestUrl) ? https : http;
 
-            try {
-                body = JSON.parse(body);
-            } catch (parseErr) {
-                console.log('FileService.Request could not parse JSON from ' + url + ': ' + (parseErr.message || parseErr));
-                return callback(statusCode, parseErr);
-            }
+            var req = transport.get(requestUrl, response => {
+                var statusCode = response && response.statusCode ? response.statusCode : 0;
+                var location = response && response.headers ? response.headers.location : null;
 
-            if (opt_filePath) {
-                _self.Set(opt_filePath, body, null, true); //cache and write file
-            }
+                if (location && statusCode >= 300 && statusCode < 400) {
+                    response.resume();
 
-            return callback(statusCode, null, body);
-        });
-    }
+                    if (redirectsLeft <= 0) {
+                        return callback(statusCode, new Error('FileService.Request exceeded redirect limit'));
+                    }
+
+                    return makeRequest(urlModule.resolve(requestUrl, location), redirectsLeft - 1);
+                }
+
+                var chunks = [];
+
+                response.setEncoding('utf8');
+                response.on('data', chunk => chunks.push(chunk));
+                response.on('end', () => {
+                    var body = chunks.join('');
+
+                    try {
+                        body = JSON.parse(body);
+                    } catch (parseErr) {
+                        console.log('FileService.Request could not parse JSON from ' + requestUrl + ': ' + (parseErr.message || parseErr));
+                        return callback(statusCode, parseErr);
+                    }
+
+                    if (opt_filePath) {
+                        _self.Set(opt_filePath, body, null, true); //cache and write file
+                    }
+
+                    return callback(statusCode, null, body);
+                });
+            });
+
+            req.on('error', err => {
+                console.log('FileService.Request failed for ' + requestUrl + ': ' + (err.message || err));
+                return callback(0, err);
+            });
+        };
+
+        return makeRequest(url, maxRedirects);
+    };
 
     //rudimentary file system operations
 

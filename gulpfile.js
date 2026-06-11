@@ -1,10 +1,8 @@
 var gulp = require('gulp');
 var jshint = require('gulp-jshint');
 var stylish = require('jshint-stylish');
-var jscs = require('gulp-jscs');
 //var rename = require('gulp-rename');
 var concat = require('gulp-concat');
-var runSequence = require('run-sequence');
 var uglify = require('gulp-uglify');
 //var minify = require('gulp-minify');
 var minifyCSS = require('gulp-csso');
@@ -21,26 +19,42 @@ var DEST = './public/build/';
 
 var jshintConfig = {};
 
-var watcher = gulp.watch(paths, {debounceDelay: 1000}, ['watch']);
-
-gulp.task('default', function() {
-    console.log('now listening to all javascript files');
-});
-
 var changedFiles = '';
 
-watcher.on('change', function(event) {
-    console.log('File ' + event.path + ' was ' + event.type + ', running tasks...');
-    changedFiles = event.path;
+function runWatchTasks(done) {
+    //run these sequences in this order:
+    // JSCS has been removed because its abandoned dependency tree carries critical alerts.
+    return gulp.series('lint', 'minify-css', 'uglify')(done);
+}
+
+gulp.task('default', function(done) {
+    var watcher = gulp.watch(paths, { delay: 1000 });
+
+    watcher.on('change', function(path) {
+        console.log('File ' + path + ' was changed, running tasks...');
+        changedFiles = path;
+        runWatchTasks(function(err) {
+            if (err) {
+                console.error(err);
+            }
+        });
+    });
+
+    watcher.on('add', function(path) {
+        console.log('File ' + path + ' was added, running tasks...');
+        changedFiles = path;
+        runWatchTasks(function(err) {
+            if (err) {
+                console.error(err);
+            }
+        });
+    });
+
+    console.log('now listening to all javascript files');
+    done();
 });
 
-gulp.task('watch', function() {
-    //run these sequences in this order:
-    //runSequence('jscsfixjustwhitespace', 'jscs', 'lint', function() {
-    runSequence('jscs', 'lint', 'minify-css', 'uglify', function() {
-        return;
-    });
-});
+gulp.task('watch', runWatchTasks);
 
 gulp.task('uglify', function(callback) {
     pump([
@@ -65,41 +79,21 @@ gulp.task('uglify', function(callback) {
 // });
 
 gulp.task('jscsfixjustwhitespace', function(callback) {
-    // See here for why I specified a base: http://stackoverflow.com/a/24412960/3595355
-    //return gulp.src(js_src, {base: './'})
-    pump([
-        gulp.src(changedFiles, {base: './'}),
-        jscs({
-            fix: true,
-            // The following won't work until the issue is fixed on github.
-            // https://github.com/jscs-dev/node-jscs/pull/1479
-            disallowTrailingWhitespace: true,
-            requireLineFeedAtFileEnd: true,
-            validateIndentation: 4
-        }),
-        gulp.dest('./')
-    ], callback);
+    // Retained as a no-op compatibility task for older local workflows.
+    callback();
 });
 
 gulp.task('lint', function(callback) {
     pump([
-        gulp.src(changedFiles),
+        gulp.src(changedFiles || paths),
         jshint(jshintConfig),
         jshint.reporter(stylish)
     ], callback);
 });
 
-function jscsErrorHandler(error) {
-    console.log(error.toString());
-    this.emit('end');
-}
-
 gulp.task('jscs', function(callback) {
-    pump([
-        gulp.src(changedFiles),
-        jscs(),
-        jscs.reporter()
-    ], callback);
+    // Retained as a no-op compatibility task for older local workflows.
+    callback();
 });
 
 gulp.task('closure', function() {

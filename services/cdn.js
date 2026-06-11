@@ -2,6 +2,7 @@
 const config = require('config');
 const async = require('async');
 const node_ssh = require('node-ssh');
+const NodeSSH = node_ssh.NodeSSH || node_ssh;
 
 module.exports = new (function() {
 
@@ -12,11 +13,11 @@ module.exports = new (function() {
         //for each cdn
         async.eachSeries(config.cdn, (cdn, nextcdn) => {
 
-            var ssh = new node_ssh();
+            var ssh = new NodeSSH();
             ssh.connect({
                 host: cdn.host,
                 username: cdn.user,
-                privateKey: process.env.HOME + '/.ssh/id_rsa'
+                privateKeyPath: process.env.HOME + '/.ssh/id_rsa'
             })
             .then(() => {
                 var destination = cdn.root + remotePath; //no file escape, ssh.putFile does this
@@ -48,11 +49,11 @@ module.exports = new (function() {
             //for each cdn
             async.eachSeries(config.cdn, (cdn, nextcdn) => {
 
-                var ssh = new node_ssh();
+                var ssh = new NodeSSH();
                 ssh.connect({
                     host: cdn.host,
                     username: cdn.user,
-                    privateKey: process.env.HOME + '/.ssh/id_rsa'
+                    privateKeyPath: process.env.HOME + '/.ssh/id_rsa'
                 })
                 .then(() => {
                     //delete old processed file
