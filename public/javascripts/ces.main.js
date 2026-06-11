@@ -85,7 +85,7 @@ var cesMain = (function() {
         _Dialogs.Register('Welcome', 200, [], !welcomeBack);
         _Dialogs.Register('WelcomeBack', 200, [], welcomeBack);
         _Dialogs.Register('ConfigureGamepad', 700, [_Gamepad, _Compression]);
-        _Dialogs.Register('ShaderSelection', 500, [_Preferences]);
+        _Dialogs.Register('ShaderSelection', 600, [_Preferences, _Media, _Logging]);
         _Dialogs.Register('GameLoading', 500, [_Media, _Compression, _PubSub]);
         _Dialogs.Register('SaveSelection', 500);
         _Dialogs.Register('SaveLoading', 500, [_Media, _Compression, _PubSub]);
@@ -988,7 +988,7 @@ var cesMain = (function() {
             _preventLoadingGame = false; //during shader select, allow other games to load
 
             //show shader selector. returns an object with shader details
-            _Dialogs.Open('ShaderSelection', [gameKey.system, shader], true, function(shaderSelection) {
+            _Dialogs.Open('ShaderSelection', [gameKey, shader], true, function(shaderSelection) {
 
                 //configure controllers if not done so already
                 _Gamepad.Configure(gameKey, function() {

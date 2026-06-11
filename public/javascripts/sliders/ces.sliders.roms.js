@@ -16,15 +16,24 @@ var cesSlidersRoms = (function(_config, $li, $panel) {
         */
 
         var $title = $('#romsSliderCurrent');
-        $title.text(gameKey.file);
-
+        var $count = $panel.find('.versions-slider-count');
         var $select = $panel.find('select');
+        var versionCount = 0;
+
+        $title.text(gameKey.file);
         $select.empty();
 
         for (var file in files) {
+            if (!files.hasOwnProperty(file)) {
+                continue;
+            }
+
+            versionCount++;
             var selected = (file == gameKey.file) ? ' selected' : '';
             $select.append('<option value="' + files[file].gk + '"' + selected + '>' + file + '</option>');
         }
+
+        $count.text(versionCount + (versionCount == 1 ? ' available version' : ' available versions'));
 
         //romfile select
         $select.selectOrDie({
@@ -46,6 +55,8 @@ var cesSlidersRoms = (function(_config, $li, $panel) {
         var $select = $panel.find('select');
         $select.selectOrDie('destroy');
         $select.empty();
+        $('#romsSliderCurrent').empty();
+        $panel.find('.versions-slider-count').empty();
     };
 
     this.OnOpen = function(callback) {

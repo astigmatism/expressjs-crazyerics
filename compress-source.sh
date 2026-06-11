@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-PROJECT_NAME="expressjs-crazierics"
+PROJECT_NAME="expressjs-crazyerics"
 TIMESTAMP="$(date +"%Y%m%d-%H%M%S")"
 ARCHIVE_NAME="${PROJECT_NAME}-${TIMESTAMP}.zip"
 
@@ -20,7 +20,6 @@ cd "$SCRIPT_DIR"
 zip -r "$ARCHIVE_PATH" . \
   -x "tools/*" \
   -x "public/build/*" \
-  -x "public/shaders_glsl/*" \
   -x "public/shaders/*" \
   -x "public/build/*" \
   -x "public/emulators/*" \

@@ -28,17 +28,54 @@ var cesMedia = (function(_config, _Logging) {
     };
 
     /**
+     * For obtaining a title screen data URI from the CDN without inserting it into the DOM.
+     * The CDN endpoint returns base64 text, which keeps downstream canvas/WebGL reads same-origin safe.
+     * @param {*} gameKey cesGameKey
+     * @param {*} cdnSizeModifier CDN size variant, for example b or c
+     * @param {*} callback function(success, status, src, content)
+     */
+    this.TitleScreenSource = function(gameKey, cdnSizeModifier, callback) {
+
+        var cdnSizeModifiers = NormalizeCdnSizeModifiers(cdnSizeModifier);
+        var lastStatus = null;
+        var index = 0;
+
+        var tryNext = function() {
+
+            var currentCdnSizeModifier = cdnSizeModifiers[index];
+            index++;
+
+            if (!currentCdnSizeModifier) {
+                return callback(false, lastStatus);
+            }
+
+            GetScreenshot('title', gameKey, currentCdnSizeModifier, function(status, content) {
+
+                lastStatus = status;
+
+                if (content) {
+                    return callback(true, status, 'data:image/jpg;base64,' + content, content, currentCdnSizeModifier);
+                }
+
+                return tryNext();
+            });
+        };
+
+        tryNext();
+    };
+
+    /**
      * For obtaining title screens from the CDN and inserting (or not if error) them into the provided wrapper
      * @param {*} $wrapper jQuery
      * @param {*} gameKey cesGameKey
      */
     this.TitleScreen = function($wrapper, gameKey, cdnSizeModifier, callback) {
 
-        GetScreenshot('title', gameKey, cdnSizeModifier, function(status, content) {
-            
-            if (content) {
-                
-                var $img = $('<img src="data:image/jpg;base64,' + content + '" />');
+        _self.TitleScreenSource(gameKey, cdnSizeModifier, function(success, status, src) {
+
+            if (success && src) {
+
+                var $img = $('<img />').attr('src', src);
 
                  //empty the wrapper as a sanity check
                 $wrapper.empty().show().append($img).imagesLoaded()
@@ -97,11 +134,48 @@ var cesMedia = (function(_config, _Logging) {
         }
     };
 
+    var NormalizeCdnSizeModifiers = function(cdnSizeModifier) {
+
+        var modifiers = [];
+        var seen = {};
+        var addModifier = function(modifier) {
+
+            if (!modifier) {
+                return;
+            }
+
+            modifier = String(modifier);
+
+            if (!seen[modifier]) {
+                seen[modifier] = true;
+                modifiers.push(modifier);
+            }
+        };
+        var i;
+
+        if (Object.prototype.toString.call(cdnSizeModifier) === '[object Array]') {
+            for (i = 0; i < cdnSizeModifier.length; i++) {
+                addModifier(cdnSizeModifier[i]);
+            }
+        }
+        else {
+            addModifier(cdnSizeModifier);
+        }
+
+        if (!modifiers.length) {
+            modifiers.push('c');
+        }
+
+        return modifiers;
+    };
+
     var GetScreenshot = function(type, gameKey, cdnSizeModifier, callback) {
 
+        var cacheKey = type + ':' + cdnSizeModifier;
+
         //first check client cache for this image to prevent going over the network
-        if (gameKey.gk in clientImageCache && cdnSizeModifier in clientImageCache[gameKey.gk]) {
-            return callback(200, clientImageCache[gameKey.gk][cdnSizeModifier]);
+        if (gameKey.gk in clientImageCache && cacheKey in clientImageCache[gameKey.gk]) {
+            return callback(200, clientImageCache[gameKey.gk][cacheKey]);
         }
 
         //network request to CDN to obtain image
@@ -116,7 +190,7 @@ var cesMedia = (function(_config, _Logging) {
                 if (response.status == 200 || response.status == 201) {
 
                     var cacheObject = clientImageCache[gameKey.gk] || {};
-                    cacheObject[cdnSizeModifier] = response.responseText; //client cache response
+                    cacheObject[cacheKey] = response.responseText; //client cache response
                     clientImageCache[gameKey.gk] =  cacheObject;
                     return callback(response.status, response.responseText);
                 }

@@ -17,6 +17,7 @@ var cesSlidersScreenshots = (function(_config, $li, $panel, Open) {
         _gameKey = gameKey;
         _compression = _Compression;
         _media = _Media;
+        UpdateScreenshotKeyLabel();
         _pubSub.Subscribe('screenshotWritten', self, OnNewScreenshot);
     };
 
@@ -24,12 +25,22 @@ var cesSlidersScreenshots = (function(_config, $li, $panel, Open) {
 
         _grid.isotope('remove', _grid.children()); //clear on deactivation
         _grid.css('min-height', '');
-        _pubSub.Unsubscribe('screenshotWritten');
+
+        if (_pubSub) {
+            _pubSub.Unsubscribe('screenshotWritten');
+        }
+
+        _pubSub = null;
+        _tooltips = null;
+        _gameKey = null;
+        _compression = null;
+        _media = null;
     };
 
     this.OnOpen = function(callback) {
 
         //TODO: show different messages
+        UpdateScreenshotKeyLabel();
         (_grid.children().length > 0) ? ToggleEmptyList(false) : ToggleEmptyList(true);
         callback(true);
         ScheduleGridLayout('screenshots slider open');
@@ -97,7 +108,7 @@ var cesSlidersScreenshots = (function(_config, $li, $panel, Open) {
         
         //create the grid item
         ToggleEmptyList(false);
-        var $griditem = $('<div class="grid-item" />');
+        var $griditem = $('<div class="grid-item screenshot-card" />');
 
         $griditem.data('ts', Date.now());
 
@@ -107,41 +118,34 @@ var cesSlidersScreenshots = (function(_config, $li, $panel, Open) {
             $img.removeClass('close');
             ScheduleGridLayout('new screenshot image ready');
         };
+        var $media = $('<div class="screenshot-card-media" />');
+        var $actions = $('<div class="screenshot-card-actions" />');
+        var $download = $('<button type="button" class="slider-panel-button screenshot-download">Download</button>');
+        var $useScreenshot = BuildContributionButton('Use as Screenshot', false, $griditem, base64String);
+        var $useTitleScreen = BuildContributionButton('Use as Title Screen', true, $griditem, base64String);
+        var $status = $('<div class="screenshot-contribute-status" aria-live="polite" />');
 
         $img.on('load', function() {
             revealAndLayout();
         });
         $img.attr('src', 'data:image/jpg;base64,' + base64String);
+        $img.attr('alt', 'Captured screenshot' + (title ? ' for ' + title : ''));
         $img.on('click', function(e) {
             ImageDownload(e, filename);
         });
 
-        var $tooltipContent = $('<div class="screenshot-tooltip" />');
-        $tooltipContent = $('<div class="tooltiptitle">Would you like to contribute back to Crazyerics? You can perform this step only once per screenshot.</div>');
-
-        //title screen link
-        $contributeTitleScreen = $('<div>Contribute as this game\'s title screen</div>');
-        $contributeTitleScreen.on('click', function() {
-            _tooltips.Destroy($griditem); //remove tooltip after they commit to contribution
-            Contribute(true, base64String, function(status) {
-                
-            });
+        $download.on('click', function() {
+            DownloadImage($img.get(0), filename);
         });
-        $tooltipContent.append($contributeTitleScreen);
 
-        //screenshot link
-        $contributeScreenshot = $('<div>Contribute as game screenshot</div>');
-        $contributeScreenshot.on('click', function() {
-            _tooltips.Destroy($griditem); //remove tooltip after they commit to contribution
-            Contribute(false, base64String, function(status) {
-                
-            });
-        });
-        $tooltipContent.append($contributeScreenshot);
+        $actions.append($download);
+        $actions.append($useScreenshot);
+        $actions.append($useTitleScreen);
+        $actions.append($status);
 
-        _tooltips.SingleHTML($griditem, $tooltipContent);
-        
-        $griditem.append($img); //add all visual content from gamelink to grid
+        $media.append($img);
+        $griditem.append($media);
+        $griditem.append($actions);
         
         if ($.fn && $.fn.imagesLoaded) {
             $img.imagesLoaded().progress(function(imgLoad, image) {
@@ -165,10 +169,33 @@ var cesSlidersScreenshots = (function(_config, $li, $panel, Open) {
         ScheduleGridLayout('new screenshot inserted');
     };
 
+    var BuildContributionButton = function(label, isTitleScreen, $griditem, contents) {
+
+        var $button = $('<button type="button" class="slider-panel-button screenshot-contribute" />').text(label);
+
+        $button.on('click', function() {
+            SetContributionState($griditem, 'Sending contribution...', true);
+            Contribute(isTitleScreen, contents, function(status) {
+                var success = status >= 200 && status < 400;
+                var message = success ? 'Contribution sent. Thank you!' : 'Contribution submitted.';
+                SetContributionState($griditem, message, true);
+            });
+        });
+
+        return $button;
+    };
+
+    var SetContributionState = function($griditem, message, disabled) {
+
+        $griditem.find('.screenshot-contribute').prop('disabled', disabled).toggleClass('disabled', disabled);
+        $griditem.find('.screenshot-contribute-status').text(message || '');
+        ScheduleGridLayout('screenshot contribution state updated');
+    };
+
     var Contribute = function(isTitleScreen, contents, callback) {
 
         //compress data stream
-        data = _compression.Compress.json({
+        var data = _compression.Compress.json({
             contents: contents,
             gameKey: _gameKey
         });
@@ -193,7 +220,10 @@ var cesSlidersScreenshots = (function(_config, $li, $panel, Open) {
 
     var ImageDownload = function(e, filename) {
 
-        var img = e.currentTarget;
+        DownloadImage(e.currentTarget, filename);
+    };
+
+    var DownloadImage = function(img, filename) {
 
         var link = document.createElement('a');
         link.setAttribute('href', img.src);
@@ -214,6 +244,143 @@ var cesSlidersScreenshots = (function(_config, $li, $panel, Open) {
             $panel.find('.havescreens').show();
             $panel.find('.noscreens').hide();
         }
+    };
+
+    var UpdateScreenshotKeyLabel = function() {
+
+        $panel.find('.screenshot-key').text(GetScreenshotKeyLabel());
+    };
+
+    var GetScreenshotKeyLabel = function() {
+
+        var effectiveRetroArchConfig = BuildEffectiveRetroArchConfig();
+        var key = effectiveRetroArchConfig.input_screenshot || 't';
+
+        return FormatKeyboardKey(key) || 'T';
+    };
+
+    var BuildEffectiveRetroArchConfig = function() {
+
+        var result = {};
+        var systemDetails = GetSystemDetails(_gameKey ? _gameKey.system : null) || {};
+        var extension = systemDetails.emuextention || '1.6.9-stable';
+
+        MergeRetroArchConfig(result, '1.6.9-stable');
+
+        if (extension !== '1.6.9-stable') {
+            MergeRetroArchConfig(result, extension);
+        }
+
+        if (systemDetails.retroarch) {
+            MergeObject(result, systemDetails.retroarch);
+        }
+
+        return result;
+    };
+
+    var MergeRetroArchConfig = function(target, version) {
+
+        if (_config.retroarch && _config.retroarch[version] && _config.retroarch[version].config) {
+            MergeObject(target, _config.retroarch[version].config);
+        }
+    };
+
+    var MergeObject = function(target, source) {
+
+        for (var key in source) {
+            if (source.hasOwnProperty(key)) {
+                target[key] = source[key];
+            }
+        }
+    };
+
+    var FormatKeyboardKey = function(rawAssignment) {
+
+        var value;
+        var keyLabels = {
+            space: 'Space',
+            enter: 'Enter',
+            return: 'Enter',
+            escape: 'Esc',
+            esc: 'Esc',
+            shift: 'Shift',
+            lshift: 'Left Shift',
+            rshift: 'Right Shift',
+            ctrl: 'Ctrl',
+            lctrl: 'Left Ctrl',
+            rctrl: 'Right Ctrl',
+            alt: 'Alt',
+            lalt: 'Left Alt',
+            ralt: 'Right Alt',
+            up: 'Up',
+            down: 'Down',
+            left: 'Left',
+            right: 'Right',
+            leftbracket: '[',
+            rightbracket: ']',
+            minus: '-',
+            equals: '=',
+            period: '.',
+            comma: ',',
+            slash: '/',
+            semicolon: ';',
+            quote: '\'',
+            backslash: '\\',
+            tilde: '~',
+            backquote: '`',
+            pageup: 'Page Up',
+            pagedown: 'Page Down',
+            print_screen: 'Print Screen'
+        };
+
+        if (IsMissingAssignment(rawAssignment)) {
+            return null;
+        }
+
+        value = String(rawAssignment).replace(/^[\'\"]+|[\'\"]+$/g, '');
+
+        if (IsMissingAssignment(value)) {
+            return null;
+        }
+
+        if (keyLabels.hasOwnProperty(value.toLowerCase())) {
+            return keyLabels[value.toLowerCase()];
+        }
+
+        if (/^num\d$/i.test(value)) {
+            return value.replace(/^num/i, 'Num ');
+        }
+
+        if (/^f\d+$/i.test(value)) {
+            return value.toUpperCase();
+        }
+
+        if (value.length === 1) {
+            return value.toUpperCase();
+        }
+
+        return value.charAt(0).toUpperCase() + value.slice(1);
+    };
+
+    var IsMissingAssignment = function(value) {
+
+        if (value === null || typeof value === 'undefined') {
+            return true;
+        }
+
+        value = String(value).replace(/^[\'\"]+|[\'\"]+$/g, '');
+        value = $.trim(value);
+
+        return value === '' || value.toLowerCase() === 'nul' || value.toLowerCase() === 'null';
+    };
+
+    var GetSystemDetails = function(system) {
+
+        if (_config.systemdetails && system && _config.systemdetails[system]) {
+            return _config.systemdetails[system];
+        }
+
+        return null;
     };
     
     var Constructor = (function() {

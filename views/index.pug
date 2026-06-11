@@ -95,43 +95,63 @@ block content
                     div#gamedetailscontent
                         div#sliderwrapper
                             ul#slidericons
-                                li(class="controls tooltip", data-slider="Controls", title="Controls") Controls
-                                li(class="screenshots tooltip", data-slider="Screenshots", title="Screenshots") Screenshots
-                                li(class="saves tooltip", title="Saves") Saves
-                                li(class="info tooltip", data-slider="Info", title="Info") Info
-                                li(class="versions tooltip", data-slider="Roms", title="Alternate Versions") Versions
+                                li(class="controls", data-slider="Controls", title="Controls") Controls
+                                li(class="screenshots", data-slider="Screenshots", title="Screenshots") Screenshots
+                                li(class="saves", title="Saves") Saves
+                                li(class="info", data-slider="Info", title="Info") Info
+                                li(class="versions", data-slider="Roms", title="Alternate Versions") Versions
                             //- sliding panels
                             div#sliderpanels
                                 div#Controls-slider(class="slidingpanel closed")
                                     div(class="controls-slider-content")
                                         div(class="controls-slider-empty") Controls will appear when the game starts.
                                 div#Info-slider(class="slidingpanel closed")
-                                    table
-                                        tr
-                                            td
+                                    div(class="slider-panel-card info-slider-card")
+                                        div(class="info-slider-body")
+                                            div(class="info-slider-media")
                                                 div#infosilderTitleScreen
-                                            td
+                                            div(class="info-slider-copy")
                                                 p(class="overview")
-                                                p(class="genre")
-                                                p(class="release")
-                                                p(class="publisher")
-                                                p(class="developer")
-                                                p(class="players")
+                                                div(class="info-slider-meta")
+                                                    p(class="genre info-meta-row")
+                                                    p(class="release info-meta-row")
+                                                    p(class="publisher info-meta-row")
+                                                    p(class="developer info-meta-row")
+                                                    p(class="players info-meta-row")
                                 div#Screenshots-slider(class="slidingpanel closed")
-                                    div(class="havescreens")
-                                        p Click to download a screenshot. Hover to optionally contribute it back to Crazyerics (and thank you!)
-                                        div#screenshotsGrid(class="grid")
-                                        p All screenshots here will be lost when you leave or play another game.
-                                    div(class="noscreens")
-                                        p You have not taken any screenshots yet.
+                                    div(class="slider-panel-card screenshots-slider-card")
+                                        div(class="slider-panel-header")
+                                            div(class="slider-panel-titlegroup")
+                                                h3 Captured Screenshots
+                                                p Press #[span(class="screenshot-key") T] while playing to capture a screenshot.
+                                            div(class="slider-panel-badge") Session Only
+                                        div(class="havescreens")
+                                            p(class="screenshots-panel-note") Click an image or use Download to save it. Contribution buttons let you use a capture as the game screenshot or title screen.
+                                            div#screenshotsGrid(class="grid screenshots-grid")
+                                            p(class="screenshots-footnote") Screenshots shown here are temporary and will be lost when you leave or play another game.
+                                        div(class="noscreens")
+                                            div(class="slider-panel-empty")
+                                                div(class="slider-panel-empty-title") No screenshots yet
+                                                p Press #[span(class="screenshot-key") T] while playing to capture a screenshot.
                                 div#Roms-slider(class="slidingpanel closed")
-                                    p You can also play one of these alernative versions of this game (making a selection will restart your current game):
-                                    select
-                                    p(style='white-space:pre;')
-                                        | * Your game collection will be updated to use the version of the game you have selected. 
-                                        | * Save progress is specific to the game version you have selected.
+                                    div(class="slider-panel-card versions-slider-card")
+                                        div(class="slider-panel-header")
+                                            div(class="slider-panel-titlegroup")
+                                                h3 Versions
+                                                p Versions are alternate dumps, revisions, translations, or modified releases of this game. Choose one if you want to play a specific variant.
+                                        div(class="versions-slider-body")
+                                            div(class="versions-current-card")
+                                                div(class="versions-current-label") Current version
+                                                div#romsSliderCurrent(class="versions-current-title")
+                                                div(class="versions-slider-count")
+                                            div(class="versions-select-card")
+                                                label(for="romsSliderSelect") Choose a version
+                                                select#romsSliderSelect
+                                                ul(class="versions-slider-notes")
+                                                    li Your game collection will be updated to use the version of the game you select.
+                                                    li Save progress is specific to the game version you select.
                     div#gamedetailsboxfront
-                        button#emulatorfullscreenbutton(type="button", class="button zoom noselect", title="Enter fullscreen emulator play area", aria-label="Enter fullscreen emulator play area") Play Fullscreen
+                        button#emulatorfullscreenbutton(type="button", class="button zoom noselect", title="Enter fullscreen emulator play area", aria-label="Enter fullscreen emulator play area") Enter Fullscreen
                         div#gamedetailsboxfrontimage
                         div#gamedetailsboxfrontmetadata
                             div#gamedetailsboxfronttitle

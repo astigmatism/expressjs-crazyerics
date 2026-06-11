@@ -35,44 +35,30 @@ var cesSlidersInfo = (function(_config, $li, $panel) {
         var $developer = $panel.find('p.developer');
         var $players = $panel.find('p.players');
 
-        $overview.empty();
-        $genre.empty();
-        $release.empty();
-        $publisher.empty();
-        $developer.empty();
-        $players.empty();
+        ClearInfoFields($overview, [$genre, $release, $publisher, $developer, $players]);
 
         if (info) {
 
-            if (info.Overview) {
-                $overview.text(info.Overview);
-            }
+            SetOverview($overview, info.Overview);
 
             if (info.Genres) {
-                var genres = '';
-                var genreArray = info.Genres.split(';'); //data seems to suggest this is the delimeter
-                for (var genre in genreArray) {
-                    genres += genreArray[genre] + ', ';
-                }
-                $genre.text('Genre: ' + genres.slice(0, -2));
+                SetMetaRow($genre, 'Genre', FormatGenres(info.Genres));
             }
 
             if (info.ReleaseDate) {
-                //convert
-                var date = new Date(info.ReleaseDate);
-                $release.text('Release Date: ' + $.format.date(date, 'ddd, MMMM dd, yyyy'));
+                SetMetaRow($release, 'Release Date', FormatReleaseDate(info.ReleaseDate));
             }
 
             if (info.Publisher) {
-                $publisher.text('Publisher: ' + info.Publisher);
+                SetMetaRow($publisher, 'Publisher', info.Publisher);
             }
 
             if (info.Developer) {
-                $developer.text('Developer: ' + info.Developer);
+                SetMetaRow($developer, 'Developer', info.Developer);
             }
 
             if (info.Players) {
-                $players.text('Players: ' + info.Players);
+                SetMetaRow($players, 'Players', info.Players);
             }
 
             // if (info.AlternateTitles) {
@@ -83,12 +69,83 @@ var cesSlidersInfo = (function(_config, $li, $panel) {
             //     $panel.append('<p>Alternate Titles: ' + titles.slice(0, -1) + '</p>');
             // }
         }
+        else {
+            SetOverview($overview, null);
+        }
     };
 
     this.Deactivate = function() {
 
         _gameKey = null;
         _media = null;
+        $titleWrapper.empty();
+        ClearInfoFields($panel.find('p.overview'), [
+            $panel.find('p.genre'),
+            $panel.find('p.release'),
+            $panel.find('p.publisher'),
+            $panel.find('p.developer'),
+            $panel.find('p.players')
+        ]);
+    };
+
+    var ClearInfoFields = function($overview, metadataRows) {
+
+        $overview.empty().removeClass('missing').show();
+
+        for (var i = 0; i < metadataRows.length; i++) {
+            metadataRows[i].empty().hide();
+        }
+    };
+
+    var SetOverview = function($overview, overview) {
+
+        if (overview) {
+            $overview.text(overview).removeClass('missing');
+        }
+        else {
+            $overview.text('No description is available for this game yet.').addClass('missing');
+        }
+    };
+
+    var SetMetaRow = function($row, label, value) {
+
+        if (!value) {
+            $row.empty().hide();
+            return;
+        }
+
+        $row.empty();
+        $row.append($('<span />').addClass('info-meta-label').text(label));
+        $row.append($('<span />').addClass('info-meta-value').text(value));
+        $row.show();
+    };
+
+    var FormatGenres = function(genres) {
+
+        var genreArray = genres.split(';'); //data seems to suggest this is the delimeter
+        var cleanGenres = [];
+        var genre;
+
+        for (var i = 0; i < genreArray.length; i++) {
+            genre = $.trim(genreArray[i]);
+
+            if (genre) {
+                cleanGenres.push(genre);
+            }
+        }
+
+        return cleanGenres.join(', ');
+    };
+
+    var FormatReleaseDate = function(releaseDate) {
+
+        var date = new Date(releaseDate);
+
+        if (!isNaN(date.getTime())) {
+            return $.format.date(date, 'ddd, MMMM dd, yyyy');
+        }
+
+        return releaseDate;
     };
 
     var Constructor = (function() {
