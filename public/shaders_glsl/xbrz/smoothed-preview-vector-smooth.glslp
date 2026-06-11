@@ -1,0 +1,32 @@
+# Preview-only Smoothed shader selection thumbnail preset.
+#
+# Runtime/gameplay remains xbrz/4xbrz-linear.glslp. This preset is intentionally
+# stronger than a faithful xBRZ pass because a true pixel-art scaler can be too
+# subtle on a 300x300 title-screen thumbnail.
+#
+# The shader preserves the source colors as much as possible: it does not use
+# posterization, palette quantization, tinting, or cel-shader color flattening.
+# Instead it builds a temporary coarse demonstration pixel grid, rounds and
+# blends high-contrast pixel edges, and applies a small edge-aware in-region
+# smoothing pass. The result is meant to read as "pixels becoming smoother
+# shapes" in the shader selection dialog.
+#
+# Tuning:
+#   SMOOTHED_PREVIEW_EXAGGERATION range: 0.00 to 1.00
+#   0.00 = essentially unchanged source image
+#   0.35 = subtle rounded/softened pixel-shape demonstration
+#   0.64 = default; clearly smoother and distinct, still recognizable
+#   1.00 = strong demo vectorization/softened shape joins
+
+shaders = 2
+
+shader0 = shaders/smoothed-preview-vector-smooth.glsl
+filter_linear0 = false
+scale_type0 = source
+scale0 = 4.0
+
+parameters = "SMOOTHED_PREVIEW_EXAGGERATION"
+SMOOTHED_PREVIEW_EXAGGERATION = 0.64
+
+shader1 = ../stock.glsl
+filter_linear1 = true

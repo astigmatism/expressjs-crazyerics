@@ -1,0 +1,17 @@
+# Preview-only Smoothed shader selection thumbnail preset.
+# Uses the same 4xBRZ structure as xbrz/4xbrz-linear.glslp, but the first pass
+# exaggerates xBRZ's selected edge/corner blend weights so the thumbnail reads as
+# more obviously rounded pixel edges instead of a blurred whole-image softening pass.
+
+shaders = 2
+
+shader0 = shaders/4xbrz-preview-rounded.glsl
+filter_linear0 = false
+scale_type0 = source
+scale0 = 2
+
+parameters = "XBRZ_PREVIEW_EDGE_ROUNDING"
+XBRZ_PREVIEW_EDGE_ROUNDING = 100
+
+shader1 = ../stock.glsl
+filter_linear1 = true

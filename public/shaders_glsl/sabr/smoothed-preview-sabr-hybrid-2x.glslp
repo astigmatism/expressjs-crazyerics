@@ -1,0 +1,32 @@
+# Preview-only Smoothed shader selection thumbnail preset for expressjs-crazyerics.
+#
+# This preset is intentionally dedicated to the 300x300 shader-selection dialog
+# preview. It does not replace the configured Smoothed gameplay shader
+# (xbrz/4xbrz-linear.glslp).
+#
+# It reuses the bundled SABR hybrid/deposterize shader because SABR is an
+# edge-aware pixel-art smoothing family similar in purpose to XBR/XBRZ. The
+# first pass renders at 2x so the 300x300 thumbnail visibly communicates rounded
+# diagonals and reduced jaggies after the browser displays the image in the
+# existing 300x300 tile.
+#
+# Tuning:
+#   minimum/maximum are the bundled SABR hybrid edge thresholds.
+#   Lower maximum values preserve more hard SABR-style edges.
+#   Higher maximum values classify fewer regions as edges and allow more soft
+#   smoothing. Try 0.08-0.18 for useful thumbnail experiments.
+
+shaders = 2
+
+shader0 = shaders/sabr-hybrid-deposterize.glsl
+filter_linear0 = false
+scale_type0 = source
+scale_x0 = 2.0
+scale_y0 = 2.0
+
+shader1 = ../stock.glsl
+filter_linear1 = true
+
+parameters = "minimum;maximum"
+minimum = 0.04
+maximum = 0.12

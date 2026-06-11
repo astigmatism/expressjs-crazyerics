@@ -31,8 +31,8 @@ var cesMedia = (function(_config, _Logging) {
      * For obtaining a title screen data URI from the CDN without inserting it into the DOM.
      * The CDN endpoint returns base64 text, which keeps downstream canvas/WebGL reads same-origin safe.
      * @param {*} gameKey cesGameKey
-     * @param {*} cdnSizeModifier CDN size variant, for example b or c
-     * @param {*} callback function(success, status, src, content)
+     * @param {*} cdnSizeModifier CDN size variant or ordered variants, for example d, b, c, or ['d', 'b']
+     * @param {*} callback function(success, status, src, content, selectedCdnSizeModifier)
      */
     this.TitleScreenSource = function(gameKey, cdnSizeModifier, callback) {
 

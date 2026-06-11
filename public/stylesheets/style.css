@@ -635,6 +635,8 @@ p {
 }
 
 #shaderselectlist {
+	/* Adjust this value to zoom shader preview thumbnails inside the 300px preview tiles. */
+	--shader-preview-zoom: 1;
 	margin: 30px auto 20px;
 	list-style: none;
 	padding: 0;
@@ -644,14 +646,21 @@ p {
 }
 
 #shaderselectlist li {
-	height: 300px;
 	width: 300px;
+	min-height: 330px;
 	margin: 10px 20px;
 	display: inline-block;
 	cursor: pointer;
 	vertical-align: top;
 	position: relative;
+	overflow: visible;
+}
+
+#shaderselectlist li .shader-preview-frame {
+	height: 300px;
+	width: 300px;
 	overflow: hidden;
+	background: #000;
 }
 
 #shaderselectlist li img,
@@ -662,19 +671,19 @@ p {
 	max-width: 100%;
 	object-fit: contain;
 	background: #000;
+	-webkit-transform: scale(var(--shader-preview-zoom));
+	transform: scale(var(--shader-preview-zoom));
+	-webkit-transform-origin: center center;
+	transform-origin: center center;
 }
 
 #shaderselectlist li h3 {
-	position: absolute;
-	left: 0;
-	right: 0;
-	bottom: 0;
-	z-index: 1;
 	box-sizing: border-box;
-	margin: 0;
-	padding: 10px 4px;
+	width: 100%;
+	margin: 8px 0 0;
+	padding: 0 4px;
 	font-size: 1.4em;
-	background: rgba(0, 0, 0, 0.65);
+	line-height: 1.2;
 	text-shadow: 1px 1px 4px #000;
 }
 

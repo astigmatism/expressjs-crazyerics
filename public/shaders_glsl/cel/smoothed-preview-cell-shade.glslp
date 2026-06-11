@@ -1,0 +1,18 @@
+# Preview-only Smoothed shader selection thumbnail preset for expressjs-crazyerics.
+#
+# This preset is intentionally dedicated to the 300x300 shader-selection dialog
+# preview. It does not replace the configured Smoothed gameplay shader
+# (xbrz/4xbrz-linear.glslp).
+#
+# Exaggeration range:
+#   0.00 = essentially unchanged source image
+#   0.55 = default, visibly smoothed/cartoonish/cell-shaded but recognizable
+#   1.00 = strongly stylized, flatter color bands and darker outlines
+
+shaders = 1
+
+shader0 = shaders/smoothed-preview-cell-shade.glsl
+filter_linear0 = true
+
+parameters = "SMOOTHED_PREVIEW_EXAGGERATION"
+SMOOTHED_PREVIEW_EXAGGERATION = 0.55

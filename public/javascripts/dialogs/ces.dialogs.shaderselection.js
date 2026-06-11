@@ -17,11 +17,43 @@ var cesDialogsShaderSelection = (function(_config, $el, $wrapper, args) {
     var selectedAnimation = 'tada';
     var selectedAnimationDuration = 1500;
 
-    var dynamicPreviewSize = 300;
-    var dynamicPreviewTitleSizes = ['z', 'b', 'c', 'a'];
+    var dynamicPreviewDisplaySize = 300;
+
+    // CDN size code "z" means no resize/original media file.
+    // Request it first so shader previews are generated from the best available source,
+    // then fall back through smaller CDN variants if the original is unavailable.
+    var dynamicPreviewTitleSizes = ['z', 'a', 'c', 'b', 'd'];
+
     var dynamicPreviewMaxPasses = 8;
+
+    // The image is displayed at 300x300, but dynamic previews may render larger so zoom
+    // can reveal detail. The renderer keeps shader previews bounded by downscaling the
+    // thumbnail source for high-scale presets before they create oversized pass targets.
     var dynamicPreviewMaxIntermediateScale = 4;
-    var dynamicPreviewMaxIntermediateSize = Math.max(800, dynamicPreviewSize * dynamicPreviewMaxIntermediateScale);
+    var dynamicPreviewMaxIntermediateSize = Math.max(800, dynamicPreviewDisplaySize * dynamicPreviewMaxIntermediateScale);
+
+    // Preview-only Smoothed shader preset. The visible shader option, saved
+    // preference, and emulator launch path still use xbrz/4xbrz-linear.glslp.
+    // The exaggeration value lives in the preset as SMOOTHED_PREVIEW_EXAGGERATION
+    // with range 0.00-1.00 and default 0.55.
+    var smoothedPreviewCellShadePreset = 'cel/smoothed-preview-cell-shade.glslp';
+    var smoothedPreviewCellShadeParameter = 'SMOOTHED_PREVIEW_EXAGGERATION';
+
+    // Previous preview-only Smoothed behavior retained as a first fallback before
+    // leaving the static CDN fallback image in place.
+    var smoothedPreviewPreviousPreset = 'xbrz/4xbrz-preview-cartoon-rounded-4x.glslp';
+
+    // Preview-only preset overrides. These do not change the shader value saved or
+    // launched by the emulator; they only help small shader-selection thumbnails
+    // communicate the intent of a shader more clearly.
+    var dynamicPreviewPresetOverrides = {
+        'xbrz/4xbrz-linear.glslp': smoothedPreviewCellShadePreset
+    };
+
+    var dynamicPreviewFallbackPresetOverrides = {
+        'xbrz/4xbrz-linear.glslp': smoothedPreviewPreviousPreset
+    };
+
     var dynamicPreviewSession = 0;
     var dynamicPreviewPresetCache = {};
     var dynamicPreviewTextCache = {};
@@ -88,14 +120,19 @@ var cesDialogsShaderSelection = (function(_config, $el, $wrapper, args) {
             $li.attr('data-glslp', glslp);
         }
 
-        $('<h3 />').text(title).appendTo($li);
+        var $previewFrame = $('<div />')
+            .addClass('shader-preview-frame')
+            .appendTo($li);
+
         $('<img />')
             .attr('src', fallbackSrc)
             .attr('data-fallback-src', fallbackSrc)
-            .attr('width', dynamicPreviewSize)
-            .attr('height', dynamicPreviewSize)
+            .attr('width', dynamicPreviewDisplaySize)
+            .attr('height', dynamicPreviewDisplaySize)
             .attr('alt', title + ' shader preview')
-            .appendTo($li);
+            .appendTo($previewFrame);
+
+        $('<h3 />').text(title).appendTo($li);
 
         $li.on('click', function(e) {
             OnShaderSelected(system, $(this).attr('data-shader'));
@@ -299,7 +336,7 @@ var cesDialogsShaderSelection = (function(_config, $el, $wrapper, args) {
             attemptedWebGlRenderer = true;
 
             try {
-                previewRenderer = new DynamicShaderPreviewRenderer(dynamicPreviewSize, dynamicPreviewSize);
+                previewRenderer = new DynamicShaderPreviewRenderer(sourceCanvas.width, sourceCanvas.height);
                 LogDynamicPreview('WebGL renderer is available for dynamic shader previews.');
             } catch (e) {
                 previewRenderer = null;
@@ -337,6 +374,7 @@ var cesDialogsShaderSelection = (function(_config, $el, $wrapper, args) {
         var $li = $(li);
         var shader = $li.attr('data-shader') || '';
         var glslp = $li.attr('data-glslp') || '';
+        var previewGlslp = glslp;
         var title = $li.find('h3').first().text() || shader || 'Pixel Perfect';
         var $img = $li.find('img').first();
 
@@ -359,19 +397,100 @@ var cesDialogsShaderSelection = (function(_config, $el, $wrapper, args) {
             return complete();
         }
 
-        LogDynamicPreview('Attempting dynamic preview for ' + title + ' using ' + glslp + '.');
+        previewGlslp = ResolveDynamicPreviewPresetPath(glslp);
 
-        LoadDynamicPreviewPreset(glslp, function(err, preset) {
+        if (previewGlslp !== glslp) {
+            LogDynamicPreview('Dynamic preview for ' + title + ' uses preview-only preset ' + previewGlslp + '; emulator selection remains ' + glslp + '.');
+        }
 
-            var dataUrl;
+        RenderDynamicPreviewPreset(previewSession, sourceCanvas, $li, $img, title, previewGlslp, getPreviewRenderer, function(err) {
+
+            var fallbackGlslp;
 
             if (!IsDynamicPreviewSessionActive(previewSession)) {
                 return complete();
             }
 
-            if (err) {
-                LogDynamicPreview('Dynamic preview fallback for ' + title + ': ' + err);
+            if (!err) {
                 return complete();
+            }
+
+            fallbackGlslp = ResolveDynamicPreviewFallbackPresetPath(glslp, previewGlslp);
+
+            if (fallbackGlslp) {
+
+                if (IsSmoothedPreviewCellShadePreset(previewGlslp)) {
+                    LogDynamicPreview('Custom Smoothed preview shader failed; falling back to existing Smoothed preview. ' + err);
+                } else {
+                    LogDynamicPreview('Dynamic preview fallback for ' + title + ': ' + err + '; attempting fallback preset ' + fallbackGlslp + '.');
+                }
+
+                return RenderDynamicPreviewPreset(previewSession, sourceCanvas, $li, $img, title, fallbackGlslp, getPreviewRenderer, function(fallbackErr) {
+
+                    if (fallbackErr && IsDynamicPreviewSessionActive(previewSession)) {
+                        LogDynamicPreview('Dynamic preview fallback for ' + title + ': ' + fallbackErr);
+                    }
+
+                    return complete();
+                });
+            }
+
+            LogDynamicPreview('Dynamic preview fallback for ' + title + ': ' + err);
+            return complete();
+        });
+    };
+
+    var ResolveDynamicPreviewPresetPath = function(glslp) {
+
+        var presetPath = NormalizePreviewShaderAssetPath(glslp);
+
+        if (presetPath && dynamicPreviewPresetOverrides[presetPath]) {
+            return dynamicPreviewPresetOverrides[presetPath];
+        }
+
+        return glslp;
+    };
+
+    var ResolveDynamicPreviewFallbackPresetPath = function(glslp, previewGlslp) {
+
+        var presetPath = NormalizePreviewShaderAssetPath(glslp);
+        var fallbackPath = presetPath ? dynamicPreviewFallbackPresetOverrides[presetPath] : null;
+
+        if (!fallbackPath) {
+            return null;
+        }
+
+        if (NormalizePreviewShaderAssetPath(fallbackPath) === NormalizePreviewShaderAssetPath(previewGlslp)) {
+            return null;
+        }
+
+        return fallbackPath;
+    };
+
+    var RenderDynamicPreviewPreset = function(previewSession, sourceCanvas, $li, $img, title, previewGlslp, getPreviewRenderer, callback) {
+
+        var isCustomSmoothedPreview = IsSmoothedPreviewCellShadePreset(previewGlslp);
+
+        if (isCustomSmoothedPreview) {
+            LogDynamicPreview('Using custom Smoothed preview shader: ' + NormalizePreviewShaderAssetPath(previewGlslp));
+        }
+
+        LogDynamicPreview('Attempting dynamic preview for ' + title + ' using ' + previewGlslp + '.');
+
+        LoadDynamicPreviewPreset(previewGlslp, function(err, preset) {
+
+            var dataUrl;
+
+            if (!IsDynamicPreviewSessionActive(previewSession)) {
+                return callback(null);
+            }
+
+            if (err) {
+                return callback(err);
+            }
+
+            if (isCustomSmoothedPreview) {
+                LogDynamicPreview('Smoothed preview exaggeration: ' + GetPreviewPresetParameterValue(preset, smoothedPreviewCellShadeParameter, '(missing)'));
             }
 
             if (preset.previewNotes && preset.previewNotes.length) {
@@ -381,16 +500,49 @@ var cesDialogsShaderSelection = (function(_config, $el, $wrapper, args) {
             try {
                 dataUrl = getPreviewRenderer().Render(sourceCanvas, preset);
             } catch (e) {
-                LogDynamicPreview('Dynamic preview fallback for ' + title + ': ' + GetErrorMessage(e));
-                return complete();
+                return callback(GetErrorMessage(e));
             }
 
-            TrySetDynamicPreviewImage(previewSession, $li, $img, dataUrl, title);
-            return complete();
+            if (dataUrl && dataUrl.renderPlan && dataUrl.renderPlan.wasCapped) {
+                LogDynamicPreview('Dynamic preview using bounded thumbnail render size for ' + title + ': requested output ' + dataUrl.renderPlan.requestedOutputWidth + 'x' + dataUrl.renderPlan.requestedOutputHeight + ', capped to ' + dataUrl.renderPlan.outputWidth + 'x' + dataUrl.renderPlan.outputHeight + ' by rendering thumbnail source at ' + dataUrl.renderPlan.sourceWidth + 'x' + dataUrl.renderPlan.sourceHeight + '.');
+            }
+
+            if (!TrySetDynamicPreviewImage(previewSession, $li, $img, dataUrl, title)) {
+                return callback('renderer did not return an image');
+            }
+
+            if (isCustomSmoothedPreview) {
+                LogDynamicPreview('Custom Smoothed preview shader applied.');
+            }
+
+            return callback(null);
         });
     };
 
+    var IsSmoothedPreviewCellShadePreset = function(glslp) {
+
+        return NormalizePreviewShaderAssetPath(glslp) === NormalizePreviewShaderAssetPath(smoothedPreviewCellShadePreset);
+    };
+
+    var GetPreviewPresetParameterValue = function(preset, parameterName, fallback) {
+
+        if (preset && preset.parameters && Object.prototype.hasOwnProperty.call(preset.parameters, parameterName)) {
+            return preset.parameters[parameterName];
+        }
+
+        return fallback;
+    };
+
     var TrySetDynamicPreviewImage = function(previewSession, $li, $img, dataUrl, title) {
+
+        var renderWidth = null;
+        var renderHeight = null;
+
+        if (dataUrl && typeof dataUrl === 'object') {
+            renderWidth = dataUrl.width || null;
+            renderHeight = dataUrl.height || null;
+            dataUrl = dataUrl.dataUrl || dataUrl.src || null;
+        }
 
         if (!IsDynamicPreviewSessionActive(previewSession)) {
             return false;
@@ -403,8 +555,13 @@ var cesDialogsShaderSelection = (function(_config, $el, $wrapper, args) {
 
         $img.attr('src', dataUrl);
         $img.attr('data-dynamic-preview', 'true');
+
+        if (renderWidth && renderHeight) {
+            $img.attr('data-dynamic-preview-internal-size', renderWidth + 'x' + renderHeight);
+        }
+
         $li.attr('data-dynamic-preview', 'true');
-        LogDynamicPreview('Dynamic preview applied for ' + title + '.');
+        LogDynamicPreview('Dynamic preview applied for ' + title + (renderWidth && renderHeight ? ' at ' + renderWidth + 'x' + renderHeight + ' internal resolution.' : '.'));
         return true;
     };
 
@@ -469,6 +626,7 @@ var cesDialogsShaderSelection = (function(_config, $el, $wrapper, args) {
         var context = canvas.getContext('2d');
         var sourceWidth = titleImage.naturalWidth || titleImage.width;
         var sourceHeight = titleImage.naturalHeight || titleImage.height;
+        var targetSize;
         var scale;
         var drawWidth;
         var drawHeight;
@@ -483,8 +641,14 @@ var cesDialogsShaderSelection = (function(_config, $el, $wrapper, args) {
             throw new Error('title screen image had no measurable size');
         }
 
-        canvas.width = dynamicPreviewSize;
-        canvas.height = dynamicPreviewSize;
+        // Preserve as much source detail as practical for zoomable shader previews.
+        // The list still displays at dynamicPreviewDisplaySize, but the rendered dataUrl
+        // can be larger. If the original CDN image is larger than our safety cap, scale
+        // it down only as much as needed to fit inside the bounded render surface.
+        targetSize = Math.max(dynamicPreviewDisplaySize, Math.min(dynamicPreviewMaxIntermediateSize, Math.max(sourceWidth, sourceHeight)));
+
+        canvas.width = targetSize;
+        canvas.height = targetSize;
 
         context.fillStyle = '#000';
         context.fillRect(0, 0, canvas.width, canvas.height);
@@ -737,9 +901,70 @@ var cesDialogsShaderSelection = (function(_config, $el, $wrapper, args) {
             parameters: parameters,
             textureAliases: textureAliases,
             textureResources: ParsePreviewTextureResources(presetDirectory, assignments, textureAliases),
+            previewOutputScale: ResolvePreviewPresetOutputScale(passes),
             forceFinalBlit: skippedPassCount > 0,
             previewNotes: previewNotes
         };
+    };
+
+    var ResolvePreviewPresetOutputScale = function(passes) {
+
+        var scaleX = 1;
+        var scaleY = 1;
+        var maxScale = 1;
+        var i;
+
+        for (i = 0; i < passes.length; i++) {
+
+            var pass = passes[i];
+
+            if (pass.skipForPreview) {
+                continue;
+            }
+
+            scaleX = ResolvePreviewOutputAxisScale(scaleX, pass.outputScale.x);
+            scaleY = ResolvePreviewOutputAxisScale(scaleY, pass.outputScale.y);
+            maxScale = Math.max(maxScale, scaleX, scaleY);
+        }
+
+        if (!maxScale || !isFinite(maxScale) || maxScale < 1) {
+            return 1;
+        }
+
+        return Math.min(maxScale, dynamicPreviewMaxIntermediateScale);
+    };
+
+    var ResolvePreviewOutputAxisScale = function(currentScale, axisScale) {
+
+        var type = axisScale.type;
+        var scale = axisScale.scale;
+
+        if (!type && (scale === null || scale === undefined)) {
+            type = 'source';
+            scale = 1;
+        }
+
+        if (!type) {
+            type = 'source';
+        }
+
+        if (scale === null || scale === undefined) {
+            scale = 1;
+        }
+
+        if (type === 'source') {
+            return currentScale * scale;
+        }
+
+        if (type === 'viewport' || type === 'original') {
+            return scale;
+        }
+
+        if (type === 'absolute' || type === 'abs') {
+            return currentScale;
+        }
+
+        return currentScale;
     };
 
     var ApplyPreviewBorderVideoScale = function(passes, videoScale) {
@@ -1274,6 +1499,7 @@ var cesDialogsShaderSelection = (function(_config, $el, $wrapper, args) {
         var blitProgram = null;
         var destroyed = false;
         var maxTextureSize = 0;
+        var maxRenderbufferSize = 0;
         var maxTextureImageUnits = 8;
         var identityMatrix = new Float32Array([
             1, 0, 0, 0,
@@ -1300,6 +1526,7 @@ var cesDialogsShaderSelection = (function(_config, $el, $wrapper, args) {
         }
 
         maxTextureSize = gl.getParameter(gl.MAX_TEXTURE_SIZE) || dynamicPreviewMaxIntermediateSize;
+        maxRenderbufferSize = gl.getParameter(gl.MAX_RENDERBUFFER_SIZE) || maxTextureSize;
         maxTextureImageUnits = gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS) || maxTextureImageUnits;
 
         positionBuffer = gl.createBuffer();
@@ -1329,9 +1556,11 @@ var cesDialogsShaderSelection = (function(_config, $el, $wrapper, args) {
             var sourceTexture = null;
             var externalTextures = [];
             var renderTargets = [];
+            var renderSourceCanvas = sourceCanvas;
+            var renderPlan;
             var inputTexture = null;
-            var inputWidth = sourceCanvas.width;
-            var inputHeight = sourceCanvas.height;
+            var inputWidth;
+            var inputHeight;
             var passTexturesByIndex = {};
             var passTexturesByAlias = {};
             var renderablePasses = GetRenderablePreviewPasses(preset);
@@ -1347,13 +1576,18 @@ var cesDialogsShaderSelection = (function(_config, $el, $wrapper, args) {
             }
 
             try {
-                sourceTexture = CreateCanvasTexture(sourceCanvas);
+                renderPlan = BuildPreviewRenderPlan(sourceCanvas, preset);
+                renderSourceCanvas = PreparePreviewRenderSourceCanvas(sourceCanvas, renderPlan);
+                ResizeOutputCanvasForPreset(renderPlan);
+                sourceTexture = CreateCanvasTexture(renderSourceCanvas);
                 inputTexture = sourceTexture;
+                inputWidth = renderSourceCanvas.width;
+                inputHeight = renderSourceCanvas.height;
                 externalTextures = CreateExternalTextureMap(GetRequiredPreviewTextureResources(preset));
 
                 for (i = 0; i < renderablePasses.length; i++) {
                     renderToCanvas = i === renderablePasses.length - 1 && !preset.forceFinalBlit;
-                    outputSize = ResolvePassOutputSize(renderablePasses[i], inputWidth, inputHeight, sourceCanvas.width, sourceCanvas.height, renderToCanvas);
+                    outputSize = ResolvePassOutputSize(renderablePasses[i], inputWidth, inputHeight, renderSourceCanvas.width, renderSourceCanvas.height, renderToCanvas);
                     renderTarget = null;
 
                     if (!renderToCanvas) {
@@ -1369,7 +1603,7 @@ var cesDialogsShaderSelection = (function(_config, $el, $wrapper, args) {
                         passTexturesByAlias: passTexturesByAlias
                     };
 
-                    RenderPass(renderablePasses[i], textureContext, inputWidth, inputHeight, outputSize.width, outputSize.height, sourceCanvas.width, sourceCanvas.height, renderTarget ? renderTarget.framebuffer : null);
+                    RenderPass(renderablePasses[i], textureContext, inputWidth, inputHeight, outputSize.width, outputSize.height, renderSourceCanvas.width, renderSourceCanvas.height, renderTarget ? renderTarget.framebuffer : null);
 
                     if (renderTarget) {
                         StoreRenderedPassTexture(renderablePasses[i], renderTarget, passTexturesByIndex, passTexturesByAlias);
@@ -1385,7 +1619,12 @@ var cesDialogsShaderSelection = (function(_config, $el, $wrapper, args) {
 
                 gl.bindFramebuffer(gl.FRAMEBUFFER, null);
                 dataUrl = canvas.toDataURL('image/png');
-                return dataUrl;
+                return {
+                    dataUrl: dataUrl,
+                    width: canvas.width,
+                    height: canvas.height,
+                    renderPlan: renderPlan
+                };
             } finally {
                 if (sourceTexture) {
                     gl.deleteTexture(sourceTexture);
@@ -1433,6 +1672,99 @@ var cesDialogsShaderSelection = (function(_config, $el, $wrapper, args) {
                 gl.deleteBuffer(texCoordBuffer);
                 texCoordBuffer = null;
             }
+        };
+
+        var BuildPreviewRenderPlan = function(sourceCanvas, preset) {
+
+            var scale = preset && preset.previewOutputScale ? preset.previewOutputScale : 1;
+            var maxOutputSize = Math.max(1, Math.min(dynamicPreviewMaxIntermediateSize, maxTextureSize, maxRenderbufferSize));
+            var requestedOutputWidth;
+            var requestedOutputHeight;
+            var maxSourceWidth;
+            var maxSourceHeight;
+            var sourceWidth;
+            var sourceHeight;
+            var outputWidth;
+            var outputHeight;
+
+            if (!scale || !isFinite(scale) || scale < 1) {
+                scale = 1;
+            }
+
+            requestedOutputWidth = Math.max(sourceCanvas.width, Math.round(sourceCanvas.width * scale));
+            requestedOutputHeight = Math.max(sourceCanvas.height, Math.round(sourceCanvas.height * scale));
+            maxSourceWidth = Math.max(1, Math.floor(maxOutputSize / scale));
+            maxSourceHeight = Math.max(1, Math.floor(maxOutputSize / scale));
+            sourceWidth = Math.min(sourceCanvas.width, maxSourceWidth);
+            sourceHeight = Math.min(sourceCanvas.height, maxSourceHeight);
+            outputWidth = Math.max(sourceWidth, Math.round(sourceWidth * scale));
+            outputHeight = Math.max(sourceHeight, Math.round(sourceHeight * scale));
+
+            return {
+                sourceWidth: sourceWidth,
+                sourceHeight: sourceHeight,
+                outputWidth: outputWidth,
+                outputHeight: outputHeight,
+                requestedOutputWidth: requestedOutputWidth,
+                requestedOutputHeight: requestedOutputHeight,
+                maxOutputSize: maxOutputSize,
+                scale: scale,
+                wasCapped: sourceWidth !== sourceCanvas.width || sourceHeight !== sourceCanvas.height || outputWidth !== requestedOutputWidth || outputHeight !== requestedOutputHeight
+            };
+        };
+
+        var PreparePreviewRenderSourceCanvas = function(sourceCanvas, renderPlan) {
+
+            var scaledCanvas;
+            var context;
+            var scale;
+
+            if (!renderPlan || !renderPlan.wasCapped) {
+                return sourceCanvas;
+            }
+
+            scaledCanvas = document.createElement('canvas');
+            scaledCanvas.width = renderPlan.sourceWidth;
+            scaledCanvas.height = renderPlan.sourceHeight;
+            context = scaledCanvas.getContext('2d');
+
+            if (!context) {
+                throw new Error('2D canvas context unavailable for bounded shader preview source');
+            }
+
+            context.fillStyle = '#000';
+            context.fillRect(0, 0, scaledCanvas.width, scaledCanvas.height);
+            scale = Math.min(scaledCanvas.width / sourceCanvas.width, scaledCanvas.height / sourceCanvas.height);
+            SetImageSmoothing(context, ShouldSmoothDynamicPreviewSourceScale(scale));
+            context.drawImage(sourceCanvas, 0, 0, sourceCanvas.width, sourceCanvas.height, 0, 0, scaledCanvas.width, scaledCanvas.height);
+
+            return scaledCanvas;
+        };
+
+        var ResizeOutputCanvasForPreset = function(renderPlan) {
+
+            var targetWidth = renderPlan.outputWidth;
+            var targetHeight = renderPlan.outputHeight;
+
+            if (targetWidth > dynamicPreviewMaxIntermediateSize || targetHeight > dynamicPreviewMaxIntermediateSize) {
+                throw new Error('preview output size ' + targetWidth + 'x' + targetHeight + ' exceeds preview safety limit ' + dynamicPreviewMaxIntermediateSize + ' for display thumbnail size ' + dynamicPreviewDisplaySize + ' and max scale ' + dynamicPreviewMaxIntermediateScale);
+            }
+
+            if (targetWidth > maxTextureSize || targetHeight > maxTextureSize) {
+                throw new Error('preview output size ' + targetWidth + 'x' + targetHeight + ' exceeds WebGL MAX_TEXTURE_SIZE ' + maxTextureSize);
+            }
+
+            if (targetWidth > maxRenderbufferSize || targetHeight > maxRenderbufferSize) {
+                throw new Error('preview output size ' + targetWidth + 'x' + targetHeight + ' exceeds WebGL MAX_RENDERBUFFER_SIZE ' + maxRenderbufferSize);
+            }
+
+            if (canvas.width !== targetWidth || canvas.height !== targetHeight) {
+                canvas.width = targetWidth;
+                canvas.height = targetHeight;
+            }
+
+            width = targetWidth;
+            height = targetHeight;
         };
 
         var GetRenderablePreviewPasses = function(preset) {
@@ -1733,7 +2065,7 @@ var cesDialogsShaderSelection = (function(_config, $el, $wrapper, args) {
             outputSize = Math.max(1, Math.round(outputSize));
 
             if (outputSize > dynamicPreviewMaxIntermediateSize) {
-                throw new Error('pass ' + pass.index + ' ' + axisName + ' output size ' + outputSize + ' exceeds preview safety limit ' + dynamicPreviewMaxIntermediateSize + ' for thumbnail size ' + dynamicPreviewSize + ' and max scale ' + dynamicPreviewMaxIntermediateScale);
+                throw new Error('pass ' + pass.index + ' ' + axisName + ' output size ' + outputSize + ' exceeds preview safety limit ' + dynamicPreviewMaxIntermediateSize + ' for display thumbnail size ' + dynamicPreviewDisplaySize + ' and max scale ' + dynamicPreviewMaxIntermediateScale);
             }
 
             if (outputSize > maxTextureSize) {

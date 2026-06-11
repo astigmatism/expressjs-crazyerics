@@ -19,6 +19,7 @@ cd "$SCRIPT_DIR"
 
 zip -r "$ARCHIVE_PATH" . \
   -x "tools/*" \
+  -x "data/*" \
   -x "public/build/*" \
   -x "public/shaders/*" \
   -x "public/build/*" \

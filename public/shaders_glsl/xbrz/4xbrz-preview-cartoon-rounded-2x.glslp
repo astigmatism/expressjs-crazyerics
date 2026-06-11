@@ -1,0 +1,18 @@
+# Preview-only Smoothed shader selection thumbnail preset.
+# The real Smoothed emulator preset remains xbrz/4xbrz-linear.glslp.
+# This option keeps the source image framing unchanged and exaggerates crisp
+# cartoon edge rounding without a whole-image blur, zoom, or smeary downsample.
+# Strength 2x of 4 included preview options.
+
+shaders = 2
+
+shader0 = shaders/4xbrz-preview-cartoon-rounded-options.glsl
+filter_linear0 = false
+scale_type0 = source
+scale0 = 4.0
+
+parameters = "SMOOTHED_PREVIEW_CARTOON_ROUNDING"
+SMOOTHED_PREVIEW_CARTOON_ROUNDING = 2.00
+
+shader1 = ../stock.glsl
+filter_linear1 = false

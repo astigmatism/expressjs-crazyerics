@@ -1,0 +1,31 @@
+# Preview-only Smoothed shader selection thumbnail preset.
+#
+# The actual Smoothed gameplay shader remains xbrz/4xbrz-linear.glslp.
+# This preset is only for the 300x300 shader-selection preview tile.
+#
+# Intent:
+#   * communicate XBRZ-style pixel smoothing in a small title-screen preview;
+#   * avoid the subtlety of faithful XBRZ/SABR/Eagle previews at 300x300;
+#   * avoid the smeared/glass look caused by exaggerating full-frame XBR-style interpolation;
+#   * preserve source color/detail while adding visible stair-step cleanup and edge AA.
+#
+# Exaggeration range:
+#   SMOOTHED_PREVIEW_EXAGGERATION = 0.00  unchanged / diagnostic baseline
+#   SMOOTHED_PREVIEW_EXAGGERATION = 0.45  moderate, conservative edge cleanup
+#   SMOOTHED_PREVIEW_EXAGGERATION = 0.70  default, clearly distinct but detail-preserving
+#   SMOOTHED_PREVIEW_EXAGGERATION = 1.00  strongest preview demonstration
+
+shaders = 1
+
+shader0 = shaders/smoothed-preview-edge-clean-aa.glsl
+filter_linear0 = true
+scale_type0 = source
+scale0 = 1.0
+
+# expressjs-crazyerics preview renderer extension: force this preview preset to
+# render at the same size as the visible shader preview tile. This prevents a
+# large intermediate image from being downsampled into a blurry 300x300 preview.
+preview_output_size = 300
+
+parameters = "SMOOTHED_PREVIEW_EXAGGERATION"
+SMOOTHED_PREVIEW_EXAGGERATION = 1.5
