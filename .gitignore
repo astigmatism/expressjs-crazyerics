@@ -1,3 +1,5 @@
 public/build/build.js.map
 node_modules/
 node_modules
+.ai-update-backups
+.ai-update-backups/*

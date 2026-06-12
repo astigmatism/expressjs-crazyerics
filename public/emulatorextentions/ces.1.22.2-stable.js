@@ -473,8 +473,9 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _GamePad, _Pr
 
             // RetroArch 1.22.2 redirects Nestopia save states into a core-named subdirectory
             // even though CES restores old saves to /states/<rom>.state by default. Keep this
-            // NES/core-specific so older 1.6.9-style emulators keep their original path.
-            if (_gameKey.system === 'nes' && script.match(/nestopia/i)) {
+            // Nestopia/core-specific so NES and FDS share the compatibility path without
+            // changing older 1.6.9-style emulators.
+            if (script.match(/nestopia/i)) {
                 AddUniquePath(result, 'Nestopia');
             }
 

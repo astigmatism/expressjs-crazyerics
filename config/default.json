@@ -260,13 +260,160 @@
       "name": "Famicom Disk System",
       "shortname": "Famicom Disk System",
       "live": false,
+      "livenotes": "Probably supported with 1.22.2 but the cdn doesnt seem to have any game collections?",
       "supportfiles": true,
       "boxcdnversion": "2018-1-2",
       "romcdnversion": "FDS-1.0",
       "collection": "",
-      "emuextention": "1.6.9-stable",
+      "emuextention": "1.22.2-stable",
+      "emulatorpath": "emulators",
       "emuscript": "nestopia_libretro.js",
       "screenshotaspectratio": 1.142857142857143,
+      "controllerDiagram": {
+        "type": "instructionManual",
+        "title": "Player 1 Controller Reference",
+        "subtitle": "",
+        "badge": "Instruction Card",
+        "image": "/images/controllers/nes/controls-slider-bg.png",
+        "imageAlt": "Famicom Disk System controller reference using the NES-style control layout",
+        "callouts": [
+          {
+            "input": "up_axis",
+            "label": "D-pad Up",
+            "x": 31.0,
+            "y": 14.0,
+            "lineX": 31.4,
+            "lineY": 24.0,
+            "targetX": 31.4,
+            "targetY": 48.0
+          },
+          {
+            "input": "left_axis",
+            "label": "D-pad Left",
+            "x": 12.0,
+            "y": 56.0,
+            "lineX": 20.5,
+            "lineY": 56.0,
+            "targetX": 27.9,
+            "targetY": 54.7
+          },
+          {
+            "input": "right_axis",
+            "label": "D-pad Right",
+            "x": 49.0,
+            "y": 14.0,
+            "lineX": 45.0,
+            "lineY": 24.0,
+            "targetX": 35.0,
+            "targetY": 54.7
+          },
+          {
+            "input": "down_axis",
+            "label": "D-pad Down",
+            "x": 31.0,
+            "y": 87.0,
+            "lineX": 31.4,
+            "lineY": 76.8,
+            "targetX": 31.4,
+            "targetY": 61.2
+          },
+          {
+            "input": "select_btn",
+            "label": "Select",
+            "x": 50.0,
+            "y": 87.0,
+            "lineX": 44.5,
+            "lineY": 76.8,
+            "targetX": 44.2,
+            "targetY": 59.7
+          },
+          {
+            "input": "start_btn",
+            "label": "Start",
+            "x": 69.0,
+            "y": 87.0,
+            "lineX": 60.6,
+            "lineY": 76.8,
+            "targetX": 50.7,
+            "targetY": 59.8
+          },
+          {
+            "input": "y_btn",
+            "label": "Turbo B",
+            "x": 88.0,
+            "y": 20.0,
+            "lineX": 78.0,
+            "lineY": 35.0,
+            "targetX": 61.1,
+            "targetY": 59.6
+          },
+          {
+            "input": "b_btn",
+            "label": "B",
+            "x": 89.0,
+            "y": 39.0,
+            "lineX": 80.6,
+            "lineY": 47.8,
+            "targetX": 61.1,
+            "targetY": 59.6
+          },
+          {
+            "input": "x_btn",
+            "label": "Turbo A",
+            "x": 88.0,
+            "y": 82.0,
+            "lineX": 79.0,
+            "lineY": 68.0,
+            "targetX": 68.6,
+            "targetY": 59.6
+          },
+          {
+            "input": "a_btn",
+            "label": "A",
+            "x": 89.0,
+            "y": 63.0,
+            "lineX": 80.6,
+            "lineY": 60.0,
+            "targetX": 68.6,
+            "targetY": 59.6
+          },
+          {
+            "input": "l_btn",
+            "label": "Disk Side",
+            "x": 12.0,
+            "y": 25.0,
+            "lineX": 22.0,
+            "lineY": 32.0,
+            "targetX": 44.2,
+            "targetY": 59.7
+          },
+          {
+            "input": "r_btn",
+            "label": "Eject Disk",
+            "x": 88.0,
+            "y": 25.0,
+            "lineX": 78.0,
+            "lineY": 35.0,
+            "targetX": 50.7,
+            "targetY": 59.8
+          },
+          {
+            "input": "l3_btn",
+            "label": "Microphone",
+            "x": 50.0,
+            "y": 14.0,
+            "lineX": 50.0,
+            "lineY": 24.0,
+            "targetX": 56.4,
+            "targetY": 58.2
+          }
+        ]
+      },
+      "retroarch": {
+        "video_force_aspect": true,
+        "video_aspect_ratio": 1.333333333333333,
+        "input_player1_l3": "k"
+      },
       "suggestionThreshold": 250,
       "notes": "The rom collection is not official. Find the set I build specifically for ces on your Synology in Unsorted Collections. I put great effort into naming the files correctly ;P"
     },
@@ -1532,6 +1679,21 @@
       "select_btn": "Select",
       "l_btn": "Left Difficulty",
       "r_btn": "Right Difficulty"
+    },
+    "fds": {
+      "up_axis": "Up",
+      "down_axis": "Down",
+      "left_axis": "Left",
+      "right_axis": "Right",
+      "a_btn": "A",
+      "b_btn": "B",
+      "x_btn": "Turbo A",
+      "y_btn": "Turbo B",
+      "start_btn": "Start",
+      "select_btn": "Select",
+      "l_btn": "Disk Side Change",
+      "r_btn": "Eject Disk",
+      "l3_btn": "Microphone"
     },
     "gb": {
       "up_axis": "Up",
