@@ -16,6 +16,9 @@ var cesDialogs = (function(_config, $wrapper) {
     var defaultHeightChangeDuration = 600;
     var defaultHeightChangeEasing = 'easeOutBack'; // see more http://easings.net/#
     var dialogIntroAnimationDuration = 600;
+    var resizeHeightChangeDuration = 150;
+    var resizeDialogDebounce = 100;
+    var _resizeDialogTimer = null;
 
     var registry = {};
 
@@ -182,7 +185,7 @@ var cesDialogs = (function(_config, $wrapper) {
                 }, dialogIntroAnimationDuration);
 
                 //animate to ideal height
-                self.SetHeight(dialog.height, function() {
+                self.SetHeight(ResolveDialogHeight(dialog), function() {
 
                     dialog.element.removeClass('close');
                     onTransitionComplete();
@@ -213,6 +216,41 @@ var cesDialogs = (function(_config, $wrapper) {
         }
     };
 
+
+    var ResolveDialogHeight = function(dialog) {
+
+        if (dialog && dialog.module && typeof dialog.module.GetHeight === 'function') {
+            return dialog.module.GetHeight(dialog.height);
+        }
+
+        return dialog.height;
+    };
+
+    var ResizeCurrentDialog = function() {
+
+        if (!_currentDialog || !registry.hasOwnProperty(_currentDialog)) {
+            return;
+        }
+
+        var dialog = registry[_currentDialog];
+        if (!dialog.module || typeof dialog.module.GetHeight !== 'function') {
+            return;
+        }
+
+        if (_resizeDialogTimer) {
+            clearTimeout(_resizeDialogTimer);
+        }
+
+        _resizeDialogTimer = setTimeout(function() {
+
+            if (!_currentDialog || !registry.hasOwnProperty(_currentDialog) || registry[_currentDialog] !== dialog) {
+                return;
+            }
+
+            self.SetHeight(ResolveDialogHeight(dialog), null, resizeHeightChangeDuration, 'swing');
+        }, resizeDialogDebounce);
+    };
+
     this.SetHeight = function(height, callback, duration, easing) {
 
         //duration and easing optional
@@ -237,6 +275,7 @@ var cesDialogs = (function(_config, $wrapper) {
 
     var Constructor = function() {
 
+        $(window).on('resize', ResizeCurrentDialog);
     }();
 
     return this;

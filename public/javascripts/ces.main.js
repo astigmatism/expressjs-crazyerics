@@ -4,7 +4,6 @@ var cesMain = (function() {
     var self = this;
     var _config = {}; //the necessary server configuration data provided to the client
     var _bar = null;
-    var _maxNumberOfBanners = 8;
     var _preventLoadingGame = false;
     //var _preventGamePause = false; //condition for blur event of emulator, sometimes we don't want it to pause when we're giving it back focus
     var _minimumGameLoadingTime = 6000; //minimum amount of time to display the title loading. artificially longer for tips
@@ -87,7 +86,7 @@ var cesMain = (function() {
         _Dialogs.Register('ConfigureGamepad', 700, [_Gamepad, _Compression]);
         _Dialogs.Register('ShaderSelection', 600, [_Preferences, _Media, _Logging]);
         _Dialogs.Register('GameLoading', 500, [_Media, _Compression, _PubSub]);
-        _Dialogs.Register('SaveSelection', 500);
+        _Dialogs.Register('SaveSelection', 600);
         _Dialogs.Register('SaveLoading', 500, [_Media, _Compression, _PubSub]);
         _Dialogs.Register('Exception', 500);
         _Dialogs.Register('EmulatorCleanup', 300);
@@ -287,13 +286,10 @@ var cesMain = (function() {
             });
         });
 
-        //title banner rotation easter egg
-        var _currentBanner = Math.floor((Math.random() * _maxNumberOfBanners) + 1);
-        $('#titlebanner').on('click', function() {
-            _currentBanner = _currentBanner >= _maxNumberOfBanners ? 1 : _currentBanner + 1;
-            $(this).css('background-image','url("' + _config.paths.images + '/titlebanners/' + _currentBanner + '.png")');
-        });
-        $('#titlebanner').trigger('click');
+        //title banner background image selected by the server from the cached filename list
+        if (_config.titlebanner && _config.titlebanner.backgroundImageUrl) {
+            $('#titlebanner').css('background-image', 'url("' + _config.titlebanner.backgroundImageUrl + '")');
+        }
     });
 
     /* public methods */

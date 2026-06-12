@@ -61,37 +61,40 @@ var cesDialogsSaveSelection = (function(_config, $el, $wrapper, args) {
 
             switch (saves[timestamp].save.type) {
                 case 'user':
-                AddToGrid(timestamp, saves[timestamp], 'green', 'YOUR SAVE');
+                AddToGrid(timestamp, saves[timestamp], 'YOUR SAVE');
                 break;
                 case 'auto':
-                AddToGrid(timestamp, saves[timestamp], 'orange', 'AUTO-SAVED');
+                AddToGrid(timestamp, saves[timestamp], 'AUTO-SAVED');
                 break;
             }
         }
     };
 
-    var AddToGrid = function(timestamp, saveData, ribbonColor, ribbonText) {
+    var AddToGrid = function(timestamp, saveData, saveTypeText) {
 
-        var $image = $(BuildScreenshot(_config, _system, saveData.save.screenshot, 200));
+        var savePreviewWidth = 300;
+        var $image = $(BuildScreenshot(_config, _system, saveData.save.screenshot, savePreviewWidth))
+            .attr('alt', saveTypeText + ' saved progress screenshot');
 
         var $li = $('<li class="zoom transparent" data-timestamp="' + timestamp + '"></li>').on('click', function(e) {
             
             OnSaveSelected(timestamp, saveData.save.screenshot);
         });
 
-        //title
-        if (saveData.total > 1 && saveData.i == 0) {
-            $li.append('<h3>Newest</h3>');
-        }
-
         //image
-        var $ribbonInner = $('<div class="ribbon-' + ribbonColor + ' ribbon" />').text(ribbonText);
-        var $ribbonOuter = $('<div class="ribbon-wrapper" />').append($ribbonInner);
-        var $imageWrapper = $('<div class="rel" />').append($ribbonOuter).append($image);
+        var $imageWrapper = $('<div class="rel save-preview-frame" />').append($image);
         $li.append($imageWrapper);
         
         //caption
-        var $caption = $('<p>#' + (saveData.total - saveData.i) + ' of ' + saveData.total + '</p><p>' + $.format.prettyDate(saveData.save.timestamp) + '</p>');
+        var $caption = $('<div class="save-selection-caption" />');
+        // $('<h3 />').text(saveTypeText).appendTo($caption);
+
+        if (saveData.total > 1 && saveData.i == 0) {
+            $('<p />').text('Newest').appendTo($caption);
+        }
+
+        $('<p />').text((saveData.total - saveData.i) + ' of ' + saveData.total).appendTo($caption);
+        $('<p />').text($.format.prettyDate(saveData.save.timestamp)).appendTo($caption);
         $li.append($caption);
 
         $('#savesselectlist').prepend($li); //prepend to add them in reverse order so that they can be read left to right

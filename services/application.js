@@ -11,6 +11,7 @@ const SuggestionService = require('./suggestions');
 const GamesService = require('./games');
 const FeaturedService = require('./featured');
 const CronService = require('./cron');
+const TitleBannerService = require('./titlebanners');
 
 module.exports = new (function() {
 
@@ -44,6 +45,11 @@ module.exports = new (function() {
      */
     this.ApplicationStart = function(callback) {
         
+        //warm the titlebanner filename list cache from the local image directory
+        TitleBannerService.ApplicationStart(function(err) {
+            if (err) console.log('titlebanner: startup cache warm failed', err);
+        });
+
         //put into cache all the data files
         var systems = config.get('systems');
 
@@ -233,7 +239,17 @@ module.exports = new (function() {
         //settings defaults for client
         configdata['defaults'] = config.get('defaults');
 
-        return callback(null, configdata);
+        TitleBannerService.GetRandomBannerUrl(function(err, titleBannerUrl) {
+            if (err) {
+                console.log('titlebanner: failed to select banner', err);
+            }
+
+            configdata['titlebanner'] = {
+                backgroundImageUrl: titleBannerUrl || null
+            };
+
+            return callback(null, configdata);
+        });
     };
 
     //try only to include absolutely necessary data for entry

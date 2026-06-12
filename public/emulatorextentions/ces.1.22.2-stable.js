@@ -62,6 +62,12 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _GamePad, _Pr
     var _lastStartupStateAudioMuteReport = null;
     var _lastBrowserGamepadReplayReport = null;
     var _overlayResumeEventNames = ['pointerdown', 'mousedown', 'touchstart', 'click'];
+    var _activeShaderPresetPath = null;
+    var _postStartupShaderReapplyFrameRequest = null;
+    var _postStartupShaderReapplyAttempted = false;
+    var _postStartupShaderReapplyPolls = 0;
+    var _postStartupShaderReapplyMaxPolls = 90;
+    var _postStartupShaderReapplyPaintFrames = 2;
 
     var PublishReady = function(reason) {
         if (_readyPublished) {
@@ -696,6 +702,13 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _GamePad, _Pr
             };
             window.cesRetroArch1222Diagnostics.sample = function() {
                 return SampleDisplayedCanvas(_module.canvas || document.getElementById('emulator'));
+            };
+            window.cesRetroArch1222Diagnostics.reapplyShader = function() {
+                if (_module && typeof _module.cesReapplyActiveShaderPreset === 'function') {
+                    return _module.cesReapplyActiveShaderPreset('manual diagnostics helper');
+                }
+                _Logging.Console(_extensionName, 'Manual shader reapply requested, but the module helper is not available.');
+                return false;
             };
 
             // Backward-compatible alias for the original NES 1.22.2 testing helper.
@@ -1399,6 +1412,14 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _GamePad, _Pr
             return ReplayConnectedBrowserGamepadsForRetroArch(reason);
         };
 
+        this.cesReapplyActiveShaderPreset = function(reason) {
+            return ReapplyActiveShaderPreset(reason || 'manual request');
+        };
+
+        this.cesSchedulePostStartupShaderReapply = function(reason) {
+            return SchedulePostStartupShaderReapply(reason || 'manual schedule');
+        };
+
         this.cesBeforeEmulatorMain = function(ui) {
             this.cesInstallRenderDiagnostics('before callMain');
             this.cesInstallPauseResumeCompatibility('before callMain');
@@ -1427,6 +1448,7 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _GamePad, _Pr
             window.cesRetroArch1222Controls.reset = function() { return module.cesInvokeLegacyCommand('reset'); };
             window.cesRetroArch1222Controls.pause = function() { return module.cesInvokeLegacyCommand('pause'); };
             window.cesRetroArch1222Controls.resume = function() { return module.cesForceResumeFromCes('manual controls helper'); };
+            window.cesRetroArch1222Controls.reapplyShader = function() { return module.cesReapplyActiveShaderPreset('manual controls helper'); };
 
             window.cesRetroArch1222Controls.replayGamepads = function() { return module.cesReplayConnectedBrowserGamepadsForRetroArch('manual controls helper'); };
 
@@ -1478,7 +1500,17 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _GamePad, _Pr
             wrapper.stop(true, true).css({
                 display: 'block',
                 visibility: 'visible'
-            }).fadeTo(duration || 0, 1, function() {
+            });
+
+            // Console-border shaders can initialize with their source pass black if
+            // RetroArch applies them while the CES wrapper is still hidden. The
+            // useful signal is the startup shim being released, not the end of the
+            // one-second fade animation. Schedule the one-time shader reapply as
+            // soon as the wrapper becomes visible, then wait for a real painted
+            // canvas frame before issuing SET_SHADER.
+            module.cesSchedulePostStartupShaderReapply('wrapper visibility released for reveal');
+
+            wrapper.fadeTo(duration || 0, 1, function() {
                 module.cesPrepareCanvas('after reveal', ui);
                 module.cesReportRenderDiagnostics('after reveal');
                 if (callback) {
@@ -1705,6 +1737,236 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _GamePad, _Pr
                 _Logging.Console(_extensionName, 'RetroArch queued command failed for ' + context + ' (' + commandName + '): ' + e);
                 return false;
             }
+        };
+
+        var GetActiveShaderPresetPath = function() {
+            return _activeShaderPresetPath || (_module && _module.cesActiveShaderPresetPath) || null;
+        };
+
+        var IsVirtualBoyVintageLcdShaderPath = function(shaderPath) {
+            var normalizedPath;
+
+            if (!_gameKey || _gameKey.system !== 'vb' || !shaderPath) {
+                return false;
+            }
+
+            normalizedPath = String(shaderPath).replace(/\\/g, '/');
+            normalizedPath = normalizedPath.replace(/^.*\/shaders_glsl\//i, '');
+            normalizedPath = normalizedPath.replace(/^\/?shaders_glsl\//i, '');
+            normalizedPath = normalizedPath.replace(/^\/?shaders\/shaders_glsl\//i, '');
+
+            while (normalizedPath.charAt(0) === '/') {
+                normalizedPath = normalizedPath.substr(1);
+            }
+
+            return normalizedPath === 'handheld/virtual-boy-vintage-lcd.glslp';
+        };
+
+        var GetPostStartupShaderReapplyLabel = function(shaderPath) {
+
+            if (IsVirtualBoyVintageLcdShaderPath(shaderPath)) {
+                return 'Virtual Boy Vintage LCD shader';
+            }
+
+            if (shaderPath && String(shaderPath).match(/\/handheld\/console-border\//i)) {
+                return 'console-border shader';
+            }
+
+            return 'shader';
+        };
+
+        var ShouldReapplyShaderPostStartup = function(shaderPath) {
+            return !!(shaderPath && (String(shaderPath).match(/\/handheld\/console-border\//i) || IsVirtualBoyVintageLcdShaderPath(shaderPath)));
+        };
+
+        var RequestPostStartupShaderReapplyFrame = function(callback) {
+            if (window.requestAnimationFrame) {
+                return {
+                    type: 'animationFrame',
+                    id: window.requestAnimationFrame(callback)
+                };
+            }
+
+            return {
+                type: 'timeout',
+                id: setTimeout(callback, 16)
+            };
+        };
+
+        var CancelPostStartupShaderReapplyFrame = function(handle) {
+            if (!handle) {
+                return;
+            }
+
+            if (handle.type === 'animationFrame' && window.cancelAnimationFrame) {
+                window.cancelAnimationFrame(handle.id);
+                return;
+            }
+
+            clearTimeout(handle.id);
+        };
+
+        var ClearPostStartupShaderReapplyFrame = function() {
+            if (_postStartupShaderReapplyFrameRequest) {
+                CancelPostStartupShaderReapplyFrame(_postStartupShaderReapplyFrameRequest);
+                _postStartupShaderReapplyFrameRequest = null;
+            }
+        };
+
+        var GetPostStartupShaderReapplyReadiness = function() {
+            var wrapper = $('#emulatorwrapper');
+            var canvas = (_module && _module.canvas) || document.getElementById('emulator');
+            var opacity;
+
+            if (!_mainStarted) {
+                return { ready: false, reason: 'main loop has not started' };
+            }
+
+            if (!_module || typeof _module.EmscriptenSendCommand !== 'function') {
+                return { ready: false, reason: 'EmscriptenSendCommand is unavailable' };
+            }
+
+            if (!wrapper || !wrapper.length) {
+                return { ready: false, reason: '#emulatorwrapper is missing' };
+            }
+
+            if (wrapper.css('display') === 'none') {
+                return { ready: false, reason: '#emulatorwrapper display is none' };
+            }
+
+            if (wrapper.css('visibility') === 'hidden') {
+                return { ready: false, reason: '#emulatorwrapper visibility is hidden' };
+            }
+
+            opacity = parseFloat(wrapper.css('opacity'));
+            if (!isNaN(opacity) && opacity <= 0.01) {
+                return { ready: false, reason: '#emulatorwrapper opacity is still ' + wrapper.css('opacity') };
+            }
+
+            if (!canvas) {
+                return { ready: false, reason: '#emulator canvas is missing' };
+            }
+
+            if (!canvas.clientWidth || !canvas.clientHeight) {
+                return { ready: false, reason: '#emulator canvas has no visible CSS size (' + canvas.clientWidth + 'x' + canvas.clientHeight + ')' };
+            }
+
+            if (!HasWebGlContext(canvas)) {
+                return { ready: false, reason: 'WebGL context is not available on the emulator canvas yet' };
+            }
+
+            return {
+                ready: true,
+                reason: 'wrapper visible, canvas measurable, WebGL active',
+                canvasWidth: canvas.clientWidth,
+                canvasHeight: canvas.clientHeight,
+                wrapperOpacity: wrapper.css('opacity')
+            };
+        };
+
+        var ReapplyActiveShaderPreset = function(reason) {
+            var shaderPath = GetActiveShaderPresetPath();
+            var commandName;
+
+            if (!shaderPath) {
+                _Logging.Console(_extensionName, 'RetroArch runtime shader reapply skipped: no active shader preset path' + (reason ? ' (' + reason + ')' : ''));
+                return false;
+            }
+
+            if (!_mainStarted) {
+                _Logging.Console(_extensionName, 'RetroArch runtime shader reapply skipped before emulator main loop started: ' + shaderPath + (reason ? ' (' + reason + ')' : ''));
+                return false;
+            }
+
+            if (!_module || typeof _module.EmscriptenSendCommand !== 'function') {
+                _Logging.Console(_extensionName, 'RetroArch runtime shader reapply skipped because EmscriptenSendCommand is unavailable: ' + shaderPath + (reason ? ' (' + reason + ')' : ''));
+                return false;
+            }
+
+            commandName = 'SET_SHADER ' + shaderPath;
+
+            try {
+                _module.EmscriptenSendCommand(commandName);
+                _Logging.Console(_extensionName, 'Requested RetroArch runtime shader reapply via SET_SHADER: ' + shaderPath + (reason ? ' (' + reason + ')' : ''));
+                if (IsVirtualBoyVintageLcdShaderPath(shaderPath)) {
+                    _Logging.Console(_extensionName, 'Virtual Boy Vintage LCD shader applied to RetroArch gameplay: ' + shaderPath);
+                }
+                return true;
+            } catch (e) {
+                _Logging.Console(_extensionName, 'RetroArch runtime shader reapply failed for ' + shaderPath + (reason ? ' (' + reason + ')' : '') + ': ' + e);
+                return false;
+            }
+        };
+
+        var RunPostStartupShaderReapplyWhenVisible = function(reason, readyPaintFrames) {
+            var readiness;
+            var shaderPath = GetActiveShaderPresetPath();
+            var shaderLabel = GetPostStartupShaderReapplyLabel(shaderPath);
+
+            _postStartupShaderReapplyFrameRequest = null;
+            readiness = GetPostStartupShaderReapplyReadiness();
+
+            if (!readiness.ready) {
+                _postStartupShaderReapplyPolls++;
+
+                if (_postStartupShaderReapplyPolls === 1 || _postStartupShaderReapplyPolls % 15 === 0) {
+                    _Logging.Console(_extensionName, 'Waiting to reapply RetroArch ' + shaderLabel + ' until startup wrapper is visibly rendering: ' + readiness.reason + ' (poll ' + _postStartupShaderReapplyPolls + '/' + _postStartupShaderReapplyMaxPolls + ', reason=' + reason + ')');
+                }
+
+                if (_postStartupShaderReapplyPolls >= _postStartupShaderReapplyMaxPolls) {
+                    _Logging.Console(_extensionName, 'Post-startup shader reapply abandoned because visible-canvas readiness was not reached: ' + readiness.reason + ' (reason=' + reason + ')');
+                    return;
+                }
+
+                _postStartupShaderReapplyFrameRequest = RequestPostStartupShaderReapplyFrame(function() {
+                    RunPostStartupShaderReapplyWhenVisible(reason, 0);
+                });
+                return;
+            }
+
+            if (readyPaintFrames < _postStartupShaderReapplyPaintFrames) {
+                _postStartupShaderReapplyFrameRequest = RequestPostStartupShaderReapplyFrame(function() {
+                    RunPostStartupShaderReapplyWhenVisible(reason, readyPaintFrames + 1);
+                });
+                return;
+            }
+
+            _Logging.Console(_extensionName, 'Visible startup frame detected for RetroArch ' + shaderLabel + ' reapply: ' + readiness.reason + ', canvas=' + readiness.canvasWidth + 'x' + readiness.canvasHeight + ', wrapperOpacity=' + readiness.wrapperOpacity + ', paintFrames=' + readyPaintFrames + ', reason=' + reason);
+            ReapplyActiveShaderPreset('visible startup frame after wrapper reveal');
+        };
+
+        var SchedulePostStartupShaderReapply = function(reason) {
+            var shaderPath = GetActiveShaderPresetPath();
+            var shaderLabel;
+
+            if (!shaderPath) {
+                _Logging.Console(_extensionName, 'Post-startup shader reapply not scheduled: no active shader preset path' + (reason ? ' (' + reason + ')' : ''));
+                return false;
+            }
+
+            shaderLabel = GetPostStartupShaderReapplyLabel(shaderPath);
+
+            if (!ShouldReapplyShaderPostStartup(shaderPath)) {
+                _Logging.Console(_extensionName, 'Post-startup shader reapply not scheduled for this shader: ' + shaderPath + (reason ? ' (' + reason + ')' : ''));
+                return false;
+            }
+
+            if (_postStartupShaderReapplyAttempted) {
+                _Logging.Console(_extensionName, 'Post-startup shader reapply already attempted; not scheduling again for ' + shaderPath + (reason ? ' (' + reason + ')' : ''));
+                return false;
+            }
+
+            ClearPostStartupShaderReapplyFrame();
+            _postStartupShaderReapplyAttempted = true;
+            _postStartupShaderReapplyPolls = 0;
+
+            _Logging.Console(_extensionName, 'Scheduling one-time RetroArch ' + shaderLabel + ' reapply on the first visible startup frame: ' + shaderPath + (reason ? ' (' + reason + ')' : ''));
+
+            _postStartupShaderReapplyFrameRequest = RequestPostStartupShaderReapplyFrame(function() {
+                RunPostStartupShaderReapplyWhenVisible(reason || 'scheduled', 0);
+            });
+
+            return true;
         };
 
         var IsScreenshotFilename = function(filename) {
@@ -4043,6 +4305,17 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _GamePad, _Pr
                         shaderPresetCommandLineArgument = shaderPresetToLoad;
                     }
                 }
+            }
+
+            this.cesActiveShaderPresetPath = shaderPresetToLoad || null;
+            _activeShaderPresetPath = shaderPresetToLoad || null;
+            _postStartupShaderReapplyAttempted = false;
+            _postStartupShaderReapplyPolls = 0;
+            ClearPostStartupShaderReapplyFrame();
+            if (_activeShaderPresetPath) {
+                _Logging.Console(_extensionName, 'Active RetroArch shader preset recorded for runtime reapply: ' + _activeShaderPresetPath);
+            } else {
+                _Logging.Console(_extensionName, 'No active RetroArch shader preset recorded for runtime reapply.');
             }
 
             //config, must be after shader

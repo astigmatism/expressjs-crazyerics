@@ -1929,6 +1929,56 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
      * @param  {Object} deffered
      * @return {undefined}
      */
+    var virtualBoyVintageLcdShaderId = 'handheld-lcd-shader';
+    var virtualBoyVintageLcdBrokenPreset = 'handheld/lcd-shader.glslp';
+    var virtualBoyVintageLcdGameplayPreset = 'handheld/virtual-boy-vintage-lcd.glslp';
+    var virtualBoyVintageLcdLegacyPresetMap = {
+        'handheld/lcd-shader.glslp': true,
+        'handheld/lcd-grid.glslp': true,
+        'handheld/zfast-lcd.glslp': true,
+        'handheld/virtual-boy-vintage-lcd.glslp': true
+    };
+
+    var IsVirtualBoySystem = function() {
+
+        return !!(_gameKey && _gameKey.system === 'vb');
+    };
+
+    var NormalizeVirtualBoyVintageLcdSelection = function(selection) {
+
+        if (!selection) {
+            return '';
+        }
+
+        return NormalizeRawGlslShaderAssetPath(selection);
+    };
+
+    var IsVirtualBoyVintageLcdGameplayPresetPath = function(path) {
+
+        return NormalizeVirtualBoyVintageLcdSelection(path) === virtualBoyVintageLcdGameplayPreset;
+    };
+
+    var ResolveVirtualBoyVintageLcdGameplayPreset = function(selection) {
+
+        var normalizedSelection;
+
+        if (!IsVirtualBoySystem() || !selection) {
+            return null;
+        }
+
+        normalizedSelection = NormalizeVirtualBoyVintageLcdSelection(selection);
+
+        if (String(selection) === virtualBoyVintageLcdShaderId ||
+            normalizedSelection === virtualBoyVintageLcdShaderId ||
+            normalizedSelection === virtualBoyVintageLcdBrokenPreset ||
+            virtualBoyVintageLcdLegacyPresetMap[normalizedSelection] ||
+            normalizedSelection === virtualBoyVintageLcdGameplayPreset) {
+            return virtualBoyVintageLcdGameplayPreset;
+        }
+
+        return null;
+    };
+
     var LoadShader = function(name, deffered) {
 
         var rawGlslPreset;
@@ -1979,6 +2029,13 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
 
         if (!IsRawGlslShaderCapableSystem()) {
             return null;
+        }
+
+        rawGlslPreset = ResolveVirtualBoyVintageLcdGameplayPreset(selection);
+
+        if (rawGlslPreset) {
+            _Logging.Console('cesEmulatorBase', 'Virtual Boy Vintage LCD shader candidate selected: ' + rawGlslPreset + ' (selection=' + selection + ')');
+            return rawGlslPreset;
         }
 
         if (IsRawGlslShaderPresetSelection(selection)) {
@@ -2260,6 +2317,14 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
         }
 
         _Logging.Console('cesEmulatorBase', 'Raw GLSL shader load result: preset=' + (shaderPackage.presetRelativePath || '(none)') + ', valid=' + shaderPackage.valid + ', files=' + shaderPackage.files.length + ', dependencies=' + shaderPackage.dependencies.length + ', missing=' + shaderPackage.missingDependencies.length);
+
+        if (IsVirtualBoySystem() && IsVirtualBoyVintageLcdGameplayPresetPath(shaderPackage.presetRelativePath)) {
+            if (shaderPackage.valid) {
+                _Logging.Console('cesEmulatorBase', 'Virtual Boy Vintage LCD shader verified: preset and dependencies found. preset=' + shaderPackage.presetRelativePath);
+            } else {
+                _Logging.Console('cesEmulatorBase', 'Virtual Boy Vintage LCD gameplay shader fallback: selected preset is invalid and RetroArch will start with shaders disabled. preset=' + (shaderPackage.presetRelativePath || '(none)'));
+            }
+        }
 
         if (!shaderPackage.valid) {
             _Logging.Console('cesEmulatorBase', 'Raw GLSL shader is invalid and will be disabled: ' + (shaderPackage.warnings || []).join(' | '));

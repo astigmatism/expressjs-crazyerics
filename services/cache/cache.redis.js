@@ -46,8 +46,21 @@ module.exports = function(key, opt_options) {
 
     this.get = function(key, callback) {
         _client.get(key, (err, cache) => {
-            cache = JSON.parse(cache);
-            callback(err, cache);
+            if (err) {
+                return callback(err);
+            }
+
+            if (!cache) {
+                return callback(null, cache);
+            }
+
+            try {
+                cache = JSON.parse(cache);
+            } catch (parseErr) {
+                return callback(parseErr);
+            }
+
+            callback(null, cache);
         });
     };
 

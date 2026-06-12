@@ -146,6 +146,16 @@ void main()
   averageColor += ((top - bordert.y)    / totalArea) * topRightColor;
   
    FragColor = pow(averageColor,vec4(1.0/gamma));
+   /*
+    * The RGB result above is the visible LCD frame. The subpixel weight
+    * vectors deliberately carry RGB weights only, so averageColor.a is 0.0.
+    * On the browser RetroArch/WebGL path, carrying alpha 0.0 into the next
+    * border-composite pass can cause the frame texture to be treated as fully
+    * transparent/premultiplied black. Keep valid LCD frame pixels opaque; the
+    * GL_ES bounds guard below still returns transparent black outside the
+    * source image.
+    */
+   FragColor.a = 1.0;
 #ifdef GL_ES
    // fix broken clamp behavior used in console-border shaders
    if (vTexCoord.x > 0.0007 && vTexCoord.x < 0.9999 && vTexCoord.y > 0.0007 && vTexCoord.y < 0.9999)

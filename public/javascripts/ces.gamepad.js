@@ -15,6 +15,7 @@ var cesGamePad = (function(_config, _Compression, _PubSub, _Tooltips, _Preferenc
     var _gameLoop;
     var _configureScanFrameLimit = 90;
     var _inputCaptureNeutralThreshold = 0.5;
+    var _connectionStateTopic = 'gamepadconnectionstatechanged';
 
     //debug
     var reconfigureEachTime = false; //when true will avoid checking preferences for saved configuration
@@ -156,6 +157,30 @@ var cesGamePad = (function(_config, _Compression, _PubSub, _Tooltips, _Preferenc
         return _gamepads;
     };
 
+    this.GetConnectionState = function(options) {
+
+        options = options || {};
+
+        if (options.scan !== false) {
+            ScanForGamepads('get connection state');
+        }
+
+        return BuildConnectionState(options.reason || 'status request');
+    };
+
+    this.HasConnectedGamepad = function() {
+        return self.GetConnectionState().connected;
+    };
+
+    this.SubscribeConnectionState = function(context, handler) {
+
+        if (!_PubSub || typeof _PubSub.Subscribe !== 'function' || typeof handler !== 'function') {
+            return function() {};
+        }
+
+        return _PubSub.Subscribe(_connectionStateTopic, context || self, handler);
+    };
+
     // private methods
 
     var ConfigureGamepadList = function(gamepadIndexes, position, gameKey, callback) {
@@ -293,6 +318,8 @@ var cesGamePad = (function(_config, _Compression, _PubSub, _Tooltips, _Preferenc
             Log('No UI placeholder exists for gamepad index=' + gamepad.index + '; keeping it available for input config.');
         }
 
+        PublishConnectionState(reason || 'gamepad connected');
+
         //after all the work I did, I found the web retroarch worked with gamepads out of the box. lol
         //requestAnimationFrame(Update); //loop start
     };
@@ -312,6 +339,8 @@ var cesGamePad = (function(_config, _Compression, _PubSub, _Tooltips, _Preferenc
         }
 
         delete _gamepads[gamepad.index];
+
+        PublishConnectionState(reason || 'gamepad disconnected');
     };
 
     var Update = function() {
@@ -494,6 +523,26 @@ var cesGamePad = (function(_config, _Compression, _PubSub, _Tooltips, _Preferenc
         return indexes;
     };
 
+    var BuildConnectionState = function(reason) {
+        var indexes = GetGamepadIndexes();
+
+        return {
+            connected: indexes.length > 0,
+            count: indexes.length,
+            indexes: indexes,
+            reason: reason || 'unknown'
+        };
+    };
+
+    var PublishConnectionState = function(reason) {
+
+        if (!_PubSub || typeof _PubSub.Publish !== 'function') {
+            return;
+        }
+
+        _PubSub.Publish(_connectionStateTopic, [BuildConnectionState(reason)], true);
+    };
+
     var GetSecureContextLabel = function() {
         if (typeof window.isSecureContext === 'undefined') {
             return 'unknown';
@@ -532,6 +581,7 @@ var cesGamePad = (function(_config, _Compression, _PubSub, _Tooltips, _Preferenc
         }
 
         ScanForGamepads('document ready');
+        PublishConnectionState('document ready');
     });
 
 

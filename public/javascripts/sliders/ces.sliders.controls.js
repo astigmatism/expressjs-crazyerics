@@ -1,5 +1,6 @@
 var cesSlidersControls = (function(_config, $li, $panel) {
 
+    var _self = this;
     var _inputAssignmentMap = {};
     var _activeGamepadMappings = [];
     var _activeInputDisplayMode = 'keyboard';
@@ -11,6 +12,10 @@ var cesSlidersControls = (function(_config, $li, $panel) {
     var _manualCalloutLineResizeObserver = null;
     var _manualCalloutLineRefreshTimer = null;
     var _manualCalloutLineRefreshSequenceTimers = [];
+    var _gamepadConnectionStateUnsubscribe = null;
+    var _manualInputBadgeSelector = '.controls-manual-input-badge';
+    var _manualInputBadgeKeyboardClass = 'controls-manual-input-badge-keyboard';
+    var _manualInputBadgeGamepadClass = 'controls-manual-input-badge-gamepad';
 
     var _retroarchInputNames = {
         up_axis: 'input_player1_up',
@@ -127,6 +132,8 @@ var cesSlidersControls = (function(_config, $li, $panel) {
 
     this.Activate = function(gameKey, GamePad) {
 
+        UnbindGamepadConnectionStateListener();
+        DestroyManualInputBadgeTooltip();
         TeardownManualCalloutLines();
 
         _gameKey = gameKey || {};
@@ -145,9 +152,14 @@ var cesSlidersControls = (function(_config, $li, $panel) {
         else {
             RenderGenericControls();
         }
+
+        BindGamepadConnectionStateListener();
+        UpdateManualInputBadge();
     };
 
     this.Deactivate = function() {
+        UnbindGamepadConnectionStateListener();
+        DestroyManualInputBadgeTooltip();
         TeardownManualCalloutLines();
 
         $panel.empty();
@@ -171,6 +183,7 @@ var cesSlidersControls = (function(_config, $li, $panel) {
 
     this.OnClose = function(callback) {
 
+        CloseManualInputBadgeTooltip();
         callback(true);
     };
 
@@ -225,23 +238,98 @@ var cesSlidersControls = (function(_config, $li, $panel) {
     var NormalizeCallout = function(callout) {
 
         var normalized;
+        var inputs;
+        var input;
 
-        if (!callout || !callout.input) {
+        if (!callout) {
+            return null;
+        }
+
+        inputs = NormalizeCalloutInputs(callout.inputs);
+        input = callout.input || null;
+
+        if (!input && !inputs.length) {
             return null;
         }
 
         normalized = {
-            input: callout.input,
-            label: callout.label || GetMappingLabel(callout.input),
+            id: callout.id || input || BuildGroupedCalloutId(inputs, callout.label),
+            input: input,
+            label: callout.label || (input ? GetMappingLabel(input) : 'Grouped Controls'),
             x: ReadCoordinate(callout.x, callout.position && callout.position.x, 50),
             y: ReadCoordinate(callout.y, callout.position && callout.position.y, 50),
             lineX: ReadCoordinate(callout.lineX, callout.line && callout.line.x, callout.x, callout.position && callout.position.x, 50),
             lineY: ReadCoordinate(callout.lineY, callout.line && callout.line.y, callout.y, callout.position && callout.position.y, 50),
             targetX: ReadCoordinate(callout.targetX, callout.target && callout.target.x, 50),
-            targetY: ReadCoordinate(callout.targetY, callout.target && callout.target.y, 50)
+            targetY: ReadCoordinate(callout.targetY, callout.target && callout.target.y, 50),
+            detailsPlacement: callout.detailsPlacement || callout.placement || 'bottom',
+            inputs: inputs
         };
 
         return normalized;
+    };
+
+    var NormalizeCalloutInputs = function(inputs) {
+
+        var normalized = [];
+        var input;
+
+        if (!$.isArray(inputs)) {
+            return normalized;
+        }
+
+        for (var i = 0; i < inputs.length; i++) {
+            input = NormalizeCalloutInput(inputs[i]);
+
+            if (input) {
+                normalized.push(input);
+            }
+        }
+
+        return normalized;
+    };
+
+    var NormalizeCalloutInput = function(input) {
+
+        var inputName;
+        var label;
+
+        if (!input) {
+            return null;
+        }
+
+        if (typeof input === 'string') {
+            inputName = input;
+            label = GetMappingLabel(inputName);
+        }
+        else {
+            inputName = input.input || null;
+            label = input.label || (inputName ? GetMappingLabel(inputName) : null);
+        }
+
+        if (!inputName) {
+            return null;
+        }
+
+        return {
+            input: inputName,
+            label: label || GetMappingLabel(inputName)
+        };
+    };
+
+    var BuildGroupedCalloutId = function(inputs, label) {
+
+        var parts = [];
+
+        if (label) {
+            parts.push(label);
+        }
+
+        for (var i = 0; i < inputs.length; i++) {
+            parts.push(inputs[i].input);
+        }
+
+        return parts.length ? ('group_' + parts.join('_')) : 'grouped_callout';
     };
 
     var ReadCoordinate = function() {
@@ -567,18 +655,204 @@ var cesSlidersControls = (function(_config, $li, $panel) {
         // $titleGroup.append($subtitle);
         $header.append($titleGroup);
 
+        var $badges = $('<div />').addClass('controls-manual-badges');
+
+        $badges.append(BuildManualInputBadge());
+
         if (badge) {
-            $header.append($('<div />').addClass('controls-manual-badge').text(badge));
+            // $badges.append($('<div />').addClass('controls-manual-badge').text(badge));
         }
+
+        $header.append($badges);
 
         return $header;
     };
 
+    var BuildManualInputBadge = function() {
+
+        var $badge = $('<div />')
+            .addClass('controls-manual-input-badge ' + _manualInputBadgeKeyboardClass)
+            .attr({
+                'role': 'note',
+                'aria-label': 'Warning: current input mode is keyboard. Crazyerics.com goes best used with a gamepad!'
+            });
+
+        $badge.append($('<span />')
+            .addClass('controls-manual-input-badge-text')
+            .text('KEYBOARD INPUT ACTIVE'));
+
+        InitializeManualInputBadgeTooltip($badge, false);
+
+        return $badge;
+    };
+
+    var GetManualInputBadge = function() {
+
+        if (!$panel || !$panel.length) {
+            return $();
+        }
+
+        return $panel.find(_manualInputBadgeSelector).first();
+    };
+
+    var BuildManualInputBadgeTooltipContent = function() {
+
+        return '<div class="controls-manual-input-tooltip controls-manual-input-tooltip-keyboard">' +
+            '<p>Crazyerics.com goes best with a gamepad. Connect a Bluetooth or USB gamepad, tap any button, and when the gamepad icon next to the search bar turns green, your gamepad will be ready to use.</p>' +
+            '<div class="controls-manual-input-tooltip-media"></div>' +
+            '</div>';
+    };
+
+    var InitializeManualInputBadgeTooltip = function($badge, gamepadConnected) {
+
+        if (!$badge || !$badge.length || !$.fn.tooltipster) {
+            return;
+        }
+
+        if (gamepadConnected) {
+            DestroyManualInputBadgeTooltip($badge);
+            return;
+        }
+
+        if ($badge.hasClass('tooltipstered')) {
+            $badge.tooltipster('content', BuildManualInputBadgeTooltipContent());
+            return;
+        }
+
+        $badge.tooltipster({
+            theme: 'tooltipster-shadow',
+            animation: 'grow',
+            trigger: 'hover',
+            delay: [500, 200],
+            animationDuration: [200, 300],
+            interactive: true,
+            contentAsHTML: true,
+            content: BuildManualInputBadgeTooltipContent()
+        });
+    };
+
+    var BindGamepadConnectionStateListener = function() {
+
+        UnbindGamepadConnectionStateListener();
+
+        if (!_gamePad || typeof _gamePad.SubscribeConnectionState !== 'function') {
+            return;
+        }
+
+        _gamepadConnectionStateUnsubscribe = _gamePad.SubscribeConnectionState(_self, function(state) {
+            UpdateManualInputBadge(state);
+        });
+    };
+
+    var UnbindGamepadConnectionStateListener = function() {
+
+        if (_gamepadConnectionStateUnsubscribe) {
+            _gamepadConnectionStateUnsubscribe();
+            _gamepadConnectionStateUnsubscribe = null;
+        }
+    };
+
+    var UpdateManualInputBadge = function(state) {
+
+        var $badge = GetManualInputBadge();
+        var gamepadConnected = IsGamepadConnected(state);
+        var label = gamepadConnected ? 'GAMEPAD INPUT ACTIVE' : 'KEYBOARD INPUT ACTIVE';
+        var ariaLabel = gamepadConnected ?
+            'Current input mode: gamepad.' :
+            'Warning: current input mode is keyboard. Crazyerics.com goes best with a gamepad.';
+
+        if (!$badge.length) {
+            return;
+        }
+
+        $badge
+            .removeClass(_manualInputBadgeKeyboardClass + ' ' + _manualInputBadgeGamepadClass)
+            .addClass(gamepadConnected ? _manualInputBadgeGamepadClass : _manualInputBadgeKeyboardClass)
+            .attr('aria-label', ariaLabel);
+
+        $badge.find('.controls-manual-input-badge-text').text(label);
+        InitializeManualInputBadgeTooltip($badge, gamepadConnected);
+    };
+
+    var IsGamepadConnected = function(state) {
+
+        var details;
+
+        if (state && typeof state.connected !== 'undefined') {
+            return !!state.connected;
+        }
+
+        if (!_gamePad) {
+            return false;
+        }
+
+        if (typeof _gamePad.GetConnectionState === 'function') {
+            try {
+                return !!_gamePad.GetConnectionState().connected;
+            }
+            catch (ignoreConnectionStateError) {
+            }
+        }
+
+        if (typeof _gamePad.HasConnectedGamepad === 'function') {
+            try {
+                return !!_gamePad.HasConnectedGamepad();
+            }
+            catch (ignoreHasConnectedGamepadError) {
+            }
+        }
+
+        if (typeof _gamePad.GetGamePadDetails === 'function') {
+            try {
+                details = _gamePad.GetGamePadDetails();
+                return !!(details && !$.isEmptyObject(details));
+            }
+            catch (ignoreGamepadDetailsError) {
+            }
+        }
+
+        return false;
+    };
+
+    var CloseManualInputBadgeTooltip = function($badge) {
+
+        $badge = $badge && $badge.length ? $badge : GetManualInputBadge();
+
+        if (!$badge.length || !$.fn.tooltipster || !$badge.hasClass('tooltipstered')) {
+            return;
+        }
+
+        try {
+            $badge.tooltipster('close');
+        }
+        catch (ignoreTooltipCloseError) {
+        }
+    };
+
+    var DestroyManualInputBadgeTooltip = function($badge) {
+
+        $badge = $badge && $badge.length ? $badge : GetManualInputBadge();
+
+        if (!$badge.length || !$.fn.tooltipster || !$badge.hasClass('tooltipstered')) {
+            return;
+        }
+
+        CloseManualInputBadgeTooltip($badge);
+
+        try {
+            $badge.tooltipster('destroy');
+        }
+        catch (ignoreTooltipDestroyError) {
+        }
+    };
+
     var BuildCallout = function(callout) {
 
-        var assignment = GetInputAssignments(callout.input, _activeInputDisplayMode);
+        var isGroup = IsGroupedCallout(callout);
+        var calloutClass = GetCalloutClassName(callout);
+        var assignment = isGroup ? null : GetInputAssignments(callout.input, _activeInputDisplayMode);
         var $callout = $('<div />')
-            .addClass('controls-callout controls-callout-' + callout.input.replace(/_/g, '-'))
+            .addClass('controls-callout controls-callout-' + calloutClass)
             .css({
                 left: callout.x + '%',
                 top: callout.y + '%'
@@ -587,12 +861,119 @@ var cesSlidersControls = (function(_config, $li, $panel) {
         var $action = $('<div />').addClass('controls-callout-action').text(callout.label || GetMappingLabel(callout.input));
         var $assignment = $('<div />').addClass('controls-callout-assignment');
 
-        AppendAssignmentChips($assignment, assignment);
+        if (isGroup) {
+            $callout
+                .addClass('controls-callout-group')
+                .attr({
+                    tabindex: '0',
+                    role: 'group',
+                    title: callout.label || 'Grouped controls',
+                    'aria-label': BuildGroupedCalloutAriaLabel(callout)
+                });
+
+            AppendGroupedAssignmentSummary($assignment, callout);
+        }
+        else {
+            AppendAssignmentChips($assignment, assignment);
+        }
 
         $callout.append($action);
         $callout.append($assignment);
 
+        if (isGroup) {
+            $callout.append(BuildCalloutGroupDetails(callout));
+        }
+
         return $callout;
+    };
+
+    var BuildCalloutGroupDetails = function(callout) {
+
+        var placement = GetCalloutGroupDetailsPlacement(callout.detailsPlacement);
+        var $details = $('<div />')
+            .addClass('controls-callout-group-details controls-callout-group-details-' + placement)
+            .attr('aria-hidden', 'true');
+
+        $details.append($('<div />')
+            .addClass('controls-callout-group-title')
+            .text((callout.label || 'Grouped controls') + ' assignments'));
+
+        for (var i = 0; i < callout.inputs.length; i++) {
+            $details.append(BuildCalloutGroupDetailRow(callout.inputs[i]));
+        }
+
+        return $details;
+    };
+
+    var BuildCalloutGroupDetailRow = function(input) {
+
+        var $row = $('<div />').addClass('controls-callout-group-item controls-callout-group-item-' + GetSystemClassSuffix(input.input));
+        var $action = $('<span />').addClass('controls-callout-group-action').text(input.label || GetMappingLabel(input.input));
+        var $assignment = $('<span />').addClass('controls-callout-group-assignment');
+
+        AppendAssignmentChips($assignment, GetInputAssignments(input.input, _activeInputDisplayMode));
+
+        $row.append($action);
+        $row.append($assignment);
+
+        return $row;
+    };
+
+    var AppendGroupedAssignmentSummary = function($assignment, callout) {
+
+        var label = callout.inputs.length === 1 ? '1 key' : (callout.inputs.length + ' keys');
+
+        $assignment
+            .addClass('controls-callout-assignment-summary')
+            .append(BuildAssignmentChip('Group', label, 'group-summary'));
+    };
+
+    var BuildGroupedCalloutAriaLabel = function(callout) {
+
+        var parts = [callout.label || 'Grouped controls'];
+
+        for (var i = 0; i < callout.inputs.length; i++) {
+            parts.push((callout.inputs[i].label || GetMappingLabel(callout.inputs[i].input)) + ': ' + GetInputAssignmentText(callout.inputs[i].input));
+        }
+
+        return parts.join('. ');
+    };
+
+    var GetInputAssignmentText = function(inputName) {
+
+        var assignment = GetInputAssignments(inputName, _activeInputDisplayMode);
+        var labels = [];
+
+        if (assignment.keyboard) {
+            labels.push('Key ' + assignment.keyboard);
+        }
+
+        for (var i = 0; i < assignment.gamepads.length; i++) {
+            labels.push('Pad ' + assignment.gamepads[i].player + ' ' + assignment.gamepads[i].label);
+        }
+
+        return labels.length ? labels.join(', ') : _notAssignedLabel;
+    };
+
+    var IsGroupedCallout = function(callout) {
+
+        return !!(callout && callout.inputs && callout.inputs.length);
+    };
+
+    var GetCalloutClassName = function(callout) {
+
+        return GetSystemClassSuffix(callout && (callout.input || callout.id || callout.label));
+    };
+
+    var GetCalloutGroupDetailsPlacement = function(placement) {
+
+        placement = String(placement || 'bottom').toLowerCase();
+
+        if (placement === 'top' || placement === 'left' || placement === 'right') {
+            return placement;
+        }
+
+        return 'bottom';
     };
 
     var BuildCalloutLine = function(callout) {
@@ -601,12 +982,13 @@ var cesSlidersControls = (function(_config, $li, $panel) {
         var startY = ReadCoordinate(callout.lineY, callout.y, callout.targetY);
         var targetX = ReadCoordinate(callout.targetX, callout.lineX, callout.x);
         var targetY = ReadCoordinate(callout.targetY, callout.lineY, callout.y);
-        var inputClass = GetSystemClassSuffix(callout.input);
+        var inputClass = GetCalloutClassName(callout);
+        var inputName = callout.input || callout.id || callout.label;
         var $connector = $('<div />')
             .addClass('controls-callout-connector controls-callout-connector-' + inputClass)
             .attr({
-                'data-input': callout.input,
-                'data-label': callout.label || GetMappingLabel(callout.input),
+                'data-input': inputName,
+                'data-label': callout.label || (callout.input ? GetMappingLabel(callout.input) : 'Grouped controls'),
                 'data-line-x': FormatCalloutCoordinate(startX),
                 'data-line-y': FormatCalloutCoordinate(startY),
                 'data-target-x': FormatCalloutCoordinate(targetX),
@@ -1207,7 +1589,7 @@ var cesSlidersControls = (function(_config, $li, $panel) {
             return '';
         }
 
-        return _config.paths.images + '/gamepads/' + system + '/configure_dialog_bg.png';
+        return _config.paths.images + '/gamepads/' + system + '/controls-slider-bg.png';
     };
 
     var Constructor = (function() {

@@ -6,6 +6,9 @@ var cesDialogsConfigureGamepad = (function(_config, $el, $wrapper, args) {
     var _delayBetweenInputDetection = 200;
     var _openCallback;
     var _bgImageName = 'configure_dialog_bg.png';
+    var _dialogBreathingRoom = 20;
+    var _viewportBottomBreathingRoom = 20;
+    var _minimumDialogHeight = 320;
 
     //pulled from config, an object conbining the retroarch name with a friendly label
     var _inputAssignmentMap;
@@ -22,6 +25,10 @@ var cesDialogsConfigureGamepad = (function(_config, $el, $wrapper, args) {
     this.OnOpen = function(args, callback) {
         _openCallback = callback;
         Open.apply(this, args);
+    };
+
+    this.GetHeight = function(defaultHeight) {
+        return UpdateDialogSizing(defaultHeight);
     };
 
     var Open = function(_config, gamepad, gameKey, options) {
@@ -72,12 +79,48 @@ var cesDialogsConfigureGamepad = (function(_config, $el, $wrapper, args) {
         return callback();
     };
 
+
+    var UpdateDialogSizing = function(defaultHeight) {
+
+        var wrapperOffset = $wrapper.offset();
+        var wrapperTop = wrapperOffset ? wrapperOffset.top : 0;
+        var wrapperTopInViewport = Math.max(0, wrapperTop - $(window).scrollTop());
+        var availableHeight = $(window).height() - wrapperTopInViewport - _viewportBottomBreathingRoom;
+
+        if (!availableHeight || availableHeight < _minimumDialogHeight) {
+            availableHeight = _minimumDialogHeight;
+        }
+
+        $el
+            .removeClass('viewportconstrained')
+            .css('max-height', '');
+
+        var naturalDialogHeight = Math.ceil($el.outerHeight(true));
+        if (!naturalDialogHeight && defaultHeight) {
+            naturalDialogHeight = defaultHeight - (_dialogBreathingRoom * 2);
+        }
+
+        var targetHeight = Math.min(naturalDialogHeight + (_dialogBreathingRoom * 2), availableHeight);
+        targetHeight = Math.max(Math.min(_minimumDialogHeight, availableHeight), targetHeight);
+
+        var dialogMaxHeight = Math.max(0, targetHeight - (_dialogBreathingRoom * 2));
+        $el.css('max-height', dialogMaxHeight + 'px');
+
+        if (naturalDialogHeight > dialogMaxHeight) {
+            $el.addClass('viewportconstrained');
+        }
+
+        return targetHeight;
+    };
+
     var BindDefaultActions = function() {
 
+        $('#gamepadconfigactions').removeClass('savedmappingactions');
         RemoveUseSavedButton();
 
         $('#startgamepadover')
-            .addClass('button map first zoom noselect')
+            .removeClass('map remove play')
+            .addClass('button first zoom noselect')
             .text('Start Over')
             .off()
             .on('mouseup', function() {
@@ -86,7 +129,8 @@ var cesDialogsConfigureGamepad = (function(_config, $el, $wrapper, args) {
             });
 
         $('#skipgamepadconfig')
-            .addClass('button remove zoom noselect')
+            .removeClass('map remove play first')
+            .addClass('button zoom noselect')
             .text('Skip Gamepad')
             .off()
             .on('mouseup', function() {
@@ -100,9 +144,11 @@ var cesDialogsConfigureGamepad = (function(_config, $el, $wrapper, args) {
         $('#gamepadinputs').empty(); //clear list
 
         SetIntroText('saved');
+        $('#gamepadconfigactions').addClass('savedmappingactions');
 
         $('#startgamepadover')
-            .addClass('button map first zoom noselect')
+            .removeClass('map remove play')
+            .addClass('button first zoom noselect')
             .text('Map Buttons Again')
             .off()
             .on('mouseup', function() {
@@ -111,7 +157,8 @@ var cesDialogsConfigureGamepad = (function(_config, $el, $wrapper, args) {
             });
 
         $('#skipgamepadconfig')
-            .addClass('button remove zoom noselect')
+            .removeClass('map remove play first')
+            .addClass('button zoom noselect')
             .text('Skip Using This Gamepad')
             .off()
             .on('mouseup', function() {
@@ -192,10 +239,10 @@ var cesDialogsConfigureGamepad = (function(_config, $el, $wrapper, args) {
         var $button = $('#usegamepadsavedconfig');
         if (!$button.length) {
             $button = $('<button id="usegamepadsavedconfig" type="button" class="button play zoom noselect">Use Saved Mapping</button>');
-            $('#startgamepadover').after($button);
+            $('#skipgamepadconfig').after($button);
         }
 
-        $button.addClass('button play zoom noselect').text('Use Saved Mapping').show();
+        $button.removeClass('map remove').addClass('button play zoom noselect').text('Use Saved Mapping').show();
         return $button;
     };
 

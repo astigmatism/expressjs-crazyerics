@@ -198,6 +198,12 @@ void main()
 
     averageColor = mat3(cred, cgreen, cblue) * averageColor;
 
-    FragColor = vec4(pow(averageColor, vec3(1.0/outgamma)),0.0);
+    /*
+     * averageColor is the visible LCD frame. This pass used to emit alpha 0.0,
+     * which desktop RetroArch generally ignores but the browser WebGL path can
+     * preserve or premultiply before later passes. Emit opaque frame pixels so
+     * related console-border/pixel-transparency chains do not lose RGB content.
+     */
+    FragColor = vec4(pow(averageColor, vec3(1.0/outgamma)), 1.0);
 } 
 #endif
