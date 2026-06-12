@@ -58,17 +58,18 @@ var cesGameLink = (function(_config, _Media, _Tooltips, _Collections, gameKey, c
         if (opt_tooltip) {
 
             //generate new toolips content
-            var $tooltipContent = $('<div class="gamelink-tooltip" />');
-            $tooltipContent.append('<div class="tooltiptitle">' + gameKey.title + '</div>');
-            var $mediawrapper = $('<div class="mediawrapper"></div>');
+            var $tooltipContent = $('<div class="gamelink-tooltip game-tooltip-card game-tooltip-suggestion" />');
+            $tooltipContent.append($('<div class="tooltiptitle" />').text(gameKey.title));
+            var $mediawrapper = $('<div class="mediawrapper game-tooltip-media"></div>');
             $tooltipContent.append($mediawrapper);
 
+            var $actions = $('<div class="game-tooltip-actions" />');
             
-            var $addbutton = $('<span class="button add noselect">Add to Collection</span>');
+            var $addbutton = $('<span class="button add first noselect">Add to Collection</span>');
             $addbutton.on('click', function(e) { 
                 _Collections.AddTitleWithoutPlaying(gameKey);
             });
-            $tooltipContent.append($addbutton);
+            $actions.append($addbutton);
             
 
             var $playbutton = $('<span class="button play noselect">Play Now!</span>');
@@ -77,14 +78,17 @@ var cesGameLink = (function(_config, _Media, _Tooltips, _Collections, gameKey, c
                 _Tooltips.Close($imagewrapper); //sometimes the tooltip was staying up after clicking
                 opt_PlayGame(gameKey);
             });
-            $tooltipContent.append($playbutton);
+            $actions.append($playbutton);
+            $tooltipContent.append($actions);
 
             var CheckCollectionOnTooltipOpen = (function() {
                 if (_Collections.IsEmpty()) {
                     $addbutton.hide();
+                    $playbutton.addClass('first');
                 }
                 else {
                     $addbutton.css('display', 'inline-block');
+                    $playbutton.removeClass('first');
                 }
                 return true; //returning true allows the dialog to continue openning (false would be early exit)
             });

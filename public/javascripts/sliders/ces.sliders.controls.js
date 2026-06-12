@@ -674,14 +674,17 @@ var cesSlidersControls = (function(_config, $li, $panel) {
             .addClass('controls-manual-input-badge ' + _manualInputBadgeKeyboardClass)
             .attr({
                 'role': 'note',
-                'aria-label': 'Warning: current input mode is keyboard. Crazyerics.com goes best used with a gamepad!'
+                'aria-label': 'Warning: current input mode is keyboard. CrazyErics.com is best used with a gamepad.'
             });
 
         $badge.append($('<span />')
             .addClass('controls-manual-input-badge-text')
             .text('KEYBOARD INPUT ACTIVE'));
 
-        InitializeManualInputBadgeTooltip($badge, false);
+        InitializeManualInputBadgeTooltip($badge, {
+            gamepadInputActive: false,
+            gamepadConnected: false
+        });
 
         return $badge;
     };
@@ -695,27 +698,37 @@ var cesSlidersControls = (function(_config, $li, $panel) {
         return $panel.find(_manualInputBadgeSelector).first();
     };
 
-    var BuildManualInputBadgeTooltipContent = function() {
+    var BuildManualInputBadgeTooltipContent = function(inputState) {
 
-        return '<div class="controls-manual-input-tooltip controls-manual-input-tooltip-keyboard">' +
-            '<p>Crazyerics.com goes best with a gamepad. Connect a Bluetooth or USB gamepad, tap any button, and when the gamepad icon next to the search bar turns green, your gamepad will be ready to use.</p>' +
+        var tooltipClass = 'controls-manual-input-tooltip-keyboard';
+        var message = 'Crazyerics.com goes best with a gamepad. Connect a Bluetooth or USB gamepad, tap any button, and when the gamepad icon next to the search bar turns green, your gamepad will be ready to use.';
+
+        if (inputState && inputState.gamepadConnected && !inputState.gamepadInputActive) {
+            tooltipClass = 'controls-manual-input-tooltip-gamepad-connected';
+            message = 'Gamepad connected and detected, but it is not active for this game. Configure your gamepad for this system to use it.';
+        }
+
+        return '<div class="controls-manual-input-tooltip ' + tooltipClass + '">' +
+            '<p>' + message + '</p>' +
             '<div class="controls-manual-input-tooltip-media"></div>' +
             '</div>';
     };
 
-    var InitializeManualInputBadgeTooltip = function($badge, gamepadConnected) {
+    var InitializeManualInputBadgeTooltip = function($badge, inputState) {
 
         if (!$badge || !$badge.length || !$.fn.tooltipster) {
             return;
         }
 
-        if (gamepadConnected) {
+        inputState = inputState || {};
+
+        if (inputState.gamepadInputActive) {
             DestroyManualInputBadgeTooltip($badge);
             return;
         }
 
         if ($badge.hasClass('tooltipstered')) {
-            $badge.tooltipster('content', BuildManualInputBadgeTooltipContent());
+            $badge.tooltipster('content', BuildManualInputBadgeTooltipContent(inputState));
             return;
         }
 
@@ -727,7 +740,7 @@ var cesSlidersControls = (function(_config, $li, $panel) {
             animationDuration: [200, 300],
             interactive: true,
             contentAsHTML: true,
-            content: BuildManualInputBadgeTooltipContent()
+            content: BuildManualInputBadgeTooltipContent(inputState)
         });
     };
 
@@ -755,11 +768,9 @@ var cesSlidersControls = (function(_config, $li, $panel) {
     var UpdateManualInputBadge = function(state) {
 
         var $badge = GetManualInputBadge();
-        var gamepadConnected = IsGamepadConnected(state);
-        var label = gamepadConnected ? 'GAMEPAD INPUT ACTIVE' : 'KEYBOARD INPUT ACTIVE';
-        var ariaLabel = gamepadConnected ?
-            'Current input mode: gamepad.' :
-            'Warning: current input mode is keyboard. Crazyerics.com goes best with a gamepad.';
+        var inputState = GetManualInputState(state);
+        var label = inputState.gamepadInputActive ? 'GAMEPAD INPUT ACTIVE' : 'KEYBOARD INPUT ACTIVE';
+        var ariaLabel = GetManualInputBadgeAriaLabel(inputState);
 
         if (!$badge.length) {
             return;
@@ -767,11 +778,37 @@ var cesSlidersControls = (function(_config, $li, $panel) {
 
         $badge
             .removeClass(_manualInputBadgeKeyboardClass + ' ' + _manualInputBadgeGamepadClass)
-            .addClass(gamepadConnected ? _manualInputBadgeGamepadClass : _manualInputBadgeKeyboardClass)
+            .addClass(inputState.gamepadInputActive ? _manualInputBadgeGamepadClass : _manualInputBadgeKeyboardClass)
             .attr('aria-label', ariaLabel);
 
         $badge.find('.controls-manual-input-badge-text').text(label);
-        InitializeManualInputBadgeTooltip($badge, gamepadConnected);
+        InitializeManualInputBadgeTooltip($badge, inputState);
+    };
+
+    var GetManualInputState = function(state) {
+
+        // A connected gamepad is only the active input for this launch when configured mappings were applied.
+        var gamepadConnected = IsGamepadConnected(state);
+        var hasConfiguredGamepadMappings = !!(_activeGamepadMappings && _activeGamepadMappings.length);
+
+        return {
+            gamepadConnected: gamepadConnected,
+            hasConfiguredGamepadMappings: hasConfiguredGamepadMappings,
+            gamepadInputActive: gamepadConnected && hasConfiguredGamepadMappings
+        };
+    };
+
+    var GetManualInputBadgeAriaLabel = function(inputState) {
+
+        if (inputState.gamepadInputActive) {
+            return 'Current input mode: gamepad.';
+        }
+
+        if (inputState.gamepadConnected) {
+            return 'Warning: current input mode is keyboard. A gamepad is connected, but it is not configured for this system.';
+        }
+
+        return 'Warning: current input mode is keyboard. Crazyerics.com goes best with a gamepad.';
     };
 
     var IsGamepadConnected = function(state) {

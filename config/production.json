@@ -1,74 +1,74 @@
 {
-	"defaults": {
-		"copyToFeatured": false
-	},
-    "db": {
-		"postgre": {
-            "host": "192.168.1.2",
-            "idleTimeoutMillis": 100000,
-			"connectionTimeoutMillis": 50000
-		}
+  "defaults": {
+    "copyToFeatured": false
+  },
+  "db": {
+    "postgre": {
+      "host": "192.168.1.2",
+      "idleTimeoutMillis": 100000,
+      "connectionTimeoutMillis": 50000
+    }
+  },
+  "cannedRecipes": {
+    "all": {
+      "recipe": {
+        "systems": {
+          "all": {
+            "cache": "top"
+          }
+        }
+      },
+      "samples": 100
     },
-    "cannedRecipes": {
-		"all": {
-			"recipe": {
-				"systems": {
-					"all": {
-						"cache": "top"
-					}
-				}
-			},
-			"samples": 100
-		},
-		"snes": {
-			"recipe": {
-				"systems": {
-					"snes": {
-						"cache": "above"
-					}
-				}
-			},
-			"samples": 50
-		},
-		"gb": {
-			"recipe": {
-				"systems": {
-					"gb": {
-						"cache": "above"
-					}
-				}
-			},
-			"samples": 50
-		},
-		"gba": {
-			"recipe": {
-				"systems": {
-					"gba": {
-						"cache": "above"
-					}
-				}
-			},
-			"samples": 50
-		},
-		"nes": {
-			"recipe": {
-				"systems": {
-					"nes": {
-						"cache": "above"
-					}
-				}
-			},
-			"samples": 50
-		},
-		"gen": {
-			"recipe": {
-				"systems": {
-					"gen": {
-						"cache": "above"
-					}
-				}
-			},
-			"samples": 50
-		}
-	}
+    "snes": {
+      "recipe": {
+        "systems": {
+          "snes": {
+            "cache": "above"
+          }
+        }
+      },
+      "samples": 50
+    },
+    "gb": {
+      "recipe": {
+        "systems": {
+          "gb": {
+            "cache": "above"
+          }
+        }
+      },
+      "samples": 50
+    },
+    "gba": {
+      "recipe": {
+        "systems": {
+          "gba": {
+            "cache": "above"
+          }
+        }
+      },
+      "samples": 50
+    },
+    "nes": {
+      "recipe": {
+        "systems": {
+          "nes": {
+            "cache": "above"
+          }
+        }
+      },
+      "samples": 50
+    },
+    "gen": {
+      "recipe": {
+        "systems": {
+          "gen": {
+            "cache": "above"
+          }
+        }
+      },
+      "samples": 50
+    }
+  }
 }

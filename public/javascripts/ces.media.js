@@ -90,26 +90,56 @@ var cesMedia = (function(_config, _Logging) {
         });
     };
 
-    this.Video = function($wrapper, type, gameKey, callback, opt_width, opt_height) {
+    this.Video = function($wrapper, type, gameKey, callback, opt_width, opt_height, opt_error) {
 
         var videoLoadingStart = Date.now();
-        var muted = false;
+        var finished = false;
 
         var $video = $('<video />', {
             src: _config.paths.video + '/' + type + '/' + encodeURIComponent(gameKey.gk),
             type: 'video/mp4',
             controls: false,
             autoplay: false,
+            preload: 'auto',
             width: opt_width || $wrapper.width(),
             height: opt_height || $wrapper.height()
         });
 
+        var fail = function(e) {
+
+            if (finished) {
+                return;
+            }
+
+            finished = true;
+            _Logging.Console('ces.media', 'video failed to load for: ' + gameKey.gk);
+
+            if (opt_error) {
+                return opt_error(e);
+            }
+        };
+
         //callback on loaded
         $video.on('loadeddata', function() {
+
+            if (finished) {
+                return;
+            }
+
+            finished = true;
             var videoLoadingDelay = Math.floor(Date.now() - videoLoadingStart);
             _Logging.Console('ces.media','video loading took: ' + videoLoadingDelay);
             return callback($video, videoLoadingDelay);
         });
+
+        $video.one('error abort', fail);
+
+        try {
+            $video.get(0).load();
+        }
+        catch (err) {
+            fail(err);
+        }
     };
 
     /**

@@ -293,22 +293,25 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
 
         //create the tooltip content
         
-        var $tooltipContent = $('<div class="collection-tooltip" />');
-        $tooltipContent.append('<div class="tooltiptitle">' + activeTitle.gameKey.title + '</div>');
-        var $mediawrapper = $('<div class="mediawrapper" />');
+        var $tooltipContent = $('<div class="collection-tooltip game-tooltip-card game-tooltip-collection" />');
+        $tooltipContent.append($('<div class="tooltiptitle" />').text(activeTitle.gameKey.title));
+        var $mediawrapper = $('<div class="mediawrapper game-tooltip-media" />');
         $tooltipContent.append($mediawrapper);
         //if playing an alternate version, append the tooltip with that info
         if (!activeTitle.topRanked) {
-            $tooltipContent.append('<div class="tooltipfile">You are playing an alternate version: ' + activeTitle.gameKey.file + '</div>');
+            $tooltipContent.append($('<div class="tooltipfile" />').text('You are playing an alternate version: ' + activeTitle.gameKey.file));
         }
 
         var lastPlayed = activeTitle.lastPlayed < 0 ? 'Never' : $.format.prettyDate(activeTitle.lastPlayed);
+        var $stats = $('<div class="game-tooltip-stats" />');
         
         //$tooltipContent.append('<div>Last Played: ' + $.format.date(activeTitle.lastPlayed, 'MMM D h:mm:ss a') + '</div>'); //using the jquery dateFormat plugin
-        $tooltipContent.append('<div>Last Played: ' + lastPlayed + '</div>'); //using the jquery dateFormat plugin
-        $tooltipContent.append('<div>Play Count: ' + activeTitle.playCount + '</div>');
-        $tooltipContent.append('<div>Number of Saves: ' + activeTitle.saveCount + '</div>');
+        $stats.append($('<div />').text('Last Played: ' + lastPlayed)); //using the jquery dateFormat plugin
+        $stats.append($('<div />').text('Play Count: ' + activeTitle.playCount));
+        $stats.append($('<div />').text('Number of Saves: ' + activeTitle.saveCount));
+        $tooltipContent.append($stats);
 
+        var $actions = $('<div class="game-tooltip-actions" />');
         
         var $playbutton = $('<span class="button play first noselect">Play Now!</span>');
         $playbutton.click(function(e) { 
@@ -316,7 +319,7 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
             _Tooltips.Close(activeTitle.gridItem); //sometimes the tooltip was staying up after clicking
             _PlayGameHandler(activeTitle.gameKey);
         });
-        $tooltipContent.append($playbutton);
+        $actions.append($playbutton);
 
         var $remove = $('<span class="button remove noselect">Remove</span>');
         $remove.on('click', function() {
@@ -325,7 +328,8 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
                 
             });
         });
-        $tooltipContent.append($remove);
+        $actions.append($remove);
+        $tooltipContent.append($actions);
 
         _Tooltips.SingleHTMLWithTitleScreen(activeTitle.gridItem, $tooltipContent, $mediawrapper, activeTitle.gameKey, true, false, null, ['top']);
     };

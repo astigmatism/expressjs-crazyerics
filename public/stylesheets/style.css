@@ -455,6 +455,7 @@ p {
 	top: 0px;
 	height: 40px;
 	box-shadow: none;
+	z-index: 3;
 }
 
 #romsselectordie {
@@ -531,6 +532,15 @@ p {
 	width: 100%;
 	height: 200px;
 	overflow: hidden;
+	pointer-events: none;
+}
+
+#dialogs .dialogwrapper {
+	pointer-events: none;
+}
+
+#dialogs .dialog:not(.hide):not(.close) {
+	pointer-events: auto;
 }
 
 .centered {
@@ -3004,7 +3014,11 @@ body.controls-show-coordinate-guides .controls-manual-coordinate-guides,
 .gamepadconfigactions .remove,
 #loadnosaves.remove {
 	background-image: linear-gradient(#db4646, #d21616);
-	color: #303030;
+	color: #fff;
+}
+
+.tooltipster-sidetip.tooltipster-shadow .tooltipster-content .button.remove {
+	color: #fff;
 }
 
 .tooltipster-sidetip.tooltipster-shadow .tooltipster-content .remove:active,
@@ -3181,6 +3195,263 @@ div.tooltiptitle {
 
 div.tooltipfile {
 	color: green;
+}
+
+
+/* game box context popovers */
+
+.tooltipster-gamefade {
+	opacity: 0;
+	-webkit-transition-property: opacity, -webkit-transform;
+	-moz-transition-property: opacity, -moz-transform;
+	-o-transition-property: opacity, -o-transform;
+	-ms-transition-property: opacity, -ms-transform;
+	transition-property: opacity, transform;
+	-webkit-transition-timing-function: ease-out;
+	-moz-transition-timing-function: ease-out;
+	-o-transition-timing-function: ease-out;
+	transition-timing-function: ease-out;
+}
+
+.tooltipster-gamefade.tooltipster-top {
+	-webkit-transform: translateY(6px);
+	-moz-transform: translateY(6px);
+	-o-transform: translateY(6px);
+	-ms-transform: translateY(6px);
+	transform: translateY(6px);
+}
+
+.tooltipster-gamefade.tooltipster-bottom {
+	-webkit-transform: translateY(-6px);
+	-moz-transform: translateY(-6px);
+	-o-transform: translateY(-6px);
+	-ms-transform: translateY(-6px);
+	transform: translateY(-6px);
+}
+
+.tooltipster-gamefade.tooltipster-left {
+	-webkit-transform: translateX(6px);
+	-moz-transform: translateX(6px);
+	-o-transform: translateX(6px);
+	-ms-transform: translateX(6px);
+	transform: translateX(6px);
+}
+
+.tooltipster-gamefade.tooltipster-right {
+	-webkit-transform: translateX(-6px);
+	-moz-transform: translateX(-6px);
+	-o-transform: translateX(-6px);
+	-ms-transform: translateX(-6px);
+	transform: translateX(-6px);
+}
+
+.tooltipster-gamefade.tooltipster-show {
+	opacity: 1;
+	-webkit-transform: translate(0px, 0px);
+	-moz-transform: translate(0px, 0px);
+	-o-transform: translate(0px, 0px);
+	-ms-transform: translate(0px, 0px);
+	transform: translate(0px, 0px);
+}
+
+.tooltipster-gamefade.tooltipster-dying {
+	opacity: 0;
+}
+
+.tooltipster-gamefade.tooltipster-top.tooltipster-dying {
+	-webkit-transform: translateY(4px);
+	-moz-transform: translateY(4px);
+	-o-transform: translateY(4px);
+	-ms-transform: translateY(4px);
+	transform: translateY(4px);
+}
+
+.tooltipster-gamefade.tooltipster-bottom.tooltipster-dying {
+	-webkit-transform: translateY(-4px);
+	-moz-transform: translateY(-4px);
+	-o-transform: translateY(-4px);
+	-ms-transform: translateY(-4px);
+	transform: translateY(-4px);
+}
+
+.tooltipster-gamefade.tooltipster-left.tooltipster-dying {
+	-webkit-transform: translateX(4px);
+	-moz-transform: translateX(4px);
+	-o-transform: translateX(4px);
+	-ms-transform: translateX(4px);
+	transform: translateX(4px);
+}
+
+.tooltipster-gamefade.tooltipster-right.tooltipster-dying {
+	-webkit-transform: translateX(-4px);
+	-moz-transform: translateX(-4px);
+	-o-transform: translateX(-4px);
+	-ms-transform: translateX(-4px);
+	transform: translateX(-4px);
+}
+
+.tooltipster-sidetip.tooltipster-shadow.ces-game-popover-theme .tooltipster-box {
+	border: 1px solid rgba(20, 28, 36, 0.10);
+	border-radius: 8px;
+	background: #fff;
+	box-shadow: 0px 12px 28px rgba(0,0,0,0.28);
+}
+
+.tooltipster-sidetip.tooltipster-shadow.ces-game-popover-theme .tooltipster-content {
+	box-sizing: border-box;
+	max-height: calc(100vh - 32px);
+	padding: 12px 14px 10px;
+	overflow-x: hidden;
+	overflow-y: auto;
+	-webkit-overflow-scrolling: touch;
+	color: #777;
+	line-height: 18px;
+}
+
+.tooltipster-sidetip.tooltipster-shadow.ces-game-popover-theme.tooltipster-top .tooltipster-box {
+	margin-bottom: 7px;
+}
+
+.tooltipster-sidetip.tooltipster-shadow.ces-game-popover-theme.tooltipster-bottom .tooltipster-box {
+	margin-top: 7px;
+}
+
+.tooltipster-sidetip.tooltipster-shadow.ces-game-popover-theme.tooltipster-left .tooltipster-box {
+	margin-right: 7px;
+}
+
+.tooltipster-sidetip.tooltipster-shadow.ces-game-popover-theme.tooltipster-right .tooltipster-box {
+	margin-left: 7px;
+}
+
+.game-tooltip-card {
+	box-sizing: border-box;
+	min-width: 238px;
+	max-width: 286px;
+	text-align: center;
+}
+
+.game-tooltip-card div.tooltiptitle {
+	margin-bottom: 8px;
+	color: #777;
+	font-size: 1.05em;
+	line-height: 20px;
+}
+
+div.mediawrapper.game-tooltip-media {
+	display: -webkit-box;
+	display: -webkit-flex;
+	display: -ms-flexbox;
+	display: flex;
+	position: relative;
+	width: 240px;
+	min-height: 154px;
+	max-height: 225px;
+	margin: 0px auto 7px;
+	overflow: hidden;
+	-webkit-box-align: center;
+	-webkit-align-items: center;
+	-ms-flex-align: center;
+	align-items: center;
+	-webkit-box-pack: center;
+	-webkit-justify-content: center;
+	-ms-flex-pack: center;
+	justify-content: center;
+	border-radius: 4px;
+	background: #eef2f5;
+	box-shadow: inset 0px 0px 0px 1px rgba(0,0,0,0.06);
+}
+
+.game-tooltip-media img,
+.game-tooltip-media video {
+	display: block;
+	max-width: 100%;
+	max-height: 225px;
+	height: auto;
+	margin: 0px auto;
+	object-fit: contain;
+}
+
+.game-tooltip-media video {
+	width: auto;
+}
+
+.game-tooltip-media-placeholder {
+	display: -webkit-box;
+	display: -webkit-flex;
+	display: -ms-flexbox;
+	display: flex;
+	-webkit-box-align: center;
+	-webkit-align-items: center;
+	-ms-flex-align: center;
+	align-items: center;
+	-webkit-box-pack: center;
+	-webkit-justify-content: center;
+	-ms-flex-pack: center;
+	justify-content: center;
+	min-height: 154px;
+	padding: 12px;
+	box-sizing: border-box;
+	color: #8a96a3;
+	font-size: 11px;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+}
+
+.game-tooltip-media-loading .game-tooltip-media-placeholder {
+	background: linear-gradient(135deg, rgba(255,255,255,0.52), rgba(220,226,233,0.72));
+}
+
+.game-tooltip-media-unavailable .game-tooltip-media-placeholder {
+	background: #f3f3f3;
+	color: #9a9a9a;
+}
+
+.game-tooltip-stats {
+	margin-top: 6px;
+	font-size: 12px;
+	line-height: 18px;
+}
+
+.game-tooltip-actions {
+	margin-top: 8px;
+	padding-top: 4px;
+	white-space: nowrap;
+}
+
+.tooltipster-sidetip.tooltipster-shadow .tooltipster-content .game-tooltip-actions .button {
+	margin-top: 0px;
+	margin-bottom: 0px;
+}
+
+.tooltipster-sidetip.tooltipster-shadow .tooltipster-content .game-tooltip-actions .button.first {
+	margin-left: 0px;
+}
+
+@media (max-height: 700px) {
+	.tooltipster-sidetip.tooltipster-shadow.ces-game-popover-theme .tooltipster-content {
+		padding: 10px 12px 9px;
+	}
+
+	.game-tooltip-card {
+		min-width: 220px;
+		max-width: 264px;
+	}
+
+	div.mediawrapper.game-tooltip-media {
+		width: 222px;
+		min-height: 134px;
+		max-height: 162px;
+	}
+
+	.game-tooltip-media img,
+	.game-tooltip-media video {
+		max-height: 162px;
+	}
+
+	.game-tooltip-media-placeholder {
+		min-height: 134px;
+	}
 }
 
 /* suggestions */
