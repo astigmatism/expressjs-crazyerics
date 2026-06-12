@@ -68,14 +68,6 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _GamePad, _Pr
     var _postStartupShaderReapplyPolls = 0;
     var _postStartupShaderReapplyMaxPolls = 90;
     var _postStartupShaderReapplyPaintFrames = 2;
-    var _fpsMeterAnimationFrame = null;
-    var _fpsMeterElement = null;
-    var _fpsMeterEnabled = false;
-    var _fpsMeterConsoleEnabled = false;
-    var _fpsMeterFrameCount = 0;
-    var _fpsMeterSampleStartedAt = 0;
-    var _fpsMeterLastConsoleAt = 0;
-    var _fpsMeterLastReport = null;
 
     var PublishReady = function(reason) {
         if (_readyPublished) {
@@ -711,18 +703,6 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _GamePad, _Pr
             window.cesRetroArch1222Diagnostics.sample = function() {
                 return SampleDisplayedCanvas(_module.canvas || document.getElementById('emulator'));
             };
-            window.cesRetroArch1222Diagnostics.startRenderDiagnostics = function() {
-                return _module.cesStartRenderDiagnostics('manual diagnostics helper');
-            };
-            window.cesRetroArch1222Diagnostics.enableFpsMeter = function(options) {
-                return StartFpsMeter('manual diagnostics helper', options || {});
-            };
-            window.cesRetroArch1222Diagnostics.disableFpsMeter = function() {
-                return StopFpsMeter('manual diagnostics helper');
-            };
-            window.cesRetroArch1222Diagnostics.fpsMeter = function() {
-                return GetFpsMeterReport();
-            };
             window.cesRetroArch1222Diagnostics.reapplyShader = function() {
                 if (_module && typeof _module.cesReapplyActiveShaderPreset === 'function') {
                     return _module.cesReapplyActiveShaderPreset('manual diagnostics helper');
@@ -781,219 +761,6 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _GamePad, _Pr
 
         var RoundMetric = function(value) {
             return (typeof value === 'number' && isFinite(value)) ? Math.round(value * 100) / 100 : null;
-        };
-
-        var IsConfigFlagEnabled = function(value) {
-            if (value === true || value === 1) {
-                return true;
-            }
-
-            if (typeof value === 'string') {
-                value = value.toLowerCase();
-                return value === 'true' || value === '1' || value === 'yes' || value === 'on';
-            }
-
-            return false;
-        };
-
-        var GetBrowserPerformanceConfig = function() {
-            var retroArchConfig = (_config.retroarch && _config.retroarch['1.22.2-stable']) || {};
-            return retroArchConfig.browserPerformance || {};
-        };
-
-        var IsBrowserPerformanceFlagEnabled = function(name) {
-            return IsConfigFlagEnabled(GetBrowserPerformanceConfig()[name]);
-        };
-
-        var ShouldRunStartupRenderDiagnostics = function() {
-            return IsBrowserPerformanceFlagEnabled('startupRenderDiagnostics');
-        };
-
-        var GetFpsMeterReport = function() {
-            if (_fpsMeterLastReport) {
-                return _fpsMeterLastReport;
-            }
-
-            return {
-                enabled: _fpsMeterEnabled,
-                fps: null,
-                targetFps: 60,
-                measurement: 'browser requestAnimationFrame cadence around the RetroArch canvas',
-                reason: _fpsMeterEnabled ? 'waiting for first sample' : 'not enabled'
-            };
-        };
-
-        var EnsureFpsMeterElement = function() {
-            var canvas = _module.canvas || document.getElementById('emulator');
-            var wrapper = document.getElementById('emulatorwrapper') || (canvas && canvas.parentNode) || document.body;
-            var computed;
-
-            if (!_fpsMeterElement || !_fpsMeterElement.parentNode) {
-                _fpsMeterElement = document.createElement('div');
-                _fpsMeterElement.id = 'ces-retroarch-1222-fps-meter';
-                _fpsMeterElement.setAttribute('aria-live', 'polite');
-                _fpsMeterElement.style.position = 'absolute';
-                _fpsMeterElement.style.top = '8px';
-                _fpsMeterElement.style.right = '8px';
-                _fpsMeterElement.style.zIndex = '20';
-                _fpsMeterElement.style.padding = '4px 7px';
-                _fpsMeterElement.style.borderRadius = '4px';
-                _fpsMeterElement.style.background = 'rgba(0, 0, 0, 0.72)';
-                _fpsMeterElement.style.color = '#fff';
-                _fpsMeterElement.style.font = '12px/1.2 monospace';
-                _fpsMeterElement.style.pointerEvents = 'none';
-                _fpsMeterElement.style.textShadow = '0 1px 1px rgba(0, 0, 0, 0.8)';
-            }
-
-            try {
-                computed = window.getComputedStyle(wrapper);
-                if (computed && computed.position === 'static') {
-                    wrapper.style.position = 'relative';
-                }
-            } catch (e) {}
-
-            if (_fpsMeterElement.parentNode !== wrapper) {
-                wrapper.appendChild(_fpsMeterElement);
-            }
-
-            return _fpsMeterElement;
-        };
-
-        var UpdateFpsMeterElement = function(report) {
-            var element = EnsureFpsMeterElement();
-            var fpsText = report && typeof report.fps === 'number' ? report.fps.toFixed(1) : '--';
-
-            element.textContent = 'Browser cadence: ' + fpsText + ' fps';
-        };
-
-        var StopFpsMeter = function(reason) {
-            if (_fpsMeterAnimationFrame !== null && window.cancelAnimationFrame) {
-                window.cancelAnimationFrame(_fpsMeterAnimationFrame);
-            }
-
-            _fpsMeterAnimationFrame = null;
-            _fpsMeterEnabled = false;
-            _fpsMeterConsoleEnabled = false;
-            _fpsMeterFrameCount = 0;
-            _fpsMeterSampleStartedAt = 0;
-            _fpsMeterLastConsoleAt = 0;
-
-            if (_fpsMeterElement && _fpsMeterElement.parentNode) {
-                _fpsMeterElement.parentNode.removeChild(_fpsMeterElement);
-            }
-
-            _fpsMeterElement = null;
-            _fpsMeterLastReport = {
-                enabled: false,
-                fps: null,
-                targetFps: 60,
-                measurement: 'browser requestAnimationFrame cadence around the RetroArch canvas',
-                reason: reason || 'stopped',
-                at: new Date().toISOString()
-            };
-
-            return _fpsMeterLastReport;
-        };
-
-        var StartFpsMeter = function(reason, options) {
-            var config = GetBrowserPerformanceConfig();
-            var loop;
-
-            options = options || {};
-
-            if (!window.requestAnimationFrame) {
-                _fpsMeterLastReport = {
-                    enabled: false,
-                    fps: null,
-                    targetFps: 60,
-                    measurement: 'browser requestAnimationFrame cadence around the RetroArch canvas',
-                    reason: 'requestAnimationFrame unavailable',
-                    at: new Date().toISOString()
-                };
-                return _fpsMeterLastReport;
-            }
-
-            if (_fpsMeterEnabled) {
-                return GetFpsMeterReport();
-            }
-
-            _fpsMeterEnabled = true;
-            _fpsMeterConsoleEnabled = IsConfigFlagEnabled(options.console) || IsConfigFlagEnabled(config.fpsMeterConsole);
-            _fpsMeterFrameCount = 0;
-            _fpsMeterSampleStartedAt = 0;
-            _fpsMeterLastConsoleAt = 0;
-            _fpsMeterLastReport = {
-                enabled: true,
-                fps: null,
-                targetFps: 60,
-                measurement: 'browser requestAnimationFrame cadence around the RetroArch canvas',
-                reason: reason || 'started',
-                at: new Date().toISOString()
-            };
-
-            UpdateFpsMeterElement(_fpsMeterLastReport);
-
-            loop = function(timestamp) {
-                var elapsed;
-                var fps;
-                var report;
-
-                if (!_fpsMeterEnabled) {
-                    return;
-                }
-
-                if (!_fpsMeterSampleStartedAt) {
-                    _fpsMeterSampleStartedAt = timestamp;
-                }
-
-                _fpsMeterFrameCount++;
-                elapsed = timestamp - _fpsMeterSampleStartedAt;
-
-                if (elapsed >= 1000) {
-                    fps = _fpsMeterFrameCount * 1000 / elapsed;
-                    report = {
-                        enabled: true,
-                        fps: RoundMetric(fps),
-                        targetFps: 60,
-                        sampleMs: RoundMetric(elapsed),
-                        frames: _fpsMeterFrameCount,
-                        measurement: 'browser requestAnimationFrame cadence around the RetroArch canvas',
-                        reason: reason || 'running',
-                        console: _fpsMeterConsoleEnabled,
-                        at: new Date().toISOString()
-                    };
-
-                    _fpsMeterLastReport = report;
-                    window.cesRetroArch1222Diagnostics = window.cesRetroArch1222Diagnostics || {};
-                    window.cesRetroArch1222Diagnostics.lastFpsMeterReport = report;
-                    window.cesNes1222Diagnostics = window.cesRetroArch1222Diagnostics;
-                    UpdateFpsMeterElement(report);
-
-                    if (_fpsMeterConsoleEnabled && timestamp - _fpsMeterLastConsoleAt >= 5000) {
-                        _fpsMeterLastConsoleAt = timestamp;
-                        _Logging.Console(_extensionName, 'Browser FPS meter: ' + report.fps + ' fps over ' + report.sampleMs + 'ms (' + report.frames + ' requestAnimationFrame callbacks)');
-                    }
-
-                    _fpsMeterFrameCount = 0;
-                    _fpsMeterSampleStartedAt = timestamp;
-                }
-
-                _fpsMeterAnimationFrame = window.requestAnimationFrame(loop);
-            };
-
-            _Logging.Console(_extensionName, 'Enabled RetroArch 1.22.2 browser FPS meter' + (reason ? ' (' + reason + ')' : ''));
-            _fpsMeterAnimationFrame = window.requestAnimationFrame(loop);
-            return GetFpsMeterReport();
-        };
-
-        var StartConfiguredFpsMeter = function(reason) {
-            if (IsBrowserPerformanceFlagEnabled('fpsMeter')) {
-                return StartFpsMeter(reason || 'configured', {
-                    console: IsBrowserPerformanceFlagEnabled('fpsMeterConsole')
-                });
-            }
-
-            return GetFpsMeterReport();
         };
 
         var GetDomElement = function(candidate, fallbackSelector) {
@@ -1286,8 +1053,6 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _GamePad, _Pr
                 canvas: GetCanvasMetrics(canvas),
                 webgl: GetWebGlDiagnostics(canvas),
                 sample: SampleDisplayedCanvas(canvas),
-                fpsMeter: GetFpsMeterReport(),
-                browserPerformance: GetBrowserPerformanceConfig(),
                 documentFullscreenElement: document.fullscreenElement ? (document.fullscreenElement.id || document.fullscreenElement.nodeName) : null,
                 wrapperVisible: $('#emulatorwrapper').is(':visible'),
                 wrapperDisplay: $('#emulatorwrapper').css('display'),
@@ -1327,14 +1092,6 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _GamePad, _Pr
             };
 
             _renderDiagnosticTimer = setTimeout(runSample, 250);
-        };
-
-        this.cesStartConfiguredFpsMeter = function(reason) {
-            return StartConfiguredFpsMeter(reason || 'configured');
-        };
-
-        this.cesStopFpsMeter = function(reason) {
-            return StopFpsMeter(reason || 'module stop');
         };
 
         this.cesHandleRetroArchLog = function(channel, text) {
@@ -1716,13 +1473,7 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _GamePad, _Pr
             _canvasReadyTimer = setTimeout(function() {
                 module.cesPrepareCanvas('after callMain', ui);
                 module.cesReportRenderDiagnostics('after callMain');
-
-                if (ShouldRunStartupRenderDiagnostics()) {
-                    module.cesStartRenderDiagnostics('post-start');
-                } else {
-                    _Logging.Console(_extensionName, 'Startup render diagnostics sampling disabled; run window.cesRetroArch1222Diagnostics.startRenderDiagnostics() when needed');
-                }
-
+                module.cesStartRenderDiagnostics('post-start');
                 PublishReady('main loop started');
             }, 250);
         };
@@ -1740,7 +1491,6 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _GamePad, _Pr
             module.cesPrepareCanvas('before reveal', ui);
 
             if (!wrapper || !wrapper.length) {
-                module.cesStartConfiguredFpsMeter('wrapper unavailable during reveal');
                 if (callback) {
                     callback();
                 }
@@ -1763,7 +1513,6 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _GamePad, _Pr
             wrapper.fadeTo(duration || 0, 1, function() {
                 module.cesPrepareCanvas('after reveal', ui);
                 module.cesReportRenderDiagnostics('after reveal');
-                module.cesStartConfiguredFpsMeter('after reveal');
                 if (callback) {
                     callback();
                 }
@@ -3645,7 +3394,6 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _GamePad, _Pr
         };
 
         this.cesBeforeCleanUp = function(reason) {
-            StopFpsMeter(reason || 'cesBeforeCleanUp');
             DisposeCompatibilityHandlers(reason || 'cesBeforeCleanUp');
         };
 
@@ -4229,7 +3977,6 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _GamePad, _Pr
          * @return {undef}
          */
         this.cesExit = function() {
-            StopFpsMeter('cesExit');
             DisposeCompatibilityHandlers('cesExit');
             this["noExitRuntime"] = false; //ok, at this time, this is how you tell the running script you want exit during runtime
             this.exit('Force closed by ces');

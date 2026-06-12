@@ -1466,11 +1466,6 @@
         "sort_savestates_enable": false,
         "sort_savestates_by_content_enable": false,
         "input_toggle_fullscreen": "nul"
-      },
-      "browserPerformance": {
-        "fpsMeter": false,
-        "fpsMeterConsole": false,
-        "startupRenderDiagnostics": false
       }
     }
   },

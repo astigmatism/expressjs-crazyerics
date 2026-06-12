@@ -117,13 +117,6 @@ var cesDialogsGameLoading = (function(_config, $el, $wrapper, args) {
 
         if (webgl) {
             $webgl.data(_webglFadeDataKey, webgl);
-
-            // Gameplay is about to become visible. Keep the fading canvas in place
-            // for the transition, but stop its requestAnimationFrame loop immediately
-            // so the loading background does not compete with RetroArch's first frames.
-            if (typeof webgl.StopAnimation === 'function') {
-                webgl.StopAnimation();
-            }
         }
 
         $webgl

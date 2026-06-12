@@ -163,13 +163,6 @@ var cesWebGlParticleAnimation = (function(_Compression, _PubSub, _texturePath, $
         setRendererSize(true);
     }
     //
-    function stopAnimationLoop() {
-        if (_animationFrameId !== null) {
-            cancelAnimationFrame(_animationFrameId);
-            _animationFrameId = null;
-        }
-    }
-
     function animate() {
         if (_disposed) {
             return;
@@ -209,10 +202,6 @@ var cesWebGlParticleAnimation = (function(_Compression, _PubSub, _texturePath, $
         }
     }
 
-    this.StopAnimation = function() {
-        stopAnimationLoop();
-    };
-
     this.Dispose = function() {
         var i;
         var object;
@@ -222,7 +211,11 @@ var cesWebGlParticleAnimation = (function(_Compression, _PubSub, _texturePath, $
         }
 
         _disposed = true;
-        stopAnimationLoop();
+
+        if (_animationFrameId !== null) {
+            cancelAnimationFrame(_animationFrameId);
+            _animationFrameId = null;
+        }
 
         window.removeEventListener( 'resize', onWindowResize, false );
 
