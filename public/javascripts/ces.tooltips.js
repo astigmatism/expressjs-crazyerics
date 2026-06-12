@@ -11,6 +11,8 @@ var cesTooltips = (function(_config, _Media, _Logging, tooltipSelector, tooltipC
     var gameTooltipSide = 'top';
     var gameTooltipOriginClass = 'ces-game-tooltip-origin';
     var gameTooltipKeyupNamespace = 'keyup.cesGameTooltip';
+    var gameTooltipMouseNamespace = '.cesGameTooltipMouse';
+    var gameTooltipMouseCloseDelay = 100;
 
     var IsTooltipActive = function(instance) {
 
@@ -59,6 +61,57 @@ var cesTooltips = (function(_config, _Media, _Logging, tooltipSelector, tooltipC
                 _Logging.Console('ces.tooltips', 'unable to pause tooltip video', err);
             }
         });
+    };
+
+    var CloseGameTooltipInstance = function(instance) {
+
+        if (!IsTooltipActive(instance)) {
+            return;
+        }
+
+        try {
+            instance.close();
+        }
+        catch (err) {
+            _Logging.Console('ces.tooltips', 'unable to close game tooltip', err);
+        }
+    };
+
+    var BindCloseAfterTooltipLeave = function(instance, helper) {
+
+        var tooltip = helper && helper.tooltip ? helper.tooltip : (instance.elementTooltip ? instance.elementTooltip() : null);
+        var $tooltip = $(tooltip);
+        var closeTimer = null;
+        var tooltipWasEntered = false;
+
+        if (!$tooltip.length) {
+            return;
+        }
+
+        var clearCloseTimer = function() {
+            if (closeTimer) {
+                clearTimeout(closeTimer);
+                closeTimer = null;
+            }
+        };
+
+        $tooltip
+            .off(gameTooltipMouseNamespace)
+            .on('mouseenter' + gameTooltipMouseNamespace, function() {
+                tooltipWasEntered = true;
+                clearCloseTimer();
+            })
+            .on('mouseleave' + gameTooltipMouseNamespace, function() {
+
+                if (!tooltipWasEntered) {
+                    return;
+                }
+
+                clearCloseTimer();
+                closeTimer = setTimeout(function() {
+                    CloseGameTooltipInstance(instance);
+                }, gameTooltipMouseCloseDelay);
+            });
     };
 
     var TryPlayVideo = function($video) {
@@ -408,6 +461,7 @@ var cesTooltips = (function(_config, _Media, _Logging, tooltipSelector, tooltipC
 
                 CloseGameTooltipsOnEscape();
                 RepositionGameTooltipSoon(instance);
+                BindCloseAfterTooltipLeave(instance, helper);
                 LoadProgressiveMedia($mediawrapper, gameKey, opt_loadMovie, instance);
             },
             functionAfter: function(instance, helper) {
