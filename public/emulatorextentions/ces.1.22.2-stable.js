@@ -1995,29 +1995,128 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _GamePad, _Pr
             return _activeShaderPresetPath || (_module && _module.cesActiveShaderPresetPath) || null;
         };
 
-        var IsVirtualBoyVintageLcdShaderPath = function(shaderPath) {
+        var GetCurrentSystemDetails = function() {
+            if (!_config || !_config.systemdetails || !_gameKey || !_gameKey.system) {
+                return {};
+            }
+
+            return _config.systemdetails[_gameKey.system] || {};
+        };
+
+        var GetSystemBrowserWorkaroundsConfig = function() {
+            var systemDetails = GetCurrentSystemDetails();
+
+            return systemDetails.browserWorkarounds || {};
+        };
+
+        var NormalizeRuntimeShaderPresetPath = function(shaderPath) {
             var normalizedPath;
 
-            if (!_gameKey || _gameKey.system !== 'vb' || !shaderPath) {
-                return false;
+            if (!shaderPath) {
+                return '';
             }
 
             normalizedPath = String(shaderPath).replace(/\\/g, '/');
+            normalizedPath = normalizedPath.replace(/[?#].*$/, '');
             normalizedPath = normalizedPath.replace(/^.*\/shaders_glsl\//i, '');
             normalizedPath = normalizedPath.replace(/^\/?shaders_glsl\//i, '');
             normalizedPath = normalizedPath.replace(/^\/?shaders\/shaders_glsl\//i, '');
+            normalizedPath = normalizedPath.replace(/^\/?shaders\//i, '');
 
             while (normalizedPath.charAt(0) === '/') {
                 normalizedPath = normalizedPath.substr(1);
             }
 
-            return normalizedPath === 'handheld/virtual-boy-vintage-lcd.glslp';
+            return normalizedPath;
+        };
+
+        var GetPostStartupShaderReapplyConfig = function() {
+            var workarounds = GetSystemBrowserWorkaroundsConfig();
+            var config = workarounds ? workarounds.postStartupShaderReapply : null;
+
+            if (config === true || config === 1 || typeof config === 'string') {
+                return {
+                    enabled: config
+                };
+            }
+
+            if (config && typeof config === 'object') {
+                return config;
+            }
+
+            return {};
+        };
+
+        var SplitConfiguredShaderPresetList = function(value) {
+            var values = [];
+            var parts;
+            var i;
+
+            if (!value) {
+                return values;
+            }
+
+            if ($.isArray(value)) {
+                parts = value;
+            } else {
+                parts = String(value).split(/[;,]/);
+            }
+
+            for (i = 0; i < parts.length; i++) {
+                var normalizedPath = NormalizeRuntimeShaderPresetPath(parts[i]);
+
+                if (normalizedPath) {
+                    values.push(normalizedPath);
+                }
+            }
+
+            return values;
+        };
+
+        var GetConfiguredPostStartupShaderReapplyPresets = function(config) {
+            return SplitConfiguredShaderPresetList(config.presets || config.preset || config.paths || config.path);
+        };
+
+        var IsConfiguredPostStartupShaderReapplyMatch = function(shaderPath) {
+            var config = GetPostStartupShaderReapplyConfig();
+            var shaderPresetPath = NormalizeRuntimeShaderPresetPath(shaderPath);
+            var presets;
+            var i;
+
+            if (!shaderPresetPath || !IsConfigFlagEnabled(config.enabled)) {
+                return false;
+            }
+
+            presets = GetConfiguredPostStartupShaderReapplyPresets(config);
+
+            if (!presets.length) {
+                return true;
+            }
+
+            for (i = 0; i < presets.length; i++) {
+                if (shaderPresetPath === presets[i]) {
+                    return true;
+                }
+            }
+
+            return false;
+        };
+
+        var GetConfiguredPostStartupShaderReapplyLabel = function(shaderPath) {
+            var config = GetPostStartupShaderReapplyConfig();
+
+            if (IsConfiguredPostStartupShaderReapplyMatch(shaderPath) && config.label) {
+                return String(config.label);
+            }
+
+            return null;
         };
 
         var GetPostStartupShaderReapplyLabel = function(shaderPath) {
+            var configuredLabel = GetConfiguredPostStartupShaderReapplyLabel(shaderPath);
 
-            if (IsVirtualBoyVintageLcdShaderPath(shaderPath)) {
-                return 'Virtual Boy Vintage LCD shader';
+            if (configuredLabel) {
+                return configuredLabel;
             }
 
             if (shaderPath && String(shaderPath).match(/\/handheld\/console-border\//i)) {
@@ -2028,7 +2127,7 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _GamePad, _Pr
         };
 
         var ShouldReapplyShaderPostStartup = function(shaderPath) {
-            return !!(shaderPath && (String(shaderPath).match(/\/handheld\/console-border\//i) || IsVirtualBoyVintageLcdShaderPath(shaderPath)));
+            return !!(shaderPath && (IsConfiguredPostStartupShaderReapplyMatch(shaderPath) || String(shaderPath).match(/\/handheld\/console-border\//i)));
         };
 
         var RequestPostStartupShaderReapplyFrame = function(callback) {
@@ -2140,8 +2239,8 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _GamePad, _Pr
             try {
                 _module.EmscriptenSendCommand(commandName);
                 _Logging.Console(_extensionName, 'Requested RetroArch runtime shader reapply via SET_SHADER: ' + shaderPath + (reason ? ' (' + reason + ')' : ''));
-                if (IsVirtualBoyVintageLcdShaderPath(shaderPath)) {
-                    _Logging.Console(_extensionName, 'Virtual Boy Vintage LCD shader applied to RetroArch gameplay: ' + shaderPath);
+                if (IsConfiguredPostStartupShaderReapplyMatch(shaderPath)) {
+                    _Logging.Console(_extensionName, GetPostStartupShaderReapplyLabel(shaderPath) + ' reapplied after emulator ready: ' + shaderPath);
                 }
                 return true;
             } catch (e) {
@@ -2201,6 +2300,10 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _GamePad, _Pr
             if (!ShouldReapplyShaderPostStartup(shaderPath)) {
                 _Logging.Console(_extensionName, 'Post-startup shader reapply not scheduled for this shader: ' + shaderPath + (reason ? ' (' + reason + ')' : ''));
                 return false;
+            }
+
+            if (IsConfiguredPostStartupShaderReapplyMatch(shaderPath)) {
+                _Logging.Console(_extensionName, 'Post-startup shader reapply enabled by system config for ' + (_gameKey && _gameKey.system ? _gameKey.system : '(unknown system)') + ': ' + shaderLabel + ' -> ' + shaderPath);
             }
 
             if (_postStartupShaderReapplyAttempted) {
@@ -4568,6 +4671,9 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _GamePad, _Pr
             ClearPostStartupShaderReapplyFrame();
             if (_activeShaderPresetPath) {
                 _Logging.Console(_extensionName, 'Active RetroArch shader preset recorded for runtime reapply: ' + _activeShaderPresetPath);
+                if (IsConfiguredPostStartupShaderReapplyMatch(_activeShaderPresetPath)) {
+                    _Logging.Console(_extensionName, 'Configured post-start shader reapply candidate selected for ' + (_gameKey && _gameKey.system ? _gameKey.system : '(unknown system)') + ': ' + GetPostStartupShaderReapplyLabel(_activeShaderPresetPath) + ' -> ' + _activeShaderPresetPath);
+                }
             } else {
                 _Logging.Console(_extensionName, 'No active RetroArch shader preset recorded for runtime reapply.');
             }

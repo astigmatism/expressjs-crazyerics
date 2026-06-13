@@ -794,12 +794,10 @@
       "recommendedshaders": [
         {
           "title": "Game Boy Advance",
-          "shader": "handheld-console-border-gba-3x",
           "glslp": "handheld/console-border/gba-3x.glslp"
         },
         {
           "title": "Smoothed",
-          "shader": "xbrz-4xbrz-linear",
           "glslp": "xbrz/4xbrz-linear.glslp"
         }
       ]
@@ -857,18 +855,130 @@
       "supportfiles": false,
       "collection": "GoodLynx 2.01",
       "romcdnversion": "lynx20180713",
-      "emuextention": "1.6.9-stable",
+      "emuextention": "1.22.2-stable",
+      "emulatorpath": "emulators",
       "emuscript": "handy_libretro.js",
       "screenshotaspectratio": 1.57,
+      "controllerDiagram": {
+        "type": "instructionManual",
+        "title": "Player 1 Controller Reference",
+        "subtitle": "",
+        "badge": "Instruction Card",
+        "image": "/images/gamepads/lynx/controls-slider-bg.png",
+        "imageAlt": "Atari Lynx handheld",
+        "callouts": [
+          {
+            "input": "up_axis",
+            "label": "D-pad Up",
+            "x": 31.0,
+            "y": 14.0,
+            "lineX": 30.6,
+            "lineY": 24.0,
+            "targetX": 30.6,
+            "targetY": 45.8
+          },
+          {
+            "input": "left_axis",
+            "label": "D-pad Left",
+            "x": 12.0,
+            "y": 39.0,
+            "lineX": 20.5,
+            "lineY": 49.0,
+            "targetX": 28.0,
+            "targetY": 50.2
+          },
+          {
+            "input": "right_axis",
+            "label": "D-pad Right",
+            "x": 50.0,
+            "y": 14.0,
+            "lineX": 43.0,
+            "lineY": 24.0,
+            "targetX": 33.0,
+            "targetY": 50.2
+          },
+          {
+            "input": "down_axis",
+            "label": "D-pad Down",
+            "x": 12.0,
+            "y": 64.0,
+            "lineX": 20.5,
+            "lineY": 56.0,
+            "targetX": 30.6,
+            "targetY": 54.6
+          },
+          {
+            "input": "l_btn",
+            "label": "Option 1",
+            "x": 31.0,
+            "y": 88.0,
+            "lineX": 39.5,
+            "lineY": 78.0,
+            "targetX": 62.2,
+            "targetY": 42.1
+          },
+          {
+            "input": "start_btn",
+            "label": "Pause",
+            "x": 50.0,
+            "y": 88.0,
+            "lineX": 50.0,
+            "lineY": 78.0,
+            "targetX": 62.2,
+            "targetY": 49.3
+          },
+          {
+            "input": "r_btn",
+            "label": "Option 2",
+            "x": 69.0,
+            "y": 88.0,
+            "lineX": 60.5,
+            "lineY": 78.0,
+            "targetX": 62.2,
+            "targetY": 57.1
+          },
+          {
+            "input": "b_btn",
+            "label": "B",
+            "x": 88.0,
+            "y": 64.0,
+            "lineX": 79.5,
+            "lineY": 64.0,
+            "targetX": 64.7,
+            "targetY": 63.9
+          },
+          {
+            "input": "a_btn",
+            "label": "A",
+            "x": 88.0,
+            "y": 39.0,
+            "lineX": 79.5,
+            "lineY": 39.0,
+            "targetX": 70.4,
+            "targetY": 33.2
+          }
+        ]
+      },
+      "retroarch": {
+        "video_force_aspect": true,
+        "video_aspect_ratio": 1.568627450980392
+      },
+      "browserWorkarounds": {
+        "postStartupShaderReapply": {
+          "enabled": true,
+          "presets": [
+            "handheld/lcd3x.glslp"
+          ],
+          "label": "Atari Lynx Vintage LCD shader"
+        }
+      },
       "recommendedshaders": [
         {
           "title": "Vintage LCD",
-          "shader": "handheld-lcd-shader",
-          "glslp": "handheld/lcd-shader.glslp"
+          "glslp": "handheld/lcd3x.glslp"
         },
         {
           "title": "Smoothed",
-          "shader": "xbrz-4xbrz-linear",
           "glslp": "xbrz/4xbrz-linear.glslp"
         }
       ]
@@ -876,7 +986,7 @@
     "n64": {
       "name": "Nintendo 64",
       "shortname": "Nintendo 64 (Prototype)",
-      "live": true,
+      "live": false,
       "supportfiles": false,
       "collection": "GoodN64 3.27",
       "romcdnversion": "n6420180715",
@@ -903,7 +1013,7 @@
     "nds": {
       "name": "Nintendo DS",
       "shortname": "Nintendo DS (Prototype)",
-      "live": true,
+      "live": false,
       "supportfiles": false,
       "romcdnversion": "nds20180801",
       "emuextention": "1.6.9-stable",
@@ -913,7 +1023,7 @@
         {
           "title": "Vintage LCD",
           "shader": "handheld-lcd-shader",
-          "glslp": "handheld/lcd-shader.glslp"
+          "glslp": "handheld/virtual-boy-vintage-lcd-v3.glslp"
         },
         {
           "title": "Smoothed",
@@ -1035,18 +1145,110 @@
       "supportfiles": false,
       "romcdnversion": "ngpx20180713",
       "collection": "GoodNGPx 3.14",
-      "emuextention": "1.6.9-stable",
+      "emuextention": "1.22.2-stable",
+      "emulatorpath": "emulators",
       "emuscript": "mednafen_ngp_libretro.js",
       "screenshotaspectratio": 1.05,
+      "controllerDiagram": {
+        "type": "instructionManual",
+        "title": "Player 1 Controller Reference",
+        "subtitle": "",
+        "badge": "Instruction Card",
+        "image": "/images/gamepads/ngpx/controls-slider-bg.png",
+        "imageAlt": "Neo Geo Pocket handheld",
+        "callouts": [
+          {
+            "input": "up_axis",
+            "label": "D-pad Up",
+            "x": 31.0,
+            "y": 14.0,
+            "lineX": 36.5,
+            "lineY": 24.0,
+            "targetX": 36.5,
+            "targetY": 43.5
+          },
+          {
+            "input": "left_axis",
+            "label": "D-pad Left",
+            "x": 12.0,
+            "y": 39.0,
+            "lineX": 20.5,
+            "lineY": 47.8,
+            "targetX": 33.6,
+            "targetY": 47.8
+          },
+          {
+            "input": "right_axis",
+            "label": "D-pad Right",
+            "x": 50.0,
+            "y": 14.0,
+            "lineX": 44.0,
+            "lineY": 24.0,
+            "targetX": 39.2,
+            "targetY": 47.8
+          },
+          {
+            "input": "down_axis",
+            "label": "D-pad Down",
+            "x": 12.0,
+            "y": 64.0,
+            "lineX": 20.5,
+            "lineY": 56.0,
+            "targetX": 36.5,
+            "targetY": 52.5
+          },
+          {
+            "input": "start_btn",
+            "label": "Option",
+            "x": 69.0,
+            "y": 14.0,
+            "lineX": 65.2,
+            "lineY": 24.0,
+            "targetX": 65.2,
+            "targetY": 34.6
+          },
+          {
+            "input": "b_btn",
+            "label": "A",
+            "x": 88.0,
+            "y": 64.0,
+            "lineX": 79.5,
+            "lineY": 56.0,
+            "targetX": 61.5,
+            "targetY": 48.7
+          },
+          {
+            "input": "a_btn",
+            "label": "B",
+            "x": 88.0,
+            "y": 39.0,
+            "lineX": 79.5,
+            "lineY": 43.3,
+            "targetX": 65.1,
+            "targetY": 43.3
+          }
+        ]
+      },
+      "retroarch": {
+        "video_force_aspect": true,
+        "video_aspect_ratio": 1.052631578947368
+      },
+      "browserWorkarounds": {
+        "postStartupShaderReapply": {
+          "enabled": true,
+          "presets": [
+            "handheld/lcd3x.glslp"
+          ],
+          "label": "Neo Geo Pocket Vintage LCD shader"
+        }
+      },
       "recommendedshaders": [
         {
           "title": "Vintage LCD",
-          "shader": "handheld-lcd-shader",
-          "glslp": "handheld/lcd-shader.glslp"
+          "glslp": "handheld/lcd3x.glslp"
         },
         {
           "title": "Smoothed",
-          "shader": "xbrz-4xbrz-linear",
           "glslp": "xbrz/4xbrz-linear.glslp"
         }
       ]
@@ -1058,9 +1260,104 @@
       "supportfiles": false,
       "romcdnversion": "pce20180713",
       "collection": "GoodPCE 1.09a GoodMerged",
-      "emuextention": "1.6.9-stable",
+      "emuextention": "1.22.2-stable",
+      "emulatorpath": "emulators",
       "emuscript": "mednafen_pce_fast_libretro.js",
-      "screenshotaspectratio": 1.142857142857143
+      "screenshotaspectratio": 1.142857142857143,
+      "controllerDiagram": {
+        "type": "instructionManual",
+        "title": "Player 1 Controller Reference",
+        "subtitle": "",
+        "badge": "Instruction Card",
+        "image": "/images/gamepads/pce/controls-slider-bg.png",
+        "imageAlt": "NEC TurboGrafx-16 / PC Engine controller",
+        "callouts": [
+          {
+            "input": "up_axis",
+            "label": "D-pad Up",
+            "x": 31.0,
+            "y": 14.0,
+            "lineX": 31.4,
+            "lineY": 24.0,
+            "targetX": 33.1,
+            "targetY": 52.5
+          },
+          {
+            "input": "left_axis",
+            "label": "D-pad Left",
+            "x": 12.0,
+            "y": 39.0,
+            "lineX": 20.5,
+            "lineY": 49.0,
+            "targetX": 29.6,
+            "targetY": 58.0
+          },
+          {
+            "input": "right_axis",
+            "label": "D-pad Right",
+            "x": 50.0,
+            "y": 14.0,
+            "lineX": 43.0,
+            "lineY": 24.0,
+            "targetX": 36.7,
+            "targetY": 58.0
+          },
+          {
+            "input": "down_axis",
+            "label": "D-pad Down",
+            "x": 12.0,
+            "y": 64.0,
+            "lineX": 20.5,
+            "lineY": 64.0,
+            "targetX": 33.1,
+            "targetY": 63.2
+          },
+          {
+            "input": "select_btn",
+            "label": "Select",
+            "x": 31.0,
+            "y": 88.0,
+            "lineX": 39.5,
+            "lineY": 78.0,
+            "targetX": 47.4,
+            "targetY": 60.9
+          },
+          {
+            "input": "start_btn",
+            "label": "Run",
+            "x": 50.0,
+            "y": 88.0,
+            "lineX": 50.0,
+            "lineY": 78.0,
+            "targetX": 53.5,
+            "targetY": 60.9
+          },
+          {
+            "input": "b_btn",
+            "label": "II",
+            "x": 88.0,
+            "y": 39.0,
+            "lineX": 79.5,
+            "lineY": 49.0,
+            "targetX": 62.1,
+            "targetY": 62.4
+          },
+          {
+            "input": "a_btn",
+            "label": "I",
+            "x": 88.0,
+            "y": 64.0,
+            "lineX": 79.5,
+            "lineY": 64.0,
+            "targetX": 67.9,
+            "targetY": 62.4
+          }
+        ]
+      },
+      "retroarch": {
+        "video_force_aspect": true,
+        "video_aspect_ratio": 1.2
+      }
     },
     "psx": {
       "name": "Sony PlayStation",
@@ -1237,7 +1534,9 @@
       },
       "retroarch": {
         "video_force_aspect": true,
-        "video_aspect_ratio": 1.333333333333333
+        "video_aspect_ratio": 1.333333333333333,
+        "aspect_ratio_index": 20,
+        "video_scale_integer": false
       }
     },
     "vb": {
@@ -1398,6 +1697,16 @@
         "input_player1_l3": "k",
         "input_player1_r3": "l"
       },
+      "browserWorkarounds": {
+        "postStartupShaderReapply": {
+          "enabled": true,
+          "presets": [
+            "handheld/virtual-boy-vintage-lcd.glslp",
+            "handheld/virtual-boy-vintage-lcd-v3.glslp"
+          ],
+          "label": "Virtual Boy Vintage LCD shader"
+        }
+      },
       "recommendedshaders": [
         {
           "title": "Vintage LCD",
@@ -1431,18 +1740,138 @@
       "boxcdnversion": "wsx20180713",
       "romcdnversion": "GoodWsx-3.27",
       "suggestionThreshold": 250,
-      "emuextention": "1.6.9-stable",
+      "emuextention": "1.22.2-stable",
+      "emulatorpath": "emulators",
       "emuscript": "mednafen_wswan_libretro.js",
       "screenshotaspectratio": 1.56,
+      "controllerDiagram": {
+        "type": "instructionManual",
+        "title": "Player 1 Controller Reference",
+        "subtitle": "",
+        "badge": "Instruction Card",
+        "image": "/images/gamepads/wsx/controls-slider-bg.png",
+        "imageAlt": "Bandai WonderSwan handheld",
+        "callouts": [
+          {
+            "id": "x_cursor",
+            "label": "X1-X4 Cursor",
+            "x": 12.0,
+            "y": 39.0,
+            "lineX": 20.5,
+            "lineY": 39.5,
+            "targetX": 35.1,
+            "targetY": 39.5,
+            "detailsPlacement": "right",
+            "inputs": [
+              {
+                "input": "up_axis",
+                "label": "X1 / Up"
+              },
+              {
+                "input": "right_axis",
+                "label": "X2 / Right"
+              },
+              {
+                "input": "down_axis",
+                "label": "X3 / Down"
+              },
+              {
+                "input": "left_axis",
+                "label": "X4 / Left"
+              }
+            ]
+          },
+          {
+            "id": "y_cursor",
+            "label": "Y1-Y4 Cursor",
+            "x": 12.0,
+            "y": 64.0,
+            "lineX": 20.5,
+            "lineY": 59.5,
+            "targetX": 35.1,
+            "targetY": 59.5,
+            "detailsPlacement": "right",
+            "inputs": [
+              {
+                "input": "r2_btn",
+                "label": "Y1 / Up"
+              },
+              {
+                "input": "r_btn",
+                "label": "Y2 / Right"
+              },
+              {
+                "input": "l2_btn",
+                "label": "Y3 / Down"
+              },
+              {
+                "input": "l_btn",
+                "label": "Y4 / Left"
+              }
+            ]
+          },
+          {
+            "input": "select_btn",
+            "label": "Rotate screen",
+            "x": 31.0,
+            "y": 88.0,
+            "lineX": 39.4,
+            "lineY": 78.0,
+            "targetX": 43.7,
+            "targetY": 66.8
+          },
+          {
+            "input": "start_btn",
+            "label": "Start",
+            "x": 50.0,
+            "y": 88.0,
+            "lineX": 47.2,
+            "lineY": 78.0,
+            "targetX": 47.2,
+            "targetY": 67.3
+          },
+          {
+            "input": "b_btn",
+            "label": "B",
+            "x": 88.0,
+            "y": 64.0,
+            "lineX": 79.5,
+            "lineY": 62.8,
+            "targetX": 65.3,
+            "targetY": 62.8
+          },
+          {
+            "input": "a_btn",
+            "label": "A",
+            "x": 88.0,
+            "y": 39.0,
+            "lineX": 79.5,
+            "lineY": 48.0,
+            "targetX": 67.3,
+            "targetY": 59.2
+          }
+        ]
+      },
+      "retroarch": {
+        "video_force_aspect": true,
+        "video_aspect_ratio": 1.56
+      },
+      "browserWorkarounds": {
+        "postStartupShaderReapply": {
+          "enabled": true,
+          "presets": [
+            "handheld/lcd3x.glslp"
+          ],
+          "label": "WonderSwan Vintage LCD shader"
+        }
+      },
       "recommendedshaders": [
         {
           "title": "Vintage LCD",
-          "shader": "handheld-lcd-shader",
-          "glslp": "handheld/lcd-shader.glslp"
+          "glslp": "handheld/lcd3x.glslp"
         },
         {
           "title": "Smoothed",
-          "shader": "xbrz-4xbrz-linear",
           "glslp": "xbrz/4xbrz-linear.glslp"
         }
       ]

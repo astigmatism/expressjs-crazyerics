@@ -67,6 +67,7 @@ var cesGameLink = (function(_config, _Media, _Tooltips, _Collections, gameKey, c
             
             var $addbutton = $('<span class="button add first noselect">Add to Collection</span>');
             $addbutton.on('click', function(e) { 
+                _Tooltips.Close($imagewrapper);
                 _Collections.AddTitleWithoutPlaying(gameKey);
             });
             $actions.append($addbutton);

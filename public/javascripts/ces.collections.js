@@ -323,6 +323,7 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
 
         var $remove = $('<span class="button remove noselect">Remove</span>');
         $remove.on('click', function() {
+            _Tooltips.Close(activeTitle.gridItem);
             $remove.off('click');
             RemoveTitle(activeTitle, function() {
                 

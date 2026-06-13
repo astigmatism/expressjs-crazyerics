@@ -208,6 +208,7 @@ module.exports = new (function() {
                     'emulatorpath': systems[system].emulatorpath,
                     'emuscript': systems[system].emuscript,
                     'retroarch': systems[system].retroarch,
+                    'browserWorkarounds': systems[system].browserWorkarounds,
                     'controllerDiagram': systems[system].controllerDiagram,
                     'screenshotaspectratio': systems[system].screenshotaspectratio,
                     'supportfiles': systems[system].supportfiles,

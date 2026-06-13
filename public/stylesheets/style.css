@@ -1616,21 +1616,6 @@ div.slidingpanel.closed {
 	width: 112px;
 }
 
-.controls-manual-diagram-fds {
-	min-height: 392px;
-}
-
-.controls-controller-photo-fds {
-	top: 54%;
-	width: 60%;
-	max-width: 392px;
-	min-width: 0px;
-}
-
-.controls-manual-fds .controls-callout {
-	width: 118px;
-}
-
 .controls-callout-lines {
 	position: absolute;
 	z-index: 2;
@@ -2297,12 +2282,6 @@ body.controls-show-coordinate-guides .controls-manual-coordinate-guides,
 	.controls-controller-photo-gba {
 		width: 100%;
 		max-width: 560px;
-		min-width: 0px;
-	}
-
-	.controls-controller-photo-fds {
-		width: 100%;
-		max-width: 420px;
 		min-width: 0px;
 	}
 

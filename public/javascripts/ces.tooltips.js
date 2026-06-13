@@ -12,6 +12,7 @@ var cesTooltips = (function(_config, _Media, _Logging, tooltipSelector, tooltipC
     var gameTooltipOriginClass = 'ces-game-tooltip-origin';
     var gameTooltipKeyupNamespace = 'keyup.cesGameTooltip';
     var gameTooltipMouseNamespace = '.cesGameTooltipMouse';
+    var gameTooltipActionNamespace = '.cesGameTooltipAction';
     var gameTooltipMouseCloseDelay = 100;
 
     var IsTooltipActive = function(instance) {
@@ -111,6 +112,27 @@ var cesTooltips = (function(_config, _Media, _Logging, tooltipSelector, tooltipC
                 closeTimer = setTimeout(function() {
                     CloseGameTooltipInstance(instance);
                 }, gameTooltipMouseCloseDelay);
+            });
+    };
+
+
+    var BindCloseAfterTooltipAction = function(instance, helper) {
+
+        var tooltip = helper && helper.tooltip ? helper.tooltip : (instance.elementTooltip ? instance.elementTooltip() : null);
+        var $tooltip = $(tooltip);
+
+        if (!$tooltip.length) {
+            return;
+        }
+
+        $tooltip
+            .off(gameTooltipActionNamespace, '.game-tooltip-actions .button')
+            .on('click' + gameTooltipActionNamespace, '.game-tooltip-actions .button', function() {
+
+                // Let the button's own click handler run first, then close the popover.
+                setTimeout(function() {
+                    CloseGameTooltipInstance(instance);
+                }, 0);
             });
     };
 
@@ -462,6 +484,7 @@ var cesTooltips = (function(_config, _Media, _Logging, tooltipSelector, tooltipC
                 CloseGameTooltipsOnEscape();
                 RepositionGameTooltipSoon(instance);
                 BindCloseAfterTooltipLeave(instance, helper);
+                BindCloseAfterTooltipAction(instance, helper);
                 LoadProgressiveMedia($mediawrapper, gameKey, opt_loadMovie, instance);
             },
             functionAfter: function(instance, helper) {
