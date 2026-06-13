@@ -949,15 +949,109 @@
       }
     },
     "gg": {
-      "name": "Sega Game Gear",
-      "shortname": "Sega Game Gear",
+      "name": "Game Gear",
+      "shortname": "Game Gear",
       "live": true,
       "collection": "GoodGG 3.20",
       "romcdnversion": "gg20180713",
       "supportfiles": false,
-      "emuextention": "1.6.9-stable",
+      "emuextention": "1.22.2-stable",
+      "emulatorpath": "emulators",
       "emuscript": "genesis_plus_gx_libretro.js",
       "screenshotaspectratio": 1.11,
+      "controllerDiagram": {
+        "type": "instructionManual",
+        "title": "Player 1 Controller Reference",
+        "subtitle": "",
+        "badge": "Instruction Card",
+        "image": "/images/gamepads/gg/controls-slider-bg.png",
+        "imageAlt": "Sega Game Gear handheld",
+        "callouts": [
+          {
+            "input": "up_axis",
+            "label": "D-pad Up",
+            "x": 31.0,
+            "y": 14.0,
+            "lineX": 32.0,
+            "lineY": 24.0,
+            "targetX": 32.0,
+            "targetY": 45.8
+          },
+          {
+            "input": "left_axis",
+            "label": "D-pad Left",
+            "x": 12.0,
+            "y": 39.0,
+            "lineX": 20.5,
+            "lineY": 49.0,
+            "targetX": 30.3,
+            "targetY": 49.0
+          },
+          {
+            "input": "right_axis",
+            "label": "D-pad Right",
+            "x": 50.0,
+            "y": 14.0,
+            "lineX": 43.0,
+            "lineY": 24.0,
+            "targetX": 34.0,
+            "targetY": 49.0
+          },
+          {
+            "input": "down_axis",
+            "label": "D-pad Down",
+            "x": 12.0,
+            "y": 64.0,
+            "lineX": 20.5,
+            "lineY": 56.0,
+            "targetX": 32.0,
+            "targetY": 51.8
+          },
+          {
+            "input": "b_btn",
+            "label": "Button 1",
+            "x": 88.0,
+            "y": 64.0,
+            "lineX": 79.5,
+            "lineY": 56.0,
+            "targetX": 65.5,
+            "targetY": 52.8
+          },
+          {
+            "input": "a_btn",
+            "label": "Button 2",
+            "x": 88.0,
+            "y": 39.0,
+            "lineX": 79.5,
+            "lineY": 47.2,
+            "targetX": 68.9,
+            "targetY": 47.2
+          },
+          {
+            "input": "start_btn",
+            "label": "Start",
+            "x": 69.0,
+            "y": 14.0,
+            "lineX": 65.3,
+            "lineY": 24.0,
+            "targetX": 65.3,
+            "targetY": 39.1
+          }
+        ]
+      },
+      "retroarch": {
+        "video_force_aspect": true,
+        "video_aspect_ratio": 1.111111111111111
+      },
+      "browserWorkarounds": {
+        "postStartupShaderReapply": {
+          "enabled": true,
+          "presets": [
+            "handheld/console-border/gg-3x.glslp"
+          ],
+          "label": "Game Gear console-border shader"
+        }
+      },
       "recommendedshaders": [
         {
           "title": "Game Gear",
@@ -1372,15 +1466,15 @@
         "postStartupShaderReapply": {
           "enabled": true,
           "presets": [
-            "handheld/lcd3x.glslp"
+            "handheld/console-border/ngpc-4x.glslp"
           ],
           "label": "Neo Geo Pocket Vintage LCD shader"
         }
       },
       "recommendedshaders": [
         {
-          "title": "Vintage LCD",
-          "glslp": "handheld/lcd3x.glslp"
+          "title": "Neo Geo Pocket Color",
+          "glslp": "handheld/console-border/ngpc-4x.glslp"
         },
         {
           "title": "Smoothed",
