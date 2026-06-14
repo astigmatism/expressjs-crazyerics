@@ -642,6 +642,50 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
         }
     };
 
+    var BeginRuntimeGamepadActivation = function(reason) {
+        if (!_GamePad || typeof _GamePad.BeginRuntimeGamepadActivation !== 'function') {
+            return;
+        }
+
+        try {
+            _GamePad.BeginRuntimeGamepadActivation({
+                gameKey: _gameKey,
+                maxControllers: 2,
+                reason: reason || 'emulator ready',
+                bridge: {
+                    focusEmulator: function() {
+                        if (_ui && _ui.canvas && _ui.canvas.length) {
+                            _ui.canvas.focus();
+                        }
+                    },
+                    dispatchGamepadEventToRetroArch: function(type, gamepad, dispatchReason) {
+                        if (_Module && typeof _Module.cesDispatchGamepadEventForRetroArch === 'function') {
+                            return _Module.cesDispatchGamepadEventForRetroArch(type, gamepad, dispatchReason || 'runtime gamepad activation');
+                        }
+                        return false;
+                    },
+                    isInputActive: function() {
+                        return !!(_hasEmulationBegin && !_isPaused && !_cleanupInProgress && !_cleanupComplete);
+                    }
+                }
+            });
+        } catch (e) {
+            _Logging.Console('cesEmulatorBase', 'Unable to begin runtime gamepad activation: ' + e);
+        }
+    };
+
+    var EndRuntimeGamepadActivation = function(reason) {
+        if (!_GamePad || typeof _GamePad.EndRuntimeGamepadActivation !== 'function') {
+            return;
+        }
+
+        try {
+            _GamePad.EndRuntimeGamepadActivation(reason || 'emulator cleanup');
+        } catch (e) {
+            _Logging.Console('cesEmulatorBase', 'Unable to end runtime gamepad activation: ' + e);
+        }
+    };
+
     //emulator is revealed, control is given to player
     this.ReadyPlayerOne = function (duration, callback) {
 
@@ -663,6 +707,8 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
 
             //give focus
             _ui.canvas.focus();
+
+            BeginRuntimeGamepadActivation('emulator visible');
 
             //define operations on blur/focus next
             _ui.canvas
@@ -876,6 +922,8 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
 
         _isSavingState = false;
         _isLoadingState = false;
+
+        EndRuntimeGamepadActivation('emulator cleanup');
 
         //remove the saves manager component from sync
         _SavesManager = null;

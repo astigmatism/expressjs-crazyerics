@@ -1552,16 +1552,43 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _GamePad, _Pr
             return gamepads;
         };
 
-        var CreateBrowserGamepadEventForRetroArch = function(type, gamepad) {
+        var MarkBrowserGamepadEventApprovedForRetroArch = function(event, reason) {
+            if (!event) {
+                return event;
+            }
+
+            try {
+                Object.defineProperty(event, 'cesRuntimeGamepadApproved', {
+                    value: true,
+                    enumerable: false
+                });
+            } catch (ignoreApprovedDefine) {
+                try { event.cesRuntimeGamepadApproved = true; } catch (ignoreApprovedAssign) {}
+            }
+
+            try {
+                Object.defineProperty(event, 'cesRetroArchGamepadReplayReason', {
+                    value: reason || 'retroarch gamepad replay',
+                    enumerable: false
+                });
+            } catch (ignoreReasonDefine) {
+                try { event.cesRetroArchGamepadReplayReason = reason || 'retroarch gamepad replay'; } catch (ignoreReasonAssign) {}
+            }
+
+            return event;
+        };
+
+        var CreateBrowserGamepadEventForRetroArch = function(type, gamepad, reason) {
             var event;
 
             try {
                 if (typeof GamepadEvent === 'function') {
-                    return new GamepadEvent(type, {
+                    event = new GamepadEvent(type, {
                         gamepad: gamepad,
                         bubbles: true,
                         cancelable: true
                     });
+                    return MarkBrowserGamepadEventApprovedForRetroArch(event, reason);
                 }
             } catch (ignoreGamepadEventConstructor) {}
 
@@ -1585,15 +1612,28 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _GamePad, _Pr
                     event.gamepad = gamepad;
                 }
 
-                return event;
+                return MarkBrowserGamepadEventApprovedForRetroArch(event, reason);
             } catch (e) {
                 _Logging.Console(_extensionName, 'Unable to create ' + type + ' event for RetroArch gamepad replay: ' + e);
                 return null;
             }
         };
 
+        var GetStrictRuntimeGamepadsForRetroArchReplay = function(reason) {
+            if (_GamePad && typeof _GamePad.GetRuntimeVirtualGamepadsForRetroArch === 'function') {
+                try {
+                    return _GamePad.GetRuntimeVirtualGamepadsForRetroArch(_gameKey) || [];
+                } catch (e) {
+                    _Logging.Console(_extensionName, 'Unable to get strict runtime virtual gamepads for RetroArch replay: ' + e);
+                    return [];
+                }
+            }
+
+            return GetConnectedBrowserGamepads();
+        };
+
         var ReplayConnectedBrowserGamepadsForRetroArch = function(reason) {
-            var gamepads = GetConnectedBrowserGamepads();
+            var gamepads = GetStrictRuntimeGamepadsForRetroArchReplay(reason);
             var report = {
                 reason: reason || 'unspecified',
                 timestamp: Date.now(),
@@ -1614,7 +1654,7 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _GamePad, _Pr
 
             for (i = 0; i < gamepads.length; i++) {
                 var gamepad = gamepads[i];
-                var event = CreateBrowserGamepadEventForRetroArch('gamepadconnected', gamepad);
+                var event = CreateBrowserGamepadEventForRetroArch('gamepadconnected', gamepad, report.reason);
                 var padReport = {
                     index: gamepad.index,
                     id: gamepad.id,
@@ -1654,6 +1694,28 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _GamePad, _Pr
 
         this.cesReplayConnectedBrowserGamepadsForRetroArch = function(reason) {
             return ReplayConnectedBrowserGamepadsForRetroArch(reason);
+        };
+
+        this.cesDispatchGamepadEventForRetroArch = function(type, gamepad, reason) {
+            var event;
+
+            if (typeof window === 'undefined' || typeof window.dispatchEvent !== 'function') {
+                return false;
+            }
+
+            event = CreateBrowserGamepadEventForRetroArch(type, gamepad, reason || 'runtime strict gamepad activation');
+            if (!event) {
+                return false;
+            }
+
+            try {
+                window.dispatchEvent(event);
+                _Logging.Console(_extensionName, 'Dispatched approved ' + type + ' event for RetroArch rwebpad index=' + (gamepad && gamepad.index) + ', id=' + (gamepad && gamepad.id) + ', reason=' + (reason || 'runtime strict gamepad activation'));
+                return true;
+            } catch (e) {
+                _Logging.Console(_extensionName, 'Failed to dispatch approved ' + type + ' event for RetroArch rwebpad index=' + (gamepad && gamepad.index) + ': ' + e);
+                return false;
+            }
         };
 
         this.cesReapplyActiveShaderPreset = function(reason) {
@@ -4738,16 +4800,32 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _GamePad, _Pr
                 _Logging.Console(_extensionName, 'RetroArch state config: savestate_directory=' + retroArchConfig.savestate_directory + ', sort_savestates_enable=' + retroArchConfig.sort_savestates_enable + ', sort_savestates_by_content_enable=' + retroArchConfig.sort_savestates_by_content_enable);
 
                 //get input assignments
-                _Logging.Console(_extensionName, 'Applying browser Gamepad API joypad config before RetroArch startup. Legacy SDL2 button remap is disabled for this 1.22.2 Emscripten build.');
-                configString += self._InputHelper.BuildInputConfiguration(gameKey, {
-                    inputProfile: 'browser-gamepad',
-                    includeJoypadIndex: true,
-                    useBrowserGamepadIds: true,
-                    normalizeAssignmentType: true,
-                    applyLegacySdl2Conversion: false,
-                    quoteAxisAssignments: true,
-                    logPrefix: _extensionName
-                });
+                _Logging.Console(_extensionName, 'Applying strict virtual browser Gamepad API joypad config before RetroArch startup. RetroArch will only see controllers that CES has validated against saved mappings for this system.');
+
+                if (_GamePad && typeof _GamePad.PrepareRuntimeGamepadActivation === 'function') {
+                    _GamePad.PrepareRuntimeGamepadActivation(gameKey, {
+                        maxControllers: 2,
+                        reason: 'RetroArch 1.22.2 filesystem build'
+                    });
+                }
+
+                if (_GamePad && typeof _GamePad.BuildRuntimeVirtualGamepadInputConfiguration === 'function') {
+                    configString += _GamePad.BuildRuntimeVirtualGamepadInputConfiguration(gameKey, {
+                        maxControllers: 2,
+                        logPrefix: _extensionName
+                    });
+                } else {
+                    _Logging.Console(_extensionName, 'Strict virtual gamepad config helper unavailable; falling back to connected mapped gamepad config.');
+                    configString += self._InputHelper.BuildInputConfiguration(gameKey, {
+                        inputProfile: 'browser-gamepad',
+                        includeJoypadIndex: true,
+                        useBrowserGamepadIds: true,
+                        normalizeAssignmentType: true,
+                        applyLegacySdl2Conversion: false,
+                        quoteAxisAssignments: true,
+                        logPrefix: _extensionName
+                    });
+                }
 
                 this.cesCreateDataFile('/home/web_user/retroarch/userdata', 'retroarch.cfg', configString, true, true);
                 retroArchConfigWritten = true;

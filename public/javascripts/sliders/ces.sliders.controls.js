@@ -16,6 +16,7 @@ var cesSlidersControls = (function(_config, $li, $panel) {
     var _manualInputBadgeSelector = '.controls-manual-input-badge';
     var _manualInputBadgeKeyboardClass = 'controls-manual-input-badge-keyboard';
     var _manualInputBadgeGamepadClass = 'controls-manual-input-badge-gamepad';
+    var _lastRenderSignature = null;
 
     var _retroarchInputNames = {
         up_axis: 'input_player1_up',
@@ -142,19 +143,11 @@ var cesSlidersControls = (function(_config, $li, $panel) {
         _activeGamepadMappings = GetActiveGamepadMappings();
         _activeInputDisplayMode = GetActiveInputDisplayMode();
 
-        $panel.empty();
-
-        var diagram = GetControllerDiagram(_gameKey.system);
-
-        if (ShouldUseInstructionManual(diagram)) {
-            RenderInstructionManual(diagram);
-        }
-        else {
-            RenderGenericControls();
-        }
+        RenderControlsContent();
 
         BindGamepadConnectionStateListener();
         UpdateManualInputBadge();
+        _lastRenderSignature = BuildControlsRenderSignature();
     };
 
     this.Deactivate = function() {
@@ -168,6 +161,7 @@ var cesSlidersControls = (function(_config, $li, $panel) {
         _inputAssignmentMap = {};
         _activeGamepadMappings = [];
         _activeInputDisplayMode = 'keyboard';
+        _lastRenderSignature = null;
     };
 
     this.OnOpen = function(callback) {
@@ -546,6 +540,59 @@ var cesSlidersControls = (function(_config, $li, $panel) {
         $(window).off('resize.controlsManualCalloutLines');
     };
 
+    var RenderControlsContent = function() {
+        DestroyManualInputBadgeTooltip();
+        TeardownManualCalloutLines();
+        $panel.empty();
+
+        var diagram = GetControllerDiagram(_gameKey.system);
+
+        if (ShouldUseInstructionManual(diagram)) {
+            RenderInstructionManual(diagram);
+        }
+        else {
+            RenderGenericControls();
+        }
+
+        ScheduleManualCalloutLineRefreshPasses();
+    };
+
+    var RefreshControlsForGamepadState = function(state) {
+        var previousSignature = _lastRenderSignature;
+
+        _activeGamepadMappings = GetActiveGamepadMappings();
+        _activeInputDisplayMode = GetActiveInputDisplayMode();
+
+        var nextSignature = BuildControlsRenderSignature();
+        if (previousSignature !== null && previousSignature !== nextSignature) {
+            RenderControlsContent();
+            _lastRenderSignature = BuildControlsRenderSignature();
+        }
+        else {
+            _lastRenderSignature = nextSignature;
+        }
+
+        UpdateManualInputBadge(state);
+    };
+
+    var BuildControlsRenderSignature = function() {
+        var mappings = _activeGamepadMappings || [];
+        var parts = [_activeInputDisplayMode || 'keyboard'];
+
+        for (var i = 0; i < mappings.length; i++) {
+            var mappingRecord = mappings[i] || {};
+            var mapping = mappingRecord.inputconfig || mappingRecord;
+            parts.push([
+                mappingRecord.player || mappingRecord.slot || (i + 1),
+                mappingRecord.index,
+                mappingRecord.id,
+                JSON.stringify(mapping || {})
+            ].join(':'));
+        }
+
+        return parts.join('|');
+    };
+
     var RenderInstructionManual = function(diagram) {
 
         var systemName = GetSystemName();
@@ -753,7 +800,7 @@ var cesSlidersControls = (function(_config, $li, $panel) {
         }
 
         _gamepadConnectionStateUnsubscribe = _gamePad.SubscribeConnectionState(_self, function(state) {
-            UpdateManualInputBadge(state);
+            RefreshControlsForGamepadState(state);
         });
     };
 
@@ -787,15 +834,25 @@ var cesSlidersControls = (function(_config, $li, $panel) {
 
     var GetManualInputState = function(state) {
 
-        // A connected gamepad is only the active input for this launch when configured mappings were applied.
+        // A connected gamepad is only the active input for this launch when a strict runtime mapping is active.
         var gamepadConnected = IsGamepadConnected(state);
         var hasConfiguredGamepadMappings = !!(_activeGamepadMappings && _activeGamepadMappings.length);
+        var activeMappedCount = GetActiveMappedGamepadCount(state);
 
         return {
             gamepadConnected: gamepadConnected,
             hasConfiguredGamepadMappings: hasConfiguredGamepadMappings,
-            gamepadInputActive: gamepadConnected && hasConfiguredGamepadMappings
+            activeMappedCount: activeMappedCount,
+            gamepadInputActive: activeMappedCount > 0
         };
+    };
+
+    var GetActiveMappedGamepadCount = function(state) {
+        if (state && state.runtime && state.runtime.activeGamepads) {
+            return state.runtime.activeGamepads.length;
+        }
+
+        return (_activeGamepadMappings && _activeGamepadMappings.length) || 0;
     };
 
     var GetManualInputBadgeAriaLabel = function(inputState) {
@@ -1344,7 +1401,7 @@ var cesSlidersControls = (function(_config, $li, $panel) {
             }
 
             assignments.push({
-                player: i + 1,
+                player: mappingRecord.player || mappingRecord.slot || (i + 1),
                 label: label
             });
         }
@@ -1354,18 +1411,28 @@ var cesSlidersControls = (function(_config, $li, $panel) {
 
     var GetActiveGamepadMappings = function() {
 
-        if (!_gamePad || typeof _gamePad.GetConfiguredGamepadInput !== 'function') {
+        if (!_gamePad) {
             return [];
         }
 
         try {
-            return _gamePad.GetConfiguredGamepadInput(_gameKey, {
-                includeMetadata: true
-            }) || [];
+            if (typeof _gamePad.GetActiveRuntimeGamepadMappings === 'function') {
+                return _gamePad.GetActiveRuntimeGamepadMappings(_gameKey, {
+                    includeMetadata: true
+                }) || [];
+            }
+
+            if (typeof _gamePad.GetConfiguredGamepadInput === 'function') {
+                return _gamePad.GetConfiguredGamepadInput(_gameKey, {
+                    includeMetadata: true
+                }) || [];
+            }
         }
         catch (e) {
             return [];
         }
+
+        return [];
     };
 
     var FindGamepadAssignment = function(mapping, inputName) {
