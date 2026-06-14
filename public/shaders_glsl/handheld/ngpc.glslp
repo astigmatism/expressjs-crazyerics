@@ -1,0 +1,23 @@
+shaders = 2
+
+shader0 = shaders/lcd-cgwg/lcd-grid.glsl
+filter_linear0 = false
+wrap_mode0 = clamp_to_border
+scale_type0 = source
+scale0 = 4
+
+shader1 = console-border/shader-files/gb-pass-5.glsl
+filter_linear1 = true
+wrap_mode1 = clamp_to_border
+
+textures = BORDER
+BORDER = console-border/resources/ngpc-border-square-4x.png
+BORDER_linear = true
+BORDER_wrap_mode = clamp_to_border
+BORDER_mipmap = false
+
+parameters = "SCALE;OUT_X;OUT_Y;GRID_STRENGTH"
+SCALE = "1.0"
+OUT_X = "3200.0"
+OUT_Y = "1600.0"
+GRID_STRENGTH = "0.150000"

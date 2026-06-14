@@ -804,7 +804,7 @@
     },
     "gen": {
       "name": "Sega Genesis / Mega Drive",
-      "shortname": "Sega Genesis",
+      "shortname": "Genesis",
       "live": true,
       "supportfiles": false,
       "romcdnversion": "gen20180713",
@@ -949,7 +949,7 @@
       }
     },
     "gg": {
-      "name": "Game Gear",
+      "name": "Sega Game Gear",
       "shortname": "Game Gear",
       "live": true,
       "collection": "GoodGG 3.20",
@@ -1079,7 +1079,7 @@
     },
     "lynx": {
       "name": "Atari Lynx",
-      "shortname": "Atari Lynx",
+      "shortname": "Lynx",
       "live": true,
       "supportfiles": false,
       "collection": "GoodLynx 2.01",
@@ -1368,7 +1368,7 @@
       }
     },
     "ngpx": {
-      "name": "Neo Geo Pocket",
+      "name": "SNK Neo Geo Pocket",
       "shortname": "Neo Geo Pocket",
       "live": true,
       "supportfiles": false,
@@ -1466,7 +1466,7 @@
         "postStartupShaderReapply": {
           "enabled": true,
           "presets": [
-            "handheld/console-border/ngpc-4x.glslp"
+            "handheld/ngpc.glslp"
           ],
           "label": "Neo Geo Pocket Vintage LCD shader"
         }
@@ -1474,7 +1474,7 @@
       "recommendedshaders": [
         {
           "title": "Neo Geo Pocket Color",
-          "glslp": "handheld/console-border/ngpc-4x.glslp"
+          "glslp": "handheld/ngpc.glslp"
         },
         {
           "title": "Smoothed",
@@ -1611,14 +1611,95 @@
       "emuscript": "genesis_plus_gx_libretro.js"
     },
     "sms": {
-      "name": "Sega Master System / SG-1000 / SC-3000 / Mark III",
-      "shortname": "Sega Master System",
+      "name": "Master System / SG-1000 / SC-3000 / Mark III",
+      "shortname": "Master System",
       "live": true,
       "supportfiles": false,
       "romcdnversion": "sms20180713",
-      "emuextention": "1.6.9-stable",
+      "emuextention": "1.22.2-stable",
+      "emulatorpath": "emulators",
       "emuscript": "genesis_plus_gx_libretro.js",
-      "screenshotaspectratio": 1.333333333333333
+      "screenshotaspectratio": 1.333333333333333,
+      "controllerDiagram": {
+        "type": "instructionManual",
+        "title": "Player 1 Controller Reference",
+        "subtitle": "",
+        "badge": "Instruction Card",
+        "image": "/images/gamepads/sms/controls-slider-bg.png",
+        "imageAlt": "Master System controller",
+        "callouts": [
+          {
+            "input": "up_axis",
+            "label": "D-pad Up",
+            "x": 31.0,
+            "y": 14.0,
+            "lineX": 36.7,
+            "lineY": 24.0,
+            "targetX": 36.3,
+            "targetY": 43.0
+          },
+          {
+            "input": "left_axis",
+            "label": "D-pad Left",
+            "x": 12.0,
+            "y": 39.0,
+            "lineX": 20.5,
+            "lineY": 49.0,
+            "targetX": 31.5,
+            "targetY": 50.0
+          },
+          {
+            "input": "right_axis",
+            "label": "D-pad Right",
+            "x": 50.0,
+            "y": 14.0,
+            "lineX": 43.0,
+            "lineY": 24.0,
+            "targetX": 40.9,
+            "targetY": 50.0
+          },
+          {
+            "input": "down_axis",
+            "label": "D-pad Down",
+            "x": 12.0,
+            "y": 64.0,
+            "lineX": 20.5,
+            "lineY": 56.0,
+            "targetX": 36.3,
+            "targetY": 57.8
+          },
+          {
+            "input": "b_btn",
+            "label": "Button 1 / Start",
+            "x": 69.0,
+            "y": 88.0,
+            "lineX": 61.2,
+            "lineY": 78.0,
+            "targetX": 61.2,
+            "targetY": 56.1
+          },
+          {
+            "input": "a_btn",
+            "label": "Button 2",
+            "x": 88.0,
+            "y": 64.0,
+            "lineX": 79.5,
+            "lineY": 56.1,
+            "targetX": 70.4,
+            "targetY": 56.1
+          },
+          {
+            "input": "start_btn",
+            "label": "Pause",
+            "x": 50.0,
+            "y": 88.0
+          }
+        ]
+      },
+      "retroarch": {
+        "video_force_aspect": true,
+        "video_aspect_ratio": 1.333333333333333
+      }
     },
     "snes": {
       "name": "Super Nintendo Entermainment System",
