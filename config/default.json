@@ -2868,6 +2868,7 @@
     "trustProxy": false,
     "forceHttps": false,
     "forceHttpsHosts": [],
+    "httpsRedirectHost": "",
     "httpsRedirectStatus": 308
   }
 }

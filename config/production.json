@@ -80,6 +80,7 @@
       "crazyerics.com",
       "www.crazyerics.com"
     ],
+    "httpsRedirectHost": "crazyerics.com",
     "httpsRedirectStatus": 308
   },
   "paths": {

@@ -65,6 +65,16 @@ function StripDefaultHttpPort(host) {
     return host.replace(/:80$/i, '');
 }
 
+function GetHttpsRedirectHost() {
+    var configuredHost = NormalizeHostName(GetConfigValue('security.httpsRedirectHost', ''));
+
+    if (!configuredHost || !IsSafeRedirectHost(configuredHost)) {
+        return '';
+    }
+
+    return configuredHost;
+}
+
 function BuildHttpsRedirectHosts() {
     var configuredHosts = GetConfigValue('security.forceHttpsHosts', []);
 
@@ -102,7 +112,7 @@ function GetHttpsRedirectStatus() {
     return 308;
 }
 
-function ForceHttps(allowedHosts, redirectStatus) {
+function ForceHttps(allowedHosts, redirectStatus, redirectHost) {
     return function(req, res, next) {
         var host = GetRequestHost(req);
 
@@ -114,7 +124,8 @@ function ForceHttps(allowedHosts, redirectStatus) {
             return next();
         }
 
-        return res.redirect(redirectStatus, 'https://' + StripDefaultHttpPort(host) + req.originalUrl);
+        var targetHost = redirectHost || StripDefaultHttpPort(host);
+        return res.redirect(redirectStatus, 'https://' + targetHost + req.originalUrl);
     };
 }
 
@@ -126,7 +137,7 @@ if (trustProxy) {
 }
 
 if (forceHttps) {
-    app.use(ForceHttps(BuildHttpsRedirectHosts(), GetHttpsRedirectStatus()));
+    app.use(ForceHttps(BuildHttpsRedirectHosts(), GetHttpsRedirectStatus(), GetHttpsRedirectHost()));
 }
 
 app.set('views', path.join(__dirname, 'views'));
