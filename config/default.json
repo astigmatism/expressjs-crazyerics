@@ -61,14 +61,149 @@
   "systems": {
     "32x": {
       "name": "Sega 32x",
-      "shortname": "Sega 32x (Prototype)",
+      "shortname": "32x",
       "live": true,
       "supportfiles": true,
       "romcdnversion": "GoodGen-3.14-32x-2018-07-07",
-      "emuextention": "1.7.6-stable",
+      "emuextention": "1.22.2-stable",
+      "emulatorpath": "emulators",
       "collection": "",
       "screenshotaspectratio": 1.333333333333333,
       "emuscript": "picodrive_libretro.js",
+      "controllerDiagram": {
+        "type": "instructionManual",
+        "title": "Player 1 Controller Reference",
+        "subtitle": "",
+        "badge": "Instruction Card",
+        "image": "/images/gamepads/gen/controls-slider-bg.png",
+        "imageAlt": "Sega Genesis six-button controller",
+        "callouts": [
+          {
+            "input": "up_axis",
+            "label": "D-pad Up",
+            "x": 12.0,
+            "y": 14.0,
+            "lineX": 20.5,
+            "lineY": 24.0,
+            "targetX": 39.0,
+            "targetY": 45.6
+          },
+          {
+            "input": "left_axis",
+            "label": "D-pad Left",
+            "x": 12.0,
+            "y": 39.0,
+            "lineX": 20.5,
+            "lineY": 49.0,
+            "targetX": 35.8,
+            "targetY": 50.0
+          },
+          {
+            "input": "right_axis",
+            "label": "D-pad Right",
+            "x": 31.0,
+            "y": 14.0,
+            "lineX": 39.4,
+            "lineY": 24.0,
+            "targetX": 41.5,
+            "targetY": 50.0
+          },
+          {
+            "input": "down_axis",
+            "label": "D-pad Down",
+            "x": 12.0,
+            "y": 64.0,
+            "lineX": 20.5,
+            "lineY": 56.0,
+            "targetX": 39.0,
+            "targetY": 54.7
+          },
+          {
+            "input": "select_btn",
+            "label": "Mode",
+            "x": 50.0,
+            "y": 14.0,
+            "lineX": 58.0,
+            "lineY": 24.0,
+            "targetX": 62.8,
+            "targetY": 36.2
+          },
+          {
+            "input": "start_btn",
+            "label": "Start",
+            "x": 31.0,
+            "y": 88.0,
+            "lineX": 39.4,
+            "lineY": 78.0,
+            "targetX": 49.4,
+            "targetY": 48.4
+          },
+          {
+            "input": "l_btn",
+            "label": "X",
+            "x": 69.0,
+            "y": 14.0,
+            "lineX": 73.0,
+            "lineY": 24.0,
+            "targetX": 55.8,
+            "targetY": 48.4
+          },
+          {
+            "input": "x_btn",
+            "label": "Y",
+            "x": 88.0,
+            "y": 64.0,
+            "lineX": 79.5,
+            "lineY": 55.0,
+            "targetX": 59.1,
+            "targetY": 45.6
+          },
+          {
+            "input": "r_btn",
+            "label": "Z",
+            "x": 88.0,
+            "y": 39.0,
+            "lineX": 79.5,
+            "lineY": 43.3,
+            "targetX": 62.8,
+            "targetY": 43.3
+          },
+          {
+            "input": "y_btn",
+            "label": "A",
+            "x": 50.0,
+            "y": 88.0,
+            "lineX": 57.0,
+            "lineY": 78.0,
+            "targetX": 57.0,
+            "targetY": 57.1
+          },
+          {
+            "input": "b_btn",
+            "label": "B",
+            "x": 69.0,
+            "y": 88.0,
+            "lineX": 61.4,
+            "lineY": 78.0,
+            "targetX": 61.4,
+            "targetY": 54.2
+          },
+          {
+            "input": "a_btn",
+            "label": "C",
+            "x": 88.0,
+            "y": 88.0,
+            "lineX": 79.5,
+            "lineY": 78.0,
+            "targetX": 65.8,
+            "targetY": 51.0
+          }
+        ]
+      },
+      "retroarch": {
+        "video_force_aspect": true,
+        "video_aspect_ratio": 1.333333333333333
+      },
       "notes": "Collection is just GoodGen 3.21 with all 32x content separated"
     },
     "a2600": {
