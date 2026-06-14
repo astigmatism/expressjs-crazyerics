@@ -2863,5 +2863,11 @@
       "l_btn": "L",
       "r_btn": "R"
     }
+  },
+  "security": {
+    "trustProxy": false,
+    "forceHttps": false,
+    "forceHttpsHosts": [],
+    "httpsRedirectStatus": 308
   }
 }

@@ -26,6 +26,109 @@ const featured = require('./routes/featured');
 
 const app = express();
 
+function GetConfigValue(name, defaultValue) {
+    if (config.has(name)) {
+        return config.get(name);
+    }
+
+    return defaultValue;
+}
+
+function GetFirstHeaderValue(value) {
+    if (!value) {
+        return '';
+    }
+
+    if (Array.isArray(value)) {
+        value = value[0];
+    }
+
+    return String(value).split(',')[0].trim();
+}
+
+function NormalizeHostName(host) {
+    host = GetFirstHeaderValue(host).toLowerCase();
+
+    if (host.charAt(0) === '[') {
+        var bracketIndex = host.indexOf(']');
+        return bracketIndex >= 0 ? host.substring(0, bracketIndex + 1) : host;
+    }
+
+    return host.replace(/:\d+$/, '');
+}
+
+function IsSafeRedirectHost(host) {
+    return !!host && /^[a-z0-9.\-:\[\]]+$/i.test(host);
+}
+
+function StripDefaultHttpPort(host) {
+    return host.replace(/:80$/i, '');
+}
+
+function BuildHttpsRedirectHosts() {
+    var configuredHosts = GetConfigValue('security.forceHttpsHosts', []);
+
+    if (!Array.isArray(configuredHosts)) {
+        configuredHosts = [configuredHosts];
+    }
+
+    return configuredHosts.map(function(host) {
+        return NormalizeHostName(host);
+    }).filter(function(host) {
+        return !!host;
+    });
+}
+
+function HostAllowsHttpsRedirect(host, allowedHosts) {
+    if (!allowedHosts.length) {
+        return true;
+    }
+
+    return allowedHosts.indexOf(NormalizeHostName(host)) >= 0;
+}
+
+function GetRequestHost(req) {
+    return GetFirstHeaderValue(req.headers['x-forwarded-host']) || GetFirstHeaderValue(req.headers.host);
+}
+
+function GetHttpsRedirectStatus() {
+    var configuredStatus = parseInt(GetConfigValue('security.httpsRedirectStatus', 308), 10);
+    var allowedStatuses = [301, 302, 307, 308];
+
+    if (allowedStatuses.indexOf(configuredStatus) >= 0) {
+        return configuredStatus;
+    }
+
+    return 308;
+}
+
+function ForceHttps(allowedHosts, redirectStatus) {
+    return function(req, res, next) {
+        var host = GetRequestHost(req);
+
+        if (req.secure || req.protocol === 'https') {
+            return next();
+        }
+
+        if (!IsSafeRedirectHost(host) || !HostAllowsHttpsRedirect(host, allowedHosts)) {
+            return next();
+        }
+
+        return res.redirect(redirectStatus, 'https://' + StripDefaultHttpPort(host) + req.originalUrl);
+    };
+}
+
+var trustProxy = GetConfigValue('security.trustProxy', false);
+var forceHttps = GetConfigValue('security.forceHttps', false);
+
+if (trustProxy) {
+    app.set('trust proxy', trustProxy);
+}
+
+if (forceHttps) {
+    app.use(ForceHttps(BuildHttpsRedirectHosts(), GetHttpsRedirectStatus()));
+}
+
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
 

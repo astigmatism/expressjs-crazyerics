@@ -504,7 +504,7 @@ p {
 	height: 40px;
 	display: inline-block;
 	margin-right: 5px;
-	background: #fff url("http://cdn.crazyerics.com/images/toolbar-gamepad-disconnect.png") center center no-repeat;
+	background: #fff url("//cdn.crazyerics.com/images/toolbar-gamepad-disconnect.png") center center no-repeat;
 
 	transition:All 200ms ease-in;
 	-webkit-transition:All 200ms ease-in;
@@ -513,7 +513,7 @@ p {
 }
 
 #toolbar .gamepads ul li.connected {
-	background: #fff url("http://cdn.crazyerics.com/images/toolbar-gamepad-connected.png") center center no-repeat;
+	background: #fff url("//cdn.crazyerics.com/images/toolbar-gamepad-connected.png") center center no-repeat;
 }
 
 #toolbar .gamepads ul li:last-child {
@@ -1044,7 +1044,7 @@ p {
 }
 
 #notificationwrapper div.spinner {
-	background-image: url('http://cdn.crazyerics.com/images/notification.svg');
+	background-image: url('//cdn.crazyerics.com/images/notification.svg');
 	background-position: center center;
 	background-repeat: no-repeat;
 	height: 40px;
@@ -1317,19 +1317,19 @@ div.slidingpanel.closed {
 }
 
 #slidericons .info {
-	/* background-image: url("http://cdn.crazyerics.com/images/sliders/info.png"); */
+	/* background-image: url("//cdn.crazyerics.com/images/sliders/info.png"); */
 }
 
 #slidericons .controls {
-	/* background-image: url("http://cdn.crazyerics.com/images/sliders/controls.png"); */
+	/* background-image: url("//cdn.crazyerics.com/images/sliders/controls.png"); */
 }
 
 #slidericons .screenshots {
-	/* background-image: url("http://cdn.crazyerics.com/images/sliders/screenshots.png"); */
+	/* background-image: url("//cdn.crazyerics.com/images/sliders/screenshots.png"); */
 }
 
 #slidericons .versions {
-	/* background-image: url("http://cdn.crazyerics.com/images/sliders/versions.png"); */
+	/* background-image: url("//cdn.crazyerics.com/images/sliders/versions.png"); */
 }
 
 #slidericons .on {
@@ -3063,7 +3063,7 @@ body.controls-show-coordinate-guides .controls-manual-coordinate-guides,
 
 #collectionsGrid .grid-item.on div.context{
 	display: inline-block;
-	background: url("http://cdn.crazyerics.com/images/add.png") center center no-repeat;
+	background: url("//cdn.crazyerics.com/images/add.png") center center no-repeat;
 	width: 20px;
 	height: 10px;
 	margin-left: 20px;
@@ -3082,7 +3082,7 @@ body.controls-show-coordinate-guides .controls-manual-coordinate-guides,
 }
 
 #collectionsGrid .grid-item div.add {
-	background: url("http://cdn.crazyerics.com/images/add.png") center center no-repeat;
+	background: url("//cdn.crazyerics.com/images/add.png") center center no-repeat;
 	height: 20px;
 	width: 20px;
 
@@ -3093,7 +3093,7 @@ body.controls-show-coordinate-guides .controls-manual-coordinate-guides,
 }
 
 #collectionsGrid .grid-item div.loadFeature {
-	background: url("http://cdn.crazyerics.com/images/morefeatured.png") center center no-repeat;
+	background: url("//cdn.crazyerics.com/images/morefeatured.png") center center no-repeat;
 	height: 20px;
 	width: 20px;
 
@@ -3108,11 +3108,11 @@ body.controls-show-coordinate-guides .controls-manual-coordinate-guides,
 }
 
 #collectionsGrid .grid-item div.confirm {
-	background: url("http://cdn.crazyerics.com/images/col-ok.png") center center no-repeat;
+	background: url("//cdn.crazyerics.com/images/col-ok.png") center center no-repeat;
 }
 
 #collectionsGrid .grid-item div.cancel {
-	background: url("http://cdn.crazyerics.com/images/col-close.png") center center no-repeat;
+	background: url("//cdn.crazyerics.com/images/col-close.png") center center no-repeat;
 }
 
 #collectionsGrid .grid-item div.controls {

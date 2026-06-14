@@ -70,5 +70,31 @@
       },
       "samples": 50
     }
+  },
+  "security": {
+    "trustProxy": "loopback, linklocal, uniquelocal",
+    "forceHttps": true,
+    "forceHttpsHosts": [
+      "crazyeric.com",
+      "www.crazyeric.com",
+      "crazyerics.com",
+      "www.crazyerics.com"
+    ],
+    "httpsRedirectStatus": 308
+  },
+  "paths": {
+    "images": "https://cdn.crazyerics.com/images",
+    "screen": "https://cdn.crazyerics.com/screen",
+    "box": "https://cdn.crazyerics.com/box",
+    "audit": "https://cdn.crazyerics.com/audit",
+    "video": "https://cdn.crazyerics.com/video",
+    "metadata": "https://cdn.crazyerics.com/metadata",
+    "textures": "https://cdn.crazyerics.com/textures",
+    "shaders": "https://cdn.crazyerics.com/shaders/2017-12-27",
+    "game": "https://cdn.crazyerics.com/game",
+    "emulators": "https://cdn.crazyerics.com/emulators",
+    "supportfiles": "https://cdn.crazyerics.com/support",
+    "contributetitle": "https://cdn.crazyerics.com/screen/title/contribute",
+    "contributescreen": "https://cdn.crazyerics.com/screen/screen/contribute"
   }
 }
