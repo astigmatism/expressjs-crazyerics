@@ -15,6 +15,9 @@ var cesDialogsConfigureGamepad = (function(_config, $el, $wrapper, args) {
     var _inputAssingments = {};
     var _savedInputConfig = null;
     var _promptForSavedMapping = false;
+    var _runtimeConfiguration = false;
+    var _captureCanceled = false;
+    var _pendingCaptureTimer = null;
     var _gamepad = null;
     var _gameKey = null;
 
@@ -38,6 +41,13 @@ var cesDialogsConfigureGamepad = (function(_config, $el, $wrapper, args) {
         _gameKey = gameKey;
         _savedInputConfig = options.savedInputConfig || null;
         _promptForSavedMapping = !!options.promptForSavedMapping;
+        _runtimeConfiguration = !!options.runtimeConfiguration;
+        _captureCanceled = false;
+        ClearPendingCaptureTimer();
+
+        $el
+            .toggleClass('runtimeconfiguration', _runtimeConfiguration)
+            .removeClass('viewportconstrained');
 
         //reset if used previously
         _retroarchInputNames = [];
@@ -76,11 +86,18 @@ var cesDialogsConfigureGamepad = (function(_config, $el, $wrapper, args) {
     };
 
     this.OnClose = function(callback) {
+        CancelActiveCapture();
+        RemoveUseSavedButton();
+        $el.removeClass('runtimeconfiguration viewportconstrained').css('max-height', '');
         return callback();
     };
 
 
     var UpdateDialogSizing = function(defaultHeight) {
+
+        if (_runtimeConfiguration) {
+            return UpdateRuntimeDialogSizing(defaultHeight);
+        }
 
         var wrapperOffset = $wrapper.offset();
         var wrapperTop = wrapperOffset ? wrapperOffset.top : 0;
@@ -113,6 +130,62 @@ var cesDialogsConfigureGamepad = (function(_config, $el, $wrapper, args) {
         return targetHeight;
     };
 
+    var UpdateRuntimeDialogSizing = function(defaultHeight) {
+
+        var $dialogs = $('#dialogs');
+        var $emulatorWrapper = $('#emulatorwrapper');
+        var wrapperOffset = $wrapper.offset();
+        var wrapperTop = wrapperOffset ? wrapperOffset.top : 0;
+        var wrapperTopInViewport = Math.max(0, wrapperTop - $(window).scrollTop());
+        var availableHeight = $(window).height() - wrapperTopInViewport - _viewportBottomBreathingRoom;
+        var baseHeight = parseInt($dialogs.data('ces-runtime-gamepad-configure-base-height'), 10);
+        var measuredSpaceHeight = Math.max(
+            isNaN(baseHeight) ? 0 : baseHeight,
+            $wrapper.length ? Math.ceil($wrapper.outerHeight()) : 0,
+            $emulatorWrapper.length ? Math.ceil($emulatorWrapper.outerHeight()) : 0
+        );
+        var currentSpaceHeight = measuredSpaceHeight > 0 ? Math.max(measuredSpaceHeight, _minimumDialogHeight) : Math.max(defaultHeight || 0, _minimumDialogHeight);
+
+        if (!availableHeight || availableHeight < _minimumDialogHeight) {
+            availableHeight = _minimumDialogHeight;
+        }
+
+        $el
+            .removeClass('viewportconstrained')
+            .css('max-height', '');
+
+        var naturalDialogHeight = Math.ceil($el.outerHeight(true));
+        if (!naturalDialogHeight && defaultHeight) {
+            naturalDialogHeight = defaultHeight - (_dialogBreathingRoom * 2);
+        }
+
+        var naturalTargetHeight = Math.max(_minimumDialogHeight, naturalDialogHeight + (_dialogBreathingRoom * 2));
+        var targetHeight = currentSpaceHeight;
+
+        if (naturalTargetHeight > currentSpaceHeight) {
+            targetHeight = Math.max(currentSpaceHeight, Math.min(naturalTargetHeight, availableHeight));
+        }
+
+        if ($emulatorWrapper.length) {
+            $emulatorWrapper.css('min-height', targetHeight + 'px');
+        }
+
+        var dialogMaxHeight = Math.max(0, targetHeight - (_dialogBreathingRoom * 2));
+        $el.css('max-height', dialogMaxHeight + 'px');
+
+        if (naturalDialogHeight > dialogMaxHeight) {
+            $el.addClass('viewportconstrained');
+        }
+
+        return targetHeight;
+    };
+
+    var RequestDialogResize = function() {
+        if ($wrapper && $wrapper.length) {
+            $wrapper.trigger('ces-dialog-resize-requested');
+        }
+    };
+
     var BindDefaultActions = function() {
 
         $('#gamepadconfigactions').removeClass('savedmappingactions');
@@ -121,7 +194,7 @@ var cesDialogsConfigureGamepad = (function(_config, $el, $wrapper, args) {
         $('#startgamepadover')
             .removeClass('map remove play')
             .addClass('button first zoom noselect')
-            .text('Start Over')
+            .text(_runtimeConfiguration ? 'Start Mapping' : 'Start Over')
             .off()
             .on('mouseup', function() {
                 StartOver();
@@ -130,10 +203,11 @@ var cesDialogsConfigureGamepad = (function(_config, $el, $wrapper, args) {
 
         $('#skipgamepadconfig')
             .removeClass('map remove play first')
-            .addClass('button zoom noselect')
-            .text('Skip Gamepad')
+            .addClass(_runtimeConfiguration ? 'button remove zoom noselect' : 'button zoom noselect')
+            .text(_runtimeConfiguration ? 'Cancel' : 'Skip Gamepad')
             .off()
             .on('mouseup', function() {
+                CancelActiveCapture();
                 _openCallback(); //bail
                 return;
             });
@@ -158,10 +232,11 @@ var cesDialogsConfigureGamepad = (function(_config, $el, $wrapper, args) {
 
         $('#skipgamepadconfig')
             .removeClass('map remove play first')
-            .addClass('button zoom noselect')
-            .text('Skip Using This Gamepad')
+            .addClass(_runtimeConfiguration ? 'button remove zoom noselect' : 'button zoom noselect')
+            .text(_runtimeConfiguration ? 'Cancel' : 'Skip Using This Gamepad')
             .off()
             .on('mouseup', function() {
+                CancelActiveCapture();
                 _openCallback(); //bail for keyboard-only play this launch
                 return;
             });
@@ -179,11 +254,15 @@ var cesDialogsConfigureGamepad = (function(_config, $el, $wrapper, args) {
             var html = $('<li><div class="title">' + _inputLabels[i] + ':</div><div class="assignment">' + GetAssignmentLabel(assignment) + '</div></li>');
             $('#gamepadinputs').append(html);
         }
+
+        RequestDialogResize();
     };
 
     var StartOver = function() {
 
         _inputAssingments = {};
+        _captureCanceled = false;
+        ClearPendingCaptureTimer();
         RemoveUseSavedButton();
         BindDefaultActions();
         SetIntroText('capture');
@@ -200,6 +279,8 @@ var cesDialogsConfigureGamepad = (function(_config, $el, $wrapper, args) {
 
         var listitems = $('#gamepadinputs').find('li');
 
+        RequestDialogResize();
+
         ListenForInput(listitems, 0, function() {
 
             //config array defined, return it
@@ -209,11 +290,19 @@ var cesDialogsConfigureGamepad = (function(_config, $el, $wrapper, args) {
 
     var ListenForInput = function(listitems, index, callback) {
 
+        if (_captureCanceled) {
+            return;
+        }
+
         var $li = $(listitems[index]);
         $li.find('.assignment').text('Press Anything');
         $li.addClass('pulse');
 
         _Gamepad.GetNextInput(function(value, label) {
+
+            if (_captureCanceled) {
+                return;
+            }
 
             $li.find('.assignment').text(label);
             $li.removeClass('pulse');
@@ -227,11 +316,31 @@ var cesDialogsConfigureGamepad = (function(_config, $el, $wrapper, args) {
             } else {
 
                 //this timeout prevents last input from being read again instantly :p
-                setTimeout(function() {
+                ClearPendingCaptureTimer();
+                _pendingCaptureTimer = setTimeout(function() {
+                    _pendingCaptureTimer = null;
                     ListenForInput(listitems, index, callback);
                 }, _delayBetweenInputDetection);
             }
+        }, {
+            gamepadIndex: _gamepad.index
         });
+    };
+
+    var CancelActiveCapture = function() {
+        _captureCanceled = true;
+        ClearPendingCaptureTimer();
+
+        if (_Gamepad && typeof _Gamepad.CancelInputCapture === 'function') {
+            _Gamepad.CancelInputCapture(_runtimeConfiguration ? 'runtime ConfigureGamepad canceled' : 'ConfigureGamepad canceled');
+        }
+    };
+
+    var ClearPendingCaptureTimer = function() {
+        if (_pendingCaptureTimer) {
+            clearTimeout(_pendingCaptureTimer);
+            _pendingCaptureTimer = null;
+        }
     };
 
     var EnsureUseSavedButton = function() {
@@ -256,14 +365,20 @@ var cesDialogsConfigureGamepad = (function(_config, $el, $wrapper, args) {
         var port = _gamepad.index + 1;
         var $paragraphs = $el.find('p');
 
-        if (mode === 'saved') {
+        if (_runtimeConfiguration && mode === 'saved') {
+            $paragraphs.eq(0).text('Your current game is paused. A saved ' + systemName + ' mapping exists for "' + _gamepad.id + '" on port ' + port + '. Use it, map the buttons again, or cancel to keep playing with the current settings.');
+        }
+        else if (_runtimeConfiguration) {
+            $paragraphs.eq(0).text('Your current game is paused while you configure "' + _gamepad.id + '" for port ' + port + ' on this system.');
+        }
+        else if (mode === 'saved') {
             $paragraphs.eq(0).text('A saved ' + systemName + ' mapping exists for "' + _gamepad.id + '" on port ' + port + '. Use it, remap the buttons, or skip this gamepad for keyboard-only play.');
         }
         else {
             $paragraphs.eq(0).text('Configure "' + _gamepad.id + '" for port ' + port + ' on this system.');
         }
 
-        $paragraphs.eq(1).text('Press any key on the keyboard to skip the current assignment.');
+        $paragraphs.eq(1).text('Press any key on the keyboard to skip only the current assignment.');
     };
 
     var GetAssignmentLabel = function(assignment) {

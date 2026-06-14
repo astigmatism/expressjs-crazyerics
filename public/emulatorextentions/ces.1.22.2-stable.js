@@ -40,6 +40,11 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _GamePad, _Pr
     var _lastRetroArchOverlayResumeAt = 0;
     var _lastSuppressedAutoPauseAt = 0;
     var _forcedOverlayResumeCount = 0;
+    var _runtimeGamepadConfigurationUiActive = false;
+    var _runtimeGamepadConfigurationPauseActive = false;
+    var _runtimeGamepadConfigurationPauseUsedToggle = false;
+    var _lastRuntimeGamepadConfigurationPauseAt = 0;
+    var _lastRuntimeGamepadConfigurationResumeAt = 0;
     var _suppressAutoPauseUntil = 0;
     var _suppressAutoPauseReason = '';
     var _overlayResumeInProgress = false;
@@ -3305,7 +3310,7 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _GamePad, _Pr
         };
 
         var IsAutoPauseSuppressed = function() {
-            return _overlayResumeInProgress || Date.now() < _suppressAutoPauseUntil;
+            return _runtimeGamepadConfigurationUiActive || _overlayResumeInProgress || Date.now() < _suppressAutoPauseUntil;
         };
 
         var BeginOverlayResumeTransaction = function(reason) {
@@ -3386,6 +3391,145 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _GamePad, _Pr
             try {
                 $('#emulatorwrapperoverlay').stop(true, true).hide();
             } catch (ignore) {}
+        };
+
+        var BeginRuntimeGamepadConfigurationUiFence = function(reason) {
+            _runtimeGamepadConfigurationUiActive = true;
+            SuppressAutoPauseFor(15000, reason || 'runtime gamepad configuration');
+            HidePauseOverlay();
+            _Logging.Console(_extensionName, 'Runtime gamepad configuration focus fence enabled' + (reason ? ': ' + reason : ''));
+            return {
+                ok: true,
+                active: true,
+                reason: reason || 'runtime gamepad configuration focus fence'
+            };
+        };
+
+        var EndRuntimeGamepadConfigurationUiFence = function(reason) {
+            _runtimeGamepadConfigurationUiActive = false;
+            if (!_overlayResumeInProgress) {
+                _suppressAutoPauseUntil = 0;
+                _suppressAutoPauseReason = '';
+            }
+            HidePauseOverlay();
+            _Logging.Console(_extensionName, 'Runtime gamepad configuration focus fence disabled' + (reason ? ': ' + reason : ''));
+            return {
+                ok: true,
+                active: false,
+                reason: reason || 'runtime gamepad configuration focus fence ended'
+            };
+        };
+
+        var InvokeRuntimeGamepadConfigurationPause = function(reason) {
+            var ok = false;
+            var via = null;
+
+            reason = reason || 'runtime gamepad configuration pause';
+
+            if (_runtimeGamepadConfigurationPauseActive) {
+                HidePauseOverlay();
+                return {
+                    ok: true,
+                    paused: true,
+                    alreadyPaused: true,
+                    via: 'already-paused',
+                    simulatedKey: 'P',
+                    keyCode: 80,
+                    reason: reason
+                };
+            }
+
+            _runtimeGamepadConfigurationPauseUsedToggle = false;
+
+            if (typeof _module._cmd_pause === 'function') {
+                ok = InvokeDirectCommand('_cmd_pause', reason + ' (P hotkey equivalent)');
+                via = '_cmd_pause';
+            }
+
+            if (!ok && typeof _module._cmd_toggle_pause === 'function') {
+                ok = InvokeDirectCommand('_cmd_toggle_pause', reason + ' fallback P toggle');
+                via = '_cmd_toggle_pause';
+                _runtimeGamepadConfigurationPauseUsedToggle = ok;
+            }
+
+            if (ok) {
+                _runtimeGamepadConfigurationPauseActive = true;
+                _lastRuntimeGamepadConfigurationPauseAt = Date.now();
+                HidePauseOverlay();
+                _Logging.Console(_extensionName, 'Paused RetroArch for runtime gamepad configuration via ' + via + ' (P key semantics, no CES overlay)');
+                return {
+                    ok: true,
+                    paused: true,
+                    via: via,
+                    simulatedKey: 'P',
+                    keyCode: 80,
+                    reason: reason
+                };
+            }
+
+            return {
+                ok: false,
+                paused: false,
+                via: null,
+                simulatedKey: 'P',
+                keyCode: 80,
+                reason: 'RetroArch pause command unavailable for runtime gamepad configuration'
+            };
+        };
+
+        var InvokeRuntimeGamepadConfigurationResume = function(reason) {
+            var ok = false;
+            var via = null;
+
+            reason = reason || 'runtime gamepad configuration resume';
+
+            if (!_runtimeGamepadConfigurationPauseActive) {
+                HidePauseOverlay();
+                return {
+                    ok: true,
+                    paused: false,
+                    alreadyResumed: true,
+                    via: 'already-resumed',
+                    simulatedKey: 'P',
+                    keyCode: 80,
+                    reason: reason
+                };
+            }
+
+            if (typeof _module._cmd_unpause === 'function') {
+                ok = InvokeDirectCommand('_cmd_unpause', reason + ' (P hotkey resume equivalent)');
+                via = '_cmd_unpause';
+            }
+
+            if (!ok && typeof _module._cmd_toggle_pause === 'function') {
+                ok = InvokeDirectCommand('_cmd_toggle_pause', reason + ' fallback P toggle');
+                via = '_cmd_toggle_pause';
+            }
+
+            if (ok) {
+                _runtimeGamepadConfigurationPauseActive = false;
+                _runtimeGamepadConfigurationPauseUsedToggle = false;
+                _lastRuntimeGamepadConfigurationResumeAt = Date.now();
+                HidePauseOverlay();
+                _Logging.Console(_extensionName, 'Resumed RetroArch after runtime gamepad configuration via ' + via + ' (P key semantics, no CES overlay)');
+                return {
+                    ok: true,
+                    paused: false,
+                    via: via,
+                    simulatedKey: 'P',
+                    keyCode: 80,
+                    reason: reason
+                };
+            }
+
+            return {
+                ok: false,
+                paused: true,
+                via: null,
+                simulatedKey: 'P',
+                keyCode: 80,
+                reason: 'RetroArch unpause command unavailable for runtime gamepad configuration'
+            };
         };
 
         var InvokeRetroArchOverlayPause = function(reason) {
@@ -3561,8 +3705,29 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _GamePad, _Pr
             return ForceCesOverlayResume(reason || 'manual request');
         };
 
+        this.cesBeginRuntimeGamepadConfigurationUi = function(reason) {
+            return BeginRuntimeGamepadConfigurationUiFence(reason || 'runtime gamepad configuration');
+        };
+
+        this.cesEndRuntimeGamepadConfigurationUi = function(reason) {
+            return EndRuntimeGamepadConfigurationUiFence(reason || 'runtime gamepad configuration ended');
+        };
+
+        this.cesIsRuntimeGamepadConfigurationUiActive = function() {
+            return !!_runtimeGamepadConfigurationUiActive;
+        };
+
+        this.cesPauseForRuntimeGamepadConfiguration = function(reason) {
+            return InvokeRuntimeGamepadConfigurationPause(reason || 'runtime gamepad configuration pause');
+        };
+
+        this.cesResumeForRuntimeGamepadConfiguration = function(reason) {
+            return InvokeRuntimeGamepadConfigurationResume(reason || 'runtime gamepad configuration resume');
+        };
+
         this.cesBeforeCanvasBlurPause = function(event) {
             if (ShouldSuppressCanvasBlurAutoPause(event, 'cesBeforeCanvasBlurPause')) {
+                HidePauseOverlay();
                 return false;
             }
 
@@ -3799,6 +3964,9 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _GamePad, _Pr
             _retroArchOverlayPauseActive = false;
             _retroArchOverlayPauseCommandSent = false;
             _retroArchOverlayPauseUsedToggle = false;
+            _runtimeGamepadConfigurationUiActive = false;
+            _runtimeGamepadConfigurationPauseActive = false;
+            _runtimeGamepadConfigurationPauseUsedToggle = false;
             _suppressAutoPauseUntil = 0;
             _suppressAutoPauseReason = '';
             _basePauseResumeBridge = null;
@@ -3862,6 +4030,13 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _GamePad, _Pr
                 lastCesResumeMainLoopAt: _lastCesResumeMainLoopAt,
                 forcedOverlayResumeCount: _forcedOverlayResumeCount,
                 pauseOverlay: GetOverlayVisibilityReport(),
+                runtimeGamepadConfiguration: {
+                    uiActive: _runtimeGamepadConfigurationUiActive,
+                    pauseActive: _runtimeGamepadConfigurationPauseActive,
+                    pauseUsedToggle: _runtimeGamepadConfigurationPauseUsedToggle,
+                    lastPauseAt: _lastRuntimeGamepadConfigurationPauseAt,
+                    lastResumeAt: _lastRuntimeGamepadConfigurationResumeAt
+                },
                 activeRepeatCommands: Object.keys(_legacyCommandRepeatTimers),
                 screenshotRequest: _activeScreenshotRequest ? {
                     id: _activeScreenshotRequest.id,

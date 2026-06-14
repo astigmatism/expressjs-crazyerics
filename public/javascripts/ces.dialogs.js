@@ -276,6 +276,7 @@ var cesDialogs = (function(_config, $wrapper) {
     var Constructor = function() {
 
         $(window).on('resize', ResizeCurrentDialog);
+        $wrapper.on('ces-dialog-resize-requested', ResizeCurrentDialog);
     }();
 
     return this;

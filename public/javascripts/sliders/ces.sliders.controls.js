@@ -1,4 +1,4 @@
-var cesSlidersControls = (function(_config, $li, $panel) {
+var cesSlidersControls = (function(_config, $li, $panel, _openSliderCallback) {
 
     var _self = this;
     var _inputAssignmentMap = {};
@@ -13,10 +13,12 @@ var cesSlidersControls = (function(_config, $li, $panel) {
     var _manualCalloutLineRefreshTimer = null;
     var _manualCalloutLineRefreshSequenceTimers = [];
     var _gamepadConnectionStateUnsubscribe = null;
+    var _lastGamepadConnectionState = null;
     var _manualInputBadgeSelector = '.controls-manual-input-badge';
     var _manualInputBadgeKeyboardClass = 'controls-manual-input-badge-keyboard';
     var _manualInputBadgeGamepadClass = 'controls-manual-input-badge-gamepad';
     var _lastRenderSignature = null;
+    var _runtimeGamepadConfigureLayoutTimer = null;
 
     var _retroarchInputNames = {
         up_axis: 'input_player1_up',
@@ -142,6 +144,7 @@ var cesSlidersControls = (function(_config, $li, $panel) {
         _inputAssignmentMap = GetInputAssignmentMap(_gameKey.system);
         _activeGamepadMappings = GetActiveGamepadMappings();
         _activeInputDisplayMode = GetActiveInputDisplayMode();
+        _lastGamepadConnectionState = GetCurrentGamepadConnectionState();
 
         RenderControlsContent();
 
@@ -154,6 +157,7 @@ var cesSlidersControls = (function(_config, $li, $panel) {
         UnbindGamepadConnectionStateListener();
         DestroyManualInputBadgeTooltip();
         TeardownManualCalloutLines();
+        ClearRuntimeGamepadConfigureLayoutTimer();
 
         $panel.empty();
         _gamePad = null;
@@ -161,17 +165,28 @@ var cesSlidersControls = (function(_config, $li, $panel) {
         _inputAssignmentMap = {};
         _activeGamepadMappings = [];
         _activeInputDisplayMode = 'keyboard';
+        _lastGamepadConnectionState = null;
         _lastRenderSignature = null;
     };
 
     this.OnOpen = function(callback) {
 
+        RefreshControlsForGamepadState(GetCurrentGamepadConnectionState({
+            scan: true,
+            reason: 'controls slider opening'
+        }));
         callback(true);
+        RequestControlsPanelLayoutRefresh();
         ScheduleManualCalloutLineRefreshPasses();
     };
 
     this.OnOpened = function() {
 
+        RefreshControlsForGamepadState(GetCurrentGamepadConnectionState({
+            scan: true,
+            reason: 'controls slider opened'
+        }));
+        RequestControlsPanelLayoutRefresh();
         ScheduleManualCalloutLineRefreshPasses();
     };
 
@@ -554,12 +569,14 @@ var cesSlidersControls = (function(_config, $li, $panel) {
             RenderGenericControls();
         }
 
+        UpdateRuntimeGamepadConfigureAction(_lastGamepadConnectionState);
         ScheduleManualCalloutLineRefreshPasses();
     };
 
     var RefreshControlsForGamepadState = function(state) {
         var previousSignature = _lastRenderSignature;
 
+        _lastGamepadConnectionState = state || GetCurrentGamepadConnectionState();
         _activeGamepadMappings = GetActiveGamepadMappings();
         _activeInputDisplayMode = GetActiveInputDisplayMode();
 
@@ -572,12 +589,23 @@ var cesSlidersControls = (function(_config, $li, $panel) {
             _lastRenderSignature = nextSignature;
         }
 
-        UpdateManualInputBadge(state);
+        UpdateManualInputBadge(_lastGamepadConnectionState);
+        UpdateRuntimeGamepadConfigureAction(_lastGamepadConnectionState);
     };
 
     var BuildControlsRenderSignature = function() {
         var mappings = _activeGamepadMappings || [];
+        var state = _lastGamepadConnectionState || {};
+        var runtimeState = state.runtime || {};
+        var activeGamepads = runtimeState.activeGamepads || [];
         var parts = [_activeInputDisplayMode || 'keyboard'];
+
+        parts.push('connected:' + (state.connected ? '1' : '0'));
+        parts.push('count:' + (state.count || 0));
+        parts.push('indexes:' + ((state.indexes || []).join(',')));
+        parts.push('runtime:' + (runtimeState.running ? '1' : '0'));
+        parts.push('configuring:' + (runtimeState.configuring ? '1' : '0'));
+        parts.push('active:' + activeGamepads.length);
 
         for (var i = 0; i < mappings.length; i++) {
             var mappingRecord = mappings[i] || {};
@@ -633,6 +661,7 @@ var cesSlidersControls = (function(_config, $li, $panel) {
 
         $main.append($header);
         $main.append($diagram);
+        $main.append(BuildRuntimeGamepadConfigureAction());
 
         $layout.append($main);
         $layout.append(BuildCommandPanel());
@@ -684,6 +713,7 @@ var cesSlidersControls = (function(_config, $li, $panel) {
 
         $main.append(BuildHeader(systemName + ' Controls', 'Current controller reference', null));
         $main.append($body);
+        $main.append(BuildRuntimeGamepadConfigureAction());
 
         $layout.append($main);
         $layout.append(BuildCommandPanel());
@@ -713,6 +743,284 @@ var cesSlidersControls = (function(_config, $li, $panel) {
         $header.append($badges);
 
         return $header;
+    };
+
+    var BuildRuntimeGamepadConfigureAction = function() {
+
+        var $action = $('<div />')
+            .addClass('controls-runtime-gamepad-configure controls-runtime-gamepad-configure-hidden')
+            .attr('aria-live', 'polite');
+
+        var $button = $('<button />')
+            .attr({
+                type: 'button',
+                'aria-label': 'Configure the connected gamepad for this running game'
+            })
+            .addClass('controls-runtime-gamepad-configure-button button play zoom noselect')
+            .text('Configure Gamepad...')
+            .on('pointerdown mousedown touchstart', OnRuntimeGamepadConfigurePreClick)
+            .on('click', OnRuntimeGamepadConfigureClick);
+
+        var $note = $('<p />')
+            .addClass('controls-runtime-gamepad-configure-note')
+            .text('Pauses the current game while you map the connected controller.');
+
+        $action.append($button);
+        $action.append($note);
+
+        return $action;
+    };
+
+    var OnRuntimeGamepadConfigurePreClick = function(event) {
+
+        if (event) {
+            event.stopPropagation();
+        }
+
+        if (!_gamePad || typeof _gamePad.PrepareConnectedRuntimeGamepadConfiguration !== 'function') {
+            return true;
+        }
+
+        var $button = $(this);
+        var prepareOptions = {
+            source: 'controls-slider-preclick',
+            reason: 'configure gamepad button pre-click focus fence'
+        };
+        var gamepadIndex = $button.data('gamepad-index');
+
+        if (typeof gamepadIndex !== 'undefined' && gamepadIndex !== null && gamepadIndex !== '') {
+            prepareOptions.index = parseInt(gamepadIndex, 10);
+        }
+
+        _gamePad.PrepareConnectedRuntimeGamepadConfiguration(_gameKey, prepareOptions);
+
+        return true;
+    };
+
+    var OnRuntimeGamepadConfigureClick = function(event) {
+
+        if (event) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+
+        if (!_gamePad || typeof _gamePad.ConfigureConnectedRuntimeGamepad !== 'function') {
+            return false;
+        }
+
+        var $button = $(this);
+        $button
+            .prop('disabled', true)
+            .addClass('controls-runtime-gamepad-configure-busy')
+            .text('Configuring Gamepad...');
+
+        var configureOptions = {
+            source: 'controls-slider'
+        };
+        var gamepadIndex = $button.data('gamepad-index');
+
+        if (typeof gamepadIndex !== 'undefined' && gamepadIndex !== null && gamepadIndex !== '') {
+            configureOptions.index = parseInt(gamepadIndex, 10);
+        }
+
+        _gamePad.ConfigureConnectedRuntimeGamepad(_gameKey, configureOptions, function() {
+            var previousSignature = _lastRenderSignature;
+            var nextSignature;
+
+            _lastGamepadConnectionState = GetCurrentGamepadConnectionState();
+            _activeGamepadMappings = GetActiveGamepadMappings();
+            _activeInputDisplayMode = GetActiveInputDisplayMode();
+            nextSignature = BuildControlsRenderSignature();
+
+            if (previousSignature !== null && previousSignature !== nextSignature) {
+                RenderControlsContent();
+                _lastRenderSignature = BuildControlsRenderSignature();
+            }
+            else {
+                _lastRenderSignature = nextSignature;
+            }
+
+            UpdateManualInputBadge(_lastGamepadConnectionState);
+            UpdateRuntimeGamepadConfigureAction(_lastGamepadConnectionState);
+        });
+
+        return false;
+    };
+
+    var UpdateRuntimeGamepadConfigureAction = function(state) {
+
+        var $action = $panel.find('.controls-runtime-gamepad-configure').first();
+        var $button = $action.find('.controls-runtime-gamepad-configure-button').first();
+        var previousVisible;
+        var nextVisible;
+        var resolvedState;
+        var gamepadConnected;
+        var hasRuntimeConfigure = !!(_gamePad && typeof _gamePad.ConfigureConnectedRuntimeGamepad === 'function');
+        var runtimeRunning;
+        var configuring;
+        var targetIndex;
+
+        if (!$action.length) {
+            return;
+        }
+
+        previousVisible = IsRuntimeGamepadConfigureActionVisible($action);
+        resolvedState = ResolveRuntimeConfigureConnectionState(state);
+        if (resolvedState) {
+            _lastGamepadConnectionState = resolvedState;
+        }
+        gamepadConnected = IsRuntimeConfigurableGamepadConnected(resolvedState);
+        runtimeRunning = !!(resolvedState && resolvedState.runtime && resolvedState.runtime.running);
+        configuring = !!(resolvedState && resolvedState.runtime && resolvedState.runtime.configuring);
+        targetIndex = GetRuntimeConfigureTargetGamepadIndex(resolvedState);
+
+        if (!gamepadConnected || !hasRuntimeConfigure || !runtimeRunning) {
+            $action.addClass('controls-runtime-gamepad-configure-hidden').hide();
+            $button
+                .prop('disabled', true)
+                .removeData('gamepad-index')
+                .removeAttr('data-gamepad-index');
+
+            if (previousVisible) {
+                RequestControlsPanelLayoutRefresh();
+            }
+            return;
+        }
+
+        $action.removeClass('controls-runtime-gamepad-configure-hidden').show();
+
+        if (targetIndex !== null) {
+            $button
+                .data('gamepad-index', targetIndex)
+                .attr('data-gamepad-index', targetIndex);
+        }
+        else {
+            $button
+                .removeData('gamepad-index')
+                .removeAttr('data-gamepad-index');
+        }
+
+        $button
+            .prop('disabled', configuring)
+            .toggleClass('controls-runtime-gamepad-configure-busy', configuring)
+            .text(configuring ? 'Configuring Gamepad...' : 'Configure Gamepad');
+
+        nextVisible = IsRuntimeGamepadConfigureActionVisible($action);
+        if (nextVisible || previousVisible !== nextVisible) {
+            RequestControlsPanelLayoutRefresh();
+        }
+    };
+
+    var ResolveRuntimeConfigureConnectionState = function(state) {
+
+        if (state && (state.connected || (state.runtime && state.runtime.activeGamepads && state.runtime.activeGamepads.length))) {
+            return state;
+        }
+
+        var freshState = GetCurrentGamepadConnectionState({
+            scan: true,
+            reason: 'runtime configure button visibility'
+        });
+
+        return freshState || state || null;
+    };
+
+    var IsRuntimeConfigurableGamepadConnected = function(state) {
+
+        if (IsGamepadConnected(state)) {
+            return true;
+        }
+
+        if (state && state.runtime && state.runtime.activeGamepads && state.runtime.activeGamepads.length) {
+            return true;
+        }
+
+        if (_activeGamepadMappings && _activeGamepadMappings.length) {
+            return true;
+        }
+
+        return false;
+    };
+
+    var GetRuntimeConfigureTargetGamepadIndex = function(state) {
+        var i;
+        var active;
+
+        if (state && state.connectedGamepads && state.connectedGamepads.length) {
+            for (i = 0; i < state.connectedGamepads.length; i++) {
+                if (!state.connectedGamepads[i].active) {
+                    return state.connectedGamepads[i].index;
+                }
+            }
+
+            return state.connectedGamepads[0].index;
+        }
+
+        if (state && state.indexes && state.indexes.length) {
+            return state.indexes[0];
+        }
+
+        if (state && state.runtime && state.runtime.activeGamepads && state.runtime.activeGamepads.length) {
+            active = state.runtime.activeGamepads[0];
+            if (typeof active.index !== 'undefined') {
+                return active.index;
+            }
+        }
+
+        if (_activeGamepadMappings && _activeGamepadMappings.length && typeof _activeGamepadMappings[0].index !== 'undefined') {
+            return _activeGamepadMappings[0].index;
+        }
+
+        return null;
+    };
+
+    var IsRuntimeGamepadConfigureActionVisible = function($action) {
+        return !!($action && $action.length && !$action.hasClass('controls-runtime-gamepad-configure-hidden') && $action.css('display') !== 'none');
+    };
+
+    var RequestControlsPanelLayoutRefresh = function() {
+
+        ScheduleManualCalloutLineRefreshPasses();
+
+        if (_runtimeGamepadConfigureLayoutTimer) {
+            window.clearTimeout(_runtimeGamepadConfigureLayoutTimer);
+        }
+
+        _runtimeGamepadConfigureLayoutTimer = window.setTimeout(function() {
+            _runtimeGamepadConfigureLayoutTimer = null;
+
+            ScheduleManualCalloutLineRefreshPasses();
+
+            if ($panel && $panel.length && $panel.hasClass('opened') && typeof _openSliderCallback === 'function') {
+                _openSliderCallback();
+            }
+        }, 0);
+    };
+
+    var ClearRuntimeGamepadConfigureLayoutTimer = function() {
+        if (_runtimeGamepadConfigureLayoutTimer) {
+            window.clearTimeout(_runtimeGamepadConfigureLayoutTimer);
+            _runtimeGamepadConfigureLayoutTimer = null;
+        }
+    };
+
+    var GetCurrentGamepadConnectionState = function(options) {
+
+        options = options || {};
+
+        if (!_gamePad || typeof _gamePad.GetConnectionState !== 'function') {
+            return null;
+        }
+
+        try {
+            return _gamePad.GetConnectionState({
+                scan: options.scan === true,
+                reason: options.reason || 'controls slider status'
+            });
+        }
+        catch (ignoreConnectionStateError) {
+            return null;
+        }
     };
 
     var BuildManualInputBadge = function() {
@@ -748,7 +1056,7 @@ var cesSlidersControls = (function(_config, $li, $panel) {
     var BuildManualInputBadgeTooltipContent = function(inputState) {
 
         var tooltipClass = 'controls-manual-input-tooltip-keyboard';
-        var message = 'Crazyerics.com goes best with a gamepad. Connect a Bluetooth or USB gamepad, tap any button, and when the gamepad icon next to the search bar turns green, your gamepad will be ready to use.';
+        var message = 'Crazyerics.com goes best with a gamepad. Connect a Bluetooth or USB gamepad, tap any button, and when the gamepad icon next to the search bar turns green, your gamepad will be ready to configure.';
 
         if (inputState && inputState.gamepadConnected && !inputState.gamepadInputActive) {
             tooltipClass = 'controls-manual-input-tooltip-gamepad-connected';

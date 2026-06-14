@@ -13,6 +13,7 @@ var cesGamePad = (function(_config, _Compression, _PubSub, _Tooltips, _Preferenc
     var _haveEvents = false; //boolean, indicates if browser has gamepad events
     var _captureInputCallback; //when we simply need to capture input for configuration, assign a function here to terminate the loop
     var _gameLoop;
+    var _inputCaptureKeyboardEvent = 'keypress.cesGamepadInputCapture';
     var _configureScanFrameLimit = 90;
     var _inputCaptureNeutralThreshold = 0.5;
     var _connectionStateTopic = 'gamepadconnectionstatechanged';
@@ -29,6 +30,7 @@ var cesGamePad = (function(_config, _Compression, _PubSub, _Tooltips, _Preferenc
     var _nativeGetGamepads = null;
     var _nativeWebkitGetGamepads = null;
     var _sessionSkippedGamepads = {};
+    var _runtimeConfigurationPrepareTimeout = null;
 
     var _runtimeVirtualButtonMap = {
         up_axis: 12,
@@ -142,7 +144,10 @@ var cesGamePad = (function(_config, _Compression, _PubSub, _Tooltips, _Preferenc
         return mappings;
     };
 
-    this.GetNextInput = function(callback) {
+    this.GetNextInput = function(callback, options) {
+
+        options = options || {};
+        CancelActiveInputCapture('start next gamepad input capture');
 
         var captureFinished = false;
         var hasSeenNeutralState = false;
@@ -154,9 +159,7 @@ var cesGamePad = (function(_config, _Compression, _PubSub, _Tooltips, _Preferenc
             }
 
             captureFinished = true;
-            cancelAnimationFrame(_gameLoop); //stop loop
-            _captureInputCallback = null;
-            $(document).off('keypress', KeyboardSkipHandler);
+            CancelActiveInputCapture('finish gamepad input capture');
             return callback(value, label);
         };
 
@@ -186,9 +189,15 @@ var cesGamePad = (function(_config, _Compression, _PubSub, _Tooltips, _Preferenc
         };
 
         //any keyboard event during the capture will not assign current assignment
-        $(document).on('keypress', KeyboardSkipHandler);
+        $(document).off(_inputCaptureKeyboardEvent).on(_inputCaptureKeyboardEvent, KeyboardSkipHandler);
 
-        _gameLoop = requestAnimationFrame(Update); //loop start
+        _gameLoop = requestAnimationFrame(function() {
+            Update(options);
+        }); //loop start
+    };
+
+    this.CancelInputCapture = function(reason) {
+        CancelActiveInputCapture(reason || 'cancel gamepad input capture');
     };
 
     this.GetGamePadDetails = function() {
@@ -285,6 +294,19 @@ var cesGamePad = (function(_config, _Compression, _PubSub, _Tooltips, _Preferenc
         return GetRuntimeVirtualGamepadsForRetroArch(gameKey);
     };
 
+    this.ConfigureConnectedRuntimeGamepad = function(gameKey, options, callback) {
+        if (typeof options === 'function') {
+            callback = options;
+            options = {};
+        }
+
+        return ConfigureConnectedRuntimeGamepad(gameKey, options || {}, callback);
+    };
+
+    this.PrepareConnectedRuntimeGamepadConfiguration = function(gameKey, options) {
+        return PrepareConnectedRuntimeGamepadConfiguration(gameKey, options || {});
+    };
+
     // private methods
 
     var ConfigureGamepadList = function(gamepadIndexes, position, gameKey, callback) {
@@ -312,20 +334,22 @@ var cesGamePad = (function(_config, _Compression, _PubSub, _Tooltips, _Preferenc
         var legacyPrefName = GetLegacyPreferenceName(gameKey, gamepad, index);
         var savedMappings = _Preferences.Get(prefName);
         var legacySavedMappings = (legacyPrefName !== prefName) ? _Preferences.Get(legacyPrefName) : null;
-        var savedInputConfig = savedMappings ? _Compression.Decompress.json(savedMappings) : null;
+        var savedInputConfig = LoadSavedStartupInputConfig(gameKey, gamepad, index, savedMappings, prefName);
         var promptForSavedMapping = ShouldPromptForSavedMapping(gameKey);
 
         if (!savedMappings && legacySavedMappings) {
             Log('Legacy controller mapping exists for gamepad index=' + index + ', system=' + gameKey.system + ', but it is ignored for input profile=' + GetInputPreferenceProfile(gameKey) + '. A fresh mapping dialog will be shown.');
         }
 
-        //if we found preferences for the gamepad already, older emulator profiles keep the old behavior and skip the dialog
+        // If a controller already has a valid saved mapping for this system/slot, do not interrupt
+        // game startup with the remap/skip prompt. RetroArch 1.22.2 users can remap later
+        // through the runtime Controls slider action while the emulator is safely paused.
         if (savedInputConfig && !reconfigureEachTime && !promptForSavedMapping) {
 
             //cache locally
             gamepad.inputconfig = savedInputConfig;
             gamepad.skipinputconfig = false;
-            Log('Configure skipped for gamepad index=' + index + ': saved mapping found for system=' + gameKey.system + ', id=' + gamepad.id + ', profile=' + GetInputPreferenceProfile(gameKey));
+            Log('Startup ConfigureGamepad skipped for gamepad index=' + index + ': valid saved mapping found for system=' + gameKey.system + ', id=' + gamepad.id + ', profile=' + GetInputPreferenceProfile(gameKey) + '. Runtime remapping remains available from the Controls slider.');
 
             return callback();
         }
@@ -392,8 +416,34 @@ var cesGamePad = (function(_config, _Compression, _PubSub, _Tooltips, _Preferenc
         return 'mappings.gamepad.' + profile + '.' + gameKey.system + '.' + GetCompressedGamepadName(gamepad) + '.' + index;
     };
 
+    var LoadSavedStartupInputConfig = function(gameKey, gamepad, index, savedMappings, prefName) {
+        var savedInputConfig = null;
+
+        if (!savedMappings) {
+            return null;
+        }
+
+        try {
+            savedInputConfig = _Compression.Decompress.json(savedMappings);
+        } catch (e) {
+            Log('Saved startup controller mapping could not be loaded for gamepad index=' + index + ', system=' + gameKey.system + ', pref=' + prefName + ': ' + e + '. The startup mapping dialog will be shown.');
+            return null;
+        }
+
+        if (GetInputPreferenceProfile(gameKey) === 'browser-gamepad-v2' && !IsValidSavedMappingForSystem(gameKey, savedInputConfig)) {
+            Log('Saved startup controller mapping is incomplete for gamepad index=' + index + ', system=' + gameKey.system + ', pref=' + prefName + '. The startup mapping dialog will be shown.');
+            return null;
+        }
+
+        return savedInputConfig;
+    };
+
     var ShouldPromptForSavedMapping = function(gameKey) {
-        return GetInputPreferenceProfile(gameKey) === 'browser-gamepad-v2';
+        // Pre-launch ConfigureGamepad should now appear only for connected controllers
+        // that do not already have valid assignments for the selected system/slot.
+        // Existing RetroArch 1.22.2 mappings are remapped through the runtime Controls
+        // slider instead of blocking the game-loading path with the use/remap/skip prompt.
+        return false;
     };
 
     var IsRetroArch1222GameKey = function(gameKey) {
@@ -457,6 +507,14 @@ var cesGamePad = (function(_config, _Compression, _PubSub, _Tooltips, _Preferenc
         _sessionSkippedGamepads[GetSessionGamepadKey(gameKey, gamepad, index)] = true;
     };
 
+    var UnmarkSessionSkippedGamepad = function(gameKey, gamepad, index) {
+        if (!gameKey || !gamepad) {
+            return;
+        }
+
+        delete _sessionSkippedGamepads[GetSessionGamepadKey(gameKey, gamepad, index)];
+    };
+
     var IsSessionSkippedGamepad = function(gameKey, gamepad, index) {
         if (!gameKey || !gamepad) {
             return false;
@@ -485,6 +543,8 @@ var cesGamePad = (function(_config, _Compression, _PubSub, _Tooltips, _Preferenc
             notifiedActivations: {},
             notifiedDisconnects: {},
             rejections: {},
+            configuring: false,
+            configuringGamepad: null,
             virtualShimEnabled: false,
             createdAt: Date.now()
         };
@@ -496,11 +556,21 @@ var cesGamePad = (function(_config, _Compression, _PubSub, _Tooltips, _Preferenc
         options = options || {};
 
         StopRuntimeActivationPoll();
+        ClearRuntimeConfigurationPrepareTimeout();
 
         if (_runtimeActivation) {
+            if (_runtimeActivation.configuring || _runtimeActivation.preparingConfiguration) {
+                EndRuntimeGamepadConfigurationUi({
+                    reason: reason || 'runtime activation ended during gamepad configuration'
+                });
+            }
+
             _runtimeActivation.activeSlots = {};
             _runtimeActivation.running = false;
             _runtimeActivation.prepared = false;
+            _runtimeActivation.configuring = false;
+            _runtimeActivation.preparingConfiguration = false;
+            _runtimeActivation.configuringGamepad = null;
         }
 
         _runtimeActivation = null;
@@ -800,6 +870,496 @@ var cesGamePad = (function(_config, _Compression, _PubSub, _Tooltips, _Preferenc
         return true;
     };
 
+    var PrepareConnectedRuntimeGamepadConfiguration = function(gameKey, options) {
+        var gamepad;
+        var runtimeConfigState;
+
+        options = options || {};
+
+        if (!_runtimeActivation || !_runtimeActivation.running || !IsSameRuntimeGameKey(_runtimeActivation.gameKey, gameKey)) {
+            return false;
+        }
+
+        if (_runtimeActivation.configuring) {
+            return true;
+        }
+
+        ScanForGamepads('runtime configure preflight');
+        gamepad = SelectRuntimeConfigurationGamepad(options);
+
+        runtimeConfigState = {
+            gameKey: CloneGameKey(_runtimeActivation.gameKey),
+            gamepadIndex: gamepad ? parseInt(gamepad.index, 10) : (typeof options.index !== 'undefined' ? parseInt(options.index, 10) : null),
+            gamepadId: gamepad ? gamepad.id : null,
+            gamepadName: gamepad ? (gamepad.id || ('Gamepad ' + (parseInt(gamepad.index, 10) + 1))) : null,
+            preflight: true,
+            source: options.source || 'runtime gamepad configuration preflight'
+        };
+
+        if (!BeginRuntimeGamepadConfigurationUi(runtimeConfigState, {
+            preflight: true,
+            reason: options.reason || 'runtime gamepad configuration preflight'
+        })) {
+            return false;
+        }
+
+        _runtimeActivation.preparingConfiguration = true;
+        PublishConnectionState('runtime gamepad configuration preflight');
+
+        ClearRuntimeConfigurationPrepareTimeout();
+        _runtimeConfigurationPrepareTimeout = setTimeout(function() {
+            _runtimeConfigurationPrepareTimeout = null;
+
+            if (!_runtimeActivation || _runtimeActivation.configuring) {
+                return;
+            }
+
+            if (_runtimeActivation.preparingConfiguration) {
+                _runtimeActivation.preparingConfiguration = false;
+                EndRuntimeGamepadConfigurationUi({
+                    reason: 'runtime gamepad configuration preflight expired'
+                });
+                PublishConnectionState('runtime gamepad configuration preflight expired');
+            }
+        }, 1500);
+
+        return true;
+    };
+
+    var ClearRuntimeConfigurationPrepareTimeout = function() {
+        if (_runtimeConfigurationPrepareTimeout) {
+            clearTimeout(_runtimeConfigurationPrepareTimeout);
+            _runtimeConfigurationPrepareTimeout = null;
+        }
+    };
+
+    var ConfigureConnectedRuntimeGamepad = function(gameKey, options, callback) {
+
+        options = options || {};
+        callback = (typeof callback === 'function') ? callback : function() {};
+
+        if (!_runtimeActivation || !_runtimeActivation.running || !IsSameRuntimeGameKey(_runtimeActivation.gameKey, gameKey)) {
+            NotifyRuntimeGamepadConfigurationUnavailable('Gamepad configuration is only available while a RetroArch 1.22.2 game is running.');
+            callback({ configured: false, saved: false, activated: false, reason: 'runtime activation is not running for this game' });
+            return false;
+        }
+
+        if (_runtimeActivation.configuring) {
+            NotifyRuntimeGamepadConfigurationUnavailable('Gamepad configuration is already open.');
+            callback({ configured: false, saved: false, activated: false, reason: 'runtime gamepad configuration already in progress' });
+            return false;
+        }
+
+        if (!_config.mappings || !_config.mappings[_runtimeActivation.gameKey.system]) {
+            NotifyRuntimeGamepadConfigurationUnavailable('This system does not have gamepad mapping labels configured.');
+            callback({ configured: false, saved: false, activated: false, reason: 'system mapping labels unavailable' });
+            return false;
+        }
+
+        ScanForGamepads('runtime configure request');
+
+        var gamepad = SelectRuntimeConfigurationGamepad(options);
+        if (!gamepad) {
+            NotifyRuntimeGamepadConfigurationUnavailable('Connect a gamepad before configuring controls.');
+            callback({ configured: false, saved: false, activated: false, reason: 'no connected gamepad available for runtime configuration' });
+            return false;
+        }
+
+        BeginRuntimeGamepadConfiguration(gamepad, options, callback);
+        return true;
+    };
+
+    var SelectRuntimeConfigurationGamepad = function(options) {
+        var indexes = GetGamepadIndexes();
+        var preferredIndex;
+        var i;
+        var index;
+        var gamepad;
+        var slot;
+        var firstActiveGamepad = null;
+
+        options = options || {};
+
+        if (typeof options.index !== 'undefined' && options.index !== null) {
+            preferredIndex = parseInt(options.index, 10);
+            if (!isNaN(preferredIndex) && _gamepads[preferredIndex] && _gamepads[preferredIndex].connected !== false) {
+                slot = preferredIndex + 1;
+                if (slot >= 1 && slot <= _runtimeActivation.maxControllers) {
+                    return _gamepads[preferredIndex];
+                }
+            }
+        }
+
+        // Prefer a connected pad that is not active yet, so the button helps unmapped pads first.
+        for (i = 0; i < indexes.length; i++) {
+            index = indexes[i];
+            gamepad = _gamepads[index];
+            slot = index + 1;
+
+            if (!gamepad || gamepad.connected === false || slot < 1 || slot > _runtimeActivation.maxControllers) {
+                continue;
+            }
+
+            if (!_runtimeActivation.activeSlots[slot]) {
+                return gamepad;
+            }
+
+            if (!firstActiveGamepad) {
+                firstActiveGamepad = gamepad;
+            }
+        }
+
+        return firstActiveGamepad;
+    };
+
+    var BeginRuntimeGamepadConfiguration = function(gamepad, options, callback) {
+        var runtimeConfigState;
+
+        if (!_runtimeActivation || !gamepad) {
+            callback({ configured: false, saved: false, activated: false, reason: 'runtime context or gamepad missing' });
+            return;
+        }
+
+        runtimeConfigState = {
+            gameKey: CloneGameKey(_runtimeActivation.gameKey),
+            gamepadIndex: parseInt(gamepad.index, 10),
+            gamepadId: gamepad.id,
+            gamepadName: gamepad.id || ('Gamepad ' + (parseInt(gamepad.index, 10) + 1)),
+            wasPaused: IsRuntimeEmulatorPaused(),
+            pauseToggled: false,
+            pauseResult: null,
+            resumeResult: null,
+            startedAt: Date.now()
+        };
+
+        ClearRuntimeConfigurationPrepareTimeout();
+        _runtimeActivation.preparingConfiguration = false;
+        _runtimeActivation.configuring = true;
+        _runtimeActivation.configuringGamepad = {
+            index: runtimeConfigState.gamepadIndex,
+            id: runtimeConfigState.gamepadId,
+            name: runtimeConfigState.gamepadName,
+            slot: runtimeConfigState.gamepadIndex + 1
+        };
+
+        BeginRuntimeGamepadConfigurationUi(runtimeConfigState, {
+            reason: 'runtime gamepad configuration started'
+        });
+        PublishConnectionState('runtime gamepad configuration started');
+
+        var openDialog = function() {
+            OpenRuntimeGamepadConfigurationDialog(gamepad, runtimeConfigState, callback);
+        };
+
+        if (runtimeConfigState.wasPaused) {
+            openDialog();
+            return;
+        }
+
+        PauseRuntimeEmulatorForConfiguration('pause before runtime gamepad configuration', function(result, paused) {
+            runtimeConfigState.pauseResult = result;
+            runtimeConfigState.pauseToggled = !!paused;
+
+            if (!paused) {
+                NotifyRuntimeGamepadConfigurationUnavailable('Unable to pause the current game for controller configuration.');
+                FinishRuntimeGamepadConfiguration(runtimeConfigState, {
+                    configured: false,
+                    saved: false,
+                    activated: false,
+                    reason: 'unable to pause emulator for runtime configuration'
+                }, callback);
+                return;
+            }
+
+            openDialog();
+        });
+    };
+
+    var OpenRuntimeGamepadConfigurationDialog = function(gamepad, runtimeConfigState, callback) {
+        var prefName;
+        var savedMappings;
+        var savedInputConfig = null;
+
+        if (!_Dialogs || typeof _Dialogs.Open !== 'function') {
+            FinishRuntimeGamepadConfiguration(runtimeConfigState, {
+                configured: false,
+                saved: false,
+                activated: false,
+                reason: 'configure dialog unavailable'
+            }, callback);
+            return;
+        }
+
+        prefName = GetPreferenceName(runtimeConfigState.gameKey, gamepad, runtimeConfigState.gamepadIndex);
+        savedMappings = _Preferences.Get(prefName);
+
+        if (savedMappings) {
+            try {
+                savedInputConfig = _Compression.Decompress.json(savedMappings);
+            } catch (e) {
+                Log('Unable to load saved mapping before runtime configure for index=' + runtimeConfigState.gamepadIndex + ': ' + e);
+                savedInputConfig = null;
+            }
+        }
+
+        Log('Opening runtime ConfigureGamepad dialog for gamepad index=' + runtimeConfigState.gamepadIndex + ', id=' + runtimeConfigState.gamepadId + ', system=' + runtimeConfigState.gameKey.system);
+
+        _Dialogs.Open('ConfigureGamepad', [_config, gamepad, runtimeConfigState.gameKey, {
+            savedInputConfig: savedInputConfig,
+            promptForSavedMapping: !!savedInputConfig,
+            inputPreferenceProfile: GetInputPreferenceProfile(runtimeConfigState.gameKey),
+            runtimeConfiguration: true
+        }], true, function(inputconfig) {
+            HandleRuntimeGamepadConfigurationResult(gamepad, runtimeConfigState, inputconfig, callback);
+        });
+    };
+
+    var HandleRuntimeGamepadConfigurationResult = function(gamepad, runtimeConfigState, inputconfig, callback) {
+        var prefName;
+        var wasActive;
+        var activated;
+        var activeRecord;
+        var result;
+
+        gamepad = _gamepads[runtimeConfigState.gamepadIndex] || gamepad;
+        result = {
+            configured: true,
+            saved: false,
+            activated: false,
+            updated: false,
+            record: null,
+            reason: inputconfig ? 'mapping saved' : 'configuration canceled'
+        };
+
+        if (inputconfig && gamepad) {
+            prefName = GetPreferenceName(runtimeConfigState.gameKey, gamepad, runtimeConfigState.gamepadIndex);
+            wasActive = !!GetRuntimeActiveRecordForGamepad(gamepad);
+
+            gamepad.inputconfig = inputconfig;
+            gamepad.skipinputconfig = false;
+            UnmarkSessionSkippedGamepad(runtimeConfigState.gameKey, gamepad, runtimeConfigState.gamepadIndex);
+
+            _Preferences.Set(prefName, _Compression.Compress.json(inputconfig));
+            Log('Saved runtime controller mapping for gamepad index=' + runtimeConfigState.gamepadIndex + ', system=' + runtimeConfigState.gameKey.system + ', profile=' + GetInputPreferenceProfile(runtimeConfigState.gameKey));
+
+            activated = TryActivateRuntimeGamepad(gamepad, 'runtime gamepad configuration saved', {
+                startup: false,
+                notify: false,
+                dispatch: true,
+                forceRefresh: true
+            });
+
+            activeRecord = GetRuntimeActiveRecordForGamepad(gamepad);
+            result.saved = true;
+            result.activated = !!activeRecord;
+            result.updated = !!(wasActive && activeRecord);
+            result.newActivation = !!(!wasActive && activeRecord);
+            result.activationChanged = !!activated;
+            result.record = activeRecord;
+            result.reason = activeRecord ? 'mapping saved and active' : 'mapping saved but activation did not complete';
+        }
+
+        FinishRuntimeGamepadConfiguration(runtimeConfigState, result, callback);
+    };
+
+    var FinishRuntimeGamepadConfiguration = function(runtimeConfigState, result, callback) {
+        var needsResume = !!(runtimeConfigState && runtimeConfigState.pauseToggled && !runtimeConfigState.wasPaused);
+
+        var Complete = function() {
+            if (_runtimeActivation) {
+                _runtimeActivation.configuring = false;
+                _runtimeActivation.configuringGamepad = null;
+                _runtimeActivation.preparingConfiguration = false;
+            }
+
+            EndRuntimeGamepadConfigurationUi({
+                reason: 'runtime gamepad configuration finished',
+                result: result || null
+            });
+            FocusRuntimeEmulator();
+            ScanForGamepads('runtime gamepad configuration finished');
+            PublishConnectionState('runtime gamepad configuration finished');
+
+            if (result && result.saved && result.record) {
+                if (result.newActivation) {
+                    NotifyRuntimeGamepadActivation(result.record);
+                } else if (result.updated) {
+                    NotifyRuntimeGamepadMappingUpdated(result.record);
+                }
+            }
+
+            if (callback) {
+                callback(result || { configured: false, saved: false, activated: false, reason: 'runtime configuration finished' });
+            }
+        };
+
+        if (needsResume) {
+            ResumeRuntimeEmulatorFromConfiguration('resume after runtime gamepad configuration', function(resumeResult) {
+                if (result) {
+                    result.resumeResult = resumeResult;
+                }
+                Complete();
+            });
+            return;
+        }
+
+        Complete();
+    };
+
+    var IsRuntimeEmulatorPaused = function() {
+        if (!_runtimeActivation || !_runtimeActivation.bridge || typeof _runtimeActivation.bridge.isEmulatorPaused !== 'function') {
+            return false;
+        }
+
+        try {
+            return !!_runtimeActivation.bridge.isEmulatorPaused();
+        } catch (e) {
+            Log('Unable to read runtime emulator pause state: ' + e);
+            return false;
+        }
+    };
+
+    var BeginRuntimeGamepadConfigurationUi = function(runtimeConfigState, options) {
+        options = options || {};
+
+        if (!_runtimeActivation || !_runtimeActivation.bridge || typeof _runtimeActivation.bridge.beginRuntimeGamepadConfiguration !== 'function') {
+            return false;
+        }
+
+        try {
+            return _runtimeActivation.bridge.beginRuntimeGamepadConfiguration({
+                gameKey: runtimeConfigState && runtimeConfigState.gameKey ? CloneGameKey(runtimeConfigState.gameKey) : CloneGameKey(_runtimeActivation.gameKey),
+                gamepadIndex: runtimeConfigState ? runtimeConfigState.gamepadIndex : null,
+                gamepadId: runtimeConfigState ? runtimeConfigState.gamepadId : null,
+                gamepadName: runtimeConfigState ? runtimeConfigState.gamepadName : null,
+                preflight: !!options.preflight,
+                reason: options.reason || 'runtime gamepad configuration'
+            }) !== false;
+        } catch (e) {
+            Log('Unable to begin runtime gamepad configuration UI transaction: ' + e);
+            return false;
+        }
+    };
+
+    var EndRuntimeGamepadConfigurationUi = function(context) {
+        if (!_runtimeActivation || !_runtimeActivation.bridge || typeof _runtimeActivation.bridge.endRuntimeGamepadConfiguration !== 'function') {
+            return false;
+        }
+
+        try {
+            return _runtimeActivation.bridge.endRuntimeGamepadConfiguration(context || {}) !== false;
+        } catch (e) {
+            Log('Unable to end runtime gamepad configuration UI transaction: ' + e);
+            return false;
+        }
+    };
+
+    var IsRuntimePauseBridgeSuccess = function(result) {
+        if (result === true) {
+            return true;
+        }
+
+        if (result && typeof result === 'object') {
+            return result.ok !== false;
+        }
+
+        return false;
+    };
+
+    var SetRuntimeEmulatorPauseForConfiguration = function(shouldPause, reason, callback) {
+        var completed = false;
+        var timeout;
+        var method = shouldPause ? 'pauseEmulationForRuntimeConfiguration' : 'resumeEmulationForRuntimeConfiguration';
+        var started = false;
+
+        callback = (typeof callback === 'function') ? callback : function() {};
+
+        var Done = function(result, applied) {
+            if (completed) {
+                return;
+            }
+
+            completed = true;
+            if (timeout) {
+                clearTimeout(timeout);
+                timeout = null;
+            }
+
+            callback(result || { ok: false, reason: 'runtime pause bridge did not return a result' }, !!applied);
+        };
+
+        if (!_runtimeActivation || !_runtimeActivation.bridge || typeof _runtimeActivation.bridge[method] !== 'function') {
+            Done({ ok: false, reason: 'runtime pause bridge unavailable' }, false);
+            return false;
+        }
+
+        timeout = setTimeout(function() {
+            Done({ ok: false, reason: 'runtime pause bridge callback timeout' }, started);
+        }, 1200);
+
+        try {
+            started = _runtimeActivation.bridge[method](function(result) {
+                Done(result, IsRuntimePauseBridgeSuccess(result));
+            }, reason || 'runtime gamepad configuration') !== false;
+        } catch (e) {
+            Log('Unable to set runtime emulator pause state for gamepad configuration: ' + e);
+            Done({ ok: false, reason: 'runtime pause bridge exception: ' + e }, false);
+            return false;
+        }
+
+        if (!started) {
+            Done({ ok: false, reason: 'runtime pause bridge did not start' }, false);
+            return false;
+        }
+
+        return true;
+    };
+
+    var PauseRuntimeEmulatorForConfiguration = function(reason, callback) {
+        return SetRuntimeEmulatorPauseForConfiguration(true, reason, callback);
+    };
+
+    var ResumeRuntimeEmulatorFromConfiguration = function(reason, callback) {
+        return SetRuntimeEmulatorPauseForConfiguration(false, reason, callback);
+    };
+
+    var GetRuntimeActiveRecordForGamepad = function(gamepad) {
+        var slot;
+
+        if (!_runtimeActivation || !gamepad) {
+            return null;
+        }
+
+        for (slot in _runtimeActivation.activeSlots) {
+            if (!_runtimeActivation.activeSlots.hasOwnProperty(slot)) {
+                continue;
+            }
+
+            var record = _runtimeActivation.activeSlots[slot];
+            if (record && record.index === parseInt(gamepad.index, 10) && record.id === gamepad.id) {
+                return record;
+            }
+        }
+
+        return null;
+    };
+
+    var NotifyRuntimeGamepadConfigurationUnavailable = function(message) {
+        if (!_PubSub || typeof _PubSub.Publish !== 'function') {
+            return;
+        }
+
+        _PubSub.Publish('notification', [message, 3, false, false]);
+    };
+
+    var NotifyRuntimeGamepadMappingUpdated = function(record) {
+        if (!_PubSub || typeof _PubSub.Publish !== 'function' || !record || !_runtimeActivation || !_runtimeActivation.running) {
+            return;
+        }
+
+        _PubSub.Publish('notification', ['Gamepad mapping updated: ' + record.name, 3, false, false]);
+    };
+
     var ActivateExistingConfiguredRuntimeGamepads = function(reason) {
         var indexes;
         var changed = false;
@@ -848,6 +1408,22 @@ var cesGamePad = (function(_config, _Compression, _PubSub, _Tooltips, _Preferenc
             if (existing.index === index && existing.id === gamepad.id) {
                 existing.gamepad = gamepad;
                 existing.connected = gamepad.connected !== false;
+
+                if (options.forceRefresh) {
+                    strictMapping = LoadStrictSavedMappingForGamepad(_runtimeActivation.gameKey, gamepad, index);
+                    if (strictMapping.valid) {
+                        existing.inputconfig = strictMapping.inputconfig;
+                        existing.prefname = strictMapping.prefname;
+                        existing.name = gamepad.id || existing.name;
+                        gamepad.inputconfig = strictMapping.inputconfig;
+                        gamepad.skipinputconfig = false;
+                        Log('Runtime gamepad mapping refreshed for slot=' + slot + ', index=' + index + ', id=' + gamepad.id + ', system=' + _runtimeActivation.gameKey.system + ', source=' + (reason || 'unknown'));
+                        return true;
+                    }
+
+                    RememberRuntimeActivationRejection(gamepad, strictMapping.reason);
+                }
+
                 return false;
             }
 
@@ -987,6 +1563,10 @@ var cesGamePad = (function(_config, _Compression, _PubSub, _Tooltips, _Preferenc
             return true;
         }
 
+        if (_runtimeActivation.configuring) {
+            return false;
+        }
+
         if (!_runtimeActivation.bridge || typeof _runtimeActivation.bridge.isInputActive !== 'function') {
             return true;
         }
@@ -1063,6 +1643,10 @@ var cesGamePad = (function(_config, _Compression, _PubSub, _Tooltips, _Preferenc
         var i;
 
         if (!_runtimeActivation || !IsSameRuntimeGameKey(_runtimeActivation.gameKey, gameKey)) {
+            return virtualGamepads;
+        }
+
+        if (!IsRuntimeEmulatorInputActive()) {
             return virtualGamepads;
         }
 
@@ -1283,6 +1867,61 @@ var cesGamePad = (function(_config, _Compression, _PubSub, _Tooltips, _Preferenc
         return summaries;
     };
 
+    var BuildConnectedGamepadSummaries = function() {
+        var summaries = [];
+        var indexes = GetGamepadIndexes();
+        var i;
+
+        for (i = 0; i < indexes.length; i++) {
+            var index = indexes[i];
+            var gamepad = _gamepads[index];
+            var activeRecord = GetRuntimeActiveRecordForIndex(index, gamepad && gamepad.id);
+
+            if (!gamepad || gamepad.connected === false) {
+                continue;
+            }
+
+            summaries.push({
+                index: index,
+                slot: index + 1,
+                player: index + 1,
+                id: gamepad.id,
+                name: gamepad.id || ('Gamepad ' + (index + 1)),
+                active: !!activeRecord,
+                mapped: !!activeRecord
+            });
+        }
+
+        return summaries;
+    };
+
+    var GetRuntimeActiveRecordForIndex = function(index, id) {
+        var slot;
+
+        if (!_runtimeActivation) {
+            return null;
+        }
+
+        index = parseInt(index, 10);
+
+        for (slot in _runtimeActivation.activeSlots) {
+            if (!_runtimeActivation.activeSlots.hasOwnProperty(slot)) {
+                continue;
+            }
+
+            var record = _runtimeActivation.activeSlots[slot];
+            if (!record) {
+                continue;
+            }
+
+            if (record.index === index && (typeof id === 'undefined' || record.id === id)) {
+                return record;
+            }
+        }
+
+        return null;
+    };
+
     var ShouldGateNativeGamepadEventForRuntime = function(event) {
         if (!_runtimeActivation || !IsRetroArch1222GameKey(_runtimeActivation.gameKey)) {
             return false;
@@ -1380,13 +2019,16 @@ var cesGamePad = (function(_config, _Compression, _PubSub, _Tooltips, _Preferenc
         PublishConnectionState(reason || 'gamepad disconnected');
     };
 
-    var Update = function() {
+    var Update = function(options) {
+        options = options || {};
         ScanForGamepads('capture');
 
-        var activeInputs = GetActiveInputs();
+        var activeInputs = GetActiveInputs(options);
 
         if (_captureInputCallback && _captureInputCallback.WaitForNeutralBeforeCapture(activeInputs.keys)) {
-            _gameLoop = requestAnimationFrame(Update);
+            _gameLoop = requestAnimationFrame(function() {
+                Update(options);
+            });
             return;
         }
 
@@ -1395,16 +2037,38 @@ var cesGamePad = (function(_config, _Compression, _PubSub, _Tooltips, _Preferenc
         }
 
         if (_captureInputCallback) {
-            _gameLoop = requestAnimationFrame(Update); //loop
+            _gameLoop = requestAnimationFrame(function() {
+                Update(options);
+            }); //loop
         }
     };
 
-    var GetActiveInputs = function() {
+    var CancelActiveInputCapture = function(reason) {
+        if (_gameLoop) {
+            cancelAnimationFrame(_gameLoop);
+            _gameLoop = null;
+        }
+
+        _captureInputCallback = null;
+        $(document).off(_inputCaptureKeyboardEvent);
+
+        if (reason) {
+            Log('Input capture canceled: ' + reason);
+        }
+    };
+
+    var GetActiveInputs = function(options) {
 
         var active = {
             keys: [],
             first: null
         };
+        var targetGamepadIndex = null;
+
+        options = options || {};
+        if (typeof options.gamepadIndex !== 'undefined' && options.gamepadIndex !== null) {
+            targetGamepadIndex = parseInt(options.gamepadIndex, 10);
+        }
 
         //for each controller
         for (var j in _gamepads) {
@@ -1413,6 +2077,10 @@ var cesGamePad = (function(_config, _Compression, _PubSub, _Tooltips, _Preferenc
             }
 
             var gamepad = _gamepads[j];
+
+            if (targetGamepadIndex !== null && parseInt(j, 10) !== targetGamepadIndex) {
+                continue;
+            }
 
             //buttons
             for (var i = 0; i < gamepad.buttons.length; i++) {
@@ -1566,9 +2234,13 @@ var cesGamePad = (function(_config, _Compression, _PubSub, _Tooltips, _Preferenc
 
     var BuildConnectionState = function(reason) {
         var indexes = GetGamepadIndexes();
+        var connectedGamepads = BuildConnectedGamepadSummaries();
         var runtimeState = _runtimeActivation ? {
             prepared: !!_runtimeActivation.prepared,
             running: !!_runtimeActivation.running,
+            configuring: !!_runtimeActivation.configuring,
+            preparingConfiguration: !!_runtimeActivation.preparingConfiguration,
+            configuringGamepad: _runtimeActivation.configuringGamepad,
             strictMappedOnly: true,
             virtualShim: _runtimeVirtualShimInstalled,
             maxControllers: _runtimeActivation.maxControllers,
@@ -1576,9 +2248,10 @@ var cesGamePad = (function(_config, _Compression, _PubSub, _Tooltips, _Preferenc
         } : null;
 
         return {
-            connected: indexes.length > 0,
-            count: indexes.length,
+            connected: connectedGamepads.length > 0,
+            count: connectedGamepads.length,
             indexes: indexes,
+            connectedGamepads: connectedGamepads,
             activeMappedCount: runtimeState ? runtimeState.activeGamepads.length : 0,
             runtime: runtimeState,
             reason: reason || 'unknown'

@@ -27,6 +27,9 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
     var _lastStartupStateLoadSignal = null;
     var _lastStartupStateLoadFailure = null;
     var _startupStateWriteTimeout = 2500;
+    var _runtimeGamepadConfigurationFocusFence = false;
+    var _runtimeGamepadConfigurationLayout = null;
+    var _runtimeGamepadConfigurationLayoutRestoreTimer = null;
 
     var _displayDurationShow = 1000;
     var _displayDurationHide = 500;
@@ -642,6 +645,196 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
         }
     };
 
+    var HideEmulatorPauseOverlay = function() {
+        try {
+            $('#emulatorwrapperoverlay').stop(true, true).hide();
+        } catch (ignoreHideOverlay) {}
+    };
+
+    var IsRuntimeGamepadConfigurationFocusFenceActive = function() {
+        if (_runtimeGamepadConfigurationFocusFence) {
+            return true;
+        }
+
+        if (_Module && typeof _Module.cesIsRuntimeGamepadConfigurationUiActive === 'function') {
+            try {
+                return !!_Module.cesIsRuntimeGamepadConfigurationUiActive();
+            } catch (e) {
+                _Logging.Console('cesEmulatorBase', 'Unable to read runtime gamepad configuration UI fence state: ' + e);
+            }
+        }
+
+        return false;
+    };
+
+    var BeginRuntimeGamepadConfigurationTransaction = function(context) {
+        var $dialogs = $('#dialogs');
+        var $wrapper = $(_ui.wrapper);
+
+        context = context || {};
+        _runtimeGamepadConfigurationFocusFence = true;
+
+        if (_runtimeGamepadConfigurationLayoutRestoreTimer) {
+            clearTimeout(_runtimeGamepadConfigurationLayoutRestoreTimer);
+            _runtimeGamepadConfigurationLayoutRestoreTimer = null;
+        }
+
+        if (!_runtimeGamepadConfigurationLayout) {
+            _runtimeGamepadConfigurationLayout = {
+                dialogsHeight: $dialogs.length ? Math.ceil($dialogs.outerHeight()) : null,
+                dialogsInlineHeight: ($dialogs.length && $dialogs[0]) ? $dialogs[0].style.height : '',
+                wrapperInlineHeight: ($wrapper.length && $wrapper[0]) ? $wrapper[0].style.height : '',
+                wrapperInlineMinHeight: ($wrapper.length && $wrapper[0]) ? $wrapper[0].style.minHeight : '',
+                startedAt: Date.now()
+            };
+        }
+
+        if ($dialogs.length) {
+            $dialogs
+                .addClass('ces-runtime-gamepad-configure-active')
+                .data('ces-runtime-gamepad-configure-base-height', _runtimeGamepadConfigurationLayout.dialogsHeight || $dialogs.outerHeight());
+        }
+
+        if ($wrapper.length) {
+            $wrapper.addClass('ces-runtime-gamepad-configure-active');
+        }
+
+        // If the normal CES focus overlay already slipped in before the pre-click fence,
+        // clear that UI pause before the runtime configuration flow takes ownership and
+        // applies an explicit RetroArch pause command.
+        if (_isPaused) {
+            try {
+                self.ResumeGame();
+            } catch (resumeOverlayError) {
+                _Logging.Console('cesEmulatorBase', 'Unable to clear existing overlay pause before runtime gamepad configuration: ' + resumeOverlayError);
+            }
+        }
+
+        HideEmulatorPauseOverlay();
+
+        if (_Module && typeof _Module.cesBeginRuntimeGamepadConfigurationUi === 'function') {
+            try {
+                _Module.cesBeginRuntimeGamepadConfigurationUi(context.reason || 'runtime gamepad configuration focus fence');
+            } catch (e) {
+                _Logging.Console('cesEmulatorBase', 'Runtime gamepad configuration UI fence hook failed: ' + e);
+            }
+        }
+
+        return true;
+    };
+
+    var EndRuntimeGamepadConfigurationTransaction = function(context) {
+        var $dialogs = $('#dialogs');
+        var $wrapper = $(_ui.wrapper);
+        var layout = _runtimeGamepadConfigurationLayout;
+        var restoreHeight = layout && layout.dialogsHeight ? layout.dialogsHeight : null;
+
+        context = context || {};
+
+        if (_Module && typeof _Module.cesEndRuntimeGamepadConfigurationUi === 'function') {
+            try {
+                _Module.cesEndRuntimeGamepadConfigurationUi(context.reason || 'runtime gamepad configuration focus fence ended');
+            } catch (e) {
+                _Logging.Console('cesEmulatorBase', 'Runtime gamepad configuration UI fence cleanup hook failed: ' + e);
+            }
+        }
+
+        _runtimeGamepadConfigurationFocusFence = false;
+        _runtimeGamepadConfigurationLayout = null;
+
+        HideEmulatorPauseOverlay();
+
+        if ($wrapper.length) {
+            $wrapper.removeClass('ces-runtime-gamepad-configure-active');
+
+            if ($wrapper[0] && layout) {
+                $wrapper[0].style.height = layout.wrapperInlineHeight || '';
+                $wrapper[0].style.minHeight = layout.wrapperInlineMinHeight || '';
+            }
+        }
+
+        if ($dialogs.length) {
+            $dialogs
+                .removeClass('ces-runtime-gamepad-configure-active')
+                .removeData('ces-runtime-gamepad-configure-base-height');
+
+            if (restoreHeight) {
+                $dialogs.stop(true, true).animate({
+                    height: restoreHeight
+                }, {
+                    duration: 250,
+                    easing: 'swing'
+                });
+            }
+            else if ($dialogs[0] && layout) {
+                $dialogs[0].style.height = layout.dialogsInlineHeight || '';
+            }
+        }
+
+        _runtimeGamepadConfigurationLayoutRestoreTimer = setTimeout(function() {
+            _runtimeGamepadConfigurationLayoutRestoreTimer = null;
+            HideEmulatorPauseOverlay();
+        }, 0);
+
+        return true;
+    };
+
+    var NormalizeRuntimePauseBridgeResult = function(result, shouldPause, fallbackReason) {
+        if (result === true) {
+            return {
+                ok: true,
+                paused: !!shouldPause,
+                reason: fallbackReason || 'runtime gamepad configuration pause bridge returned true'
+            };
+        }
+
+        if (result && typeof result === 'object') {
+            if (typeof result.ok === 'undefined') {
+                result.ok = true;
+            }
+            if (typeof result.paused === 'undefined') {
+                result.paused = !!shouldPause;
+            }
+            return result;
+        }
+
+        return {
+            ok: false,
+            paused: !shouldPause,
+            reason: fallbackReason || 'runtime gamepad configuration pause bridge returned false'
+        };
+    };
+
+    var SetRetroArchRuntimeConfigurationPause = function(shouldPause, reason, callback) {
+        var method = shouldPause ? 'cesPauseForRuntimeGamepadConfiguration' : 'cesResumeForRuntimeGamepadConfiguration';
+        var result;
+
+        callback = (typeof callback === 'function') ? callback : function() {};
+
+        if (!_Module || typeof _Module[method] !== 'function') {
+            result = NormalizeRuntimePauseBridgeResult(false, shouldPause, 'RetroArch runtime pause hook unavailable');
+            callback(result);
+            return false;
+        }
+
+        try {
+            result = NormalizeRuntimePauseBridgeResult(_Module[method](reason || 'runtime gamepad configuration'), shouldPause, 'RetroArch runtime pause hook completed');
+        } catch (e) {
+            result = NormalizeRuntimePauseBridgeResult(false, shouldPause, 'RetroArch runtime pause hook failed: ' + e);
+            _Logging.Console('cesEmulatorBase', result.reason);
+            callback(result);
+            return false;
+        }
+
+        if (result.ok) {
+            _isEmulatorPaused = !!shouldPause;
+            HideEmulatorPauseOverlay();
+        }
+
+        callback(result);
+        return !!result.ok;
+    };
+
     var BeginRuntimeGamepadActivation = function(reason) {
         if (!_GamePad || typeof _GamePad.BeginRuntimeGamepadActivation !== 'function') {
             return;
@@ -663,6 +856,25 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
                             return _Module.cesDispatchGamepadEventForRetroArch(type, gamepad, dispatchReason || 'runtime gamepad activation');
                         }
                         return false;
+                    },
+                    beginRuntimeGamepadConfiguration: function(context) {
+                        return BeginRuntimeGamepadConfigurationTransaction(context || {});
+                    },
+                    endRuntimeGamepadConfiguration: function(context) {
+                        return EndRuntimeGamepadConfigurationTransaction(context || {});
+                    },
+                    pauseEmulationForRuntimeConfiguration: function(callback, pauseReason) {
+                        return SetRetroArchRuntimeConfigurationPause(true, pauseReason || 'runtime gamepad configuration pause', callback);
+                    },
+                    resumeEmulationForRuntimeConfiguration: function(callback, pauseReason) {
+                        return SetRetroArchRuntimeConfigurationPause(false, pauseReason || 'runtime gamepad configuration resume', callback);
+                    },
+                    simulatePauseToggle: function(callback, pauseReason) {
+                        var shouldPause = !_isEmulatorPaused;
+                        return SetRetroArchRuntimeConfigurationPause(shouldPause, pauseReason || 'runtime gamepad configuration pause toggle compatibility', callback);
+                    },
+                    isEmulatorPaused: function() {
+                        return !!_isEmulatorPaused;
                     },
                     isInputActive: function() {
                         return !!(_hasEmulationBegin && !_isPaused && !_cleanupInProgress && !_cleanupComplete);
@@ -713,6 +925,12 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
             //define operations on blur/focus next
             _ui.canvas
                 .blur(function(event) {
+                    if (IsRuntimeGamepadConfigurationFocusFenceActive()) {
+                        HideEmulatorPauseOverlay();
+                        _Logging.Console('cesEmulatorBase', 'Suppressed CES pause overlay while runtime gamepad configuration owns focus.');
+                        return;
+                    }
+
                     if (_Module && typeof _Module.cesBeforeCanvasBlurPause === 'function') {
                         if (_Module.cesBeforeCanvasBlurPause(event) === false) {
                             return;
@@ -723,7 +941,9 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
                     $('#emulatorwrapperoverlay').fadeIn();
                 })
                 .focus(function(event) {
-                    self.ResumeGame();
+                    if (!IsRuntimeGamepadConfigurationFocusFenceActive()) {
+                        self.ResumeGame();
+                    }
                     $('#emulatorwrapperoverlay').hide();
 
                     if (_Module && typeof _Module.cesAfterCanvasFocusResume === 'function') {
@@ -929,6 +1149,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
         _SavesManager = null;
         _Sync.DeregisterComponent('s');
 
+        EndRuntimeGamepadConfigurationTransaction({ reason: 'emulator cleanup' });
         $('#emulatorwrapperoverlay').hide(); //ensure pause is hidden for next game
 
         if (_Module) {
