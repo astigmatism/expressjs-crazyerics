@@ -2039,6 +2039,7 @@ var cesMain = (function() {
         var $img = _Media.BoxFront(gameKey, 'c');
 
         _currentGameKey = gameKey;
+        $('#gamedetailsbackground').addClass('has-game-details');
 
         $('#gamedetailsboxfrontimage').empty().append($img);
         UpdateBoxFrontDetails(gameKey, info);
@@ -2062,10 +2063,14 @@ var cesMain = (function() {
     var HideGameContext = function(callback) {
 
         //fade out game details
-        $('#gamedetailsboxfrontimage img').addClass('close');
-        $('#gamedetailswrapper').fadeOut();
-        ClearBoxFrontDetails();
         _currentGameKey = null;
+        $('#gamedetailsboxfrontimage img').addClass('close');
+        $('#gamedetailswrapper').fadeOut(function() {
+            if (!_currentGameKey) {
+                $('#gamedetailsbackground').removeClass('has-game-details');
+            }
+        });
+        ClearBoxFrontDetails();
 
         _Sliders.DeactivateAll();
 
