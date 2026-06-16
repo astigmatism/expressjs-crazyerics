@@ -222,7 +222,13 @@ var cesMain = (function() {
 
         //clicking on paused game overlay
         $('#emulatorwrapperoverlay')
-            .on('click', function() {
+            .on('click', function(event) {
+                if ($('#emulatorwrapper').hasClass('ces-runtime-gamepad-configure-active') || $(this).hasClass('ces-runtime-gamepad-configure-shim')) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    return false;
+                }
+
                 $('#emulator').focus();
             })
             .hover(

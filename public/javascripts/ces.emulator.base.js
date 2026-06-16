@@ -30,6 +30,8 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
     var _runtimeGamepadConfigurationFocusFence = false;
     var _runtimeGamepadConfigurationLayout = null;
     var _runtimeGamepadConfigurationLayoutRestoreTimer = null;
+    var _runtimeGamepadConfigurationShimClass = 'ces-runtime-gamepad-configure-shim';
+    var _runtimeGamepadConfigurationInputRevoked = false;
 
     var _displayDurationShow = 1000;
     var _displayDurationHide = 500;
@@ -60,6 +62,298 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
         if (_Logging && typeof _Logging.Console === 'function') {
             _Logging.Console('cesEmulatorBase.lifecycle', message);
         }
+    };
+
+    var NormalizeEventListenerCapture = function(options) {
+
+        if (typeof options === 'boolean') {
+            return options;
+        }
+
+        if (options && typeof options === 'object') {
+            return !!options.capture;
+        }
+
+        return false;
+    };
+
+    var GetListenerSourceForDiagnostics = function(listener) {
+
+        var target = listener;
+
+        if (listener && typeof listener !== 'function' && typeof listener.handleEvent === 'function') {
+            target = listener.handleEvent;
+        }
+
+        if (typeof target !== 'function') {
+            return '';
+        }
+
+        try {
+            return Function.prototype.toString.call(target);
+        } catch (e) {
+            return '';
+        }
+    };
+
+    var GetListenerNameForDiagnostics = function(listener) {
+
+        if (!listener) {
+            return '';
+        }
+
+        if (typeof listener === 'function') {
+            return listener.name || '';
+        }
+
+        if (listener.handleEvent && typeof listener.handleEvent === 'function') {
+            return listener.handleEvent.name || '';
+        }
+
+        return '';
+    };
+
+    var LooksLikeEmscriptenSetImmediateMessageListener = function(listener) {
+
+        var listenerName = GetListenerNameForDiagnostics(listener);
+        var listenerSource = GetListenerSourceForDiagnostics(listener);
+        var combined = listenerName + '\n' + listenerSource;
+
+        return /Browser_setImmediate_messageHandler|setImmediates|__setImmediate|setImmediateWrapped|emSetImmediate/.test(combined);
+    };
+
+    var EnsureRuntimeMessageListenerTracking = function(module) {
+
+        if (!module || module.cesRuntimeMessageListenerTrackingInstalled) {
+            return;
+        }
+
+        module.cesTrackedRuntimeMessageListeners = module.cesTrackedRuntimeMessageListeners || [];
+
+        module.cesTrackRuntimeMessageListener = function(target, type, listener, options, reason) {
+
+            var capture = NormalizeEventListenerCapture(options);
+            var listenerName;
+            var i;
+
+            if (target !== window || type !== 'message' || !listener || !LooksLikeEmscriptenSetImmediateMessageListener(listener)) {
+                return;
+            }
+
+            for (i = 0; i < module.cesTrackedRuntimeMessageListeners.length; i++) {
+                if (module.cesTrackedRuntimeMessageListeners[i].target === target &&
+                    module.cesTrackedRuntimeMessageListeners[i].type === type &&
+                    module.cesTrackedRuntimeMessageListeners[i].listener === listener &&
+                    module.cesTrackedRuntimeMessageListeners[i].capture === capture &&
+                    !module.cesTrackedRuntimeMessageListeners[i].removed) {
+                    return;
+                }
+            }
+
+            listenerName = GetListenerNameForDiagnostics(listener) || '(anonymous)';
+            module.cesTrackedRuntimeMessageListeners.push({
+                target: target,
+                type: type,
+                listener: listener,
+                capture: capture,
+                addedAt: Date.now(),
+                reason: reason || 'runtime listener capture',
+                name: listenerName,
+                removed: false
+            });
+
+            LogLifecycle('Tracked Emscripten setImmediate message listener "' + listenerName + '" for ' + GetLifecycleDescriptor() + '; reason=' + (reason || 'runtime listener capture') + ', capture=' + capture);
+        };
+
+        module.cesMarkRuntimeMessageListenerRemoved = function(target, type, listener, options) {
+
+            var capture = NormalizeEventListenerCapture(options);
+            var i;
+
+            if (!module.cesTrackedRuntimeMessageListeners) {
+                return;
+            }
+
+            for (i = 0; i < module.cesTrackedRuntimeMessageListeners.length; i++) {
+                if (module.cesTrackedRuntimeMessageListeners[i].target === target &&
+                    module.cesTrackedRuntimeMessageListeners[i].type === type &&
+                    module.cesTrackedRuntimeMessageListeners[i].listener === listener &&
+                    module.cesTrackedRuntimeMessageListeners[i].capture === capture) {
+                    module.cesTrackedRuntimeMessageListeners[i].removed = true;
+                }
+            }
+        };
+
+        module.cesRemoveTrackedRuntimeMessageListeners = function(reason) {
+
+            var listeners = module.cesTrackedRuntimeMessageListeners || [];
+            var removed = 0;
+            var failed = 0;
+            var i;
+
+            for (i = 0; i < listeners.length; i++) {
+                if (listeners[i].removed) {
+                    continue;
+                }
+
+                try {
+                    listeners[i].target.removeEventListener(listeners[i].type, listeners[i].listener, listeners[i].capture);
+                    listeners[i].removed = true;
+                    removed++;
+                } catch (e) {
+                    failed++;
+                    LogLifecycle('Failed to remove tracked runtime message listener for ' + GetLifecycleDescriptor() + ': ' + e);
+                }
+            }
+
+            if (removed || failed) {
+                LogLifecycle('Removed tracked Emscripten setImmediate message listeners for ' + GetLifecycleDescriptor() + '; removed=' + removed + ', failed=' + failed + ', reason=' + (reason || 'cleanup'));
+            }
+
+            return { removed: removed, failed: failed, tracked: listeners.length };
+        };
+
+        module.cesGetRuntimeMessageListenerDiagnostics = function() {
+
+            var listeners = module.cesTrackedRuntimeMessageListeners || [];
+            var result = [];
+            var i;
+
+            for (i = 0; i < listeners.length; i++) {
+                result.push({
+                    type: listeners[i].type,
+                    capture: listeners[i].capture,
+                    name: listeners[i].name,
+                    removed: !!listeners[i].removed,
+                    reason: listeners[i].reason,
+                    ageMs: Date.now() - listeners[i].addedAt
+                });
+            }
+
+            return result;
+        };
+
+        module.cesRuntimeMessageListenerTrackingInstalled = true;
+    };
+
+    var StartRuntimeMessageListenerCapture = function(module, reason) {
+
+        var capture;
+
+        if (!module || typeof window === 'undefined' || !window.addEventListener || !window.removeEventListener) {
+            return;
+        }
+
+        EnsureRuntimeMessageListenerTracking(module);
+
+        if (module.cesRuntimeMessageListenerCapture && module.cesRuntimeMessageListenerCapture.active) {
+            module.cesRuntimeMessageListenerCapture.depth++;
+            return;
+        }
+
+        capture = {
+            active: true,
+            depth: 1,
+            module: module,
+            originalAddEventListener: window.addEventListener,
+            originalRemoveEventListener: window.removeEventListener,
+            addEventListenerWrapper: null,
+            removeEventListenerWrapper: null
+        };
+
+        capture.addEventListenerWrapper = function(type, listener, options) {
+
+            var result = capture.originalAddEventListener.apply(this, arguments);
+
+            try {
+                if (capture.active && capture.module && typeof capture.module.cesTrackRuntimeMessageListener === 'function') {
+                    capture.module.cesTrackRuntimeMessageListener(this, type, listener, options, reason || 'emulator runtime startup');
+                }
+            } catch (e) {
+                LogLifecycle('Runtime message listener tracking failed for ' + GetLifecycleDescriptor() + ': ' + e);
+            }
+
+            return result;
+        };
+
+        capture.removeEventListenerWrapper = function(type, listener, options) {
+
+            var result = capture.originalRemoveEventListener.apply(this, arguments);
+
+            try {
+                if (capture.active && capture.module && typeof capture.module.cesMarkRuntimeMessageListenerRemoved === 'function') {
+                    capture.module.cesMarkRuntimeMessageListenerRemoved(this, type, listener, options);
+                }
+            } catch (e) {
+                LogLifecycle('Runtime message listener removal tracking failed for ' + GetLifecycleDescriptor() + ': ' + e);
+            }
+
+            return result;
+        };
+
+        module.cesStopRuntimeMessageListenerCapture = function(stopReason) {
+
+            if (!capture.active) {
+                return false;
+            }
+
+            capture.depth--;
+            if (capture.depth > 0) {
+                return false;
+            }
+
+            if (window.addEventListener === capture.addEventListenerWrapper) {
+                window.addEventListener = capture.originalAddEventListener;
+            } else {
+                LogLifecycle('Runtime addEventListener wrapper was not current during cleanup for ' + GetLifecycleDescriptor() + '; leaving current handler untouched.');
+            }
+
+            if (window.removeEventListener === capture.removeEventListenerWrapper) {
+                window.removeEventListener = capture.originalRemoveEventListener;
+            } else {
+                LogLifecycle('Runtime removeEventListener wrapper was not current during cleanup for ' + GetLifecycleDescriptor() + '; leaving current handler untouched.');
+            }
+
+            capture.active = false;
+            module.cesRuntimeMessageListenerCapture = null;
+            LogLifecycle('Stopped runtime message listener capture for ' + GetLifecycleDescriptor() + '; reason=' + (stopReason || 'cleanup'));
+            return true;
+        };
+
+        module.cesRuntimeMessageListenerCapture = capture;
+        window.addEventListener = capture.addEventListenerWrapper;
+        window.removeEventListener = capture.removeEventListenerWrapper;
+
+        LogLifecycle('Started runtime message listener capture for ' + GetLifecycleDescriptor() + '; reason=' + (reason || 'emulator runtime startup'));
+    };
+
+    var StopRuntimeMessageListenerCapture = function(module, reason, removeListeners) {
+
+        if (!module) {
+            return;
+        }
+
+        if (removeListeners && typeof module.cesRemoveTrackedRuntimeMessageListeners === 'function') {
+            try {
+                module.cesRemoveTrackedRuntimeMessageListeners(reason || 'runtime listener cleanup');
+            } catch (e) {
+                LogLifecycle('Failed while removing tracked runtime message listeners for ' + GetLifecycleDescriptor() + ': ' + e);
+            }
+        }
+
+        if (typeof module.cesStopRuntimeMessageListenerCapture === 'function') {
+            try {
+                module.cesStopRuntimeMessageListenerCapture(reason || 'runtime listener cleanup');
+            } catch (e2) {
+                LogLifecycle('Failed while stopping runtime message listener capture for ' + GetLifecycleDescriptor() + ': ' + e2);
+            }
+        }
+    };
+
+    var RejectEmulatorScriptLoad = function(module, deffered, error, reason, removeTrackedListeners) {
+
+        StopRuntimeMessageListenerCapture(module, reason || 'emulator script load failed', !!removeTrackedListeners);
+        deffered.reject(error);
     };
 
     var GetLifecycleDescriptor = function() {
@@ -645,9 +939,30 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
         }
     };
 
+    var GetEmulatorPauseOverlay = function() {
+        return $('#emulatorwrapperoverlay');
+    };
+
+    var IsRuntimeGamepadConfigurationShimVisible = function() {
+        var $overlay = GetEmulatorPauseOverlay();
+        return !!($overlay.length && $overlay.hasClass(_runtimeGamepadConfigurationShimClass) && $overlay.is(':visible'));
+    };
+
+    var ShowRuntimeGamepadConfigurationShim = function() {
+        try {
+            GetEmulatorPauseOverlay()
+                .stop(true, true)
+                .addClass(_runtimeGamepadConfigurationShimClass)
+                .show();
+        } catch (ignoreShowShim) {}
+    };
+
     var HideEmulatorPauseOverlay = function() {
         try {
-            $('#emulatorwrapperoverlay').stop(true, true).hide();
+            GetEmulatorPauseOverlay()
+                .stop(true, true)
+                .removeClass(_runtimeGamepadConfigurationShimClass)
+                .hide();
         } catch (ignoreHideOverlay) {}
     };
 
@@ -665,6 +980,39 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
         }
 
         return false;
+    };
+
+    var RevokeEmulatorInputForRuntimeGamepadConfiguration = function(reason) {
+        if (_runtimeGamepadConfigurationInputRevoked) {
+            return;
+        }
+
+        try {
+            self.GiveEmulatorControlOfInput(false);
+            _runtimeGamepadConfigurationInputRevoked = true;
+            LogLifecycle('Revoked emulator keyboard input for runtime gamepad configuration' + (reason ? ': ' + reason : ''));
+        } catch (e) {
+            _Logging.Console('cesEmulatorBase', 'Unable to revoke emulator input for runtime gamepad configuration: ' + e);
+        }
+    };
+
+    var RestoreEmulatorInputAfterRuntimeGamepadConfiguration = function(reason) {
+        if (!_runtimeGamepadConfigurationInputRevoked) {
+            return;
+        }
+
+        _runtimeGamepadConfigurationInputRevoked = false;
+
+        if (_cleanupInProgress || _cleanupComplete) {
+            return;
+        }
+
+        try {
+            self.GiveEmulatorControlOfInput(true);
+            LogLifecycle('Restored emulator keyboard input after runtime gamepad configuration' + (reason ? ': ' + reason : ''));
+        } catch (e) {
+            _Logging.Console('cesEmulatorBase', 'Unable to restore emulator input after runtime gamepad configuration: ' + e);
+        }
     };
 
     var BeginRuntimeGamepadConfigurationTransaction = function(context) {
@@ -710,6 +1058,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
             }
         }
 
+        RevokeEmulatorInputForRuntimeGamepadConfiguration(context.reason || 'runtime gamepad configuration focus fence');
         HideEmulatorPauseOverlay();
 
         if (_Module && typeof _Module.cesBeginRuntimeGamepadConfigurationUi === 'function') {
@@ -718,6 +1067,10 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
             } catch (e) {
                 _Logging.Console('cesEmulatorBase', 'Runtime gamepad configuration UI fence hook failed: ' + e);
             }
+        }
+
+        if (_isEmulatorPaused) {
+            ShowRuntimeGamepadConfigurationShim();
         }
 
         return true;
@@ -776,6 +1129,8 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
             HideEmulatorPauseOverlay();
         }, 0);
 
+        RestoreEmulatorInputAfterRuntimeGamepadConfiguration(context.reason || 'runtime gamepad configuration ended');
+
         return true;
     };
 
@@ -828,7 +1183,13 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
 
         if (result.ok) {
             _isEmulatorPaused = !!shouldPause;
-            HideEmulatorPauseOverlay();
+
+            if (shouldPause && IsRuntimeGamepadConfigurationFocusFenceActive()) {
+                ShowRuntimeGamepadConfigurationShim();
+            }
+            else {
+                HideEmulatorPauseOverlay();
+            }
         }
 
         callback(result);
@@ -926,7 +1287,9 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
             _ui.canvas
                 .blur(function(event) {
                     if (IsRuntimeGamepadConfigurationFocusFenceActive()) {
-                        HideEmulatorPauseOverlay();
+                        if (!IsRuntimeGamepadConfigurationShimVisible()) {
+                            HideEmulatorPauseOverlay();
+                        }
                         _Logging.Console('cesEmulatorBase', 'Suppressed CES pause overlay while runtime gamepad configuration owns focus.');
                         return;
                     }
@@ -943,8 +1306,11 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
                 .focus(function(event) {
                     if (!IsRuntimeGamepadConfigurationFocusFenceActive()) {
                         self.ResumeGame();
+                        HideEmulatorPauseOverlay();
                     }
-                    $('#emulatorwrapperoverlay').hide();
+                    else if (!IsRuntimeGamepadConfigurationShimVisible()) {
+                        HideEmulatorPauseOverlay();
+                    }
 
                     if (_Module && typeof _Module.cesAfterCanvasFocusResume === 'function') {
                         _Module.cesAfterCanvasFocusResume(event);
@@ -1150,6 +1516,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
         _Sync.DeregisterComponent('s');
 
         EndRuntimeGamepadConfigurationTransaction({ reason: 'emulator cleanup' });
+        RestoreEmulatorInputAfterRuntimeGamepadConfiguration('emulator cleanup');
         $('#emulatorwrapperoverlay').hide(); //ensure pause is hidden for next game
 
         if (_Module) {
@@ -1169,12 +1536,19 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
             try {
 
                 //calls exit on emulator ending loop (just to be safe)
-                LogLifecycle('Invoking module cesExit for ' + GetLifecycleDescriptor());
-                _Module.cesExit(); //see module class for implementation
+                if (typeof _Module.cesExit === 'function') {
+                    LogLifecycle('Invoking module cesExit for ' + GetLifecycleDescriptor());
+                    _Module.cesExit(); //see module class for implementation
+                }
+                else {
+                    LogLifecycle('Module cesExit unavailable during cleanup for ' + GetLifecycleDescriptor());
+                }
 
             } catch (e) {
                 LogLifecycle('Module cesExit threw during cleanup for ' + GetLifecycleDescriptor() + ': ' + e);
             }
+
+            StopRuntimeMessageListenerCapture(_Module, 'cesEmulatorBase.CleanUp after module exit', true);
 
             //we need to manually clear up the audio context
             if (_Module.RA && _Module.RA.context && _Module.RA.context.close) {
@@ -1818,7 +2192,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
             var runtimeError = 'Emulator module loaded but did not expose callMain: ' + scriptPath;
             _Logging.Console('cesEmulatorBase', runtimeError);
             _PubSub.Publish('error', ['Emulator Runtime Error:', runtimeError]);
-            deffered.reject(runtimeError);
+            RejectEmulatorScriptLoad(runtimeModule, deffered, runtimeError, 'emulator module missing callMain', true);
             return;
         }
 
@@ -1839,6 +2213,8 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
             return;
         }
 
+        StartRuntimeMessageListenerCapture(module, 'classic emulator script evaluation: ' + (systemDetails.emuscript || scriptPath));
+
         //evaluate the response text and place it in the global scope
         try {
             window.cesRetroArchEmulator = undefined;
@@ -1846,7 +2222,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
         } catch (e) {
             _Logging.Console('cesEmulatorBase', 'Emulator script evaluation failed for ' + scriptPath + ': ' + e);
             _PubSub.Publish('error', ['Emulator Evaluation Error:', e]);
-            deffered.reject(e);
+            RejectEmulatorScriptLoad(module, deffered, e, 'classic emulator script evaluation failed', true);
             return;
         }
 
@@ -1854,7 +2230,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
             var constructorError = 'Expected global cesRetroArchEmulator constructor was not defined by ' + scriptPath;
             _Logging.Console('cesEmulatorBase', constructorError);
             _PubSub.Publish('error', ['Emulator Runtime Error:', constructorError]);
-            deffered.reject(constructorError);
+            RejectEmulatorScriptLoad(module, deffered, constructorError, 'classic emulator constructor missing', true);
             return;
         }
 
@@ -1864,7 +2240,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
         } catch (e) {
             _Logging.Console('cesEmulatorBase', 'Emulator script instantiation failed for ' + scriptPath + ': ' + e);
             _PubSub.Publish('error', ['Emulator Instantiation Error:', e]);
-            deffered.reject(e);
+            RejectEmulatorScriptLoad(module, deffered, e, 'classic emulator script instantiation failed', true);
             return;
         }
 
@@ -1874,6 +2250,8 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
     var LoadEsModuleEmulatorScript = function(script, systemDetails, module, emulatorAssetRoot, scriptPath, deffered) {
 
         SetEmulatorModuleMetadata(module, systemDetails, emulatorAssetRoot, scriptPath);
+
+        StartRuntimeMessageListenerCapture(module, 'ES module emulator script import: ' + (systemDetails.emuscript || scriptPath));
 
         var importUrl = null;
         var blobUrl = null;
@@ -1898,7 +2276,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
             } catch (e) {
                 _Logging.Console('cesEmulatorBase', 'Could not create ES module adapter for ' + scriptPath + ': ' + e);
                 _PubSub.Publish('error', ['Emulator Module Adapter Error:', e]);
-                deffered.reject(e);
+                RejectEmulatorScriptLoad(module, deffered, e, 'ES module adapter creation failed', true);
                 return;
             }
         }
@@ -1912,7 +2290,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
             }
             _Logging.Console('cesEmulatorBase', 'Browser could not start dynamic import for ' + scriptPath + ': ' + e);
             _PubSub.Publish('error', ['Emulator Module Import Error:', e]);
-            deffered.reject(e);
+            RejectEmulatorScriptLoad(module, deffered, e, 'ES module dynamic import start failed', true);
             return;
         }
 
@@ -1923,7 +2301,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
             var importError = 'Dynamic import did not return a Promise for ' + scriptPath;
             _Logging.Console('cesEmulatorBase', importError);
             _PubSub.Publish('error', ['Emulator Module Import Error:', importError]);
-            deffered.reject(importError);
+            RejectEmulatorScriptLoad(module, deffered, importError, 'ES module dynamic import did not return a promise', true);
             return;
         }
 
@@ -1941,7 +2319,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
                 var exportError = 'ES module emulator script did not export a usable factory or cesRetroArchEmulator constructor: ' + scriptPath;
                 _Logging.Console('cesEmulatorBase', exportError);
                 _PubSub.Publish('error', ['Emulator Module Export Error:', exportError]);
-                deffered.reject(exportError);
+                RejectEmulatorScriptLoad(module, deffered, exportError, 'ES module missing usable export', true);
                 return;
             }
 
@@ -1963,7 +2341,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
                 } catch (e) {
                     _Logging.Console('cesEmulatorBase', 'ES module emulator factory failed for ' + scriptPath + ': ' + e);
                     _PubSub.Publish('error', ['Emulator Module Factory Error:', e]);
-                    deffered.reject(e);
+                    RejectEmulatorScriptLoad(module, deffered, e, 'ES module emulator factory failed', true);
                     return;
                 }
 
@@ -1974,7 +2352,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
                     }).catch(function(e) {
                         _Logging.Console('cesEmulatorBase', 'ES module emulator factory promise rejected for ' + scriptPath + ': ' + e);
                         _PubSub.Publish('error', ['Emulator Module Factory Error:', e]);
-                        deffered.reject(e);
+                        RejectEmulatorScriptLoad(module, deffered, e, 'ES module emulator factory promise rejected', true);
                     });
                     return;
                 }
@@ -1986,7 +2364,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
                     }).catch(function(e) {
                         _Logging.Console('cesEmulatorBase', 'ES module emulator ready promise rejected for ' + scriptPath + ': ' + e);
                         _PubSub.Publish('error', ['Emulator Module Factory Error:', e]);
-                        deffered.reject(e);
+                        RejectEmulatorScriptLoad(module, deffered, e, 'ES module emulator ready promise rejected', true);
                     });
                     return;
                 }
@@ -2003,7 +2381,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
                     }).catch(function(e) {
                         _Logging.Console('cesEmulatorBase', 'ES module emulator ready promise rejected for ' + scriptPath + ': ' + e);
                         _PubSub.Publish('error', ['Emulator Module Runtime Error:', e]);
-                        deffered.reject(e);
+                        RejectEmulatorScriptLoad(module, deffered, e, 'ES module emulator object ready promise rejected', true);
                     });
                     return;
                 }
@@ -2015,7 +2393,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
             var unsupportedError = 'ES module emulator export was not a function or object: ' + scriptPath;
             _Logging.Console('cesEmulatorBase', unsupportedError);
             _PubSub.Publish('error', ['Emulator Module Export Error:', unsupportedError]);
-            deffered.reject(unsupportedError);
+            RejectEmulatorScriptLoad(module, deffered, unsupportedError, 'ES module export unsupported', true);
         }).catch(function(e) {
 
             if (blobUrl) {
@@ -2024,7 +2402,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
 
             _Logging.Console('cesEmulatorBase', 'ES module import failed for ' + scriptPath + ': ' + e);
             _PubSub.Publish('error', ['Emulator Module Import Error:', e]);
-            deffered.reject(e);
+            RejectEmulatorScriptLoad(module, deffered, e, 'ES module import failed', true);
         });
     };
 

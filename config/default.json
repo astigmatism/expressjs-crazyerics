@@ -78,127 +78,139 @@
         "image": "/images/gamepads/gen/controls-slider-bg.png",
         "imageAlt": "Sega Genesis six-button controller",
         "callouts": [
-          {
-            "input": "up_axis",
-            "label": "D-pad Up",
-            "x": 12.0,
-            "y": 14.0,
-            "lineX": 20.5,
-            "lineY": 24.0,
-            "targetX": 39.0,
-            "targetY": 45.6
-          },
-          {
-            "input": "left_axis",
-            "label": "D-pad Left",
-            "x": 12.0,
-            "y": 39.0,
-            "lineX": 20.5,
-            "lineY": 49.0,
-            "targetX": 35.8,
-            "targetY": 50.0
-          },
-          {
-            "input": "right_axis",
-            "label": "D-pad Right",
-            "x": 31.0,
-            "y": 14.0,
-            "lineX": 39.4,
-            "lineY": 24.0,
-            "targetX": 41.5,
-            "targetY": 50.0
-          },
-          {
-            "input": "down_axis",
-            "label": "D-pad Down",
-            "x": 12.0,
-            "y": 64.0,
-            "lineX": 20.5,
-            "lineY": 56.0,
-            "targetX": 39.0,
-            "targetY": 54.7
-          },
-          {
-            "input": "select_btn",
-            "label": "Mode",
-            "x": 50.0,
-            "y": 14.0,
-            "lineX": 58.0,
-            "lineY": 24.0,
-            "targetX": 62.8,
-            "targetY": 36.2
-          },
-          {
-            "input": "start_btn",
-            "label": "Start",
-            "x": 31.0,
-            "y": 88.0,
-            "lineX": 39.4,
-            "lineY": 78.0,
-            "targetX": 49.4,
-            "targetY": 48.4
-          },
-          {
-            "input": "l_btn",
-            "label": "X",
-            "x": 69.0,
-            "y": 14.0,
-            "lineX": 73.0,
-            "lineY": 24.0,
-            "targetX": 55.8,
-            "targetY": 48.4
-          },
-          {
-            "input": "x_btn",
-            "label": "Y",
-            "x": 88.0,
-            "y": 64.0,
-            "lineX": 79.5,
-            "lineY": 55.0,
-            "targetX": 59.1,
-            "targetY": 45.6
-          },
-          {
-            "input": "r_btn",
-            "label": "Z",
-            "x": 88.0,
-            "y": 39.0,
-            "lineX": 79.5,
-            "lineY": 43.3,
-            "targetX": 62.8,
-            "targetY": 43.3
-          },
-          {
-            "input": "y_btn",
-            "label": "A",
-            "x": 50.0,
-            "y": 88.0,
-            "lineX": 57.0,
-            "lineY": 78.0,
-            "targetX": 57.0,
-            "targetY": 57.1
-          },
-          {
-            "input": "b_btn",
-            "label": "B",
-            "x": 69.0,
-            "y": 88.0,
-            "lineX": 61.4,
-            "lineY": 78.0,
-            "targetX": 61.4,
-            "targetY": 54.2
-          },
-          {
-            "input": "a_btn",
-            "label": "C",
-            "x": 88.0,
-            "y": 88.0,
-            "lineX": 79.5,
-            "lineY": 78.0,
-            "targetX": 65.8,
-            "targetY": 51.0
-          }
-        ]
+  {
+    "id": "up_axis",
+    "input": "up_axis",
+    "label": "D-pad Up",
+    "x": 12,
+    "y": 14,
+    "lineX": 20.5,
+    "lineY": 24,
+    "targetX": 39.1,
+    "targetY": 44.99
+  },
+  {
+    "id": "left_axis",
+    "input": "left_axis",
+    "label": "D-pad Left",
+    "x": 12,
+    "y": 39,
+    "lineX": 20.5,
+    "lineY": 49,
+    "targetX": 36.5,
+    "targetY": 49.55
+  },
+  {
+    "id": "right_axis",
+    "input": "right_axis",
+    "label": "D-pad Right",
+    "x": 31,
+    "y": 14,
+    "lineX": 39.4,
+    "lineY": 24,
+    "targetX": 41.6,
+    "targetY": 49.6
+  },
+  {
+    "id": "down_axis",
+    "input": "down_axis",
+    "label": "D-pad Down",
+    "x": 12,
+    "y": 64,
+    "lineX": 20.5,
+    "lineY": 56,
+    "targetX": 39.1,
+    "targetY": 54.5
+  },
+  {
+    "id": "select_btn",
+    "input": "select_btn",
+    "label": "Mode",
+    "x": 50,
+    "y": 14,
+    "lineX": 58,
+    "lineY": 24,
+    "targetX": 62.8,
+    "targetY": 35.1
+  },
+  {
+    "id": "start_btn",
+    "input": "start_btn",
+    "label": "Start",
+    "x": 31,
+    "y": 88,
+    "lineX": 39.4,
+    "lineY": 78,
+    "targetX": 49.15,
+    "targetY": 48.3
+  },
+  {
+    "id": "l_btn",
+    "input": "l_btn",
+    "label": "X",
+    "x": 69,
+    "y": 14,
+    "lineX": 73,
+    "lineY": 24,
+    "targetX": 55.45,
+    "targetY": 48.65
+  },
+  {
+    "id": "x_btn",
+    "input": "x_btn",
+    "label": "Y",
+    "x": 88,
+    "y": 64,
+    "lineX": 79.5,
+    "lineY": 55,
+    "targetX": 58.85,
+    "targetY": 45.6
+  },
+  {
+    "id": "r_btn",
+    "input": "r_btn",
+    "label": "Z",
+    "x": 88,
+    "y": 39,
+    "lineX": 79.5,
+    "lineY": 43.3,
+    "targetX": 62.45,
+    "targetY": 43.4
+  },
+  {
+    "id": "y_btn",
+    "input": "y_btn",
+    "label": "A",
+    "x": 50,
+    "y": 88,
+    "lineX": 57,
+    "lineY": 78,
+    "targetX": 56.75,
+    "targetY": 57.1
+  },
+  {
+    "id": "b_btn",
+    "input": "b_btn",
+    "label": "B",
+    "x": 69,
+    "y": 88,
+    "lineX": 61.4,
+    "lineY": 78,
+    "targetX": 61.1,
+    "targetY": 53.45
+  },
+  {
+    "id": "a_btn",
+    "input": "a_btn",
+    "label": "C",
+    "x": 88,
+    "y": 88,
+    "lineX": 79.5,
+    "lineY": 78,
+    "targetX": 65.35,
+    "targetY": 50.5
+  }
+]
       },
       "retroarch": {
         "video_force_aspect": true,
@@ -583,87 +595,95 @@
         "image": "/images/gamepads/gb/controls-slider-bg",
         "imageAlt": "Nintendo Game Boy handheld",
         "callouts": [
-          {
-            "input": "up_axis",
-            "label": "D-pad Up",
-            "x": 31.0,
-            "y": 14.0,
-            "lineX": 39.4,
-            "lineY": 24.0,
-            "targetX": 42.7,
-            "targetY": 43.5
-          },
-          {
-            "input": "left_axis",
-            "label": "D-pad Left",
-            "x": 12.0,
-            "y": 39.0,
-            "lineX": 20.5,
-            "lineY": 47.6,
-            "targetX": 40.6,
-            "targetY": 47.6
-          },
-          {
-            "input": "right_axis",
-            "label": "D-pad Right",
-            "x": 50.0,
-            "y": 14.0,
-            "lineX": 44.7,
-            "lineY": 24.0,
-            "targetX": 44.7,
-            "targetY": 47.6
-          },
-          {
-            "input": "down_axis",
-            "label": "D-pad Down",
-            "x": 12.0,
-            "y": 64.0,
-            "lineX": 20.5,
-            "lineY": 55.5,
-            "targetX": 42.7,
-            "targetY": 51.3
-          },
-          {
-            "input": "select_btn",
-            "label": "Select",
-            "x": 31.0,
-            "y": 88.0,
-            "lineX": 39.4,
-            "lineY": 78.0,
-            "targetX": 46.6,
-            "targetY": 58.1
-          },
-          {
-            "input": "start_btn",
-            "label": "Start",
-            "x": 50.0,
-            "y": 88.0,
-            "lineX": 50.8,
-            "lineY": 78.0,
-            "targetX": 50.8,
-            "targetY": 58.0
-          },
-          {
-            "input": "b_btn",
-            "label": "B",
-            "x": 88.0,
-            "y": 64.0,
-            "lineX": 79.5,
-            "lineY": 55.0,
-            "targetX": 54.9,
-            "targetY": 48.1
-          },
-          {
-            "input": "a_btn",
-            "label": "A",
-            "x": 88.0,
-            "y": 39.0,
-            "lineX": 79.5,
-            "lineY": 44.8,
-            "targetX": 59.0,
-            "targetY": 44.8
-          }
-        ]
+  {
+    "id": "up_axis",
+    "input": "up_axis",
+    "label": "D-pad Up",
+    "x": 31,
+    "y": 14,
+    "lineX": 39.4,
+    "lineY": 24,
+    "targetX": 42.83,
+    "targetY": 43.44
+  },
+  {
+    "id": "left_axis",
+    "input": "left_axis",
+    "label": "D-pad Left",
+    "x": 12,
+    "y": 39,
+    "lineX": 20.5,
+    "lineY": 47.6,
+    "targetX": 40.71,
+    "targetY": 47.14
+  },
+  {
+    "id": "right_axis",
+    "input": "right_axis",
+    "label": "D-pad Right",
+    "x": 50,
+    "y": 14,
+    "lineX": 44.7,
+    "lineY": 24,
+    "targetX": 44.95,
+    "targetY": 47.1
+  },
+  {
+    "id": "down_axis",
+    "input": "down_axis",
+    "label": "D-pad Down",
+    "x": 12,
+    "y": 64,
+    "lineX": 20.5,
+    "lineY": 55.5,
+    "targetX": 42.83,
+    "targetY": 51.28
+  },
+  {
+    "id": "select_btn",
+    "input": "select_btn",
+    "label": "Select",
+    "x": 31,
+    "y": 88,
+    "lineX": 39.4,
+    "lineY": 78,
+    "targetX": 46.6,
+    "targetY": 58.1
+  },
+  {
+    "id": "start_btn",
+    "input": "start_btn",
+    "label": "Start",
+    "x": 50,
+    "y": 88,
+    "lineX": 50.8,
+    "lineY": 78,
+    "targetX": 50.8,
+    "targetY": 58
+  },
+  {
+    "id": "b_btn",
+    "input": "b_btn",
+    "label": "B",
+    "x": 88,
+    "y": 64,
+    "lineX": 79.5,
+    "lineY": 55,
+    "targetX": 54.8,
+    "targetY": 48.12
+  },
+  {
+    "id": "a_btn",
+    "input": "a_btn",
+    "label": "A",
+    "x": 88,
+    "y": 39,
+    "lineX": 79.5,
+    "lineY": 44.8,
+    "targetX": 58.74,
+    "targetY": 44.95
+  }
+]
       },
       "retroarch": {
         "video_force_aspect": true,
@@ -702,87 +722,95 @@
         "image": "/images/gamepads/gbc/controls-slider-bg.png",
         "imageAlt": "Nintendo Game Boy Color handheld",
         "callouts": [
-          {
-            "input": "up_axis",
-            "label": "D-pad Up",
-            "x": 31.0,
-            "y": 14.0,
-            "lineX": 39.4,
-            "lineY": 24.0,
-            "targetX": 41.3,
-            "targetY": 44.8
-          },
-          {
-            "input": "left_axis",
-            "label": "D-pad Left",
-            "x": 12.0,
-            "y": 39.0,
-            "lineX": 20.5,
-            "lineY": 48.4,
-            "targetX": 39.2,
-            "targetY": 48.4
-          },
-          {
-            "input": "right_axis",
-            "label": "D-pad Right",
-            "x": 50.0,
-            "y": 14.0,
-            "lineX": 43.0,
-            "lineY": 24.0,
-            "targetX": 43.5,
-            "targetY": 48.4
-          },
-          {
-            "input": "down_axis",
-            "label": "D-pad Down",
-            "x": 12.0,
-            "y": 64.0,
-            "lineX": 20.5,
-            "lineY": 55.0,
-            "targetX": 41.3,
-            "targetY": 52.5
-          },
-          {
-            "input": "select_btn",
-            "label": "Select",
-            "x": 31.0,
-            "y": 88.0,
-            "lineX": 39.4,
-            "lineY": 78.0,
-            "targetX": 47.0,
-            "targetY": 62.7
-          },
-          {
-            "input": "start_btn",
-            "label": "Start",
-            "x": 50.0,
-            "y": 88.0,
-            "lineX": 50.9,
-            "lineY": 78.0,
-            "targetX": 50.9,
-            "targetY": 62.7
-          },
-          {
-            "input": "b_btn",
-            "label": "B",
-            "x": 88.0,
-            "y": 64.0,
-            "lineX": 79.5,
-            "lineY": 55.0,
-            "targetX": 53.7,
-            "targetY": 50.1
-          },
-          {
-            "input": "a_btn",
-            "label": "A",
-            "x": 88.0,
-            "y": 39.0,
-            "lineX": 79.5,
-            "lineY": 47.4,
-            "targetX": 58.6,
-            "targetY": 47.4
-          }
-        ]
+  {
+    "id": "up_axis",
+    "input": "up_axis",
+    "label": "D-pad Up",
+    "x": 31,
+    "y": 14,
+    "lineX": 39.4,
+    "lineY": 24,
+    "targetX": 42.85,
+    "targetY": 44.68
+  },
+  {
+    "id": "left_axis",
+    "input": "left_axis",
+    "label": "D-pad Left",
+    "x": 12,
+    "y": 39,
+    "lineX": 20.5,
+    "lineY": 48.4,
+    "targetX": 40.77,
+    "targetY": 48.55
+  },
+  {
+    "id": "right_axis",
+    "input": "right_axis",
+    "label": "D-pad Right",
+    "x": 50,
+    "y": 14,
+    "lineX": 43,
+    "lineY": 24,
+    "targetX": 44.92,
+    "targetY": 48.54
+  },
+  {
+    "id": "down_axis",
+    "input": "down_axis",
+    "label": "D-pad Down",
+    "x": 12,
+    "y": 64,
+    "lineX": 20.5,
+    "lineY": 55,
+    "targetX": 42.85,
+    "targetY": 52.65
+  },
+  {
+    "id": "select_btn",
+    "input": "select_btn",
+    "label": "Select",
+    "x": 31,
+    "y": 88,
+    "lineX": 39.4,
+    "lineY": 78,
+    "targetX": 48.25,
+    "targetY": 62.27
+  },
+  {
+    "id": "start_btn",
+    "input": "start_btn",
+    "label": "Start",
+    "x": 50,
+    "y": 88,
+    "lineX": 50.9,
+    "lineY": 78,
+    "targetX": 51.9,
+    "targetY": 62.25
+  },
+  {
+    "id": "b_btn",
+    "input": "b_btn",
+    "label": "B",
+    "x": 88,
+    "y": 64,
+    "lineX": 79.5,
+    "lineY": 55,
+    "targetX": 54.36,
+    "targetY": 49.84
+  },
+  {
+    "id": "a_btn",
+    "input": "a_btn",
+    "label": "A",
+    "x": 88,
+    "y": 39,
+    "lineX": 79.5,
+    "lineY": 47.4,
+    "targetX": 58.91,
+    "targetY": 47.1
+  }
+]
       },
       "retroarch": {
         "video_force_aspect": true,
@@ -820,107 +848,117 @@
         "image": "/images/gamepads/gba/controls-slider-bg.png",
         "imageAlt": "Nintendo Game Boy Advance handheld",
         "callouts": [
-          {
-            "input": "l_btn",
-            "label": "L",
-            "x": 14.0,
-            "y": 15.0,
-            "lineX": 22.5,
-            "lineY": 23.5,
-            "targetX": 33.0,
-            "targetY": 35.0
-          },
-          {
-            "input": "r_btn",
-            "label": "R",
-            "x": 74.0,
-            "y": 15.0,
-            "lineX": 67.0,
-            "lineY": 25.0,
-            "targetX": 67.0,
-            "targetY": 35.0
-          },
-          {
-            "input": "up_axis",
-            "label": "D-pad Up",
-            "x": 34.0,
-            "y": 15.0,
-            "lineX": 34.2,
-            "lineY": 25.0,
-            "targetX": 34.2,
-            "targetY": 45.3
-          },
-          {
-            "input": "left_axis",
-            "label": "D-pad Left",
-            "x": 12.0,
-            "y": 47.0,
-            "lineX": 20.8,
-            "lineY": 48.5,
-            "targetX": 32.5,
-            "targetY": 48.5
-          },
-          {
-            "input": "right_axis",
-            "label": "D-pad Right",
-            "x": 54.0,
-            "y": 15.0,
-            "lineX": 45.2,
-            "lineY": 25.0,
-            "targetX": 35.9,
-            "targetY": 48.5
-          },
-          {
-            "input": "down_axis",
-            "label": "D-pad Down",
-            "x": 12.0,
-            "y": 68.0,
-            "lineX": 20.8,
-            "lineY": 63.0,
-            "targetX": 34.2,
-            "targetY": 51.8
-          },
-          {
-            "input": "select_btn",
-            "label": "Select",
-            "x": 53.0,
-            "y": 87.0,
-            "lineX": 44.2,
-            "lineY": 77.0,
-            "targetX": 37.2,
-            "targetY": 63.4
-          },
-          {
-            "input": "start_btn",
-            "label": "Start",
-            "x": 34.0,
-            "y": 87.0,
-            "lineX": 34.0,
-            "lineY": 77.0,
-            "targetX": 37.2,
-            "targetY": 59.1
-          },
-          {
-            "input": "b_btn",
-            "label": "B",
-            "x": 88.0,
-            "y": 68.0,
-            "lineX": 79.2,
-            "lineY": 61.2,
-            "targetX": 64.2,
-            "targetY": 49.9
-          },
-          {
-            "input": "a_btn",
-            "label": "A",
-            "x": 88.0,
-            "y": 47.0,
-            "lineX": 79.2,
-            "lineY": 47.2,
-            "targetX": 68.1,
-            "targetY": 47.2
-          }
-        ]
+  {
+    "id": "l_btn",
+    "input": "l_btn",
+    "label": "L",
+    "x": 14,
+    "y": 15,
+    "lineX": 22.5,
+    "lineY": 23.5,
+    "targetX": 33.28,
+    "targetY": 34.09
+  },
+  {
+    "id": "r_btn",
+    "input": "r_btn",
+    "label": "R",
+    "x": 74,
+    "y": 15,
+    "lineX": 67,
+    "lineY": 25,
+    "targetX": 67.07,
+    "targetY": 34.09
+  },
+  {
+    "id": "up_axis",
+    "input": "up_axis",
+    "label": "D-pad Up",
+    "x": 34,
+    "y": 15,
+    "lineX": 34.2,
+    "lineY": 25,
+    "targetX": 34.51,
+    "targetY": 45.17
+  },
+  {
+    "id": "left_axis",
+    "input": "left_axis",
+    "label": "D-pad Left",
+    "x": 12,
+    "y": 47,
+    "lineX": 20.8,
+    "lineY": 48.5,
+    "targetX": 32.68,
+    "targetY": 48.41
+  },
+  {
+    "id": "right_axis",
+    "input": "right_axis",
+    "label": "D-pad Right",
+    "x": 54,
+    "y": 15,
+    "lineX": 45.2,
+    "lineY": 25,
+    "targetX": 36.31,
+    "targetY": 48.39
+  },
+  {
+    "id": "down_axis",
+    "input": "down_axis",
+    "label": "D-pad Down",
+    "x": 12,
+    "y": 68,
+    "lineX": 20.8,
+    "lineY": 63,
+    "targetX": 34.5,
+    "targetY": 51.54
+  },
+  {
+    "id": "select_btn",
+    "input": "select_btn",
+    "label": "Select",
+    "x": 53,
+    "y": 87,
+    "lineX": 44.2,
+    "lineY": 77,
+    "targetX": 37.37,
+    "targetY": 63.28
+  },
+  {
+    "id": "start_btn",
+    "input": "start_btn",
+    "label": "Start",
+    "x": 34,
+    "y": 87,
+    "lineX": 34,
+    "lineY": 77,
+    "targetX": 37.43,
+    "targetY": 58.96
+  },
+  {
+    "id": "b_btn",
+    "input": "b_btn",
+    "label": "B",
+    "x": 88,
+    "y": 68,
+    "lineX": 79.2,
+    "lineY": 61.2,
+    "targetX": 63.79,
+    "targetY": 49.71
+  },
+  {
+    "id": "a_btn",
+    "input": "a_btn",
+    "label": "A",
+    "x": 88,
+    "y": 47,
+    "lineX": 79.2,
+    "lineY": 47.2,
+    "targetX": 67.43,
+    "targetY": 47.06
+  }
+]
       },
       "retroarch": {
         "video_force_aspect": true,
@@ -956,127 +994,139 @@
         "image": "/images/gamepads/gen/controls-slider-bg.png",
         "imageAlt": "Sega Genesis six-button controller",
         "callouts": [
-          {
-            "input": "up_axis",
-            "label": "D-pad Up",
-            "x": 12.0,
-            "y": 14.0,
-            "lineX": 20.5,
-            "lineY": 24.0,
-            "targetX": 39.0,
-            "targetY": 45.6
-          },
-          {
-            "input": "left_axis",
-            "label": "D-pad Left",
-            "x": 12.0,
-            "y": 39.0,
-            "lineX": 20.5,
-            "lineY": 49.0,
-            "targetX": 35.8,
-            "targetY": 50.0
-          },
-          {
-            "input": "right_axis",
-            "label": "D-pad Right",
-            "x": 31.0,
-            "y": 14.0,
-            "lineX": 39.4,
-            "lineY": 24.0,
-            "targetX": 41.5,
-            "targetY": 50.0
-          },
-          {
-            "input": "down_axis",
-            "label": "D-pad Down",
-            "x": 12.0,
-            "y": 64.0,
-            "lineX": 20.5,
-            "lineY": 56.0,
-            "targetX": 39.0,
-            "targetY": 54.7
-          },
-          {
-            "input": "select_btn",
-            "label": "Mode",
-            "x": 50.0,
-            "y": 14.0,
-            "lineX": 58.0,
-            "lineY": 24.0,
-            "targetX": 62.8,
-            "targetY": 36.2
-          },
-          {
-            "input": "start_btn",
-            "label": "Start",
-            "x": 31.0,
-            "y": 88.0,
-            "lineX": 39.4,
-            "lineY": 78.0,
-            "targetX": 49.4,
-            "targetY": 48.4
-          },
-          {
-            "input": "l_btn",
-            "label": "X",
-            "x": 69.0,
-            "y": 14.0,
-            "lineX": 73.0,
-            "lineY": 24.0,
-            "targetX": 55.8,
-            "targetY": 48.4
-          },
-          {
-            "input": "x_btn",
-            "label": "Y",
-            "x": 88.0,
-            "y": 64.0,
-            "lineX": 79.5,
-            "lineY": 55.0,
-            "targetX": 59.1,
-            "targetY": 45.6
-          },
-          {
-            "input": "r_btn",
-            "label": "Z",
-            "x": 88.0,
-            "y": 39.0,
-            "lineX": 79.5,
-            "lineY": 43.3,
-            "targetX": 62.8,
-            "targetY": 43.3
-          },
-          {
-            "input": "y_btn",
-            "label": "A",
-            "x": 50.0,
-            "y": 88.0,
-            "lineX": 57.0,
-            "lineY": 78.0,
-            "targetX": 57.0,
-            "targetY": 57.1
-          },
-          {
-            "input": "b_btn",
-            "label": "B",
-            "x": 69.0,
-            "y": 88.0,
-            "lineX": 61.4,
-            "lineY": 78.0,
-            "targetX": 61.4,
-            "targetY": 54.2
-          },
-          {
-            "input": "a_btn",
-            "label": "C",
-            "x": 88.0,
-            "y": 88.0,
-            "lineX": 79.5,
-            "lineY": 78.0,
-            "targetX": 65.8,
-            "targetY": 51.0
-          }
-        ]
+  {
+    "id": "up_axis",
+    "input": "up_axis",
+    "label": "D-pad Up",
+    "x": 12,
+    "y": 14,
+    "lineX": 20.5,
+    "lineY": 24,
+    "targetX": 39.1,
+    "targetY": 44.99
+  },
+  {
+    "id": "left_axis",
+    "input": "left_axis",
+    "label": "D-pad Left",
+    "x": 12,
+    "y": 39,
+    "lineX": 20.5,
+    "lineY": 49,
+    "targetX": 36.5,
+    "targetY": 49.55
+  },
+  {
+    "id": "right_axis",
+    "input": "right_axis",
+    "label": "D-pad Right",
+    "x": 31,
+    "y": 14,
+    "lineX": 39.4,
+    "lineY": 24,
+    "targetX": 41.6,
+    "targetY": 49.6
+  },
+  {
+    "id": "down_axis",
+    "input": "down_axis",
+    "label": "D-pad Down",
+    "x": 12,
+    "y": 64,
+    "lineX": 20.5,
+    "lineY": 56,
+    "targetX": 39.1,
+    "targetY": 54.5
+  },
+  {
+    "id": "select_btn",
+    "input": "select_btn",
+    "label": "Mode",
+    "x": 50,
+    "y": 14,
+    "lineX": 58,
+    "lineY": 24,
+    "targetX": 62.8,
+    "targetY": 35.1
+  },
+  {
+    "id": "start_btn",
+    "input": "start_btn",
+    "label": "Start",
+    "x": 31,
+    "y": 88,
+    "lineX": 39.4,
+    "lineY": 78,
+    "targetX": 49.15,
+    "targetY": 48.3
+  },
+  {
+    "id": "l_btn",
+    "input": "l_btn",
+    "label": "X",
+    "x": 69,
+    "y": 14,
+    "lineX": 73,
+    "lineY": 24,
+    "targetX": 55.45,
+    "targetY": 48.65
+  },
+  {
+    "id": "x_btn",
+    "input": "x_btn",
+    "label": "Y",
+    "x": 88,
+    "y": 64,
+    "lineX": 79.5,
+    "lineY": 55,
+    "targetX": 58.85,
+    "targetY": 45.6
+  },
+  {
+    "id": "r_btn",
+    "input": "r_btn",
+    "label": "Z",
+    "x": 88,
+    "y": 39,
+    "lineX": 79.5,
+    "lineY": 43.3,
+    "targetX": 62.45,
+    "targetY": 43.4
+  },
+  {
+    "id": "y_btn",
+    "input": "y_btn",
+    "label": "A",
+    "x": 50,
+    "y": 88,
+    "lineX": 57,
+    "lineY": 78,
+    "targetX": 56.75,
+    "targetY": 57.1
+  },
+  {
+    "id": "b_btn",
+    "input": "b_btn",
+    "label": "B",
+    "x": 69,
+    "y": 88,
+    "lineX": 61.4,
+    "lineY": 78,
+    "targetX": 61.1,
+    "targetY": 53.45
+  },
+  {
+    "id": "a_btn",
+    "input": "a_btn",
+    "label": "C",
+    "x": 88,
+    "y": 88,
+    "lineX": 79.5,
+    "lineY": 78,
+    "targetX": 65.35,
+    "targetY": 50.5
+  }
+]
       },
       "retroarch": {
         "video_force_aspect": true,
@@ -1102,77 +1152,84 @@
         "image": "/images/gamepads/gg/controls-slider-bg.png",
         "imageAlt": "Sega Game Gear handheld",
         "callouts": [
-          {
-            "input": "up_axis",
-            "label": "D-pad Up",
-            "x": 31.0,
-            "y": 14.0,
-            "lineX": 32.0,
-            "lineY": 24.0,
-            "targetX": 32.0,
-            "targetY": 45.8
-          },
-          {
-            "input": "left_axis",
-            "label": "D-pad Left",
-            "x": 12.0,
-            "y": 39.0,
-            "lineX": 20.5,
-            "lineY": 49.0,
-            "targetX": 30.3,
-            "targetY": 49.0
-          },
-          {
-            "input": "right_axis",
-            "label": "D-pad Right",
-            "x": 50.0,
-            "y": 14.0,
-            "lineX": 43.0,
-            "lineY": 24.0,
-            "targetX": 34.0,
-            "targetY": 49.0
-          },
-          {
-            "input": "down_axis",
-            "label": "D-pad Down",
-            "x": 12.0,
-            "y": 64.0,
-            "lineX": 20.5,
-            "lineY": 56.0,
-            "targetX": 32.0,
-            "targetY": 51.8
-          },
-          {
-            "input": "b_btn",
-            "label": "Button 1",
-            "x": 88.0,
-            "y": 64.0,
-            "lineX": 79.5,
-            "lineY": 56.0,
-            "targetX": 65.5,
-            "targetY": 52.8
-          },
-          {
-            "input": "a_btn",
-            "label": "Button 2",
-            "x": 88.0,
-            "y": 39.0,
-            "lineX": 79.5,
-            "lineY": 47.2,
-            "targetX": 68.9,
-            "targetY": 47.2
-          },
-          {
-            "input": "start_btn",
-            "label": "Start",
-            "x": 69.0,
-            "y": 14.0,
-            "lineX": 65.3,
-            "lineY": 24.0,
-            "targetX": 65.3,
-            "targetY": 39.1
-          }
-        ]
+  {
+    "id": "up_axis",
+    "input": "up_axis",
+    "label": "D-pad Up",
+    "x": 31,
+    "y": 14,
+    "lineX": 32,
+    "lineY": 24,
+    "targetX": 32.74,
+    "targetY": 43.95
+  },
+  {
+    "id": "left_axis",
+    "input": "left_axis",
+    "label": "D-pad Left",
+    "x": 12,
+    "y": 39,
+    "lineX": 20.5,
+    "lineY": 49,
+    "targetX": 30.51,
+    "targetY": 47.4
+  },
+  {
+    "id": "right_axis",
+    "input": "right_axis",
+    "label": "D-pad Right",
+    "x": 50,
+    "y": 14,
+    "lineX": 43,
+    "lineY": 24,
+    "targetX": 34.83,
+    "targetY": 47.37
+  },
+  {
+    "id": "down_axis",
+    "input": "down_axis",
+    "label": "D-pad Down",
+    "x": 12,
+    "y": 64,
+    "lineX": 20.5,
+    "lineY": 56,
+    "targetX": 32.73,
+    "targetY": 51.03
+  },
+  {
+    "id": "b_btn",
+    "input": "b_btn",
+    "label": "Button 1",
+    "x": 88,
+    "y": 64,
+    "lineX": 79.5,
+    "lineY": 56,
+    "targetX": 65.15,
+    "targetY": 52.28
+  },
+  {
+    "id": "a_btn",
+    "input": "a_btn",
+    "label": "Button 2",
+    "x": 88,
+    "y": 39,
+    "lineX": 79.5,
+    "lineY": 47.2,
+    "targetX": 68.38,
+    "targetY": 46.86
+  },
+  {
+    "id": "start_btn",
+    "input": "start_btn",
+    "label": "Start",
+    "x": 69,
+    "y": 14,
+    "lineX": 65.3,
+    "lineY": 24,
+    "targetX": 64.75,
+    "targetY": 39.45
+  }
+]
       },
       "retroarch": {
         "video_force_aspect": true,
@@ -1231,97 +1288,106 @@
         "image": "/images/gamepads/lynx/controls-slider-bg.png",
         "imageAlt": "Atari Lynx handheld",
         "callouts": [
-          {
-            "input": "up_axis",
-            "label": "D-pad Up",
-            "x": 31.0,
-            "y": 14.0,
-            "lineX": 30.6,
-            "lineY": 24.0,
-            "targetX": 30.6,
-            "targetY": 45.8
-          },
-          {
-            "input": "left_axis",
-            "label": "D-pad Left",
-            "x": 12.0,
-            "y": 39.0,
-            "lineX": 20.5,
-            "lineY": 49.0,
-            "targetX": 28.0,
-            "targetY": 50.2
-          },
-          {
-            "input": "right_axis",
-            "label": "D-pad Right",
-            "x": 50.0,
-            "y": 14.0,
-            "lineX": 43.0,
-            "lineY": 24.0,
-            "targetX": 33.0,
-            "targetY": 50.2
-          },
-          {
-            "input": "down_axis",
-            "label": "D-pad Down",
-            "x": 12.0,
-            "y": 64.0,
-            "lineX": 20.5,
-            "lineY": 56.0,
-            "targetX": 30.6,
-            "targetY": 54.6
-          },
-          {
-            "input": "l_btn",
-            "label": "Option 1",
-            "x": 31.0,
-            "y": 88.0,
-            "lineX": 39.5,
-            "lineY": 78.0,
-            "targetX": 62.2,
-            "targetY": 42.1
-          },
-          {
-            "input": "start_btn",
-            "label": "Pause",
-            "x": 50.0,
-            "y": 88.0,
-            "lineX": 50.0,
-            "lineY": 78.0,
-            "targetX": 62.2,
-            "targetY": 49.3
-          },
-          {
-            "input": "r_btn",
-            "label": "Option 2",
-            "x": 69.0,
-            "y": 88.0,
-            "lineX": 60.5,
-            "lineY": 78.0,
-            "targetX": 62.2,
-            "targetY": 57.1
-          },
-          {
-            "input": "b_btn",
-            "label": "B",
-            "x": 88.0,
-            "y": 64.0,
-            "lineX": 79.5,
-            "lineY": 64.0,
-            "targetX": 64.7,
-            "targetY": 63.9
-          },
-          {
-            "input": "a_btn",
-            "label": "A",
-            "x": 88.0,
-            "y": 39.0,
-            "lineX": 79.5,
-            "lineY": 39.0,
-            "targetX": 70.4,
-            "targetY": 33.2
-          }
-        ]
+  {
+    "id": "up_axis",
+    "input": "up_axis",
+    "label": "D-pad Up",
+    "x": 31,
+    "y": 14,
+    "lineX": 30.6,
+    "lineY": 24,
+    "targetX": 31.27,
+    "targetY": 45.24
+  },
+  {
+    "id": "left_axis",
+    "input": "left_axis",
+    "label": "D-pad Left",
+    "x": 12,
+    "y": 39,
+    "lineX": 20.5,
+    "lineY": 49,
+    "targetX": 28.85,
+    "targetY": 49.77
+  },
+  {
+    "id": "right_axis",
+    "input": "right_axis",
+    "label": "D-pad Right",
+    "x": 50,
+    "y": 14,
+    "lineX": 43,
+    "lineY": 24,
+    "targetX": 33.8,
+    "targetY": 49.55
+  },
+  {
+    "id": "down_axis",
+    "input": "down_axis",
+    "label": "D-pad Down",
+    "x": 12,
+    "y": 64,
+    "lineX": 20.5,
+    "lineY": 56,
+    "targetX": 31.42,
+    "targetY": 54.73
+  },
+  {
+    "id": "l_btn",
+    "input": "l_btn",
+    "label": "Option 1",
+    "x": 31,
+    "y": 88,
+    "lineX": 39.5,
+    "lineY": 78,
+    "targetX": 61.73,
+    "targetY": 43.23
+  },
+  {
+    "id": "start_btn",
+    "input": "start_btn",
+    "label": "Pause",
+    "x": 50,
+    "y": 88,
+    "lineX": 50,
+    "lineY": 78,
+    "targetX": 62.13,
+    "targetY": 49.55
+  },
+  {
+    "id": "r_btn",
+    "input": "r_btn",
+    "label": "Option 2",
+    "x": 69,
+    "y": 88,
+    "lineX": 60.5,
+    "lineY": 78,
+    "targetX": 61.73,
+    "targetY": 55.91
+  },
+  {
+    "id": "b_btn",
+    "input": "b_btn",
+    "label": "B",
+    "x": 88,
+    "y": 64,
+    "lineX": 79.5,
+    "lineY": 64,
+    "targetX": 65.06,
+    "targetY": 63.92
+  },
+  {
+    "id": "a_btn",
+    "input": "a_btn",
+    "label": "A",
+    "x": 88,
+    "y": 39,
+    "lineX": 79.5,
+    "lineY": 39,
+    "targetX": 69.3,
+    "targetY": 32.6
+  }
+]
       },
       "retroarch": {
         "video_force_aspect": true,
@@ -1415,87 +1481,95 @@
         "image": "/images/controllers/nes/controls-slider-bg.png",
         "imageAlt": "Nintendo Entertainment System controller",
         "callouts": [
-          {
-            "input": "up_axis",
-            "label": "D-pad Up",
-            "x": 31.0,
-            "y": 14.0,
-            "lineX": 31.4,
-            "lineY": 24.0,
-            "targetX": 31.4,
-            "targetY": 48.0
-          },
-          {
-            "input": "left_axis",
-            "label": "D-pad Left",
-            "x": 12.0,
-            "y": 56.0,
-            "lineX": 20.5,
-            "lineY": 56.0,
-            "targetX": 27.9,
-            "targetY": 54.7
-          },
-          {
-            "input": "right_axis",
-            "label": "D-pad Right",
-            "x": 49.0,
-            "y": 14.0,
-            "lineX": 45.0,
-            "lineY": 24.0,
-            "targetX": 35.0,
-            "targetY": 54.7
-          },
-          {
-            "input": "down_axis",
-            "label": "D-pad Down",
-            "x": 31.0,
-            "y": 87.0,
-            "lineX": 31.4,
-            "lineY": 76.8,
-            "targetX": 31.4,
-            "targetY": 61.2
-          },
-          {
-            "input": "select_btn",
-            "label": "Select",
-            "x": 50.0,
-            "y": 87.0,
-            "lineX": 44.5,
-            "lineY": 76.8,
-            "targetX": 44.2,
-            "targetY": 59.7
-          },
-          {
-            "input": "start_btn",
-            "label": "Start",
-            "x": 69.0,
-            "y": 87.0,
-            "lineX": 60.6,
-            "lineY": 76.8,
-            "targetX": 50.7,
-            "targetY": 59.8
-          },
-          {
-            "input": "b_btn",
-            "label": "B",
-            "x": 89.0,
-            "y": 39.0,
-            "lineX": 80.6,
-            "lineY": 47.8,
-            "targetX": 61.1,
-            "targetY": 59.6
-          },
-          {
-            "input": "a_btn",
-            "label": "A",
-            "x": 89.0,
-            "y": 63.0,
-            "lineX": 80.6,
-            "lineY": 60.0,
-            "targetX": 68.6,
-            "targetY": 59.6
-          }
-        ]
+  {
+    "id": "up_axis",
+    "input": "up_axis",
+    "label": "D-pad Up",
+    "x": 31,
+    "y": 14,
+    "lineX": 31.4,
+    "lineY": 24,
+    "targetX": 31.89,
+    "targetY": 48.03
+  },
+  {
+    "id": "left_axis",
+    "input": "left_axis",
+    "label": "D-pad Left",
+    "x": 12,
+    "y": 56,
+    "lineX": 20.5,
+    "lineY": 56,
+    "targetX": 28.66,
+    "targetY": 54.18
+  },
+  {
+    "id": "right_axis",
+    "input": "right_axis",
+    "label": "D-pad Right",
+    "x": 49,
+    "y": 14,
+    "lineX": 45,
+    "lineY": 24,
+    "targetX": 35.38,
+    "targetY": 54.35
+  },
+  {
+    "id": "down_axis",
+    "input": "down_axis",
+    "label": "D-pad Down",
+    "x": 31,
+    "y": 87,
+    "lineX": 31.4,
+    "lineY": 76.8,
+    "targetX": 31.99,
+    "targetY": 60.39
+  },
+  {
+    "id": "select_btn",
+    "input": "select_btn",
+    "label": "Select",
+    "x": 50,
+    "y": 87,
+    "lineX": 44.5,
+    "lineY": 76.8,
+    "targetX": 44.32,
+    "targetY": 59.82
+  },
+  {
+    "id": "start_btn",
+    "input": "start_btn",
+    "label": "Start",
+    "x": 69,
+    "y": 87,
+    "lineX": 60.6,
+    "lineY": 76.8,
+    "targetX": 50.83,
+    "targetY": 59.72
+  },
+  {
+    "id": "b_btn",
+    "input": "b_btn",
+    "label": "B",
+    "x": 89,
+    "y": 39,
+    "lineX": 80.6,
+    "lineY": 47.8,
+    "targetX": 60.89,
+    "targetY": 59.96
+  },
+  {
+    "id": "a_btn",
+    "input": "a_btn",
+    "label": "A",
+    "x": 89,
+    "y": 63,
+    "lineX": 80.6,
+    "lineY": 60,
+    "targetX": 68.01,
+    "targetY": 60.02
+  }
+]
       },
       "retroarch": {
         "video_force_aspect": true,
@@ -1521,77 +1595,84 @@
         "image": "/images/gamepads/ngpx/controls-slider-bg.png",
         "imageAlt": "Neo Geo Pocket handheld",
         "callouts": [
-          {
-            "input": "up_axis",
-            "label": "D-pad Up",
-            "x": 31.0,
-            "y": 14.0,
-            "lineX": 36.5,
-            "lineY": 24.0,
-            "targetX": 36.5,
-            "targetY": 43.5
-          },
-          {
-            "input": "left_axis",
-            "label": "D-pad Left",
-            "x": 12.0,
-            "y": 39.0,
-            "lineX": 20.5,
-            "lineY": 47.8,
-            "targetX": 33.6,
-            "targetY": 47.8
-          },
-          {
-            "input": "right_axis",
-            "label": "D-pad Right",
-            "x": 50.0,
-            "y": 14.0,
-            "lineX": 44.0,
-            "lineY": 24.0,
-            "targetX": 39.2,
-            "targetY": 47.8
-          },
-          {
-            "input": "down_axis",
-            "label": "D-pad Down",
-            "x": 12.0,
-            "y": 64.0,
-            "lineX": 20.5,
-            "lineY": 56.0,
-            "targetX": 36.5,
-            "targetY": 52.5
-          },
-          {
-            "input": "start_btn",
-            "label": "Option",
-            "x": 69.0,
-            "y": 14.0,
-            "lineX": 65.2,
-            "lineY": 24.0,
-            "targetX": 65.2,
-            "targetY": 34.6
-          },
-          {
-            "input": "b_btn",
-            "label": "A",
-            "x": 88.0,
-            "y": 64.0,
-            "lineX": 79.5,
-            "lineY": 56.0,
-            "targetX": 61.5,
-            "targetY": 48.7
-          },
-          {
-            "input": "a_btn",
-            "label": "B",
-            "x": 88.0,
-            "y": 39.0,
-            "lineX": 79.5,
-            "lineY": 43.3,
-            "targetX": 65.1,
-            "targetY": 43.3
-          }
-        ]
+  {
+    "id": "up_axis",
+    "input": "up_axis",
+    "label": "D-pad Up",
+    "x": 31,
+    "y": 14,
+    "lineX": 36.5,
+    "lineY": 24,
+    "targetX": 36.89,
+    "targetY": 44.32
+  },
+  {
+    "id": "left_axis",
+    "input": "left_axis",
+    "label": "D-pad Left",
+    "x": 12,
+    "y": 39,
+    "lineX": 20.5,
+    "lineY": 47.8,
+    "targetX": 34.72,
+    "targetY": 48.35
+  },
+  {
+    "id": "right_axis",
+    "input": "right_axis",
+    "label": "D-pad Right",
+    "x": 50,
+    "y": 14,
+    "lineX": 44,
+    "lineY": 24,
+    "targetX": 39.12,
+    "targetY": 48.35
+  },
+  {
+    "id": "down_axis",
+    "input": "down_axis",
+    "label": "D-pad Down",
+    "x": 12,
+    "y": 64,
+    "lineX": 20.5,
+    "lineY": 56,
+    "targetX": 36.84,
+    "targetY": 52.58
+  },
+  {
+    "id": "start_btn",
+    "input": "start_btn",
+    "label": "Option",
+    "x": 69,
+    "y": 14,
+    "lineX": 65.2,
+    "lineY": 24,
+    "targetX": 64.7,
+    "targetY": 34.6
+  },
+  {
+    "id": "b_btn",
+    "input": "b_btn",
+    "label": "A",
+    "x": 88,
+    "y": 64,
+    "lineX": 79.5,
+    "lineY": 56,
+    "targetX": 61.1,
+    "targetY": 48.3
+  },
+  {
+    "id": "a_btn",
+    "input": "a_btn",
+    "label": "B",
+    "x": 88,
+    "y": 39,
+    "lineX": 79.5,
+    "lineY": 43.3,
+    "targetX": 64.7,
+    "targetY": 43
+  }
+]
       },
       "retroarch": {
         "video_force_aspect": true,
@@ -1636,87 +1717,95 @@
         "image": "/images/gamepads/pce/controls-slider-bg.png",
         "imageAlt": "NEC TurboGrafx-16 / PC Engine controller",
         "callouts": [
-          {
-            "input": "up_axis",
-            "label": "D-pad Up",
-            "x": 31.0,
-            "y": 14.0,
-            "lineX": 31.4,
-            "lineY": 24.0,
-            "targetX": 33.1,
-            "targetY": 52.5
-          },
-          {
-            "input": "left_axis",
-            "label": "D-pad Left",
-            "x": 12.0,
-            "y": 39.0,
-            "lineX": 20.5,
-            "lineY": 49.0,
-            "targetX": 29.6,
-            "targetY": 58.0
-          },
-          {
-            "input": "right_axis",
-            "label": "D-pad Right",
-            "x": 50.0,
-            "y": 14.0,
-            "lineX": 43.0,
-            "lineY": 24.0,
-            "targetX": 36.7,
-            "targetY": 58.0
-          },
-          {
-            "input": "down_axis",
-            "label": "D-pad Down",
-            "x": 12.0,
-            "y": 64.0,
-            "lineX": 20.5,
-            "lineY": 64.0,
-            "targetX": 33.1,
-            "targetY": 63.2
-          },
-          {
-            "input": "select_btn",
-            "label": "Select",
-            "x": 31.0,
-            "y": 88.0,
-            "lineX": 39.5,
-            "lineY": 78.0,
-            "targetX": 47.4,
-            "targetY": 60.9
-          },
-          {
-            "input": "start_btn",
-            "label": "Run",
-            "x": 50.0,
-            "y": 88.0,
-            "lineX": 50.0,
-            "lineY": 78.0,
-            "targetX": 53.5,
-            "targetY": 60.9
-          },
-          {
-            "input": "b_btn",
-            "label": "II",
-            "x": 88.0,
-            "y": 39.0,
-            "lineX": 79.5,
-            "lineY": 49.0,
-            "targetX": 62.1,
-            "targetY": 62.4
-          },
-          {
-            "input": "a_btn",
-            "label": "I",
-            "x": 88.0,
-            "y": 64.0,
-            "lineX": 79.5,
-            "lineY": 64.0,
-            "targetX": 67.9,
-            "targetY": 62.4
-          }
-        ]
+  {
+    "id": "up_axis",
+    "input": "up_axis",
+    "label": "D-pad Up",
+    "x": 31,
+    "y": 14,
+    "lineX": 31.4,
+    "lineY": 24,
+    "targetX": 33.7,
+    "targetY": 51.42
+  },
+  {
+    "id": "left_axis",
+    "input": "left_axis",
+    "label": "D-pad Left",
+    "x": 12,
+    "y": 39,
+    "lineX": 20.5,
+    "lineY": 49,
+    "targetX": 30.52,
+    "targetY": 57.74
+  },
+  {
+    "id": "right_axis",
+    "input": "right_axis",
+    "label": "D-pad Right",
+    "x": 50,
+    "y": 14,
+    "lineX": 43,
+    "lineY": 24,
+    "targetX": 36.88,
+    "targetY": 57.93
+  },
+  {
+    "id": "down_axis",
+    "input": "down_axis",
+    "label": "D-pad Down",
+    "x": 12,
+    "y": 64,
+    "lineX": 20.5,
+    "lineY": 64,
+    "targetX": 33.7,
+    "targetY": 64.44
+  },
+  {
+    "id": "select_btn",
+    "input": "select_btn",
+    "label": "Select",
+    "x": 31,
+    "y": 88,
+    "lineX": 39.5,
+    "lineY": 78,
+    "targetX": 47.3,
+    "targetY": 61.25
+  },
+  {
+    "id": "start_btn",
+    "input": "start_btn",
+    "label": "Run",
+    "x": 50,
+    "y": 88,
+    "lineX": 50,
+    "lineY": 78,
+    "targetX": 52.8,
+    "targetY": 61.15
+  },
+  {
+    "id": "b_btn",
+    "input": "b_btn",
+    "label": "II",
+    "x": 88,
+    "y": 39,
+    "lineX": 79.5,
+    "lineY": 49,
+    "targetX": 61.73,
+    "targetY": 61.38
+  },
+  {
+    "id": "a_btn",
+    "input": "a_btn",
+    "label": "I",
+    "x": 88,
+    "y": 64,
+    "lineX": 79.5,
+    "lineY": 64,
+    "targetX": 67.28,
+    "targetY": 61.29
+  }
+]
       },
       "retroarch": {
         "video_force_aspect": true,
@@ -1855,127 +1944,139 @@
         "image": "/images/gamepads/snes/controls-slider-bg.png",
         "imageAlt": "Super Nintendo controller",
         "callouts": [
-          {
-            "input": "l_btn",
-            "label": "L",
-            "x": 12.0,
-            "y": 14.0,
-            "lineX": 20.5,
-            "lineY": 24.0,
-            "targetX": 32.0,
-            "targetY": 31.5
-          },
-          {
-            "input": "r_btn",
-            "label": "R",
-            "x": 88.0,
-            "y": 14.0,
-            "lineX": 79.5,
-            "lineY": 24.0,
-            "targetX": 69.0,
-            "targetY": 31.5
-          },
-          {
-            "input": "up_axis",
-            "label": "D-pad Up",
-            "x": 31.0,
-            "y": 14.0,
-            "lineX": 34.2,
-            "lineY": 24.0,
-            "targetX": 34.2,
-            "targetY": 46.5
-          },
-          {
-            "input": "left_axis",
-            "label": "D-pad Left",
-            "x": 12.0,
-            "y": 39.0,
-            "lineX": 20.5,
-            "lineY": 47.0,
-            "targetX": 32.0,
-            "targetY": 50.7
-          },
-          {
-            "input": "right_axis",
-            "label": "D-pad Right",
-            "x": 50.0,
-            "y": 14.0,
-            "lineX": 43.0,
-            "lineY": 24.0,
-            "targetX": 36.4,
-            "targetY": 50.7
-          },
-          {
-            "input": "down_axis",
-            "label": "D-pad Down",
-            "x": 12.0,
-            "y": 64.0,
-            "lineX": 20.5,
-            "lineY": 59.0,
-            "targetX": 34.2,
-            "targetY": 55.0
-          },
-          {
-            "input": "select_btn",
-            "label": "Select",
-            "x": 31.0,
-            "y": 88.0,
-            "lineX": 39.4,
-            "lineY": 78.0,
-            "targetX": 44.8,
-            "targetY": 53.6
-          },
-          {
-            "input": "start_btn",
-            "label": "Start",
-            "x": 50.0,
-            "y": 88.0,
-            "lineX": 50.8,
-            "lineY": 78.0,
-            "targetX": 50.8,
-            "targetY": 53.6
-          },
-          {
-            "input": "y_btn",
-            "label": "Y",
-            "x": 69.0,
-            "y": 88.0,
-            "lineX": 60.6,
-            "lineY": 78.0,
-            "targetX": 60.6,
-            "targetY": 50.6
-          },
-          {
-            "input": "x_btn",
-            "label": "X",
-            "x": 69.0,
-            "y": 14.0,
-            "lineX": 66.2,
-            "lineY": 24.0,
-            "targetX": 66.2,
-            "targetY": 42.6
-          },
-          {
-            "input": "b_btn",
-            "label": "B",
-            "x": 88.0,
-            "y": 64.0,
-            "lineX": 79.5,
-            "lineY": 58.8,
-            "targetX": 65.7,
-            "targetY": 58.8
-          },
-          {
-            "input": "a_btn",
-            "label": "A",
-            "x": 88.0,
-            "y": 39.0,
-            "lineX": 79.5,
-            "lineY": 47.0,
-            "targetX": 71.3,
-            "targetY": 50.7
-          }
-        ]
+  {
+    "id": "l_btn",
+    "input": "l_btn",
+    "label": "L",
+    "x": 12,
+    "y": 14,
+    "lineX": 20.5,
+    "lineY": 24,
+    "targetX": 31.59,
+    "targetY": 28.9
+  },
+  {
+    "id": "r_btn",
+    "input": "r_btn",
+    "label": "R",
+    "x": 88,
+    "y": 14,
+    "lineX": 79.5,
+    "lineY": 24,
+    "targetX": 69.07,
+    "targetY": 29.11
+  },
+  {
+    "id": "up_axis",
+    "input": "up_axis",
+    "label": "D-pad Up",
+    "x": 31,
+    "y": 14,
+    "lineX": 34.2,
+    "lineY": 24,
+    "targetX": 34.67,
+    "targetY": 45.11
+  },
+  {
+    "id": "left_axis",
+    "input": "left_axis",
+    "label": "D-pad Left",
+    "x": 12,
+    "y": 39,
+    "lineX": 20.5,
+    "lineY": 47,
+    "targetX": 31.89,
+    "targetY": 50.54
+  },
+  {
+    "id": "right_axis",
+    "input": "right_axis",
+    "label": "D-pad Right",
+    "x": 50,
+    "y": 14,
+    "lineX": 43,
+    "lineY": 24,
+    "targetX": 37.49,
+    "targetY": 50.57
+  },
+  {
+    "id": "down_axis",
+    "input": "down_axis",
+    "label": "D-pad Down",
+    "x": 12,
+    "y": 64,
+    "lineX": 20.5,
+    "lineY": 59,
+    "targetX": 34.72,
+    "targetY": 55.76
+  },
+  {
+    "id": "select_btn",
+    "input": "select_btn",
+    "label": "Select",
+    "x": 31,
+    "y": 88,
+    "lineX": 39.4,
+    "lineY": 78,
+    "targetX": 45,
+    "targetY": 53.6
+  },
+  {
+    "id": "start_btn",
+    "input": "start_btn",
+    "label": "Start",
+    "x": 50,
+    "y": 88,
+    "lineX": 50.8,
+    "lineY": 78,
+    "targetX": 50.9,
+    "targetY": 53.6
+  },
+  {
+    "id": "y_btn",
+    "input": "y_btn",
+    "label": "Y",
+    "x": 69,
+    "y": 88,
+    "lineX": 60.6,
+    "lineY": 78,
+    "targetX": 60.28,
+    "targetY": 51.05
+  },
+  {
+    "id": "x_btn",
+    "input": "x_btn",
+    "label": "X",
+    "x": 69,
+    "y": 14,
+    "lineX": 66.2,
+    "lineY": 24,
+    "targetX": 65.83,
+    "targetY": 42.8
+  },
+  {
+    "id": "b_btn",
+    "input": "b_btn",
+    "label": "B",
+    "x": 88,
+    "y": 64,
+    "lineX": 79.5,
+    "lineY": 58.8,
+    "targetX": 65.28,
+    "targetY": 59.21
+  },
+  {
+    "id": "a_btn",
+    "input": "a_btn",
+    "label": "A",
+    "x": 88,
+    "y": 39,
+    "lineX": 79.5,
+    "lineY": 47,
+    "targetX": 70.68,
+    "targetY": 50.97
+  }
+]
       },
       "retroarch": {
         "video_force_aspect": true,
@@ -2003,136 +2104,145 @@
         "image": "/images/gamepads/vb/controls-slider-bg.png",
         "imageAlt": "Nintendo Virtual Boy controller",
         "callouts": [
-          {
-            "input": "l_btn",
-            "label": "L",
-            "x": 12.0,
-            "y": 14.0,
-            "lineX": 20.5,
-            "lineY": 24.0,
-            "targetX": 31.8,
-            "targetY": 32.5
-          },
-          {
-            "input": "up_axis",
-            "label": "D-pad Up",
-            "x": 31.0,
-            "y": 14.0,
-            "lineX": 35.2,
-            "lineY": 24.0,
-            "targetX": 35.2,
-            "targetY": 38.5
-          },
-          {
-            "input": "right_axis",
-            "label": "D-pad Right",
-            "x": 50.0,
-            "y": 14.0,
-            "lineX": 43.0,
-            "lineY": 24.0,
-            "targetX": 37.5,
-            "targetY": 41.6
-          },
-          {
-            "id": "right_dpad",
-            "label": "R D-pad",
-            "x": 88.0,
-            "y": 39.0,
-            "lineX": 79.5,
-            "lineY": 41.6,
-            "targetX": 64.9,
-            "targetY": 42.6,
-            "detailsPlacement": "left",
-            "inputs": [
-              {
-                "input": "l2_btn",
-                "label": "Up"
-              },
-              {
-                "input": "r2_btn",
-                "label": "Left"
-              },
-              {
-                "input": "l3_btn",
-                "label": "Down"
-              },
-              {
-                "input": "r3_btn",
-                "label": "Right"
-              }
-            ]
-          },
-          {
-            "input": "r_btn",
-            "label": "R",
-            "x": 88.0,
-            "y": 14.0,
-            "lineX": 79.5,
-            "lineY": 24.0,
-            "targetX": 68.4,
-            "targetY": 32.5
-          },
-          {
-            "input": "left_axis",
-            "label": "D-pad Left",
-            "x": 12.0,
-            "y": 39.0,
-            "lineX": 20.5,
-            "lineY": 41.6,
-            "targetX": 32.8,
-            "targetY": 41.6
-          },
-          {
-            "input": "a_btn",
-            "label": "A",
-            "x": 88.0,
-            "y": 64.0,
-            "lineX": 79.5,
-            "lineY": 56.0,
-            "targetX": 59.2,
-            "targetY": 47.6
-          },
-          {
-            "input": "down_axis",
-            "label": "D-pad Down",
-            "x": 12.0,
-            "y": 64.0,
-            "lineX": 20.5,
-            "lineY": 56.0,
-            "targetX": 35.2,
-            "targetY": 45.7
-          },
-          {
-            "input": "b_btn",
-            "label": "B",
-            "x": 69.0,
-            "y": 88.0,
-            "lineX": 60.6,
-            "lineY": 78.0,
-            "targetX": 55.6,
-            "targetY": 50.4
-          },
-          {
-            "input": "select_btn",
-            "label": "Select",
-            "x": 31.0,
-            "y": 88.0,
-            "lineX": 39.4,
-            "lineY": 78.0,
-            "targetX": 41.0,
-            "targetY": 47.1
-          },
-          {
-            "input": "start_btn",
-            "label": "Start",
-            "x": 50.0,
-            "y": 88.0,
-            "lineX": 50.0,
-            "lineY": 78.0,
-            "targetX": 44.5,
-            "targetY": 49.9
-          }
-        ]
+  {
+    "id": "l_btn",
+    "input": "l_btn",
+    "label": "L",
+    "x": 12,
+    "y": 14,
+    "lineX": 20.5,
+    "lineY": 24,
+    "targetX": 31.8,
+    "targetY": 32.5
+  },
+  {
+    "id": "up_axis",
+    "input": "up_axis",
+    "label": "D-pad Up",
+    "x": 31,
+    "y": 14,
+    "lineX": 35.2,
+    "lineY": 24,
+    "targetX": 35.68,
+    "targetY": 38.16
+  },
+  {
+    "id": "right_axis",
+    "input": "right_axis",
+    "label": "D-pad Right",
+    "x": 50,
+    "y": 14,
+    "lineX": 43,
+    "lineY": 24,
+    "targetX": 37.82,
+    "targetY": 42.22
+  },
+  {
+    "id": "right_dpad",
+    "label": "R D-pad",
+    "x": 88,
+    "y": 39,
+    "lineX": 79.5,
+    "lineY": 41.6,
+    "targetX": 64.35,
+    "targetY": 42.6,
+    "inputs": [
+      {
+        "input": "l2_btn",
+        "label": "Up"
+      },
+      {
+        "input": "r2_btn",
+        "label": "Left"
+      },
+      {
+        "input": "l3_btn",
+        "label": "Down"
+      },
+      {
+        "input": "r3_btn",
+        "label": "Right"
+      }
+    ]
+  },
+  {
+    "id": "r_btn",
+    "input": "r_btn",
+    "label": "R",
+    "x": 88,
+    "y": 14,
+    "lineX": 79.5,
+    "lineY": 24,
+    "targetX": 68.15,
+    "targetY": 32.5
+  },
+  {
+    "id": "left_axis",
+    "input": "left_axis",
+    "label": "D-pad Left",
+    "x": 12,
+    "y": 39,
+    "lineX": 20.5,
+    "lineY": 41.6,
+    "targetX": 33.54,
+    "targetY": 42.22
+  },
+  {
+    "id": "a_btn",
+    "input": "a_btn",
+    "label": "A",
+    "x": 88,
+    "y": 64,
+    "lineX": 79.5,
+    "lineY": 56,
+    "targetX": 58.87,
+    "targetY": 47.15
+  },
+  {
+    "id": "down_axis",
+    "input": "down_axis",
+    "label": "D-pad Down",
+    "x": 12,
+    "y": 64,
+    "lineX": 20.5,
+    "lineY": 56,
+    "targetX": 35.73,
+    "targetY": 46.76
+  },
+  {
+    "id": "b_btn",
+    "input": "b_btn",
+    "label": "B",
+    "x": 69,
+    "y": 88,
+    "lineX": 60.6,
+    "lineY": 78,
+    "targetX": 55.55,
+    "targetY": 50.05
+  },
+  {
+    "id": "select_btn",
+    "input": "select_btn",
+    "label": "Select",
+    "x": 31,
+    "y": 88,
+    "lineX": 39.4,
+    "lineY": 78,
+    "targetX": 41.25,
+    "targetY": 47.1
+  },
+  {
+    "id": "start_btn",
+    "input": "start_btn",
+    "label": "Start",
+    "x": 50,
+    "y": 88,
+    "lineX": 50,
+    "lineY": 78,
+    "targetX": 44.6,
+    "targetY": 50
+  }
+]
       },
       "retroarch": {
         "video_force_aspect": true,
@@ -2184,87 +2294,95 @@
         "image": "/images/gamepads/vect/controls-slider-bg.png",
         "imageAlt": "Vectrex controller",
         "callouts": [
-          {
-            "input": "up_axis",
-            "label": "Stick Up",
-            "x": 31.0,
-            "y": 14.0,
-            "lineX": 36.5,
-            "lineY": 24.0,
-            "targetX": 36.5,
-            "targetY": 41.5
-          },
-          {
-            "input": "left_axis",
-            "label": "Stick Left",
-            "x": 12.0,
-            "y": 39.0,
-            "lineX": 20.5,
-            "lineY": 43.0,
-            "targetX": 36.5,
-            "targetY": 41.5
-          },
-          {
-            "input": "right_axis",
-            "label": "Stick Right",
-            "x": 50.0,
-            "y": 14.0,
-            "lineX": 43.0,
-            "lineY": 24.0,
-            "targetX": 36.5,
-            "targetY": 41.5
-          },
-          {
-            "input": "down_axis",
-            "label": "Stick Down",
-            "x": 31.0,
-            "y": 88.0,
-            "lineX": 36.5,
-            "lineY": 78.0,
-            "targetX": 36.5,
-            "targetY": 41.5
-          },
-          {
-            "input": "a_btn",
-            "label": "Button 1",
-            "x": 50.0,
-            "y": 88.0,
-            "lineX": 48.8,
-            "lineY": 78.0,
-            "targetX": 48.8,
-            "targetY": 45.2
-          },
-          {
-            "input": "b_btn",
-            "label": "Button 2",
-            "x": 69.0,
-            "y": 88.0,
-            "lineX": 60.6,
-            "lineY": 78.0,
-            "targetX": 55.6,
-            "targetY": 45.2
-          },
-          {
-            "input": "x_btn",
-            "label": "Button 3",
-            "x": 88.0,
-            "y": 64.0,
-            "lineX": 79.5,
-            "lineY": 55.0,
-            "targetX": 62.8,
-            "targetY": 45.2
-          },
-          {
-            "input": "y_btn",
-            "label": "Button 4",
-            "x": 88.0,
-            "y": 39.0,
-            "lineX": 79.5,
-            "lineY": 45.2,
-            "targetX": 70.2,
-            "targetY": 45.2
-          }
-        ]
+  {
+    "id": "up_axis",
+    "input": "up_axis",
+    "label": "Stick Up",
+    "x": 31,
+    "y": 14,
+    "lineX": 36.5,
+    "lineY": 24,
+    "targetX": 36.65,
+    "targetY": 41.5
+  },
+  {
+    "id": "left_axis",
+    "input": "left_axis",
+    "label": "Stick Left",
+    "x": 12,
+    "y": 39,
+    "lineX": 20.5,
+    "lineY": 43,
+    "targetX": 36.65,
+    "targetY": 41.5
+  },
+  {
+    "id": "right_axis",
+    "input": "right_axis",
+    "label": "Stick Right",
+    "x": 50,
+    "y": 14,
+    "lineX": 43,
+    "lineY": 24,
+    "targetX": 36.65,
+    "targetY": 41.5
+  },
+  {
+    "id": "down_axis",
+    "input": "down_axis",
+    "label": "Stick Down",
+    "x": 31,
+    "y": 88,
+    "lineX": 36.5,
+    "lineY": 78,
+    "targetX": 36.65,
+    "targetY": 41.5
+  },
+  {
+    "id": "a_btn",
+    "input": "a_btn",
+    "label": "Button 1",
+    "x": 50,
+    "y": 88,
+    "lineX": 48.8,
+    "lineY": 78,
+    "targetX": 48.7,
+    "targetY": 45.01
+  },
+  {
+    "id": "b_btn",
+    "input": "b_btn",
+    "label": "Button 2",
+    "x": 69,
+    "y": 88,
+    "lineX": 60.6,
+    "lineY": 78,
+    "targetX": 55.57,
+    "targetY": 45.01
+  },
+  {
+    "id": "x_btn",
+    "input": "x_btn",
+    "label": "Button 3",
+    "x": 88,
+    "y": 64,
+    "lineX": 79.5,
+    "lineY": 55,
+    "targetX": 62.43,
+    "targetY": 44.88
+  },
+  {
+    "id": "y_btn",
+    "input": "y_btn",
+    "label": "Button 4",
+    "x": 88,
+    "y": 39,
+    "lineX": 79.5,
+    "lineY": 45.2,
+    "targetX": 69.3,
+    "targetY": 45
+  }
+]
       },
       "retroarch": {
         "video_force_aspect": true,
@@ -2292,105 +2410,107 @@
         "image": "/images/gamepads/wsx/controls-slider-bg.png",
         "imageAlt": "Bandai WonderSwan handheld",
         "callouts": [
-          {
-            "id": "x_cursor",
-            "label": "X1-X4 Cursor",
-            "x": 12.0,
-            "y": 39.0,
-            "lineX": 20.5,
-            "lineY": 39.5,
-            "targetX": 35.1,
-            "targetY": 39.5,
-            "detailsPlacement": "right",
-            "inputs": [
-              {
-                "input": "up_axis",
-                "label": "X1 / Up"
-              },
-              {
-                "input": "right_axis",
-                "label": "X2 / Right"
-              },
-              {
-                "input": "down_axis",
-                "label": "X3 / Down"
-              },
-              {
-                "input": "left_axis",
-                "label": "X4 / Left"
-              }
-            ]
-          },
-          {
-            "id": "y_cursor",
-            "label": "Y1-Y4 Cursor",
-            "x": 12.0,
-            "y": 64.0,
-            "lineX": 20.5,
-            "lineY": 59.5,
-            "targetX": 35.1,
-            "targetY": 59.5,
-            "detailsPlacement": "right",
-            "inputs": [
-              {
-                "input": "r2_btn",
-                "label": "Y1 / Up"
-              },
-              {
-                "input": "r_btn",
-                "label": "Y2 / Right"
-              },
-              {
-                "input": "l2_btn",
-                "label": "Y3 / Down"
-              },
-              {
-                "input": "l_btn",
-                "label": "Y4 / Left"
-              }
-            ]
-          },
-          {
-            "input": "select_btn",
-            "label": "Rotate screen",
-            "x": 31.0,
-            "y": 88.0,
-            "lineX": 39.4,
-            "lineY": 78.0,
-            "targetX": 43.7,
-            "targetY": 66.8
-          },
-          {
-            "input": "start_btn",
-            "label": "Start",
-            "x": 50.0,
-            "y": 88.0,
-            "lineX": 47.2,
-            "lineY": 78.0,
-            "targetX": 47.2,
-            "targetY": 67.3
-          },
-          {
-            "input": "b_btn",
-            "label": "B",
-            "x": 88.0,
-            "y": 64.0,
-            "lineX": 79.5,
-            "lineY": 62.8,
-            "targetX": 65.3,
-            "targetY": 62.8
-          },
-          {
-            "input": "a_btn",
-            "label": "A",
-            "x": 88.0,
-            "y": 39.0,
-            "lineX": 79.5,
-            "lineY": 48.0,
-            "targetX": 67.3,
-            "targetY": 59.2
-          }
-        ]
+  {
+    "id": "x_cursor",
+    "label": "X1-X4 Cursor",
+    "x": 12,
+    "y": 39,
+    "lineX": 20.5,
+    "lineY": 39.5,
+    "targetX": 35.51,
+    "targetY": 39.5,
+    "inputs": [
+      {
+        "input": "up_axis",
+        "label": "X1 / Up"
+      },
+      {
+        "input": "right_axis",
+        "label": "X2 / Right"
+      },
+      {
+        "input": "down_axis",
+        "label": "X3 / Down"
+      },
+      {
+        "input": "left_axis",
+        "label": "X4 / Left"
+      }
+    ]
+  },
+  {
+    "id": "y_cursor",
+    "label": "Y1-Y4 Cursor",
+    "x": 12,
+    "y": 64,
+    "lineX": 20.5,
+    "lineY": 59.5,
+    "targetX": 35.51,
+    "targetY": 59.61,
+    "inputs": [
+      {
+        "input": "r2_btn",
+        "label": "Y1 / Up"
+      },
+      {
+        "input": "r_btn",
+        "label": "Y2 / Right"
+      },
+      {
+        "input": "l2_btn",
+        "label": "Y3 / Down"
+      },
+      {
+        "input": "l_btn",
+        "label": "Y4 / Left"
+      }
+    ]
+  },
+  {
+    "id": "select_btn",
+    "input": "select_btn",
+    "label": "Rotate screen",
+    "x": 31,
+    "y": 88,
+    "lineX": 39.4,
+    "lineY": 78,
+    "targetX": 43.89,
+    "targetY": 67.17
+  },
+  {
+    "id": "start_btn",
+    "input": "start_btn",
+    "label": "Start",
+    "x": 50,
+    "y": 88,
+    "lineX": 47.2,
+    "lineY": 78,
+    "targetX": 47.2,
+    "targetY": 67.3
+  },
+  {
+    "id": "b_btn",
+    "input": "b_btn",
+    "label": "B",
+    "x": 88,
+    "y": 64,
+    "lineX": 79.5,
+    "lineY": 62.8,
+    "targetX": 64.9,
+    "targetY": 63.06
+  },
+  {
+    "id": "a_btn",
+    "input": "a_btn",
+    "label": "A",
+    "x": 88,
+    "y": 39,
+    "lineX": 79.5,
+    "lineY": 48,
+    "targetX": 66.87,
+    "targetY": 59.32
+  }
+]
       },
       "retroarch": {
         "video_force_aspect": true,

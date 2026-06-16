@@ -17,6 +17,7 @@ var cesInputHelper = (function(_Emulator, _Preferences, _Gamepad, _ui, _Logging)
     var _keyUpDelay = 200; //the 1.6.7 emulator was happy with this value. make it no less
     var _simulatedKeyupTimeouts = [];
     var _keyboardListener = null;
+    var _activeEmulatorKeyCodes = {};
 
     //auto save
     var _idleKeyTimeout = null;
@@ -162,6 +163,7 @@ var cesInputHelper = (function(_Emulator, _Preferences, _Gamepad, _ui, _Logging)
         _modifiedEmulatorKeydownHandlers = {};
         _originalEmulatorKeyupHandlerFunctions = {};
         _modifiedEmulatorKeyupHandlers = {};
+        _activeEmulatorKeyCodes = {};
 
         _Logging.Console('cesInputHelper', 'Disposed input helper handlers');
     };
@@ -302,6 +304,10 @@ var cesInputHelper = (function(_Emulator, _Preferences, _Gamepad, _ui, _Logging)
         return SimulateEmulatorKeypress(keycode, callback, args);
     };
 
+    this.ReleaseActiveEmulatorKeys = function(reason) {
+        return ReleaseActiveEmulatorKeys(reason || 'release active emulator keys');
+    };
+
     this.GiveEmulatorControlOfInput = function(giveInput) {
 
         if (_disposed) {
@@ -319,6 +325,7 @@ var cesInputHelper = (function(_Emulator, _Preferences, _Gamepad, _ui, _Logging)
         } else {
             
             self.CancelIdleTimeout(); //in case its running
+            ReleaseActiveEmulatorKeys('emulator input revoked');
             RemoveKeyboardListener();
         }
     };
@@ -377,6 +384,7 @@ var cesInputHelper = (function(_Emulator, _Preferences, _Gamepad, _ui, _Logging)
 
                 //if true, we want to record the input as happened
                 if (result) {
+                    TrackActiveEmulatorKey(keycode);
                     _lastInputKeyCode = keycode;
                     ResetIdleTimeout();
                 }
@@ -388,6 +396,7 @@ var cesInputHelper = (function(_Emulator, _Preferences, _Gamepad, _ui, _Logging)
 
             proceedToEmulatorCallback(true);
 
+            TrackActiveEmulatorKey(keycode);
             _lastInputKeyCode = keycode;
             ResetIdleTimeout();
         }
@@ -447,12 +456,89 @@ var cesInputHelper = (function(_Emulator, _Preferences, _Gamepad, _ui, _Logging)
                 
                 //a true result will allow the input to each the emulator, false stops it here
                 proceedToEmulatorCallback(result);
+
+                if (result) {
+                    UntrackActiveEmulatorKey(keycode);
+                }
             }, args);
         }
         //no operation handlers, normal keyup
         else {
             proceedToEmulatorCallback(true);
+            UntrackActiveEmulatorKey(keycode);
         }
+    };
+
+    var TrackActiveEmulatorKey = function(keycode) {
+        keycode = parseInt(keycode, 10);
+
+        if (!keycode || isNaN(keycode)) {
+            return;
+        }
+
+        _activeEmulatorKeyCodes[keycode] = true;
+    };
+
+    var UntrackActiveEmulatorKey = function(keycode) {
+        keycode = parseInt(keycode, 10);
+
+        if (!keycode || isNaN(keycode)) {
+            return;
+        }
+
+        delete _activeEmulatorKeyCodes[keycode];
+    };
+
+    var ReleaseActiveEmulatorKeys = function(reason) {
+        var keycodes = Object.keys(_activeEmulatorKeyCodes);
+        var released = 0;
+        var i;
+
+        if (!keycodes.length) {
+            return 0;
+        }
+
+        for (i = 0; i < keycodes.length; i++) {
+            if (DispatchEmulatorKeyup(parseInt(keycodes[i], 10), reason)) {
+                released++;
+            }
+
+            delete _activeEmulatorKeyCodes[keycodes[i]];
+        }
+
+        if (released && _Logging && typeof _Logging.Console === 'function') {
+            _Logging.Console('cesInputHelper', 'Released ' + released + ' active emulator key(s)' + (reason ? ': ' + reason : ''));
+        }
+
+        return released;
+    };
+
+    var DispatchEmulatorKeyup = function(keycode, reason) {
+        var handlerKeys = Object.keys(_modifiedEmulatorKeyupHandlers);
+        var keyupHandlerRecord;
+        var keyupHandler;
+        var keyup;
+
+        if (!handlerKeys.length) {
+            return false;
+        }
+
+        keyupHandlerRecord = _modifiedEmulatorKeyupHandlers[handlerKeys[0]];
+        keyupHandler = keyupHandlerRecord && keyupHandlerRecord.handlerFunc;
+
+        if (typeof keyupHandler !== 'function') {
+            return false;
+        }
+
+        keyup = GenerateEvent(keycode, 'keyup');
+
+        try {
+            keyup.cesInputHelperReleasedKey = true;
+            keyup.cesInputHelperReleaseReason = reason || 'release active emulator key';
+        } catch (e) {}
+
+        keyupHandler(keyup, ['input-helper-release', reason || 'release active emulator key']);
+        return true;
     };
 
     /**

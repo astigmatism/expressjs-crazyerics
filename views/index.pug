@@ -30,14 +30,14 @@ block content
             div(class="dialogwrapper")
                 div(class="ConfigureGamepad")
                     h2 Configure Gamepad For #[span(class="gamepadsystem")]
-                    p The gamepad "#[span(class="gamepadid")]" hasn't been configured for port #[span(class="gamepadport")] on this system.
-                    p Press any key on the keyboard skip an assignment
+                    p(class="gamepadconfigsubtitle") Configure this gamepad before continuing.
                     div#gamepadwrapper
-                        div#gamepadvoid
-                        ul#gamepadinputs
+                        div#gamepadassignmentvisual(class="gamepad-assignment-visual")
+                        ul#gamepadinputs(class="gamepad-input-list")
                     div#gamepadconfigactions(class="gamepadconfigactions")
-                        button#startgamepadover(type="button", class="button first zoom noselect") Start Over
-                        button#skipgamepadconfig(type="button", class="button zoom noselect") Skip Using This Gamepad
+                        button#startgamepadover(type="button", class="button first zoom noselect") Start Assignment Over
+                        button#skipgamepadconfig(type="button", class="button zoom noselect") Use Keyboard for Input Instead
+                        button#cancelgamepadconfig(type="button", class="button remove zoom noselect", style="display:none") Cancel Any Changes
             div(class="dialogwrapper")
                 div(class="ShaderSelection")
                     h2 How do you want your game to appear?

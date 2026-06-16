@@ -1919,6 +1919,10 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _GamePad, _Pr
                 return false;
             }
 
+            if (_runtimeGamepadConfigurationUiActive) {
+                return false;
+            }
+
             if (IsEditableEventTarget(event.target)) {
                 return false;
             }
@@ -3395,6 +3399,7 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _GamePad, _Pr
 
         var BeginRuntimeGamepadConfigurationUiFence = function(reason) {
             _runtimeGamepadConfigurationUiActive = true;
+            StopAllLegacyCommandRepeatTimers(reason || 'runtime gamepad configuration focus fence');
             SuppressAutoPauseFor(15000, reason || 'runtime gamepad configuration');
             HidePauseOverlay();
             _Logging.Console(_extensionName, 'Runtime gamepad configuration focus fence enabled' + (reason ? ': ' + reason : ''));
@@ -3785,6 +3790,13 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _GamePad, _Pr
                     return;
                 }
 
+                if (_runtimeGamepadConfigurationUiActive) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    _Logging.Console(_extensionName, 'Ignored pause overlay ' + event.type + ' while runtime gamepad configuration UI is active');
+                    return;
+                }
+
                 // Do not preventDefault/stopPropagation here. ces.main.js still owns the normal
                 // overlay click -> #emulator.focus() path, which lets ces.emulator.base.js clear its
                 // private _isPaused flag. This listener only opens a short transaction that prevents
@@ -3923,6 +3935,32 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _GamePad, _Pr
             _overlayResumeCompatibilityInstalled = false;
         };
 
+        var ClearFileTrackingTimers = function(reason) {
+            var filename;
+            var cleared = 0;
+
+            for (filename in _fileWriteTimeout) {
+                if (_fileWriteTimeout.hasOwnProperty(filename)) {
+                    clearTimeout(_fileWriteTimeout[filename]);
+                    cleared++;
+                }
+            }
+
+            for (filename in _fileReadTimeout) {
+                if (_fileReadTimeout.hasOwnProperty(filename)) {
+                    clearTimeout(_fileReadTimeout[filename]);
+                    cleared++;
+                }
+            }
+
+            _fileWriteTimeout = {};
+            _fileReadTimeout = {};
+
+            if (cleared) {
+                _Logging.Console(_extensionName, 'Cleared ' + cleared + ' pending filesystem tracking timer(s) during compatibility cleanup (' + reason + ')');
+            }
+        };
+
         var DisposeCompatibilityHandlers = function(reason) {
             reason = reason || 'cleanup';
 
@@ -3930,6 +3968,7 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _GamePad, _Pr
             DisposeLegacyHotkeyDomBridge(reason);
             DisposeOverlayResumeCompatibility(reason);
             ClearActiveScreenshotRequestTimers(reason);
+            ClearFileTrackingTimers(reason);
 
             if (_overlayResumeFallbackTimer) {
                 clearTimeout(_overlayResumeFallbackTimer);

@@ -19,6 +19,8 @@ var cesSlidersControls = (function(_config, $li, $panel, _openSliderCallback) {
     var _manualInputBadgeGamepadClass = 'controls-manual-input-badge-gamepad';
     var _lastRenderSignature = null;
     var _runtimeGamepadConfigureLayoutTimer = null;
+    var _runtimeGamepadConfigureShieldActive = false;
+    var _runtimeGamepadConfigureShieldRestoreTimer = null;
 
     var _retroarchInputNames = {
         up_axis: 'input_player1_up',
@@ -158,6 +160,7 @@ var cesSlidersControls = (function(_config, $li, $panel, _openSliderCallback) {
         DestroyManualInputBadgeTooltip();
         TeardownManualCalloutLines();
         ClearRuntimeGamepadConfigureLayoutTimer();
+        DestroyRuntimeGamepadConfigureControlsShield();
 
         $panel.empty();
         _gamePad = null;
@@ -438,6 +441,7 @@ var cesSlidersControls = (function(_config, $li, $panel, _openSliderCallback) {
 
     var BindManualCalloutLines = function($lineLayer) {
 
+        var coordinateNode;
         var diagramNode;
 
         TeardownManualCalloutLines();
@@ -446,6 +450,7 @@ var cesSlidersControls = (function(_config, $li, $panel, _openSliderCallback) {
             return;
         }
 
+        coordinateNode = $lineLayer.closest('.controls-manual-coordinate-plane')[0];
         diagramNode = $lineLayer.closest('.controls-manual-diagram')[0];
 
         if (window.MutationObserver) {
@@ -491,6 +496,16 @@ var cesSlidersControls = (function(_config, $li, $panel, _openSliderCallback) {
                 });
             }
 
+            if (coordinateNode) {
+                _manualCalloutLineVisibilityObserver.observe(coordinateNode, {
+                    attributes: true,
+                    attributeFilter: [
+                        'class',
+                        'style'
+                    ]
+                });
+            }
+
             if (diagramNode) {
                 _manualCalloutLineVisibilityObserver.observe(diagramNode, {
                     attributes: true,
@@ -508,6 +523,10 @@ var cesSlidersControls = (function(_config, $li, $panel, _openSliderCallback) {
             });
 
             _manualCalloutLineResizeObserver.observe($lineLayer[0]);
+
+            if (coordinateNode) {
+                _manualCalloutLineResizeObserver.observe(coordinateNode);
+            }
 
             if (diagramNode) {
                 _manualCalloutLineResizeObserver.observe(diagramNode);
@@ -570,6 +589,7 @@ var cesSlidersControls = (function(_config, $li, $panel, _openSliderCallback) {
         }
 
         UpdateRuntimeGamepadConfigureAction(_lastGamepadConnectionState);
+        ApplyRuntimeGamepadConfigureControlsShieldState();
         ScheduleManualCalloutLineRefreshPasses();
     };
 
@@ -629,6 +649,7 @@ var cesSlidersControls = (function(_config, $li, $panel, _openSliderCallback) {
         var $main = $('<div />').addClass('controls-manual-main controls-manual-main-' + systemClass);
         var $header = BuildHeader(diagram.title || (systemName + ' Controls'), diagram.subtitle, diagram.badge);
         var $diagram = $('<div />').addClass('controls-manual-diagram controls-manual-diagram-' + systemClass);
+        var $coordinatePlane = $('<div />').addClass('controls-manual-coordinate-plane controls-manual-coordinate-plane-' + systemClass);
         var $lineLayer = $('<div />')
             .addClass('controls-callout-lines')
             .attr('aria-hidden', 'true');
@@ -639,7 +660,7 @@ var cesSlidersControls = (function(_config, $li, $panel, _openSliderCallback) {
 
         $image.on('load', function() {
             $(this).removeClass('close');
-            ScheduleManualCalloutLineRefresh(40);
+            ScheduleManualCalloutLineRefreshPasses();
         });
 
         $image.on('error', function() {
@@ -649,15 +670,17 @@ var cesSlidersControls = (function(_config, $li, $panel, _openSliderCallback) {
             }
         });
 
-        $diagram.append($lineLayer);
+        $coordinatePlane.append($lineLayer);
         $lineLayer.append(BuildManualCoordinateGuides());
-        $diagram.append($image);
+        $coordinatePlane.append($image);
 
         for (var i = 0; i < diagram.callouts.length; i++) {
             var callout = diagram.callouts[i];
-            $diagram.append(BuildCallout(callout));
+            $coordinatePlane.append(BuildCallout(callout));
             $lineLayer.append(BuildCalloutLine(callout));
         }
+
+        $diagram.append($coordinatePlane);
 
         $main.append($header);
         $main.append($diagram);
@@ -763,7 +786,7 @@ var cesSlidersControls = (function(_config, $li, $panel, _openSliderCallback) {
 
         var $note = $('<p />')
             .addClass('controls-runtime-gamepad-configure-note')
-            .text('Pauses the current game while you map the connected controller.');
+            .text('Pauses your current game while you assign buttons on your gamepad');
 
         $action.append($button);
         $action.append($note);
@@ -823,28 +846,233 @@ var cesSlidersControls = (function(_config, $li, $panel, _openSliderCallback) {
             configureOptions.index = parseInt(gamepadIndex, 10);
         }
 
-        _gamePad.ConfigureConnectedRuntimeGamepad(_gameKey, configureOptions, function() {
-            var previousSignature = _lastRenderSignature;
-            var nextSignature;
+        BeginRuntimeGamepadConfigureControlsShield();
 
-            _lastGamepadConnectionState = GetCurrentGamepadConnectionState();
-            _activeGamepadMappings = GetActiveGamepadMappings();
-            _activeInputDisplayMode = GetActiveInputDisplayMode();
-            nextSignature = BuildControlsRenderSignature();
+        var configurationStarted;
 
-            if (previousSignature !== null && previousSignature !== nextSignature) {
-                RenderControlsContent();
-                _lastRenderSignature = BuildControlsRenderSignature();
-            }
-            else {
-                _lastRenderSignature = nextSignature;
-            }
+        try {
+            configurationStarted = _gamePad.ConfigureConnectedRuntimeGamepad(_gameKey, configureOptions, function() {
+                try {
+                    var previousSignature = _lastRenderSignature;
+                    var nextSignature;
 
-            UpdateManualInputBadge(_lastGamepadConnectionState);
-            UpdateRuntimeGamepadConfigureAction(_lastGamepadConnectionState);
-        });
+                    _lastGamepadConnectionState = GetCurrentGamepadConnectionState();
+                    _activeGamepadMappings = GetActiveGamepadMappings();
+                    _activeInputDisplayMode = GetActiveInputDisplayMode();
+                    nextSignature = BuildControlsRenderSignature();
+
+                    if (previousSignature !== null && previousSignature !== nextSignature) {
+                        RenderControlsContent();
+                        _lastRenderSignature = BuildControlsRenderSignature();
+                    }
+                    else {
+                        _lastRenderSignature = nextSignature;
+                    }
+
+                    UpdateManualInputBadge(_lastGamepadConnectionState);
+                    UpdateRuntimeGamepadConfigureAction(_lastGamepadConnectionState);
+                }
+                finally {
+                    EndRuntimeGamepadConfigureControlsShield();
+                }
+            });
+        }
+        catch (configurationError) {
+            EndRuntimeGamepadConfigureControlsShield();
+            throw configurationError;
+        }
+
+        if (configurationStarted === false && _runtimeGamepadConfigureShieldActive) {
+            EndRuntimeGamepadConfigureControlsShield();
+        }
 
         return false;
+    };
+
+
+    var BeginRuntimeGamepadConfigureControlsShield = function() {
+        CloseManualInputBadgeTooltip();
+        _runtimeGamepadConfigureShieldActive = true;
+        ApplyRuntimeGamepadConfigureControlsShieldState();
+    };
+
+    var EndRuntimeGamepadConfigureControlsShield = function() {
+        var $status;
+
+        _runtimeGamepadConfigureShieldActive = false;
+        ClearRuntimeGamepadConfigureShieldRestoreTimer();
+
+        if (!$panel || !$panel.length) {
+            return;
+        }
+
+        $panel
+            .removeClass('ces-runtime-gamepad-configure-controls-shim-active')
+            .addClass('ces-runtime-gamepad-configure-controls-shim-restoring')
+            .removeAttr('aria-busy');
+
+        $panel
+            .find('.controls-manual-main, .controls-extra-panel')
+            .each(RestoreRuntimeGamepadConfigureControlsShieldSection);
+
+        $status = GetRuntimeGamepadConfigureControlsShieldStatus();
+        if ($status.length) {
+            $status
+                .attr('aria-hidden', 'true')
+                .addClass('controls-runtime-gamepad-configure-status-dismissed');
+        }
+
+        _runtimeGamepadConfigureShieldRestoreTimer = window.setTimeout(function() {
+            _runtimeGamepadConfigureShieldRestoreTimer = null;
+
+            if (_runtimeGamepadConfigureShieldActive) {
+                ApplyRuntimeGamepadConfigureControlsShieldState();
+                return;
+            }
+
+            $panel.removeClass('ces-runtime-gamepad-configure-controls-shim-restoring');
+            GetRuntimeGamepadConfigureControlsShieldStatus().remove();
+        }, 260);
+
+        RequestControlsPanelLayoutRefresh();
+    };
+
+    var ApplyRuntimeGamepadConfigureControlsShieldState = function() {
+        var $manual;
+        var $status;
+
+        if (!_runtimeGamepadConfigureShieldActive || !$panel || !$panel.length) {
+            return;
+        }
+
+        ClearRuntimeGamepadConfigureShieldRestoreTimer();
+
+        $manual = $panel.find('.controls-manual').first();
+        if (!$manual.length) {
+            return;
+        }
+
+        $panel
+            .addClass('ces-runtime-gamepad-configure-controls-shim-active')
+            .removeClass('ces-runtime-gamepad-configure-controls-shim-restoring')
+            .attr('aria-busy', 'true');
+
+        $manual
+            .find('.controls-manual-main, .controls-extra-panel')
+            .each(CaptureRuntimeGamepadConfigureControlsShieldSection);
+
+        $status = GetRuntimeGamepadConfigureControlsShieldStatus();
+        if (!$status.length) {
+            $status = BuildRuntimeGamepadConfigureControlsShieldStatus();
+        }
+
+        if (!$status.parent().is($manual)) {
+            $status.appendTo($manual);
+        }
+
+        $status
+            .removeClass('controls-runtime-gamepad-configure-status-dismissed')
+            .removeAttr('aria-hidden');
+    };
+
+    var DestroyRuntimeGamepadConfigureControlsShield = function() {
+        _runtimeGamepadConfigureShieldActive = false;
+        ClearRuntimeGamepadConfigureShieldRestoreTimer();
+
+        if (!$panel || !$panel.length) {
+            return;
+        }
+
+        $panel
+            .removeClass('ces-runtime-gamepad-configure-controls-shim-active ces-runtime-gamepad-configure-controls-shim-restoring')
+            .removeAttr('aria-busy');
+
+        $panel
+            .find('.controls-manual-main, .controls-extra-panel')
+            .each(RestoreRuntimeGamepadConfigureControlsShieldSection);
+        GetRuntimeGamepadConfigureControlsShieldStatus().remove();
+    };
+
+    var CaptureRuntimeGamepadConfigureControlsShieldSection = function() {
+        var $section = $(this);
+        var ariaHidden = $section.attr('aria-hidden');
+
+        if (!$section.data('ces-runtime-gamepad-configure-aria-captured')) {
+            $section
+                .data('ces-runtime-gamepad-configure-aria-captured', true)
+                .data('ces-runtime-gamepad-configure-had-aria-hidden', typeof ariaHidden !== 'undefined')
+                .data('ces-runtime-gamepad-configure-previous-aria-hidden', ariaHidden || '');
+        }
+
+        $section.attr('aria-hidden', 'true');
+    };
+
+    var RestoreRuntimeGamepadConfigureControlsShieldSection = function() {
+        var $section = $(this);
+        var hadAriaHidden;
+        var previousAriaHidden;
+
+        if (!$section.data('ces-runtime-gamepad-configure-aria-captured')) {
+            return;
+        }
+
+        hadAriaHidden = !!$section.data('ces-runtime-gamepad-configure-had-aria-hidden');
+        previousAriaHidden = $section.data('ces-runtime-gamepad-configure-previous-aria-hidden');
+
+        if (hadAriaHidden) {
+            $section.attr('aria-hidden', previousAriaHidden);
+        }
+        else {
+            $section.removeAttr('aria-hidden');
+        }
+
+        $section
+            .removeData('ces-runtime-gamepad-configure-aria-captured')
+            .removeData('ces-runtime-gamepad-configure-had-aria-hidden')
+            .removeData('ces-runtime-gamepad-configure-previous-aria-hidden');
+    };
+
+    var ClearRuntimeGamepadConfigureShieldRestoreTimer = function() {
+        if (_runtimeGamepadConfigureShieldRestoreTimer) {
+            window.clearTimeout(_runtimeGamepadConfigureShieldRestoreTimer);
+            _runtimeGamepadConfigureShieldRestoreTimer = null;
+        }
+    };
+
+    var GetRuntimeGamepadConfigureControlsShieldStatus = function() {
+        if (!$panel || !$panel.length) {
+            return $();
+        }
+
+        return $panel.find('.controls-runtime-gamepad-configure-status').first();
+    };
+
+    var BuildRuntimeGamepadConfigureControlsShieldStatus = function() {
+        var $status = $('<div />')
+            .addClass('controls-runtime-gamepad-configure-status')
+            .attr({
+                role: 'status',
+                'aria-live': 'polite'
+            });
+        var $card = $('<div />').addClass('controls-runtime-gamepad-configure-status-card');
+        var $animation = $('<div />')
+            .addClass('controls-runtime-gamepad-configure-status-animation')
+            .attr('aria-hidden', 'true');
+        var $gamepad = $('<div />').addClass('controls-runtime-gamepad-configure-status-gamepad');
+        var $copy = $('<div />').addClass('controls-runtime-gamepad-configure-status-copy');
+
+        $animation.append($('<span />').addClass('controls-runtime-gamepad-configure-status-pulse controls-runtime-gamepad-configure-status-pulse-one'));
+        $animation.append($('<span />').addClass('controls-runtime-gamepad-configure-status-pulse controls-runtime-gamepad-configure-status-pulse-two'));
+        $animation.append($gamepad);
+
+        $copy.append($('<h4 />').text('Waiting for configuration...'));
+        // $copy.append($('<p />').text('Please finish configuring your gamepad.'));
+
+        $card.append($animation);
+        $card.append($copy);
+        $status.append($card);
+
+        return $status;
     };
 
     var UpdateRuntimeGamepadConfigureAction = function(state) {
@@ -1477,26 +1705,23 @@ var cesSlidersControls = (function(_config, $li, $panel, _openSliderCallback) {
 
     var RefreshManualCalloutLine = function($connector) {
 
-        var $layer = $connector.parent();
+        var $layer = $connector.closest('.controls-callout-lines');
         var $line = $connector.find('.controls-manual-callout-line');
         var $target = $connector.find('.controls-manual-callout-target');
-        var layerWidth = $layer.width();
-        var layerHeight = $layer.height();
+        var geometry = GetManualCalloutLineGeometry($layer);
         var startX;
         var startY;
         var targetX;
         var targetY;
-        var startLeft;
-        var startTop;
-        var targetLeft;
-        var targetTop;
+        var startPoint;
+        var targetPoint;
         var deltaX;
         var deltaY;
         var length;
         var angle;
         var transform;
 
-        if (!layerWidth || !layerHeight) {
+        if (!geometry) {
             $connector.removeClass('controls-callout-connector-ready');
             return false;
         }
@@ -1506,19 +1731,17 @@ var cesSlidersControls = (function(_config, $li, $panel, _openSliderCallback) {
         targetX = ReadCoordinate($connector.attr('data-target-x'), 50);
         targetY = ReadCoordinate($connector.attr('data-target-y'), 50);
 
-        startLeft = (startX / 100) * layerWidth;
-        startTop = (startY / 100) * layerHeight;
-        targetLeft = (targetX / 100) * layerWidth;
-        targetTop = (targetY / 100) * layerHeight;
-        deltaX = targetLeft - startLeft;
-        deltaY = targetTop - startTop;
+        startPoint = TranslateManualCalloutCoordinate(startX, startY, geometry);
+        targetPoint = TranslateManualCalloutCoordinate(targetX, targetY, geometry);
+        deltaX = targetPoint.left - startPoint.left;
+        deltaY = targetPoint.top - startPoint.top;
         length = Math.sqrt((deltaX * deltaX) + (deltaY * deltaY));
         angle = Math.atan2(deltaY, deltaX) * (180 / Math.PI);
         transform = 'translateY(-50%) rotate(' + angle + 'deg)';
 
         $line.css({
-            left: startLeft + 'px',
-            top: startTop + 'px',
+            left: startPoint.left + 'px',
+            top: startPoint.top + 'px',
             width: length + 'px',
             '-webkit-transform': transform,
             '-moz-transform': transform,
@@ -1528,13 +1751,75 @@ var cesSlidersControls = (function(_config, $li, $panel, _openSliderCallback) {
         });
 
         $target.css({
-            left: targetLeft + 'px',
-            top: targetTop + 'px'
+            left: targetPoint.left + 'px',
+            top: targetPoint.top + 'px'
         });
 
         $connector.addClass('controls-callout-connector-ready');
 
         return true;
+    };
+
+    var GetManualCalloutLineGeometry = function($layer) {
+
+        var helper = GetDiagramCoordinateHelper();
+        var $coordinatePlane;
+        var coordinateElement;
+        var geometry;
+        var layerWidth;
+        var layerHeight;
+
+        if (!$layer || !$layer.length || !$layer.is(':visible')) {
+            return null;
+        }
+
+        $coordinatePlane = $layer.closest('.controls-manual-coordinate-plane');
+        coordinateElement = ($coordinatePlane && $coordinatePlane.length) ? $coordinatePlane[0] : $layer[0];
+
+        if (helper && typeof helper.getElementGeometry === 'function') {
+            geometry = helper.getElementGeometry(coordinateElement);
+
+            if (geometry) {
+                return geometry;
+            }
+        }
+
+        if ($coordinatePlane && $coordinatePlane.length) {
+            layerWidth = $coordinatePlane.width();
+            layerHeight = $coordinatePlane.height();
+        }
+        else {
+            layerWidth = $layer.width();
+            layerHeight = $layer.height();
+        }
+
+        if (!layerWidth || !layerHeight) {
+            return null;
+        }
+
+        return {
+            width: layerWidth,
+            height: layerHeight
+        };
+    };
+
+    var TranslateManualCalloutCoordinate = function(x, y, geometry) {
+
+        var helper = GetDiagramCoordinateHelper();
+
+        if (helper && typeof helper.translateCoordinate === 'function') {
+            return helper.translateCoordinate(x, y, geometry);
+        }
+
+        return {
+            left: (ReadCoordinate(x, 50) / 100) * geometry.width,
+            top: (ReadCoordinate(y, 50) / 100) * geometry.height
+        };
+    };
+
+    var GetDiagramCoordinateHelper = function() {
+
+        return window.cesControllerDiagramCoordinates || null;
     };
 
     var BuildGenericMapping = function(inputName, fallbackLabel) {

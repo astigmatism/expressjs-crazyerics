@@ -13,7 +13,7 @@ var cesGamePad = (function(_config, _Compression, _PubSub, _Tooltips, _Preferenc
     var _haveEvents = false; //boolean, indicates if browser has gamepad events
     var _captureInputCallback; //when we simply need to capture input for configuration, assign a function here to terminate the loop
     var _gameLoop;
-    var _inputCaptureKeyboardEvent = 'keypress.cesGamepadInputCapture';
+    var _inputCaptureKeyboardEvents = 'keydown.cesGamepadInputCapture keypress.cesGamepadInputCapture keyup.cesGamepadInputCapture';
     var _configureScanFrameLimit = 90;
     var _inputCaptureNeutralThreshold = 0.5;
     var _connectionStateTopic = 'gamepadconnectionstatechanged';
@@ -31,6 +31,9 @@ var cesGamePad = (function(_config, _Compression, _PubSub, _Tooltips, _Preferenc
     var _nativeWebkitGetGamepads = null;
     var _sessionSkippedGamepads = {};
     var _runtimeConfigurationPrepareTimeout = null;
+    var _configureGamepadActionProperty = 'cesConfigureGamepadAction';
+    var _configureGamepadUseKeyboardAction = 'useKeyboardForInputInstead';
+    var _configureGamepadCancelAction = 'cancelAnyChanges';
 
     var _runtimeVirtualButtonMap = {
         up_axis: 12,
@@ -163,8 +166,15 @@ var cesGamePad = (function(_config, _Compression, _PubSub, _Tooltips, _Preferenc
             return callback(value, label);
         };
 
-        var KeyboardSkipHandler = function() {
-            return FinishCapture('', 'Not Assigned');
+        var KeyboardSkipHandler = function(event) {
+            ConsumeInputCaptureKeyboardEvent(event);
+
+            if (event && event.type === 'keyup') {
+                return false;
+            }
+
+            SkipActiveInputCapture('keyboard event during gamepad input capture');
+            return false;
         };
 
         _captureInputCallback = function(value, label) {
@@ -189,7 +199,7 @@ var cesGamePad = (function(_config, _Compression, _PubSub, _Tooltips, _Preferenc
         };
 
         //any keyboard event during the capture will not assign current assignment
-        $(document).off(_inputCaptureKeyboardEvent).on(_inputCaptureKeyboardEvent, KeyboardSkipHandler);
+        $(document).off('.cesGamepadInputCapture').on(_inputCaptureKeyboardEvents, KeyboardSkipHandler);
 
         _gameLoop = requestAnimationFrame(function() {
             Update(options);
@@ -198,6 +208,10 @@ var cesGamePad = (function(_config, _Compression, _PubSub, _Tooltips, _Preferenc
 
     this.CancelInputCapture = function(reason) {
         CancelActiveInputCapture(reason || 'cancel gamepad input capture');
+    };
+
+    this.SkipInputCapture = function(reason) {
+        return SkipActiveInputCapture(reason || 'skip gamepad input capture');
     };
 
     this.GetGamePadDetails = function() {
@@ -336,6 +350,7 @@ var cesGamePad = (function(_config, _Compression, _PubSub, _Tooltips, _Preferenc
         var legacySavedMappings = (legacyPrefName !== prefName) ? _Preferences.Get(legacyPrefName) : null;
         var savedInputConfig = LoadSavedStartupInputConfig(gameKey, gamepad, index, savedMappings, prefName);
         var promptForSavedMapping = ShouldPromptForSavedMapping(gameKey);
+        var dialogContext;
 
         if (!savedMappings && legacySavedMappings) {
             Log('Legacy controller mapping exists for gamepad index=' + index + ', system=' + gameKey.system + ', but it is ignored for input profile=' + GetInputPreferenceProfile(gameKey) + '. A fresh mapping dialog will be shown.');
@@ -360,15 +375,31 @@ var cesGamePad = (function(_config, _Compression, _PubSub, _Tooltips, _Preferenc
             Log('Saved mapping found for gamepad index=' + index + ', system=' + gameKey.system + ', profile=' + GetInputPreferenceProfile(gameKey) + '; opening ConfigureGamepad dialog so the player can confirm, remap, or skip this controller.');
         }
 
+        dialogContext = (savedInputConfig && promptForSavedMapping && !reconfigureEachTime) ? 'remappingExistingController' : 'preLaunchMapping';
+
         Log('Opening ConfigureGamepad dialog for gamepad index=' + index + ', id=' + gamepad.id + ', system=' + gameKey.system + ', profile=' + GetInputPreferenceProfile(gameKey));
         _Dialogs.Open('ConfigureGamepad', [_config, gamepad, gameKey, {
             savedInputConfig: savedInputConfig,
             promptForSavedMapping: !!(savedInputConfig && promptForSavedMapping && !reconfigureEachTime),
-            inputPreferenceProfile: GetInputPreferenceProfile(gameKey)
-        }], false, function(inputconfig) {
+            inputPreferenceProfile: GetInputPreferenceProfile(gameKey),
+            dialogContext: dialogContext
+        }], false, function(dialogResult) {
+
+            var action = GetConfigureGamepadDialogAction(dialogResult);
+            var inputconfig = GetConfigureGamepadDialogInputConfig(dialogResult);
 
             //if the dialog is returning a successful configuration, let's save it
-            if (inputconfig) {
+            if (action === _configureGamepadUseKeyboardAction) {
+                DisassociateGamepadMapping(gameKey, gamepad, index, {
+                    prefName: prefName,
+                    reason: 'pre-launch ConfigureGamepad use keyboard input instead',
+                    markSessionSkipped: true,
+                    deactivateRuntime: false,
+                    publish: true
+                });
+                Log('ConfigureGamepad dialog disassociated gamepad index=' + index + ', id=' + gamepad.id + ', system=' + gameKey.system + '; keyboard input will be used and this mapping will be requested again next time.');
+            }
+            else if (inputconfig) {
 
                 //cache locally
                 gamepad.inputconfig = inputconfig;
@@ -376,6 +407,12 @@ var cesGamePad = (function(_config, _Compression, _PubSub, _Tooltips, _Preferenc
 
                 _Preferences.Set(prefName, _Compression.Compress.json(inputconfig));
                 Log('Saved controller mapping for gamepad index=' + index + ', system=' + gameKey.system + ', profile=' + GetInputPreferenceProfile(gameKey));
+            }
+            else if (action === _configureGamepadCancelAction && savedInputConfig) {
+                gamepad.inputconfig = savedInputConfig;
+                gamepad.skipinputconfig = false;
+                UnmarkSessionSkippedGamepad(gameKey, gamepad, index);
+                Log('ConfigureGamepad dialog canceled for gamepad index=' + index + ', system=' + gameKey.system + '; previous saved mapping was preserved.');
             }
             else {
                 gamepad.inputconfig = null;
@@ -386,6 +423,70 @@ var cesGamePad = (function(_config, _Compression, _PubSub, _Tooltips, _Preferenc
 
             return callback();
         });
+    };
+
+    var GetConfigureGamepadDialogAction = function(dialogResult) {
+        if (!dialogResult || typeof dialogResult !== 'object') {
+            return null;
+        }
+
+        return dialogResult[_configureGamepadActionProperty] || null;
+    };
+
+    var GetConfigureGamepadDialogInputConfig = function(dialogResult) {
+        if (!dialogResult) {
+            return null;
+        }
+
+        if (GetConfigureGamepadDialogAction(dialogResult)) {
+            return dialogResult.inputconfig || null;
+        }
+
+        return dialogResult;
+    };
+
+    var DisassociateGamepadMapping = function(gameKey, gamepad, index, options) {
+        var prefName;
+        var deactivatedRecord = null;
+
+        options = options || {};
+
+        if (!gameKey || !gamepad) {
+            return {
+                prefName: null,
+                deactivated: false,
+                record: null
+            };
+        }
+
+        prefName = options.prefName || GetPreferenceName(gameKey, gamepad, index);
+
+        if (_Preferences && typeof _Preferences.Remove === 'function') {
+            _Preferences.Remove(prefName);
+        }
+
+        gamepad.inputconfig = null;
+        gamepad.skipinputconfig = true;
+
+        if (options.markSessionSkipped !== false) {
+            MarkSessionSkippedGamepad(gameKey, gamepad, index);
+        }
+
+        if (options.deactivateRuntime !== false) {
+            deactivatedRecord = DeactivateRuntimeGamepadForKeyboard(gamepad, options.reason || 'gamepad disassociated for keyboard input');
+        }
+
+        if (options.publish !== false) {
+            PublishConnectionState(options.reason || 'gamepad disassociated for keyboard input');
+        }
+
+        Log('Removed controller mapping pref=' + prefName + ' for gamepad index=' + index + ', id=' + gamepad.id + ', system=' + gameKey.system + ', profile=' + GetInputPreferenceProfile(gameKey) + '.');
+
+        return {
+            prefName: prefName,
+            deactivated: !!deactivatedRecord,
+            record: deactivatedRecord
+        };
     };
 
     var GetCompressedGamepadName = function(gamepad) {
@@ -1029,6 +1130,7 @@ var cesGamePad = (function(_config, _Compression, _PubSub, _Tooltips, _Preferenc
             pauseToggled: false,
             pauseResult: null,
             resumeResult: null,
+            source: options.source || 'runtime gamepad configuration',
             startedAt: Date.now()
         };
 
@@ -1043,7 +1145,8 @@ var cesGamePad = (function(_config, _Compression, _PubSub, _Tooltips, _Preferenc
         };
 
         BeginRuntimeGamepadConfigurationUi(runtimeConfigState, {
-            reason: 'runtime gamepad configuration started'
+            reason: 'runtime gamepad configuration started',
+            source: runtimeConfigState.source
         });
         PublishConnectionState('runtime gamepad configuration started');
 
@@ -1108,18 +1211,23 @@ var cesGamePad = (function(_config, _Compression, _PubSub, _Tooltips, _Preferenc
             savedInputConfig: savedInputConfig,
             promptForSavedMapping: !!savedInputConfig,
             inputPreferenceProfile: GetInputPreferenceProfile(runtimeConfigState.gameKey),
-            runtimeConfiguration: true
-        }], true, function(inputconfig) {
-            HandleRuntimeGamepadConfigurationResult(gamepad, runtimeConfigState, inputconfig, callback);
+            runtimeConfiguration: true,
+            dialogContext: 'inGameConfiguration',
+            launchContext: runtimeConfigState.source
+        }], true, function(dialogResult) {
+            HandleRuntimeGamepadConfigurationResult(gamepad, runtimeConfigState, dialogResult, callback);
         });
     };
 
-    var HandleRuntimeGamepadConfigurationResult = function(gamepad, runtimeConfigState, inputconfig, callback) {
+    var HandleRuntimeGamepadConfigurationResult = function(gamepad, runtimeConfigState, dialogResult, callback) {
         var prefName;
         var wasActive;
         var activated;
         var activeRecord;
         var result;
+        var action = GetConfigureGamepadDialogAction(dialogResult);
+        var inputconfig = GetConfigureGamepadDialogInputConfig(dialogResult);
+        var disassociation;
 
         gamepad = _gamepads[runtimeConfigState.gamepadIndex] || gamepad;
         result = {
@@ -1127,11 +1235,41 @@ var cesGamePad = (function(_config, _Compression, _PubSub, _Tooltips, _Preferenc
             saved: false,
             activated: false,
             updated: false,
+            disassociated: false,
+            keyboardInput: false,
+            canceled: action === _configureGamepadCancelAction || !inputconfig,
             record: null,
             reason: inputconfig ? 'mapping saved' : 'configuration canceled'
         };
 
-        if (inputconfig && gamepad) {
+        if (action === _configureGamepadUseKeyboardAction && gamepad) {
+            prefName = GetPreferenceName(runtimeConfigState.gameKey, gamepad, runtimeConfigState.gamepadIndex);
+            disassociation = DisassociateGamepadMapping(runtimeConfigState.gameKey, gamepad, runtimeConfigState.gamepadIndex, {
+                prefName: prefName,
+                reason: 'runtime ConfigureGamepad use keyboard input instead',
+                markSessionSkipped: true,
+                deactivateRuntime: true,
+                publish: false
+            });
+
+            result.saved = false;
+            result.activated = false;
+            result.updated = false;
+            result.disassociated = true;
+            result.keyboardInput = true;
+            result.canceled = false;
+            result.record = disassociation.record;
+            result.prefName = disassociation.prefName;
+            result.reason = 'gamepad disassociated and keyboard input active';
+
+            if (disassociation.record) {
+                NotifyRuntimeGamepadKeyboardInput(disassociation.record);
+            }
+
+            PublishConnectionState('runtime ConfigureGamepad use keyboard input instead');
+            Log('Runtime ConfigureGamepad disassociated gamepad index=' + runtimeConfigState.gamepadIndex + ', system=' + runtimeConfigState.gameKey.system + '; keyboard input is active and the saved mapping was removed.');
+        }
+        else if (inputconfig && gamepad) {
             prefName = GetPreferenceName(runtimeConfigState.gameKey, gamepad, runtimeConfigState.gamepadIndex);
             wasActive = !!GetRuntimeActiveRecordForGamepad(gamepad);
 
@@ -1157,6 +1295,11 @@ var cesGamePad = (function(_config, _Compression, _PubSub, _Tooltips, _Preferenc
             result.activationChanged = !!activated;
             result.record = activeRecord;
             result.reason = activeRecord ? 'mapping saved and active' : 'mapping saved but activation did not complete';
+        }
+        else if (action === _configureGamepadCancelAction) {
+            result.canceled = true;
+            result.reason = 'configuration canceled; previous mapping preserved';
+            Log('Runtime ConfigureGamepad canceled for gamepad index=' + runtimeConfigState.gamepadIndex + ', system=' + runtimeConfigState.gameKey.system + '; previous mapping state was preserved.');
         }
 
         FinishRuntimeGamepadConfiguration(runtimeConfigState, result, callback);
@@ -1233,6 +1376,7 @@ var cesGamePad = (function(_config, _Compression, _PubSub, _Tooltips, _Preferenc
                 gamepadId: runtimeConfigState ? runtimeConfigState.gamepadId : null,
                 gamepadName: runtimeConfigState ? runtimeConfigState.gamepadName : null,
                 preflight: !!options.preflight,
+                source: options.source || (runtimeConfigState ? runtimeConfigState.source : null),
                 reason: options.reason || 'runtime gamepad configuration'
             }) !== false;
         } catch (e) {
@@ -1503,6 +1647,39 @@ var cesGamePad = (function(_config, _Compression, _PubSub, _Tooltips, _Preferenc
         return false;
     };
 
+    var DeactivateRuntimeGamepadForKeyboard = function(gamepad, reason) {
+        var slot;
+        var record;
+        var notificationKey;
+
+        if (!_runtimeActivation || !gamepad) {
+            return null;
+        }
+
+        for (slot in _runtimeActivation.activeSlots) {
+            if (!_runtimeActivation.activeSlots.hasOwnProperty(slot)) {
+                continue;
+            }
+
+            record = _runtimeActivation.activeSlots[slot];
+            if (record && record.index === parseInt(gamepad.index, 10) && record.id === gamepad.id) {
+                DispatchRuntimeGamepadEventToRetroArch('gamepaddisconnected', record, reason || 'runtime gamepad disassociated for keyboard input');
+                delete _runtimeActivation.activeSlots[slot];
+
+                notificationKey = record.slot + '|' + record.id + '|connected';
+                if (_runtimeActivation.notifiedActivations) {
+                    delete _runtimeActivation.notifiedActivations[notificationKey];
+                }
+
+                _runtimeActivation.rejections = {};
+                Log('Runtime gamepad disassociated for keyboard input: slot=' + slot + ', index=' + record.index + ', id=' + record.id + ', source=' + (reason || 'unknown'));
+                return record;
+            }
+        }
+
+        return null;
+    };
+
     var RememberRuntimeActivationRejection = function(gamepad, reason) {
         if (!_runtimeActivation || !gamepad) {
             return;
@@ -1544,6 +1721,14 @@ var cesGamePad = (function(_config, _Compression, _PubSub, _Tooltips, _Preferenc
         _runtimeActivation.notifiedDisconnects[key] = true;
 
         _PubSub.Publish('notification', ['Controller ' + record.slot + ' disconnected: ' + record.name, 3, false, false]);
+    };
+
+    var NotifyRuntimeGamepadKeyboardInput = function(record) {
+        if (!_PubSub || typeof _PubSub.Publish !== 'function' || !record || !_runtimeActivation || !_runtimeActivation.running) {
+            return;
+        }
+
+        _PubSub.Publish('notification', ['Using keyboard input instead of Controller ' + record.slot + '.', 3, false, false]);
     };
 
     var FocusRuntimeEmulator = function() {
@@ -2050,11 +2235,34 @@ var cesGamePad = (function(_config, _Compression, _PubSub, _Tooltips, _Preferenc
         }
 
         _captureInputCallback = null;
-        $(document).off(_inputCaptureKeyboardEvent);
+        $(document).off('.cesGamepadInputCapture');
 
         if (reason) {
             Log('Input capture canceled: ' + reason);
         }
+    };
+
+    var SkipActiveInputCapture = function(reason) {
+        if (!_captureInputCallback) {
+            return false;
+        }
+
+        if (reason) {
+            Log('Input capture skipped: ' + reason);
+        }
+
+        _captureInputCallback('', 'Not Assigned');
+        return true;
+    };
+
+    var ConsumeInputCaptureKeyboardEvent = function(event) {
+        if (!event) {
+            return;
+        }
+
+        try { event.preventDefault(); } catch (e) {}
+        try { event.stopPropagation(); } catch (e) {}
+        try { event.stopImmediatePropagation(); } catch (e) {}
     };
 
     var GetActiveInputs = function(options) {
