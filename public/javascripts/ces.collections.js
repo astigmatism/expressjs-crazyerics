@@ -17,6 +17,12 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
     var _collectionNames = [];
     var _collectionControls = null;
 
+    var _collectionEnterAnimationMs = 620;
+    var _collectionStaggerStepMs = 16;
+    var _collectionStaggerMaxDelayMs = 320;
+    var _collectionImageReadyTimeout = 6000;
+    var _collectionFlourishLimit = 48;
+
 	//public members
 
 	//public methods
@@ -119,6 +125,8 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
             $(gridTitles[x]).data('active', 0);
         }
 
+        var newTitleBatchIndex = 0;
+
         //go through all titles in cache
         for (var i = 0, len = _activeCollectionTitles.length; i < len; ++i) {
 
@@ -146,8 +154,9 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
             }
 
             if (!foundInGrid) {
-                activeTitle.gridItem = AddTitle(activeTitle);
+                activeTitle.gridItem = AddTitle(activeTitle, newTitleBatchIndex);
                 activeTitle.gridItem.data('active', 1);
+                newTitleBatchIndex++;
             }
 
             //generate new toolips content
@@ -165,10 +174,10 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
         _TitlesSort.Sort();
     };
 
-    var AddTitle = function(activeTitle) {
+    var AddTitle = function(activeTitle, batchIndex) {
         
         //create the grid item
-        var $griditem = $('<div class="grid-item" />');
+        var $griditem = $('<div class="grid-item collection-grid-item collection-card-awaiting-entry" />');
 
         //place sorting data on grid item
         $griditem.data('gk', activeTitle.gameKey.gk);
@@ -181,13 +190,91 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
 
         $griditem.append(activeTitle.gameLink.GetDOM()); //add all visual content from gamelink to grid
 
-        $griditem.find('img').imagesLoaded().progress(function(imgLoad, image) {
-            _TitlesSort.Sort();
-        });
-
         _titlesGrid.isotope('insert', $griditem[0]);
 
+        StartCollectionEntryWhenReady($griditem, batchIndex);
+
         return $griditem;
+    };
+
+    var StartCollectionEntryWhenReady = function($griditem, batchIndex) {
+
+        var done = false;
+        var $images = $griditem.find('img');
+
+        var startEntry = function() {
+            if (done) {
+                return;
+            }
+            done = true;
+            StartCollectionEntryAnimation($griditem, batchIndex);
+        };
+
+        if (!$images.length || !$.fn.imagesLoaded) {
+            setTimeout(startEntry, 0);
+            return;
+        }
+
+        var timeout = setTimeout(startEntry, _collectionImageReadyTimeout);
+
+        $images.imagesLoaded()
+            .progress(function(imgLoad, image) {
+                _TitlesSort.Sort();
+            })
+            .always(function() {
+                clearTimeout(timeout);
+                startEntry();
+            });
+    };
+
+    var StartCollectionEntryAnimation = function($griditem, batchIndex) {
+
+        if (!$griditem || !$griditem.length || $griditem.data('collectionEntryComplete')) {
+            return;
+        }
+
+        var delay = GetCollectionEntryDelay(batchIndex);
+        var element = $griditem[0];
+
+        $griditem.data('collectionEntryComplete', true);
+
+        if (element && element.style && element.style.setProperty) {
+            element.style.setProperty('--collection-entry-delay', delay + 'ms');
+            element.style.setProperty('--collection-sheen-delay', (delay + 110) + 'ms');
+        }
+
+        $griditem
+            .removeClass('collection-card-awaiting-entry')
+            .addClass('collection-card-enter');
+
+        if (batchIndex >= _collectionFlourishLimit) {
+            $griditem.addClass('collection-card-enter-quiet');
+        }
+
+        setTimeout(function() {
+            $griditem.removeClass('collection-card-enter collection-card-enter-quiet');
+
+            if (element && element.style && element.style.removeProperty) {
+                element.style.removeProperty('--collection-entry-delay');
+                element.style.removeProperty('--collection-sheen-delay');
+            }
+        }, delay + _collectionEnterAnimationMs + 140);
+    };
+
+    var GetCollectionEntryDelay = function(batchIndex) {
+
+        batchIndex = parseInt(batchIndex, 10);
+        if (isNaN(batchIndex) || batchIndex < 0) {
+            batchIndex = 0;
+        }
+
+        var delay = batchIndex * _collectionStaggerStepMs;
+
+        if (delay > _collectionStaggerMaxDelayMs) {
+            delay = _collectionStaggerMaxDelayMs;
+        }
+
+        return delay;
     };
 
     this.PopulateCollections = function()  {
@@ -751,7 +838,7 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
                     };
 
                     //generate gamelink
-                    var gameLink = new cesGameLink(_config, _Media, _Tooltips, _self, gameKey, 'a', false, _PlayGameHandler, OnImageLoaded);
+                    var gameLink = new cesGameLink(_config, _Media, _Tooltips, _self, gameKey, 'a', false, _PlayGameHandler, OnImageLoaded, false);
 
                     //push to our local cache
                     _activeCollectionTitles.push({

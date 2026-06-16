@@ -369,6 +369,19 @@ p {
 	-ms-transform: scale(0.95, 0.95);
 }
 
+.ces-game-tooltip-origin-open {
+	z-index: 20;
+}
+
+.gamelink .box.ces-game-tooltip-box-open {
+	z-index: 21;
+	transform: scale(1.1, 1.1);
+	-webkit-transform: scale(1.1, 1.1);
+	-moz-transform: scale(1.1, 1.1);
+	-o-transform: scale(1.1, 1.1);
+	-ms-transform: scale(1.1, 1.1);
+}
+
 
 .darkgrad {
 	/* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#000000+0,1b2026+50,000000+100 */
@@ -4172,6 +4185,175 @@ div.mediawrapper {
 	-o-transition:All 200ms ease-in;
 }
 
+
+#openCollectionGrid .collection-grid-item .gamelink {
+	-webkit-transform-origin: 50% 88%;
+	-moz-transform-origin: 50% 88%;
+	-o-transform-origin: 50% 88%;
+	-ms-transform-origin: 50% 88%;
+	transform-origin: 50% 88%;
+}
+
+#openCollectionGrid .collection-grid-item .gamelink .box {
+	overflow: hidden;
+	border-radius: 4px;
+	background: rgba(255,255,255,0.035);
+	box-shadow: 0px 8px 18px rgba(0,0,0,0.24), 0px 0px 0px 1px rgba(255,255,255,0.065);
+	-webkit-backface-visibility: hidden;
+	-moz-backface-visibility: hidden;
+	backface-visibility: hidden;
+}
+
+#openCollectionGrid .collection-grid-item .gamelink .box:after {
+	content: '';
+	position: absolute;
+	top: 0px;
+	right: 0px;
+	bottom: 0px;
+	left: 0px;
+	pointer-events: none;
+	opacity: 0;
+	background: linear-gradient(112deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.14) 35%, rgba(143,219,70,0.14) 51%, rgba(255,255,255,0) 69%);
+	-webkit-transform: translate3d(-125%, 0px, 0px) skewX(-12deg);
+	-moz-transform: translate3d(-125%, 0px, 0px) skewX(-12deg);
+	-o-transform: translate3d(-125%, 0px, 0px) skewX(-12deg);
+	-ms-transform: translate3d(-125%, 0px, 0px) skewX(-12deg);
+	transform: translate3d(-125%, 0px, 0px) skewX(-12deg);
+}
+
+#openCollectionGrid .collection-card-awaiting-entry .gamelink {
+	opacity: 0;
+	-webkit-transform: translate3d(0px, 22px, 0px) scale(.982);
+	-moz-transform: translate3d(0px, 22px, 0px) scale(.982);
+	-o-transform: translate3d(0px, 22px, 0px) scale(.982);
+	-ms-transform: translate3d(0px, 22px, 0px) scale(.982);
+	transform: translate3d(0px, 22px, 0px) scale(.982);
+}
+
+#openCollectionGrid .collection-card-enter .gamelink {
+	will-change: opacity, transform;
+	-webkit-animation-name: collection-library-card-lift;
+	animation-name: collection-library-card-lift;
+	-webkit-animation-duration: 620ms;
+	animation-duration: 620ms;
+	-webkit-animation-delay: 0ms;
+	animation-delay: 0ms;
+	-webkit-animation-delay: var(--collection-entry-delay, 0ms);
+	animation-delay: var(--collection-entry-delay, 0ms);
+	-webkit-animation-timing-function: cubic-bezier(.18,.82,.28,1.08);
+	animation-timing-function: cubic-bezier(.18,.82,.28,1.08);
+	-webkit-animation-fill-mode: both;
+	animation-fill-mode: both;
+}
+
+#openCollectionGrid .collection-card-enter .gamelink .box:after {
+	-webkit-animation-name: collection-library-card-sheen;
+	animation-name: collection-library-card-sheen;
+	-webkit-animation-duration: 700ms;
+	animation-duration: 700ms;
+	-webkit-animation-delay: 110ms;
+	animation-delay: 110ms;
+	-webkit-animation-delay: var(--collection-sheen-delay, 110ms);
+	animation-delay: var(--collection-sheen-delay, 110ms);
+	-webkit-animation-timing-function: ease-out;
+	animation-timing-function: ease-out;
+	-webkit-animation-fill-mode: both;
+	animation-fill-mode: both;
+}
+
+#openCollectionGrid .collection-card-enter.collection-card-enter-quiet .gamelink .box:after {
+	-webkit-animation-name: none;
+	animation-name: none;
+}
+
+@-webkit-keyframes collection-library-card-lift {
+	0% {
+		opacity: 0;
+		-webkit-transform: translate3d(0px, 24px, 0px) rotateX(10deg) scale(.975);
+		transform: translate3d(0px, 24px, 0px) rotateX(10deg) scale(.975);
+	}
+
+	56% {
+		opacity: 1;
+		-webkit-transform: translate3d(0px, -5px, 0px) rotateX(-2deg) scale(1.018);
+		transform: translate3d(0px, -5px, 0px) rotateX(-2deg) scale(1.018);
+	}
+
+	78% {
+		opacity: 1;
+		-webkit-transform: translate3d(0px, 1px, 0px) rotateX(0deg) scale(.998);
+		transform: translate3d(0px, 1px, 0px) rotateX(0deg) scale(.998);
+	}
+
+	100% {
+		opacity: 1;
+		-webkit-transform: translate3d(0px, 0px, 0px) rotateX(0deg) scale(1);
+		transform: translate3d(0px, 0px, 0px) rotateX(0deg) scale(1);
+	}
+}
+
+@keyframes collection-library-card-lift {
+	0% {
+		opacity: 0;
+		-webkit-transform: translate3d(0px, 24px, 0px) rotateX(10deg) scale(.975);
+		transform: translate3d(0px, 24px, 0px) rotateX(10deg) scale(.975);
+	}
+
+	56% {
+		opacity: 1;
+		-webkit-transform: translate3d(0px, -5px, 0px) rotateX(-2deg) scale(1.018);
+		transform: translate3d(0px, -5px, 0px) rotateX(-2deg) scale(1.018);
+	}
+
+	78% {
+		opacity: 1;
+		-webkit-transform: translate3d(0px, 1px, 0px) rotateX(0deg) scale(.998);
+		transform: translate3d(0px, 1px, 0px) rotateX(0deg) scale(.998);
+	}
+
+	100% {
+		opacity: 1;
+		-webkit-transform: translate3d(0px, 0px, 0px) rotateX(0deg) scale(1);
+		transform: translate3d(0px, 0px, 0px) rotateX(0deg) scale(1);
+	}
+}
+
+@-webkit-keyframes collection-library-card-sheen {
+	0% {
+		opacity: 0;
+		-webkit-transform: translate3d(-125%, 0px, 0px) skewX(-12deg);
+		transform: translate3d(-125%, 0px, 0px) skewX(-12deg);
+	}
+
+	24% {
+		opacity: .7;
+	}
+
+	100% {
+		opacity: 0;
+		-webkit-transform: translate3d(125%, 0px, 0px) skewX(-12deg);
+		transform: translate3d(125%, 0px, 0px) skewX(-12deg);
+	}
+}
+
+@keyframes collection-library-card-sheen {
+	0% {
+		opacity: 0;
+		-webkit-transform: translate3d(-125%, 0px, 0px) skewX(-12deg);
+		transform: translate3d(-125%, 0px, 0px) skewX(-12deg);
+	}
+
+	24% {
+		opacity: .7;
+	}
+
+	100% {
+		opacity: 0;
+		-webkit-transform: translate3d(125%, 0px, 0px) skewX(-12deg);
+		transform: translate3d(125%, 0px, 0px) skewX(-12deg);
+	}
+}
+
 /* .gamelink .remove {
 	position: absolute;
 	width: 22px;
@@ -4722,12 +4904,16 @@ div.suggestionsbar input {
 }
 
 @media (prefers-reduced-motion: reduce) {
+	#openCollectionGrid .collection-card-enter .gamelink,
+	#openCollectionGrid .collection-card-enter .gamelink .box:after,
 	#suggestionsgrid .suggestion-card-enter,
 	#suggestionsgrid .suggestion-card-enter .gamelink .box:after {
 		-webkit-animation: none;
 		animation: none;
 	}
 
+	#openCollectionGrid .collection-card-awaiting-entry .gamelink,
+	#openCollectionGrid .collection-card-enter .gamelink,
 	#suggestionsgrid .suggestion-card-enter {
 		opacity: 1;
 		-webkit-transform: none;

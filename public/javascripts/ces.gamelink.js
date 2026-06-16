@@ -4,6 +4,8 @@ var cesGameLink = (function(_config, _Media, _Tooltips, _Collections, gameKey, c
     var self = this;
     var _gamelink;
     var _imageAnimation = opt_ImageAnimation === undefined ? 'flipInY' : opt_ImageAnimation;
+    var _gameTooltipOriginClass = 'ces-game-tooltip-origin';
+    var _gameTooltipBoxOpenClass = 'ces-game-tooltip-box-open';
 
     //public members
 
@@ -23,6 +25,14 @@ var cesGameLink = (function(_config, _Media, _Tooltips, _Collections, gameKey, c
         var $div = $('<div class="gamelink"></div>');
         var $imagewrapper = $('<div class="box zoom transparent"></div>');
 
+        var HasGamePopover = function() {
+            return $imagewrapper.hasClass(_gameTooltipOriginClass) || $imagewrapper.closest('.' + _gameTooltipOriginClass).length > 0;
+        };
+
+        var KeepPopoverBoxLifted = function() {
+            return $imagewrapper.hasClass(_gameTooltipBoxOpenClass);
+        };
+
         //zoom on click, if zoomed (selected, trigger play)
         $div.on('click', function() {
 
@@ -31,13 +41,26 @@ var cesGameLink = (function(_config, _Media, _Tooltips, _Collections, gameKey, c
             //     opt_PlayGame(gameKey);
             // }
 
+            if (HasGamePopover()) {
+                $imagewrapper.removeClass('zoom-down');
+                $imagewrapper.addClass('zoom-on');
+                return;
+            }
+
             $imagewrapper.removeClass('zoom-on');
             $imagewrapper.addClass('zoom-down');
 
-        }).on('mouseover', function() {
+        }).on('mouseenter', function() {
+            $imagewrapper.removeClass('zoom-down');
             $imagewrapper.addClass('zoom-on');
         })
-        .on('mouseout', function() {
+        .on('mouseleave', function() {
+            if (KeepPopoverBoxLifted()) {
+                $imagewrapper.removeClass('zoom-on');
+                $imagewrapper.removeClass('zoom-down');
+                return;
+            }
+
             $imagewrapper.removeClass('zoom-on');
             $imagewrapper.removeClass('zoom-down');
         });

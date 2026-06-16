@@ -10,10 +10,67 @@ var cesTooltips = (function(_config, _Media, _Logging, tooltipSelector, tooltipC
     var alreadyProcessedSelector = '.' + alreadyProcessedName;
     var gameTooltipSide = 'top';
     var gameTooltipOriginClass = 'ces-game-tooltip-origin';
+    var gameTooltipOriginOpenClass = 'ces-game-tooltip-origin-open';
+    var gameTooltipBoxOpenClass = 'ces-game-tooltip-box-open';
     var gameTooltipKeyupNamespace = 'keyup.cesGameTooltip';
     var gameTooltipMouseNamespace = '.cesGameTooltipMouse';
     var gameTooltipActionNamespace = '.cesGameTooltipAction';
     var gameTooltipMouseCloseDelay = 100;
+
+    var FindGameTooltipBox = function($origin) {
+
+        if (!$origin || !$origin.length) {
+            return $();
+        }
+
+        if ($origin.hasClass('box')) {
+            return $origin;
+        }
+
+        var $box = $origin.find('.gamelink .box').first();
+
+        if (!$box.length) {
+            $box = $origin.closest('.gamelink').find('.box').first();
+        }
+
+        return $box;
+    };
+
+    var IsGameTooltipBoxHovered = function($box) {
+
+        if (!$box || !$box.length) {
+            return false;
+        }
+
+        try {
+            return $box.is(':hover') || $box.closest('.gamelink').is(':hover');
+        }
+        catch (err) {
+            return false;
+        }
+    };
+
+    var SetGameTooltipOpenState = function($origin, isOpen) {
+
+        var $box = FindGameTooltipBox($origin);
+
+        if (isOpen) {
+            $origin.addClass(gameTooltipOriginOpenClass);
+            $box
+                .removeClass('zoom-down')
+                .addClass(gameTooltipBoxOpenClass);
+        }
+        else {
+            $origin.removeClass(gameTooltipOriginOpenClass);
+            $box
+                .removeClass(gameTooltipBoxOpenClass)
+                .removeClass('zoom-down');
+
+            if (!IsGameTooltipBoxHovered($box)) {
+                $box.removeClass('zoom-on');
+            }
+        }
+    };
 
     var IsTooltipActive = function(instance) {
 
@@ -439,6 +496,7 @@ var cesTooltips = (function(_config, _Media, _Logging, tooltipSelector, tooltipC
         opt_side = NormalizeGameTooltipSides(opt_side == undefined ? gameTooltipSide : opt_side);
 
         if ($el.hasClass(alreadyProcessedName)) {
+            SetGameTooltipOpenState($el, false);
             $el.tooltipster('destroy'); //remove any previus def
         }
 
@@ -477,10 +535,12 @@ var cesTooltips = (function(_config, _Media, _Logging, tooltipSelector, tooltipC
                 }
 
                 CloseOpenGameTooltips($el);
+                SetGameTooltipOpenState($el, true);
                 return true;
             },
             functionReady: function(instance, helper) {
 
+                SetGameTooltipOpenState($el, true);
                 CloseGameTooltipsOnEscape();
                 RepositionGameTooltipSoon(instance);
                 BindCloseAfterTooltipLeave(instance, helper);
@@ -489,6 +549,7 @@ var cesTooltips = (function(_config, _Media, _Logging, tooltipSelector, tooltipC
             },
             functionAfter: function(instance, helper) {
 
+                SetGameTooltipOpenState($el, false);
                 StopTooltipVideo($mediawrapper);
 
                 if (!$('.' + gameTooltipOriginClass + alreadyProcessedSelector).filter(function() {
@@ -516,12 +577,14 @@ var cesTooltips = (function(_config, _Media, _Logging, tooltipSelector, tooltipC
     this.Close = function($el) {
         if ($el.hasClass(alreadyProcessedName)) {
             $el.tooltipster('close');
+            SetGameTooltipOpenState($el, false);
             $el.trigger('mouseleave');
         }
     };
 
     this.Destroy = function($el) {
         if ($el.hasClass(alreadyProcessedName)) {
+            SetGameTooltipOpenState($el, false);
             $el.find(alreadyProcessedSelector).tooltipster('destroy');
             $el.tooltipster('destroy');
         }
