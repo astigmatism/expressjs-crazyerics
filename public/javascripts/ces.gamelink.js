@@ -1,8 +1,9 @@
-var cesGameLink = (function(_config, _Media, _Tooltips, _Collections, gameKey, cdnPathValue, opt_tooltip, opt_PlayGame, opt_OnImageLoaded) {
+var cesGameLink = (function(_config, _Media, _Tooltips, _Collections, gameKey, cdnPathValue, opt_tooltip, opt_PlayGame, opt_OnImageLoaded, opt_ImageAnimation) {
 
     //private members
     var self = this;
     var _gamelink;
+    var _imageAnimation = opt_ImageAnimation === undefined ? 'flipInY' : opt_ImageAnimation;
 
     //public members
 
@@ -46,7 +47,10 @@ var cesGameLink = (function(_config, _Media, _Tooltips, _Collections, gameKey, c
         $img.imagesLoaded().progress(function(imgLoad, image) {
             
             //$imagewrapper.removeClass('close'); //remove close on parent to reveal image
-            $imagewrapper.removeClass('transparent').cssAnimation('flipInY', 1000);
+            $imagewrapper.removeClass('transparent');
+            if (_imageAnimation) {
+                $imagewrapper.cssAnimation(_imageAnimation, 1000);
+            }
 
             if (opt_OnImageLoaded) {
                 opt_OnImageLoaded(image);

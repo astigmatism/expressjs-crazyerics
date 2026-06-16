@@ -4489,6 +4489,179 @@ div.mediawrapper.game-tooltip-media {
 	display: none;
 }
 
+#suggestionsgrid {
+	display: -webkit-box;
+	display: -webkit-flex;
+	display: -ms-flexbox;
+	display: flex;
+	-webkit-box-align: start;
+	-webkit-align-items: flex-start;
+	-ms-flex-align: start;
+	align-items: flex-start;
+	width: 100%;
+	min-height: 120px;
+}
+
+#suggestionsgrid:after {
+	display: none;
+	content: none;
+}
+
+#suggestionsgrid .suggestions-column {
+	-webkit-box-flex: 0;
+	-webkit-flex: 0 0 auto;
+	-ms-flex: 0 0 auto;
+	flex: 0 0 auto;
+	box-sizing: border-box;
+	min-width: 0px;
+}
+
+#suggestionsgrid .grid-item {
+	float: none;
+	display: block;
+	box-sizing: border-box;
+	margin: 0px;
+	text-align: center;
+	-webkit-transform-origin: 50% 80%;
+	-moz-transform-origin: 50% 80%;
+	-o-transform-origin: 50% 80%;
+	-ms-transform-origin: 50% 80%;
+	transform-origin: 50% 80%;
+}
+
+#suggestionsgrid .gamelink {
+	margin: 5px;
+}
+
+#suggestionsgrid .gamelink .box {
+	display: inline-block;
+	position: relative;
+	max-width: 100%;
+	overflow: hidden;
+	border-radius: 4px;
+	background: rgba(255,255,255,0.04);
+	box-shadow: 0px 7px 16px rgba(0,0,0,0.28), 0px 0px 0px 1px rgba(255,255,255,0.08);
+	-webkit-backface-visibility: hidden;
+	-moz-backface-visibility: hidden;
+	backface-visibility: hidden;
+}
+
+#suggestionsgrid .gamelink .box img {
+	max-width: 100%;
+	height: auto;
+	margin: 0px auto;
+}
+
+#suggestionsgrid .gamelink .box:after {
+	content: '';
+	position: absolute;
+	top: 0px;
+	right: 0px;
+	bottom: 0px;
+	left: 0px;
+	pointer-events: none;
+	opacity: 0;
+	background: linear-gradient(115deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.16) 34%, rgba(143,219,70,0.18) 50%, rgba(255,255,255,0) 68%);
+	-webkit-transform: translate3d(-120%, 0px, 0px);
+	-moz-transform: translate3d(-120%, 0px, 0px);
+	-o-transform: translate3d(-120%, 0px, 0px);
+	-ms-transform: translate3d(-120%, 0px, 0px);
+	transform: translate3d(-120%, 0px, 0px);
+}
+
+#suggestionsgrid .suggestion-card-enter {
+	will-change: opacity, transform;
+	-webkit-animation-name: suggestion-cabinet-card-deal;
+	animation-name: suggestion-cabinet-card-deal;
+	-webkit-animation-duration: 420ms;
+	animation-duration: 420ms;
+	-webkit-animation-timing-function: cubic-bezier(.17,.84,.36,1.12);
+	animation-timing-function: cubic-bezier(.17,.84,.36,1.12);
+	-webkit-animation-fill-mode: both;
+	animation-fill-mode: both;
+}
+
+#suggestionsgrid .suggestion-card-enter .gamelink .box:after {
+	-webkit-animation: suggestion-card-scanline 560ms ease-out 70ms both;
+	animation: suggestion-card-scanline 560ms ease-out 70ms both;
+}
+
+@-webkit-keyframes suggestion-cabinet-card-deal {
+	0% {
+		opacity: 0;
+		-webkit-transform: translate3d(0px, 24px, 0px) rotateX(14deg) scale(.96);
+		transform: translate3d(0px, 24px, 0px) rotateX(14deg) scale(.96);
+	}
+
+	68% {
+		opacity: 1;
+		-webkit-transform: translate3d(0px, -3px, 0px) rotateX(-2deg) scale(1.012);
+		transform: translate3d(0px, -3px, 0px) rotateX(-2deg) scale(1.012);
+	}
+
+	100% {
+		opacity: 1;
+		-webkit-transform: translate3d(0px, 0px, 0px) rotateX(0deg) scale(1);
+		transform: translate3d(0px, 0px, 0px) rotateX(0deg) scale(1);
+	}
+}
+
+@keyframes suggestion-cabinet-card-deal {
+	0% {
+		opacity: 0;
+		-webkit-transform: translate3d(0px, 24px, 0px) rotateX(14deg) scale(.96);
+		transform: translate3d(0px, 24px, 0px) rotateX(14deg) scale(.96);
+	}
+
+	68% {
+		opacity: 1;
+		-webkit-transform: translate3d(0px, -3px, 0px) rotateX(-2deg) scale(1.012);
+		transform: translate3d(0px, -3px, 0px) rotateX(-2deg) scale(1.012);
+	}
+
+	100% {
+		opacity: 1;
+		-webkit-transform: translate3d(0px, 0px, 0px) rotateX(0deg) scale(1);
+		transform: translate3d(0px, 0px, 0px) rotateX(0deg) scale(1);
+	}
+}
+
+@-webkit-keyframes suggestion-card-scanline {
+	0% {
+		opacity: 0;
+		-webkit-transform: translate3d(-120%, 0px, 0px);
+		transform: translate3d(-120%, 0px, 0px);
+	}
+
+	26% {
+		opacity: .82;
+	}
+
+	100% {
+		opacity: 0;
+		-webkit-transform: translate3d(120%, 0px, 0px);
+		transform: translate3d(120%, 0px, 0px);
+	}
+}
+
+@keyframes suggestion-card-scanline {
+	0% {
+		opacity: 0;
+		-webkit-transform: translate3d(-120%, 0px, 0px);
+		transform: translate3d(-120%, 0px, 0px);
+	}
+
+	26% {
+		opacity: .82;
+	}
+
+	100% {
+		opacity: 0;
+		-webkit-transform: translate3d(120%, 0px, 0px);
+		transform: translate3d(120%, 0px, 0px);
+	}
+}
+
 div.suggestionsbar {
 	font-size: 1.2em;
 	margin: 10px 0px 20px 0px;
@@ -4534,6 +4707,35 @@ div.suggestionsbar input {
 	-webkit-transition:All 100ms ease-in;
 	-moz-transition:All 100ms ease-in;
 	-o-transition:All 100ms ease-in;
+}
+
+#suggestionsloading.suggestions-ended {
+	height: 30px;
+	margin: 10px 0px 25px 0px;
+	background-image: none;
+	color: #7f8d99;
+	font-size: 12px;
+	letter-spacing: .05em;
+	line-height: 30px;
+	text-align: center;
+	text-transform: uppercase;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	#suggestionsgrid .suggestion-card-enter,
+	#suggestionsgrid .suggestion-card-enter .gamelink .box:after {
+		-webkit-animation: none;
+		animation: none;
+	}
+
+	#suggestionsgrid .suggestion-card-enter {
+		opacity: 1;
+		-webkit-transform: none;
+		-moz-transform: none;
+		-o-transform: none;
+		-ms-transform: none;
+		transform: none;
+	}
 }
 
 #output {

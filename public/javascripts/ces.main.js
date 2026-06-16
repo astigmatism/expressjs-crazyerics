@@ -241,21 +241,6 @@ var cesMain = (function() {
 
         InitializeEmulatorFullscreenButton();
 
-        //when user has scrolled to bottom of page, load more suggestions
-        $(window).scroll(function() {
-            if ($(window).scrollTop) {
-                
-                var x = $(window).scrollTop() + $(window).height();
-                var y = $(document).height(); //- 100; //if you want "near bottom", sub from this amount
-
-                if (x == y) {
-                    _Suggestions.LoadMore(function() {
-                        _Tooltips.Any();
-                    });
-                }
-            }
-        });
-
         //stuff to do when at work mode is enabled
         //$('#titlebanner').hide();
 
