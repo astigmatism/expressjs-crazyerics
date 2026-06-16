@@ -11,17 +11,30 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
 
     var _activeCollectionId = null;
     var _activeCollectionName = null;
+    var _externalActiveCollection = null;
     var _TitlesSort = null;
 
     var _activeCollectionTitles = [];
     var _collectionNames = [];
     var _collectionControls = null;
+    var $collectionHeaderWrapper = $('#collectionTitle');
+    var $collectionsWrapper = $collectionNamesWrapper.closest('#collectionsWrapper');
+    var _isCollectionNameEditorOpen = false;
 
     var _collectionEnterAnimationMs = 620;
     var _collectionStaggerStepMs = 16;
     var _collectionStaggerMaxDelayMs = 320;
     var _collectionImageReadyTimeout = 6000;
     var _collectionFlourishLimit = 48;
+    var _defaultCollectionName = '$';
+    var _defaultCollectionDisplayName = 'Untitled Collection';
+    var _personalCollectionType = 'user';
+    var _collectionOptionsTriggerSelector = '.collection-options-trigger';
+    var _collectionOptionsDocumentNamespace = '.cesCollectionOptionsMenu';
+    var _collectionToolsLockedClass = 'collection-tools-locked';
+    var _collectionToolsStoragePrefix = 'ces.collections.toolsUnlocked.';
+    var _collectionToolsStorageKey = null;
+    var _collectionToolsUnlocked = false;
 
 	//public members
 
@@ -41,12 +54,16 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
     };
 
     this.HasDefaultCollection = function() {
-        return _collectionNames.length === 1 && _collectionNames[0].name === '$';
+        return _collectionNames.length === 1 && _collectionNames[0].name === _defaultCollectionName;
+    };
+
+    this.HasNoCollections = function() {
+        return _collectionNames.length === 0;
     };
 
     //do we meet the conditions for which the user has no games in their collection? (new user, etc)
     this.IsEmpty = function() {
-        return _self.HasDefaultCollection() && _activeCollectionTitles.length === 0;
+        return (_self.HasNoCollections() && _activeCollectionTitles.length === 0) || (_self.HasDefaultCollection() && _activeCollectionTitles.length === 0);
     };
 
     //asked for by the featured component
@@ -66,8 +83,10 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
     };
 
     //is allows the featured component to override any currently selected personal collection
-    this.SetActiveCollectionId = function(id) {
-        _activeCollectionId = id; 
+    this.SetActiveCollectionId = function(id, opt_collection) {
+        _activeCollectionId = id;
+        _externalActiveCollection = opt_collection || null;
+        RenderCollectionHeader();
     };
 
     this.AddTitleWithoutPlaying = function(gameKey) {
@@ -76,6 +95,577 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
         _Sync.Put(url, function(data) {
             //sync will take care of updating the collection
         });
+    };
+
+    var BindKeyboardActivate = function($el, handler) {
+
+        $el
+            .off('click.collectionActivate keydown.collectionActivate')
+            .on('click.collectionActivate', handler)
+            .on('keydown.collectionActivate', function(e) {
+                var key = e.which || e.keyCode;
+                if (key === 13 || key === 32) {
+                    e.preventDefault();
+                    handler.call(this, e);
+                }
+            });
+    };
+
+    var GetCollectionsWrapper = function() {
+
+        return $collectionsWrapper.length ? $collectionsWrapper : $collectionNamesWrapper.parent();
+    };
+
+    var SetCollectionToolsStorageKey = function(payload) {
+
+        if (payload && payload.collectionToolsStorageKey) {
+            _collectionToolsStorageKey = payload.collectionToolsStorageKey;
+            _collectionToolsUnlocked = _collectionToolsUnlocked || LoadCollectionToolsUnlocked();
+        }
+    };
+
+    var GetCollectionToolsStorageName = function() {
+
+        if (!_collectionToolsStorageKey) {
+            return null;
+        }
+
+        return _collectionToolsStoragePrefix + _collectionToolsStorageKey;
+    };
+
+    var LoadCollectionToolsUnlocked = function() {
+
+        var storageName = GetCollectionToolsStorageName();
+
+        if (!storageName) {
+            return false;
+        }
+
+        try {
+            return localStorage.getItem(storageName) === '1';
+        }
+        catch (err) {
+            _Logging.Console('ces.collections', 'unable to read collection tools unlock flag', err);
+        }
+
+        return false;
+    };
+
+    var PersistCollectionToolsUnlocked = function() {
+
+        var storageName = GetCollectionToolsStorageName();
+
+        if (!storageName) {
+            return;
+        }
+
+        try {
+            localStorage.setItem(storageName, '1');
+        }
+        catch (err) {
+            _Logging.Console('ces.collections', 'unable to persist collection tools unlock flag', err);
+        }
+    };
+
+    var HasNamedPersonalCollection = function() {
+
+        for (var i = 0, len = _collectionNames.length; i < len; ++i) {
+            if (!IsDefaultCollection(_collectionNames[i])) {
+                return true;
+            }
+        }
+
+        return false;
+    };
+
+    var HasCollectionToolsUnlockThreshold = function() {
+
+        if (_collectionNames.length >= 2) {
+            return true;
+        }
+
+        if (_self.HasDefaultCollection() && _activeCollectionTitles.length >= 2) {
+            return true;
+        }
+
+        // A named single collection means the user has already crossed the collection-management
+        // threshold in an earlier session or browser, even if the local unlock flag is unavailable.
+        if (HasNamedPersonalCollection()) {
+            return true;
+        }
+
+        return false;
+    };
+
+    var UpdateCollectionToolsUnlocked = function() {
+
+        if (_collectionToolsUnlocked || _self.HasNoCollections()) {
+            return;
+        }
+
+        if (HasCollectionToolsUnlockThreshold()) {
+            _collectionToolsUnlocked = true;
+            PersistCollectionToolsUnlocked();
+        }
+    };
+
+    var CanShowCollectionTools = function() {
+
+        if (_self.IsEmpty()) {
+            return false;
+        }
+
+        return _collectionToolsUnlocked || HasCollectionToolsUnlockThreshold();
+    };
+
+    var ApplyCollectionToolsVisibility = function() {
+
+        var showTools = CanShowCollectionTools();
+        var $wrapper = GetCollectionsWrapper();
+        var $rail = $collectionNamesWrapper.closest('#collectionsRail');
+        var wasLocked = $wrapper.length && $wrapper.hasClass(_collectionToolsLockedClass);
+
+        if ($wrapper.length) {
+            $wrapper.toggleClass(_collectionToolsLockedClass, !showTools && !_self.IsEmpty());
+        }
+
+        if ($rail.length) {
+            $rail.attr('aria-hidden', showTools ? 'false' : 'true');
+        }
+
+        if (!showTools) {
+            CloseCollectionOptionsMenus();
+            if (_isCollectionNameEditorOpen) {
+                _isCollectionNameEditorOpen = false;
+            }
+            DestroyTooltipsIn($collectionHeaderWrapper);
+            $collectionHeaderWrapper.empty();
+        }
+        else if (wasLocked && _collectionsGrid && _collectionsGrid.length) {
+            _collectionsGrid.isotope('layout');
+        }
+    };
+
+    var DestroyTooltipsIn = function($el) {
+
+        if (!$el || !$el.length) {
+            return;
+        }
+
+        $el.find('.tooltipstered').each(function() {
+            try {
+                $(this).tooltipster('destroy');
+            }
+            catch (err) {
+                _Logging.Console('ces.collections', 'unable to destroy nested tooltip', err);
+            }
+        });
+
+        _Tooltips.Destroy($el);
+    };
+
+    var GetCollectionOptionsTriggers = function() {
+
+        var $scope = (_collectionsGrid && _collectionsGrid.length) ? _collectionsGrid : $collectionNamesWrapper;
+        return $scope.find(_collectionOptionsTriggerSelector);
+    };
+
+    var CloseCollectionOptionsMenus = function($except) {
+
+        GetCollectionOptionsTriggers().each(function() {
+            var $trigger = $(this);
+
+            if ($except && $except.length && $trigger[0] === $except[0]) {
+                return;
+            }
+
+            _Tooltips.Close($trigger);
+        });
+    };
+
+    var CloseCollectionOptionsMenu = function(collection) {
+
+        if (collection && collection.optionsTrigger && collection.optionsTrigger.length) {
+            _Tooltips.Close(collection.optionsTrigger);
+        }
+        else if (collection && collection.gridItem && collection.gridItem.length) {
+            _Tooltips.Close(collection.gridItem);
+        }
+    };
+
+    var BindCollectionOptionsDocumentHandlers = function() {
+
+        $(document)
+            .off('keyup' + _collectionOptionsDocumentNamespace)
+            .on('keyup' + _collectionOptionsDocumentNamespace, function(e) {
+                if (e.which === 27) {
+                    CloseCollectionOptionsMenus();
+                }
+            })
+            .off('click' + _collectionOptionsDocumentNamespace)
+            .on('click' + _collectionOptionsDocumentNamespace, function(e) {
+
+                var $target = $(e.target);
+
+                if ($target.closest(_collectionOptionsTriggerSelector).length || $target.closest('.tooltipster-base').length) {
+                    return;
+                }
+
+                CloseCollectionOptionsMenus();
+            });
+    };
+
+    var BindCollectionOptionsTrigger = function(collection) {
+
+        if (!collection || !collection.optionsTrigger || !collection.optionsTrigger.length) {
+            return;
+        }
+
+        collection.optionsTrigger
+            .off('click.collectionOptionsTrigger keydown.collectionOptionsTrigger')
+            .on('click.collectionOptionsTrigger', function(e) {
+                e.stopPropagation();
+                CloseCollectionOptionsMenus($(this));
+            })
+            .on('keydown.collectionOptionsTrigger', function(e) {
+
+                var key = e.which || e.keyCode;
+
+                if (key === 13 || key === 32) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    $(this).trigger('click');
+                }
+                else if (key === 27) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    CloseCollectionOptionsMenus();
+                }
+            });
+    };
+
+    var BindTooltipAction = function($el, handler) {
+
+        $el.attr('role', 'menuitem').attr('tabindex', '0');
+        BindKeyboardActivate($el, handler);
+    };
+
+    var IsDefaultCollection = function(collection) {
+        return collection && collection.name === _defaultCollectionName;
+    };
+
+    var IsEditableCollection = function(collection) {
+
+        if (!collection) {
+            return false;
+        }
+
+        if (collection.editable === false || collection.readOnly === true) {
+            return false;
+        }
+
+        if (collection.type === 'featured' || collection.type === 'server' || collection.name === '!') {
+            return false;
+        }
+
+        return true;
+    };
+
+    var GetCollectionDisplayName = function(collection) {
+
+        if (!collection) {
+            return _defaultCollectionDisplayName;
+        }
+
+        if (IsDefaultCollection(collection)) {
+            return _defaultCollectionDisplayName;
+        }
+
+        if (collection.name === '!') {
+            return 'Featured Collection';
+        }
+
+        return collection.name || _defaultCollectionDisplayName;
+    };
+
+    var FindActiveCollection = function() {
+
+        if (_externalActiveCollection && _externalActiveCollection.id === _activeCollectionId) {
+            return _externalActiveCollection;
+        }
+
+        for (var i = 0, len = _collectionNames.length; i < len; ++i) {
+            if (_collectionNames[i].id === _activeCollectionId) {
+                return _collectionNames[i];
+            }
+        }
+
+        if (_activeCollectionId && _activeCollectionName && _collectionNames.length > 0) {
+            return {
+                id: _activeCollectionId,
+                name: _activeCollectionName,
+                type: _personalCollectionType,
+                editable: true
+            };
+        }
+
+        return null;
+    };
+
+    var GetCollectionCountText = function(count) {
+        return count + ' ' + (count === 1 ? 'game' : 'games');
+    };
+
+    var RenderCollectionHeader = function() {
+
+        if (!$collectionHeaderWrapper.length || _isCollectionNameEditorOpen) {
+            return;
+        }
+
+        if (!CanShowCollectionTools()) {
+            DestroyTooltipsIn($collectionHeaderWrapper);
+            $collectionHeaderWrapper.empty();
+            return;
+        }
+
+        var activeCollection = FindActiveCollection();
+
+        if (!activeCollection && _self.HasNoCollections() && _activeCollectionTitles.length === 0) {
+            DestroyTooltipsIn($collectionHeaderWrapper);
+            $collectionHeaderWrapper.empty();
+            return;
+        }
+
+        var activeName = GetCollectionDisplayName(activeCollection);
+        var collectionEyebrow = activeCollection && (activeCollection.type === 'featured' || activeCollection.type === 'server') ? 'Featured Collection' : 'Personal Library';
+        var titleCount = activeCollection && activeCollection.hasOwnProperty('count') ? activeCollection.count : _activeCollectionTitles.length;
+        var $titlebar = $('<div class="collection-library-titlebar" />');
+        var $titlegroup = $('<div class="collection-library-titlegroup" />');
+        var $eyebrow = $('<div class="collection-library-eyebrow" />').text(collectionEyebrow);
+        var $headingRow = $('<div class="collection-library-heading-row" />');
+        var $heading = $('<div class="collection-library-heading" />').text(activeName);
+        var $meta = $('<div class="collection-library-meta" />');
+        var $actions = $('<div class="collection-library-actions" />');
+
+        $headingRow.append($heading);
+
+        if (IsDefaultCollection(activeCollection)) {
+            $meta.text(GetCollectionCountText(titleCount) + ' ready for a name');
+        }
+        else {
+            $meta.text(GetCollectionCountText(titleCount));
+        }
+
+        if (IsEditableCollection(activeCollection) && !_self.IsEmpty()) {
+            var $rename = $('<button type="button" class="collection-header-action collection-rename-action" />');
+            $rename.text(IsDefaultCollection(activeCollection) ? 'Name' : 'Rename');
+            $rename.attr('aria-label', IsDefaultCollection(activeCollection) ? 'Name this collection' : 'Rename ' + activeName);
+            $rename.on('click', function() {
+                OpenCollectionNameEditor('rename', activeCollection, $collectionHeaderWrapper);
+            });
+            $actions.append($rename);
+        }
+
+        $titlegroup.append($eyebrow);
+        $titlegroup.append($headingRow);
+        $titlegroup.append($meta);
+        $titlebar.append($titlegroup);
+        $titlebar.append($actions);
+
+        DestroyTooltipsIn($collectionHeaderWrapper);
+        $collectionHeaderWrapper.empty().append($titlebar);
+    };
+
+    var ShowCollectionNameError = function($input, message) {
+
+        if ($input.hasClass('tooltipstered')) {
+            $input.tooltipster('content', message);
+            $input.tooltipster('show');
+        }
+        else {
+            $input.attr('title', message);
+            $input.addClass('tooltip');
+            _Tooltips.Any();
+            $input.tooltipster('content', message);
+            $input.tooltipster('show');
+        }
+    };
+
+    var ValidateCollectionName = function(rawValue, collectionBeingRenamed, $input) {
+
+        var value = $.trim(rawValue || '');
+        var offenders = value.match(/[^a-zA-Z0-9\s\-/]/g); //white list of acceptable characters
+
+        if (offenders) {
+            ShowCollectionNameError($input, 'The following characters are not allowed: ' + offenders);
+            return null;
+        }
+
+        if (value.length === 0) {
+            ShowCollectionNameError($input, 'Please enter a collection name');
+            return null;
+        }
+
+        if (value.length > 60) {
+            ShowCollectionNameError($input, 'A name cannot exceed 60 characters');
+            return null;
+        }
+
+        for (var i = 0, len = _collectionNames.length; i < len; ++i) {
+            if (_collectionNames[i].name === value && (!collectionBeingRenamed || _collectionNames[i].id !== collectionBeingRenamed.id)) {
+                ShowCollectionNameError($input, 'This name is already used');
+                return null;
+            }
+        }
+
+        return value.replace(/[^a-zA-Z0-9\s\-/]/g,''); //sanitize anyway ;)
+    };
+
+    var SaveCollectionName = function(name, mode, collection, onComplete) {
+
+        var postBody = {
+            name: name
+        };
+        var url = _baseUrl;
+        var isRename = mode === 'rename' || _self.HasDefaultCollection();
+
+        if (isRename && collection && collection.id) {
+            postBody.c = collection.id;
+            url += '/rename';
+        }
+
+        _Sync.Post(url, postBody, function(data) {
+            if (onComplete) {
+                onComplete();
+            }
+        });
+    };
+
+    var OpenCollectionNameEditor = function(mode, collection, $host) {
+
+        if (!CanShowCollectionTools()) {
+            return;
+        }
+
+        collection = collection || FindActiveCollection();
+
+        if (!collection || !IsEditableCollection(collection)) {
+            return;
+        }
+
+        $host = ($host && $host.length) ? $host : $collectionHeaderWrapper;
+
+        if (!$host.length) {
+            return;
+        }
+
+        var isInlineHost = !$collectionHeaderWrapper.length || $host[0] !== $collectionHeaderWrapper[0];
+
+        _isCollectionNameEditorOpen = true;
+        CloseCollectionOptionsMenus();
+        DestroyTooltipsIn($host);
+
+        var isRename = mode === 'rename';
+        var existingName = IsDefaultCollection(collection) ? '' : GetCollectionDisplayName(collection);
+        var $editor = $('<div class="collection-name-editor collection-name-editor-header" />');
+        var $label = $('<label class="collection-name-editor-label" for="collectionNameEditorInput" />');
+        var $input = $('<input id="collectionNameEditorInput" type="text" maxlength="60" class="collection-name-editor-input tooltip" />');
+        var $save = $('<button type="button" class="collection-name-editor-button collection-name-editor-save" />');
+        var $cancel = $('<button type="button" class="collection-name-editor-button collection-name-editor-cancel" />');
+        var RestoreInlineHost = function() {
+
+            if (isInlineHost) {
+                $host.removeClass('collection-tab-editor collection-tab-has-options');
+            }
+        };
+        var CloseEditor = function(e) {
+
+            if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            $input.val('');
+            _isCollectionNameEditorOpen = false;
+            RestoreInlineHost();
+            _self.PopulateCollections();
+            if (_collectionControls) {
+                _collectionControls.Update();
+            }
+        };
+        var Confirm = function(e) {
+
+            if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            var value = ValidateCollectionName($input.val(), isRename ? collection : null, $input);
+
+            if (!value) {
+                return;
+            }
+
+            $save.prop('disabled', true);
+            $cancel.prop('disabled', true);
+            $editor.addClass('saving');
+
+            SaveCollectionName(value, mode, collection, function() {
+                _isCollectionNameEditorOpen = false;
+                RestoreInlineHost();
+                _self.PopulateCollections();
+                if (_collectionControls) {
+                    _collectionControls.Reset();
+                }
+                RenderCollectionHeader();
+            });
+        };
+
+        $label.text(isRename ? 'Collection name' : 'New collection');
+        $input.val(existingName);
+        $save.text('Save');
+        $cancel.text('Cancel');
+
+        $editor
+            .off('click.collectionNameEditor keydown.collectionNameEditor')
+            .on('click.collectionNameEditor keydown.collectionNameEditor', function(e) {
+                e.stopPropagation();
+            });
+
+        $input.on('keydown.collectionNameEditor', function(e) {
+            if (e.which === 13) {
+                Confirm(e);
+            }
+            else if (e.which === 27) {
+                CloseEditor(e);
+            }
+        });
+
+        $save.on('click.collectionNameEditor', Confirm);
+        $cancel.on('click.collectionNameEditor', CloseEditor);
+
+        $editor.append($label);
+        $editor.append($input);
+        $editor.append($save);
+        $editor.append($cancel);
+
+        if (isInlineHost) {
+            $host
+                .off('click.collectionActivate keydown.collectionActivate')
+                .removeClass('tooltip tooltip-static-right collection-tab-has-options')
+                .addClass('collection-tab-editor')
+                .attr('role', 'presentation')
+                .removeAttr('title aria-label tabindex aria-selected aria-current aria-controls')
+                .empty()
+                .append($editor);
+        }
+        else {
+            $host.empty().append($editor);
+        }
+
+        _collectionsGrid.isotope('layout');
+        _Tooltips.Any();
+        $input.focus().select();
     };
     
     var RemoveTitle = function(activeTitle, onRemoveComplete) {
@@ -103,6 +693,10 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
 
     var RemoveCollection = function(collection, onRemoveComplete) {
 
+        CloseCollectionOptionsMenus();
+        _isCollectionNameEditorOpen = false;
+
+        _Tooltips.Destroy(collection.gridItem);
         _collectionsGrid.isotope('remove', collection.gridItem).isotope('layout'); //immediately remove from grid (i used to wait for response but why right?)
 
         //use sync for outgoing. will update this object on response
@@ -279,39 +873,53 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
 
     this.PopulateCollections = function()  {
 
-        var gridCollections = _collectionsGrid.isotope('getItemElements');
-        
-        //in this case, we have a default collection with titles. prompt the player to name the default set
-        //the "+" button will handle the rest
-        if (_self.HasDefaultCollection() || _self.IsEmpty()) {
-
-            return;
-        }
-
-        //remove select
-        _collectionsGrid.find('.grid-item').removeClass('on');
+        _collectionsGrid.find('.grid-item').removeClass('on').removeAttr('aria-current');
+        _collectionsGrid.find('[role="tab"]').attr('aria-selected', 'false');
 
         //go through all collection names in cache
         for (var i = 0, len = _collectionNames.length; i < len; ++i) {
 
             var collection = _collectionNames[i];
 
+            //The temporary first collection is represented by "$" on the server. Keep it out of
+            //the tab rail and let the visible "Name Collection" affordance handle the rename.
+            if (IsDefaultCollection(collection)) {
+                continue;
+            }
+
             //if not in grid, wont have griditem so create one
-            if (!collection.hasOwnProperty('gridItem')) {
+            if (!collection.hasOwnProperty('gridItem') || !collection.gridItem.length || !$.contains(document, collection.gridItem[0])) {
                collection.gridItem = CreateCollectionGirdItem(collection);
             }
 
+            UpdateCollectionGridItem(collection);
+
             if (_activeCollectionId === collection.id) {
-                collection.gridItem.addClass('on');
+                collection.gridItem.addClass('on').attr('aria-selected', 'true').attr('aria-current', 'true');
 
                 //apend with settings button
                 //AddContentMenuToActiveCollection($(collection.gridItem));
             }
 
-            //generate new toolips content for collection buttons (sort options, remove etc)
-            var $tooltipContent = GenerateCollectionTooltipContent(collection);
-            _Tooltips.SingleHTML(collection.gridItem, $tooltipContent, true); //reapply tooltips
+            //generate new toolips content for the explicit collection options trigger (sort options, remove etc)
+            if (IsEditableCollection(collection) && collection.optionsTrigger && collection.optionsTrigger.length) {
+                var $tooltipContent = GenerateCollectionTooltipContent(collection);
+
+                // Older builds attached this menu to the whole badge. Keep the badge itself calm and clickable.
+                _Tooltips.Destroy(collection.gridItem);
+                _Tooltips.SingleHTML(collection.optionsTrigger, $tooltipContent, true, function() {
+                    CloseCollectionOptionsMenus(collection.optionsTrigger);
+                    return true;
+                }, 'click'); //reapply tooltips on the three-dot button only
+                BindCollectionOptionsTrigger(collection);
+            }
+            else {
+                DestroyTooltipsIn(collection.gridItem);
+            }
         }
+
+        _collectionsGrid.isotope('updateSortData').isotope({ sortBy : 'type' }); //reapply layout for any new, renamed, or removed rail items
+        RenderCollectionHeader();
     };
 
     var AddContentMenuToActiveCollection = function($gi) {
@@ -329,19 +937,96 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
         
     };
 
+    var GetCollectionSortType = function(collection) {
+
+        if (!collection || collection.name === '') {
+            return 'z';
+        }
+
+        if (collection.name === '!') {
+            return 'y';
+        }
+
+        if (collection.type === 'featured' || collection.type === 'server') {
+            return 'd';
+        }
+
+        return collection.sortType || collection.type || 'c';
+    };
+
+    var UpdateCollectionGridItem = function(collection) {
+
+        var displayName = GetCollectionDisplayName(collection);
+        var typeName = collection.type || _personalCollectionType;
+        var $name = collection.gridItem.find('.collection-tab-name').first();
+        var $optionsTrigger = collection.gridItem.find(_collectionOptionsTriggerSelector).first();
+        var showOptionsTrigger = IsEditableCollection(collection);
+
+        collection.gridItem
+            .data('id', collection.id)
+            .data('type', GetCollectionSortType(collection))
+            .data('collectionType', typeName)
+            .attr('role', 'tab')
+            .attr('tabindex', '0')
+            .attr('aria-controls', 'openCollectionGrid')
+            .attr('aria-selected', 'false')
+            .attr('aria-label', 'Open collection ' + displayName);
+
+        if (!$name.length) {
+            collection.gridItem.empty();
+            $name = $('<span class="collection-tab-name" />');
+            collection.gridItem.append($name);
+        }
+
+        $name.text(displayName);
+
+        if (showOptionsTrigger) {
+            collection.gridItem.addClass('collection-tab-has-options');
+
+            if (!$optionsTrigger.length) {
+                $optionsTrigger = $('<button type="button" class="collection-options-trigger" />');
+                collection.gridItem.append($optionsTrigger);
+            }
+
+            $optionsTrigger
+                // .text('⋯')
+                .text('▾')
+                .attr('aria-label', 'Collection options for ' + displayName)
+                .attr('aria-haspopup', 'menu')
+                .attr('tabindex', '0');
+
+            collection.optionsTrigger = $optionsTrigger;
+        }
+        else {
+            collection.gridItem.removeClass('collection-tab-has-options');
+
+            if ($optionsTrigger.length) {
+                DestroyTooltipsIn($optionsTrigger);
+                $optionsTrigger.remove();
+            }
+
+            collection.optionsTrigger = null;
+        }
+    };
+
     var CreateCollectionGirdItem = function(collection) {
         
         //create the grid item
-        var $griditem = $('<div class="grid-item" />');
+        var $griditem = $('<div class="grid-item collection-tab" />');
 
         //place sorting data on grid item
-        $griditem.data('type', collection.type || 'c');
-
-        $griditem.append(collection.name); //add all visual content from gamelink to grid
+        $griditem.data('type', GetCollectionSortType(collection));
 
         //if making this collection a feature
         if (collection.name === '!') {
-            $griditem.on('click', function() {
+            $griditem
+                .addClass('collection-tab-dev-action')
+                .attr('role', 'button')
+                .attr('tabindex', '0')
+                .attr('aria-label', 'Copy the current collection to featured collections')
+                .append($('<span class="collection-tab-name" />').text('Make Featured'));
+
+            BindKeyboardActivate($griditem, function() {
                 
                 //get list of gameKeys in order from the grid
                 var gridTitles = _titlesGrid.isotope('getItemElements');
@@ -359,9 +1044,21 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
                 });
             });
         }
+        //the new collection button is reset and bound by NewCollectionControls
+        else if (collection.name === '') {
+            $griditem.addClass('collection-tab-add');
+        }
         //on click, make active collection
-        else if (collection.name != '') {
-            $griditem.on('click', function() {
+        else {
+            UpdateCollectionGridItem({
+                id: collection.id,
+                name: collection.name,
+                type: collection.type,
+                sortType: collection.sortType,
+                gridItem: $griditem
+            });
+
+            BindKeyboardActivate($griditem, function() {
                 if (_activeCollectionId != collection.id) {
                     _Sync.Get(_baseUrl + '?c=' + encodeURIComponent(collection.id), function(data) {
                         
@@ -425,29 +1122,42 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
     var GenerateCollectionTooltipContent = function(collection) {
         
         //create the tooltip content
-        var $tooltipContent = $('<div class="collection-tooltip" />');
+        var $tooltipContent = $('<div class="collection-tooltip collection-options-menu" role="menu" />');
+
+        $tooltipContent.append($('<div class="collection-tooltip-title" />').text(GetCollectionDisplayName(collection)));
 
         var $lastPlayed = $('<span class="button first noselect">Sort: Last Played</span>');
-        $lastPlayed.on('click', function(e) { 
+        BindTooltipAction($lastPlayed, function(e) {
+            CloseCollectionOptionsMenu(collection);
             _TitlesSort.Change('lastPlayed', false);
         });
         $tooltipContent.append($lastPlayed);
 
         var $nameSort = $('<span class="button noselect">Sort: Name</span>');
-        $nameSort.on('click', function(e) { 
+        BindTooltipAction($nameSort, function(e) {
+            CloseCollectionOptionsMenu(collection);
             _TitlesSort.Change('name', false);
         });
         $tooltipContent.append($nameSort);
 
         var $playCountSort = $('<span class="button noselect">Sort: Play Count</span>');
-        $playCountSort.on('click', function(e) { 
+        BindTooltipAction($playCountSort, function(e) {
+            CloseCollectionOptionsMenu(collection);
             _TitlesSort.Change('playCount', false);
         });
         $tooltipContent.append($playCountSort);
+
+        var $rename = $('<span class="button noselect">Rename</span>');
+        BindTooltipAction($rename, function(e) {
+            CloseCollectionOptionsMenu(collection);
+            OpenCollectionNameEditor('rename', collection, collection.gridItem);
+        });
+        $tooltipContent.append($rename);
     
         var $remove = $('<span class="button remove noselect">Delete</span>');
-        $remove.on('click', function(e) { 
-            $remove.off('click');
+        BindTooltipAction($remove, function(e) {
+            $remove.off('click.collectionActivate keydown.collectionActivate');
+            CloseCollectionOptionsMenu(collection);
             _Preferences.Remove('collections.sort.' + collection.name);
             RemoveCollection(collection, function() {
                 
@@ -462,158 +1172,138 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
 
         var __self = this;
         var $gi = $griditem;
+        var _isOpen = false;
 
-        var Show = function() {
+        var Show = function(e) {
 
+            if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            if (!CanShowCollectionTools()) {
+                return;
+            }
+
+            _isOpen = true;
             __self.Update(true);
 
-            $gi.animate({
-                width: 200    
-            },{
-                duration: 300,
-                easing: "linear",
-                complete: function() {
+            CloseCollectionOptionsMenus();
+            DestroyTooltipsIn($gi);
+            $gi
+                .off('click.collectionActivate keydown.collectionActivate')
+                .removeClass('tooltip tooltip-static-right collection-tab-has-options')
+                .addClass('collection-tab-editor')
+                .attr('role', 'presentation')
+                .removeAttr('title aria-label tabindex aria-selected aria-current aria-controls')
+                .empty();
 
-                    $gi.empty();
+            var $wrapper = $('<div class="collection-inline-editor" />');
+            var $input = $('<input type="text" maxlength="60" class="collection-inline-editor-input tooltip" />');
+            var $confirm = $('<button type="button" class="collection-inline-editor-button collection-inline-editor-confirm" />').text('Save');
+            var $cancel = $('<button type="button" class="collection-inline-editor-button collection-inline-editor-cancel" />').text('Cancel');
 
-                    $wrapper = $('<div class="controls" />');
-                    $gi.append($wrapper);
+            if (_self.HasDefaultCollection()) {
+                $input.attr('placeholder', 'Collection name');
+            }
+            else {
+                $input.attr('placeholder', 'New collection');
+            }
 
-                    _collectionsGrid.on('layoutComplete', function(event, laidOutItems ){
-                        
-                        _collectionsGrid.off('layoutComplete');
-                        
-                        $input = $('<input type="text" class="tooltip" />');
-                        $input.bind('keydown', function(e) {
-                            //_Logging.Console('ces.collections', 'keydown event with code: ' + e.which);
-                            if (e.which === 13) {
-                                Confirm($input, $wrapper);
-                            }
-                            else if (e.which === 27) {
-                                Reset();
-                            }
-                        });
-                        $wrapper.append($input);
-                
-                        $confirm = $('<div class="button confirm" />');
-                        $confirm.bind('click', function() {
-                            Confirm($input, $wrapper);
-                        });
-                        $wrapper.append($confirm);
-                
-                        $cancel = $('<div class="button cancel" />');
-                        $cancel.bind('click', function(e) {
-                            $cancel.unbind('click');
-                            $wrapper.hide();
-                            Reset();
-                        });
-                        $wrapper.append($cancel);
+            var Confirm = function(e) {
 
-                        $wrapper.fadeIn();
-                
-                        $input.focus();
-            
-                        _Tooltips.Any();
-                    });
+                if (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
 
-                    _collectionsGrid.isotope('layout');
+                var activeCollection = FindActiveCollection();
+                var value = ValidateCollectionName($input.val(), _self.HasDefaultCollection() ? activeCollection : null, $input);
+
+                if (!value) {
+                    return;
+                }
+
+                $confirm.prop('disabled', true);
+                $cancel.prop('disabled', true);
+                $wrapper.addClass('saving');
+
+                SaveCollectionName(value, 'create', activeCollection, function() {
+                    _isOpen = false;
+                    Reset();
+                    RenderCollectionHeader();
+                });
+            };
+
+            var Cancel = function(e) {
+
+                if (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+
+                $input.val('');
+                Reset();
+            };
+
+            $wrapper
+                .off('click.collectionInlineEditor keydown.collectionInlineEditor')
+                .on('click.collectionInlineEditor keydown.collectionInlineEditor', function(e) {
+                    e.stopPropagation();
+                });
+
+            $input.on('keydown.collectionInlineEditor', function(e) {
+                //_Logging.Console('ces.collections', 'keydown event with code: ' + e.which);
+                if (e.which === 13) {
+                    Confirm(e);
+                }
+                else if (e.which === 27) {
+                    Cancel(e);
                 }
             });
+
+            $confirm.on('click.collectionInlineEditor', Confirm);
+            $cancel.on('click.collectionInlineEditor', Cancel);
+
+            $wrapper.append($input);
+            $wrapper.append($confirm);
+            $wrapper.append($cancel);
+            $gi.append($wrapper);
+
+            _collectionsGrid.isotope('layout');
+            _Tooltips.Any();
+            $input.focus();
         };
 
         var Reset = function() {
 
-            $gi.animate({
-                width: 20    
-            },{
-                duration: 300,
-                easing: "linear",
-                complete: function() {
+            _isOpen = false;
 
-                    $gi.empty();
+            $gi.find('.collection-inline-editor, .collection-inline-editor-input, .collection-inline-editor-button').off('.collectionInlineEditor');
+            DestroyTooltipsIn($gi);
 
-                    $button = $('<div class="add close" />');
-                    $gi.append($button);
-                    $button.removeClass('close');
+            var label = _self.HasDefaultCollection() ? 'Name this Game Collection' : '+ Collection';
+            var ariaLabel = _self.HasDefaultCollection() ? 'Give a name to your current collection of games to begin creating a library of several more' : 'Create a new personal game collection';
 
-                    _collectionsGrid.on('layoutComplete', function(event, laidOutItems ){
-                        
-                        _collectionsGrid.off('layoutComplete');
-                        
-                        $button.bind('click', function() {
-                            $button.unbind('click');
-                            $button.addClass('close');
-                            Show();
-                        });
-                    });
+            $gi
+                .off('click.collectionActivate keydown.collectionActivate')
+                .removeClass('collection-tab-editor collection-tab-has-options tooltip tooltip-static-right')
+                .addClass('collection-tab collection-tab-add')
+                .data('type', GetCollectionSortType({ name: '' }))
+                .attr('role', 'button')
+                .attr('tabindex', '0')
+                .attr('aria-label', ariaLabel)
+                .removeAttr('aria-selected aria-current aria-controls aria-haspopup')
+                .empty();
 
-                    _collectionsGrid.isotope('layout');
+            $gi.append($('<span class="collection-tab-name collection-tab-add-label" />').text(label));
 
-                    __self.Update();
-                }
+            BindKeyboardActivate($gi, function(e) {
+                Show(e);
             });
-        };
 
-        var Confirm = function($input, $wrapper) {
-            
-            var value = $input.val();
-
-            offenders = value.match(/[^a-zA-Z0-9\s\-/]/g); //white list of acceptable characters
-            
-            //will show offenders as comma separated string
-            if (offenders) {
-                $input.tooltipster('content', 'The following characters are not allowed: ' + offenders);
-                $input.tooltipster('show');
-                return;
-            }
-
-            if (value.trim().length === 0) {
-                $input.tooltipster('content', 'Please enter a name for your new collection');
-                $input.tooltipster('show');
-                return;
-            }
-
-            if (value.length > 60) {
-                $input.tooltipster('content', 'A name cannot exceed 60 characters');
-                $input.tooltipster('show');
-                return;
-            }
-
-            for (var i = 0, len = _collectionNames.length; i < len; ++i) {
-                if (_collectionNames[i].name === value) {
-                    $input.tooltipster('content', 'This name is already used');
-                    $input.tooltipster('show');
-                    return;
-                }
-            }
-
-            _Tooltips.Destroy($gi); //remove tooltips from validation on text entry
-            
-            value = value.replace(/[^a-zA-Z0-9\s\-/]/g,''); //sanitize anyway ;)
-            
-            $wrapper.hide();
-
-            SaveToServer(value);
-        };
-
-        var SaveToServer = function(name) {
-
-            var postBody = {
-                name: name
-            };
-            var url = _baseUrl;
-
-            //rename the default temp value (which the client does not see)
-            if (_self.HasDefaultCollection()) {
-                postBody.c = _activeCollectionId;
-                url += '/rename';
-            }
-
-            _Sync.Post(url, postBody, function(data) {
-                
-                //show spinner?
-                Reset();
-            });
+            _collectionsGrid.isotope('updateSortData').isotope({ sortBy : 'type' });
+            __self.Update();
         };
 
         //changes to how the control should work or appear can be handled here
@@ -622,14 +1312,18 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
             _Tooltips.Destroy($griditem); //remove any existing tooltip
 
             //early exit if the controls are openned (dont want tooltips to get in the way)
-            if (controlsOpenned) return;
+            if (controlsOpenned || _isOpen) return;
+
+            $griditem.find('.collection-tab-add-label').text(_self.HasDefaultCollection() ? 'Name this Game Collection' : '+ Collection');
+            $griditem.attr('aria-label', _self.HasDefaultCollection() ? 'Name this game collection' : 'Create a new personal game collection');
+            $griditem.removeClass('tooltip tooltip-static-right').removeAttr('title');
 
             //add a tooltip depending on context
             if (_self.IsEmpty()) {
 
             }
             else if (_self.HasDefaultCollection()) {
-                $griditem.attr('title', 'Click here to name this game colletion');
+                $griditem.attr('title', 'Give a name to your current collection of games to begin creating a library of several more');
                 $griditem.addClass('tooltip-static-right');
             }
             else {
@@ -637,6 +1331,10 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
                 $griditem.addClass('tooltip');
             }
             _Tooltips.Any(); //reapply any changes
+        };
+
+        this.Reset = function() {
+            Reset();
         };
 
         //to avoid confusion, this is the constructor for the "New Collection" controls
@@ -721,17 +1419,35 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
         this.Incoming = function(payload) {
 
             var isNewCollection = true;
+            var active;
+
+            payload = payload || {};
+            SetCollectionToolsStorageKey(payload);
+            active = payload.active || {};
+            active.titles = active.titles || [];
+            payload.collections = payload.collections || [];
 
             //handle active collection titles
-            ParseActiveTitles(payload.active.titles);
+            ParseActiveTitles(active.titles);
 
             //determine if this collection is not the collection currently on display
-            isNewCollection = (_activeCollectionId != payload.active.id);
-            _activeCollectionId = payload.active.id;
-            _activeCollectionName = payload.active.name;
+            isNewCollection = (_activeCollectionId != active.id);
+            _activeCollectionId = active.id || null;
+            _activeCollectionName = active.name || null;
+            _externalActiveCollection = null;
+
+            if (!_activeCollectionId && payload.collections.length === 0) {
+                CloseCollectionOptionsMenus();
+                _isCollectionNameEditorOpen = false;
+                _TitlesSort.Reset();
+            }
 
             //handle other collection names data
             ParseCollectionNames(payload.collections);
+
+            //unlock collection-management affordances only after the user has a real
+            //collection, then keep that state for this user in local browser storage.
+            UpdateCollectionToolsUnlocked();
 
             //populate updates grid
             _self.PopulateTitles();
@@ -739,9 +1455,12 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
 
             //dont show default collection when no titles (new user experience)
             if (_self.IsEmpty()) {
-                $collectionNamesWrapper.parent().addClass('new-user');
+                GetCollectionsWrapper().addClass('new-user');
+                if (_collectionControls) {
+                    _collectionControls.Reset();
+                }
             } else {
-                $collectionNamesWrapper.parent().removeClass('new-user');
+                GetCollectionsWrapper().removeClass('new-user');
                 
                 //in this condition, the default collection is present with titles but unnamed
                 if (_self.HasDefaultCollection()) {
@@ -751,10 +1470,14 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
                 else {
                     _collectionsGrid.isotope('layout'); //reapply layout for any new or removed
                 }
+
+                //update tooltips for collection controls
+                if (_collectionControls) {
+                    _collectionControls.Update();
+                }
             }
 
-            //update tooltips for collection controls
-            _collectionControls.Update();
+            ApplyCollectionToolsVisibility();
         };
 
         //not used (yet). delete forces update on server
@@ -771,8 +1494,12 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
                 for (var j = 0, jlen = _collectionNames.length; j < jlen; ++j) {
                     if (_collectionNames[j].id === payload[i].id) {
 
-                        //retake this collections name in case of rename
-                        _collectionNames[j].name = payload[i].name;
+                        //retake this collection's server values in case of rename or future metadata changes
+                        var existingGridItem = _collectionNames[j].gridItem;
+                        _collectionNames[j] = $.extend({}, _collectionNames[j], payload[i]);
+                        if (existingGridItem) {
+                            _collectionNames[j].gridItem = existingGridItem;
+                        }
 
                         newCollection = false;
                         break;
@@ -796,6 +1523,10 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
                     }
                 }
                 if (!found) {
+                    if (_collectionNames[k].gridItem && _collectionNames[k].gridItem.length) {
+                        _Tooltips.Destroy(_collectionNames[k].gridItem);
+                        _collectionsGrid.isotope('remove', _collectionNames[k].gridItem);
+                    }
                     _collectionNames.splice(k, 1); //remove title from local cache if not found in payload
                 }
             }
@@ -914,17 +1645,19 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
             }
         });
 
-        $add = CreateCollectionGirdItem({
+        BindCollectionOptionsDocumentHandlers();
+
+        var $add = CreateCollectionGirdItem({
             name: '', 
-            type: 'a'
+            type: 'z'
         });
         _collectionControls = new NewCollectionControls($add);
 
         //will also disable on the server for prod
         if (_copyToFeaturedButton) {
-            $featureAdd = CreateCollectionGirdItem({
+            var $featureAdd = CreateCollectionGirdItem({
                 name: '!', 
-                type: 'b'
+                type: 'y'
             }); //! since this name cannot be entered by a user
         }
 

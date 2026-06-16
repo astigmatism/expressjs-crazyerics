@@ -158,9 +158,10 @@ block content
                             dl#gamedetailsboxfrontfacts
 
     div#collectionsWrapper
-        div#collectionTitle
-        div#openCollectionGrid(class="grid")
-        div#collectionsGrid(class="grid")
+        //- div#collectionTitle(class="collection-library-header", aria-live="polite")
+        div#openCollectionGrid(class="grid collection-library-grid", aria-label="Games in the selected collection")
+        div#collectionsRail(class="collection-rail-shell")
+            div#collectionsGrid(class="grid collection-tab-rail", role="tablist", aria-label="Game collections") 
 
     div#suggestionswrapper
         div#suggestionsfilters

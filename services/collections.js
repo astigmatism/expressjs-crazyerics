@@ -15,6 +15,10 @@ module.exports = new (function() {
         this.titles = [];   //a list of titles for this collection (from collections_titles table with details from titles and files tables)
     });
 
+    var EmptyCollectionEnvelope = function() {
+        return new CollectionEnvelope();
+    };
+
     this.CreateCollection = function(userId, name, callback, opt_makeActive) {
 
         CollectionsSQL.CreateCollection(userId, name, (err, createResult) => {
@@ -93,26 +97,31 @@ module.exports = new (function() {
                 CollectionsSQL.DeleteCollection(userId, collectionId, (err, deleteResult, remainingCollections) => {
                     if (err) { return callback(err); }
 
-                    //handle caches. we can set the names cache with our result but delete the active cache until we know what to do
-                    _cacheCollectionNames.Set([userId], remainingCollections);
-                    _cacheActiveCollection.Delete([userId], (err, success) => {
+                    //handle caches. Set the names cache with the post-delete result before sync
+                    //can read it, and delete the active cache until we know what to do.
+                    _cacheCollectionNames.Set([userId], remainingCollections, (err) => {
                         if (err) { return callback(err); }
 
-                        //which active is active now? Use the cache to determine what remains. in both cases
-                        if (remainingCollections.length > 0) {
+                        _cacheActiveCollection.Delete([userId], (err, success) => {
+                            if (err) { return callback(err); }
 
-                            _self.SetActiveCollection(userId, remainingCollections[0].collection_id, (err) => {
+                            //which active is active now? Use the cache to determine what remains. in both cases
+                            if (remainingCollections.length > 0) {
+
+                                _self.SetActiveCollection(userId, remainingCollections[0].collection_id, (err) => {
+                                    if (err) { return callback(err); }
+                                    return callback();
+                                });
+                                return;
+                            }
+
+                            //otherwise there are truly no collections left. Clear the persisted active
+                            //collection instead of recreating the unnamed default collection shell.
+                            CollectionsSQL.ClearActiveCollection(userId, (err) => {
                                 if (err) { return callback(err); }
+                                _self.Sync.ready = true;
                                 return callback();
                             });
-                            return;
-                        }
-
-                        //otherwise the default collection will need to be recreated
-                        CreateDefaultCollection(userId, (err, newCollectionId) => {
-                            if (err) { return callback(err); }
-                            _self.Sync.ready = true;
-                            return callback();
                         });
                     });
                 });
@@ -170,9 +179,16 @@ module.exports = new (function() {
                 return callback(null, cache);
             }
 
-            //get id from db, if not there, this process will create the default collection
+            //get id from db, if not there, this process may select an existing collection
+            //but it will not create an unnamed/default collection for a true empty library.
             GetActiveCollectionId(userId, (err, collectionId) => {
                 if (err) { return callback(err); }
+
+                if (!collectionId) {
+                    var emptyEnvelope = EmptyCollectionEnvelope();
+                    _cacheActiveCollection.Set([userId], emptyEnvelope);
+                    return callback(null, emptyEnvelope);
+                }
 
                 CollectionsSQL.GetCollectionById(userId, collectionId, (err, collectionRecord) => {
                     if (err) { return callback(err); }
@@ -199,18 +215,39 @@ module.exports = new (function() {
         CollectionsSQL.GetActiveCollectionId(userId, (err, collectionId) => {
             if (err) { return callback(err); }
 
-            if (collectionId) {
-                return callback(null, collectionId);
-            }
-
-            //if here, returned value was undef, a record was not found for active collection.
-            // either this user has deleted all their collections or is a new user
-
-            //in this special case, we create a collection using a special character as a special case for
-            //a collection which hasn't been named yet.
-            CreateDefaultCollection(userId, (err, newCollectionId) => {
+            GetCollectionNames(userId, (err, collectionRecords) => {
                 if (err) { return callback(err); }
-                return callback(null, newCollectionId);
+
+                if (collectionRecords.length === 0) {
+                    if (!collectionId) {
+                        return callback(null, null);
+                    }
+
+                    return CollectionsSQL.ClearActiveCollection(userId, (err) => {
+                        if (err) { return callback(err); }
+                        _cacheActiveCollection.Delete([userId], (err) => {
+                            if (err) { return callback(err); }
+                            _self.Sync.ready = true;
+                            return callback(null, null);
+                        });
+                    });
+                }
+
+                for (var i = 0, len = collectionRecords.length; i < len; ++i) {
+                    if (collectionRecords[i].collection_id === collectionId) {
+                        return callback(null, collectionId);
+                    }
+                }
+
+                CollectionsSQL.SetActiveCollection(userId, collectionRecords[0].collection_id, (err) => {
+                    if (err) { return callback(err); }
+
+                    _cacheActiveCollection.Delete([userId], (err) => {
+                        if (err) { return callback(err); }
+                        _self.Sync.ready = true;
+                        return callback(null, collectionRecords[0].collection_id);
+                    });
+                });
             });
         });
     };
@@ -228,11 +265,15 @@ module.exports = new (function() {
             CollectionsSQL.SetActiveCollection(userId, collectionId, (err) => {
                 if (err) { return callback(err); }
 
-                //the collection names cache is also out of sync with the newly created
+                //the collection names and active caches are also out of sync with the newly created collection
                 _cacheCollectionNames.Delete([userId], (err, success) => {
                     if (err) { return callback(err); }
-                
-                    return callback(null, collectionId);
+
+                    _cacheActiveCollection.Delete([userId], (err) => {
+                        if (err) { return callback(err); }
+
+                        return callback(null, collectionId);
+                    });
                 });
             });
 
@@ -240,9 +281,19 @@ module.exports = new (function() {
     };
 
     this.AddTitle = function(userId, eGameKey, callback) {
-        
-        _self.GetActiveCollection(userId, (err, envelope) => {
-            if (err) { return callback(err); }
+
+        var AddTitleToActiveEnvelope = function(envelope) {
+
+            if (!envelope || !envelope.collection) {
+                return CreateDefaultCollection(userId, (err) => {
+                    if (err) { return callback(err); }
+
+                    _self.GetActiveCollection(userId, (err, newEnvelope) => {
+                        if (err) { return callback(err); }
+                        AddTitleToActiveEnvelope(newEnvelope);
+                    });
+                });
+            }
 
             var collectionId = envelope.collection.collection_id;
 
@@ -252,11 +303,17 @@ module.exports = new (function() {
 
                 //reset collection cache
                 _cacheActiveCollection.Delete([userId], (err, success) => {
+                    if (err) { return callback(err); }
 
                     _self.Sync.ready = true; //inform sync that new data is ready for the client to consume
                     return callback(null, collectionsTitlesRecord);
                 }); 
             });
+        };
+
+        _self.GetActiveCollection(userId, (err, envelope) => {
+            if (err) { return callback(err); }
+            AddTitleToActiveEnvelope(envelope);
         });
     };
 
@@ -264,6 +321,10 @@ module.exports = new (function() {
 
         _self.GetActiveCollection(userId, (err, envelope) => {
             if (err) { return callback(err); }
+
+            if (!envelope || !envelope.collection) {
+                return callback();
+            }
 
             var collectionId = envelope.collection.collection_id;
 
@@ -306,9 +367,10 @@ module.exports = new (function() {
         var __self = this;
         this.ready = false;
 
-        var _payload = (function(active, collectionNames) {
+        var _payload = (function(active, collectionNames, collectionToolsStorageKey) {
             this.active = active;
             this.collections = collectionNames;
+            this.collectionToolsStorageKey = collectionToolsStorageKey;
         });
 
         //we don't respond to incoming data about collection from the client through Sync
@@ -357,12 +419,18 @@ module.exports = new (function() {
                     }
 
                     var active = {
-                        id: EncodeClientCollectionId(envelope.collection.collection_id, envelope.collection.created),
-                        name: envelope.collection.name,
+                        id: null,
+                        name: null,
                         titles: titles
+                    };
+
+                    if (envelope.collection) {
+                        active.id = EncodeClientCollectionId(envelope.collection.collection_id, envelope.collection.created);
+                        active.name = envelope.collection.name;
                     }
 
-                    var result = new _payload(active, collectionNames);
+                    var collectionToolsStorageKey = UtilitiesService.Compress.string('collection-tools:' + userId);
+                    var result = new _payload(active, collectionNames, collectionToolsStorageKey);
 
                     callback(null, result);
                 });

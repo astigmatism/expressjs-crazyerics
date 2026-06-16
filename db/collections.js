@@ -131,6 +131,14 @@ module.exports = new (function() {
         });
     };
 
+    this.ClearActiveCollection = function(userId, callback) {
+
+        pool.query('DELETE FROM collections_active WHERE user_id=$1 RETURNING *', [userId], (err, result) => {
+            if (err) { return callback(err); }
+            callback(null, result.rows);
+        });
+    };
+
     //we ensured the user owns this collection id before hand
     this.SetActiveCollection = function(userId, collectionId, callback) {
 

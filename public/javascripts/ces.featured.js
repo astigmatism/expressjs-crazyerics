@@ -12,6 +12,20 @@ var _titlesGrid = _Collections.GetGrids().titles;
 var _collectionsGrid = _Collections.GetGrids().collections;
 var _baseUrl = '/featured';
 
+var BindKeyboardActivate = function($el, handler) {
+
+    $el
+        .off('click.featuredCollectionActivate keydown.featuredCollectionActivate')
+        .on('click.featuredCollectionActivate', handler)
+        .on('keydown.featuredCollectionActivate', function(e) {
+            var key = e.which || e.keyCode;
+            if (key === 13 || key === 32) {
+                e.preventDefault();
+                handler.call(this, e);
+            }
+        });
+};
+
 var Populate = function(collection) {
 
     var gridTitles = _titlesGrid.isotope('getItemElements');
@@ -94,7 +108,7 @@ var PopulateCollections = function() {
 var AddCollection = function(collection) {
     
     //create the grid item
-    var $griditem = $('<div class="grid-item" />');
+    var $griditem = $('<div class="grid-item collection-tab collection-tab-featured" />');
 
     $griditem.data('id', collection.id);
     //place sorting data on grid item
@@ -105,9 +119,13 @@ var AddCollection = function(collection) {
     if (collection.name === '!') {
         //add a tooltip
         $griditem.attr('title', 'Load Another Featured Collection');
-        $griditem.addClass('tooltip');
-        $griditem.append('<div class="loadFeature" />');
-        $griditem.on('click', function() {
+        $griditem
+            .addClass('tooltip collection-tab-feature-action')
+            .attr('role', 'button')
+            .attr('tabindex', '0')
+            .attr('aria-label', 'Load another featured collection');
+        $griditem.append($('<span class="collection-tab-name" />').text('More Featured'));
+        BindKeyboardActivate($griditem, function() {
             //use sync to get the next featured collection.
             //here i am using sync purely for compressing data from the server, it does not go through the routine
             //of using client sync and the incoming funtion, just returns the pure data from the call, so we have to call it directly
@@ -118,13 +136,25 @@ var AddCollection = function(collection) {
     }
     else {
 
-        $griditem.append('Featured Collection: ' + collection.name);
+        $griditem
+            .attr('role', 'tab')
+            .attr('tabindex', '0')
+            .attr('aria-controls', 'openCollectionGrid')
+            .attr('aria-selected', 'false')
+            .attr('aria-label', 'Open featured collection ' + collection.name)
+            .append($('<span class="collection-tab-name" />').text('Featured: ' + collection.name));
 
-        $griditem.on('click', function() {
-            $(this).parent().find('.grid-item').removeClass('on');
-            $(this).addClass('on');
+        BindKeyboardActivate($griditem, function() {
+            $(this).parent().find('.grid-item').removeClass('on').attr('aria-selected', 'false').removeAttr('aria-current');
+            $(this).addClass('on').attr('aria-selected', 'true').attr('aria-current', 'true');
 
-            _Collections.SetActiveCollectionId(collection.id);
+            _Collections.SetActiveCollectionId(collection.id, {
+                id: collection.id,
+                name: collection.name,
+                type: 'featured',
+                editable: false,
+                count: collection.gks.length
+            });
             
             Populate(collection);
         });

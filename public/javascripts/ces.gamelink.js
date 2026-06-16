@@ -12,7 +12,7 @@ var cesGameLink = (function(_config, _Media, _Tooltips, _Collections, gameKey, c
     this.GetDOM = function() {
         return _gamelink;
     };
-    
+
     this.DisableAllEvents = function() {
 
         $(_gamelink).find('*').off();
@@ -68,7 +68,7 @@ var cesGameLink = (function(_config, _Media, _Tooltips, _Collections, gameKey, c
         var $img = _Media.$BoxFront(gameKey, cdnPathValue);
 
         $img.imagesLoaded().progress(function(imgLoad, image) {
-            
+
             //$imagewrapper.removeClass('close'); //remove close on parent to reveal image
             $imagewrapper.removeClass('transparent');
             if (_imageAnimation) {
@@ -79,7 +79,7 @@ var cesGameLink = (function(_config, _Media, _Tooltips, _Collections, gameKey, c
                 opt_OnImageLoaded(image);
             }
         });
-        
+
         $imagewrapper.append($img);
 
         if (opt_tooltip) {
@@ -91,23 +91,56 @@ var cesGameLink = (function(_config, _Media, _Tooltips, _Collections, gameKey, c
             $tooltipContent.append($mediawrapper);
 
             var $actions = $('<div class="game-tooltip-actions" />');
-            
-            var $addbutton = $('<span class="button add first noselect">Add to Collection</span>');
-            $addbutton.on('click', function(e) { 
+            var actionHandled = false;
+            var actionResetTimer = null;
+
+            var ResetActionGuard = function() {
+                actionHandled = false;
+                actionResetTimer = null;
+            };
+
+            var HandleTooltipAction = function(action, e) {
+
+                if (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+
+                if (actionHandled) {
+                    return false;
+                }
+
+                actionHandled = true;
+
+                if (actionResetTimer) {
+                    clearTimeout(actionResetTimer);
+                }
+
+                actionResetTimer = setTimeout(ResetActionGuard, 750);
+
                 _Tooltips.Close($imagewrapper);
-                _Collections.AddTitleWithoutPlaying(gameKey);
-            });
+
+                if (action === 'add') {
+                    _Collections.AddTitleWithoutPlaying(gameKey);
+                }
+                else if (action === 'play' && opt_PlayGame) {
+                    opt_PlayGame(gameKey);
+                }
+
+                return false;
+            };
+
+            var $addbutton = $('<span class="button add first noselect game-tooltip-action" data-game-tooltip-action="add">Add to Collection</span>');
             $actions.append($addbutton);
-            
 
-            var $playbutton = $('<span class="button play noselect">Play Now!</span>');
-            $playbutton.on('click', function(e) { 
 
-                _Tooltips.Close($imagewrapper); //sometimes the tooltip was staying up after clicking
-                opt_PlayGame(gameKey);
-            });
+            var $playbutton = $('<span class="button play noselect game-tooltip-action" data-game-tooltip-action="play">Play Now!</span>');
             $actions.append($playbutton);
             $tooltipContent.append($actions);
+
+            $tooltipContent.on('mousedown.cesSuggestionActions touchstart.cesSuggestionActions click.cesSuggestionActions', '.game-tooltip-action', function(e) {
+                return HandleTooltipAction($(this).attr('data-game-tooltip-action'), e);
+            });
 
             var CheckCollectionOnTooltipOpen = (function() {
                 if (_Collections.IsEmpty()) {
@@ -126,7 +159,7 @@ var cesGameLink = (function(_config, _Media, _Tooltips, _Collections, gameKey, c
 
         $div.append($imagewrapper);
 
-        _gamelink = $div; //save to the instance for manipulation later        
+        _gamelink = $div; //save to the instance for manipulation later
     })();
 
     return this;

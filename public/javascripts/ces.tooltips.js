@@ -16,6 +16,9 @@ var cesTooltips = (function(_config, _Media, _Logging, tooltipSelector, tooltipC
     var gameTooltipMouseNamespace = '.cesGameTooltipMouse';
     var gameTooltipActionNamespace = '.cesGameTooltipAction';
     var gameTooltipMouseCloseDelay = 100;
+    var mediaSessionTokenDataName = 'cesMediaSessionToken';
+    var mediaSessionActiveDataName = 'cesMediaSessionActive';
+    var mediaTransitionTimerDataName = 'cesMediaTransitionTimer';
 
     var FindGameTooltipBox = function($origin) {
 
@@ -92,6 +95,7 @@ var cesTooltips = (function(_config, _Media, _Logging, tooltipSelector, tooltipC
             }
 
             try {
+                CancelMediaSession($origin.data('cesTooltipMediaWrapper'));
                 $origin.tooltipster('close');
             }
             catch (err) {
@@ -128,6 +132,7 @@ var cesTooltips = (function(_config, _Media, _Logging, tooltipSelector, tooltipC
         }
 
         try {
+            CancelMediaSession($(instance.elementOrigin()).data('cesTooltipMediaWrapper'));
             instance.close();
         }
         catch (err) {
@@ -265,13 +270,51 @@ var cesTooltips = (function(_config, _Media, _Logging, tooltipSelector, tooltipC
         return sides;
     };
 
+    var GetMediaSessionToken = function($mediawrapper) {
+
+        if (!$mediawrapper || !$mediawrapper.length) {
+            return 0;
+        }
+
+        return $mediawrapper.data(mediaSessionTokenDataName) || 0;
+    };
+
+    var SetNextMediaSessionToken = function($mediawrapper) {
+
+        var nextToken = GetMediaSessionToken($mediawrapper) + 1;
+        $mediawrapper.data(mediaSessionTokenDataName, nextToken);
+        return nextToken;
+    };
+
+    var ClearMediaTransitionTimer = function($mediawrapper) {
+
+        if (!$mediawrapper || !$mediawrapper.length) {
+            return;
+        }
+
+        var transitionTimer = $mediawrapper.data(mediaTransitionTimerDataName);
+
+        if (transitionTimer) {
+            clearTimeout(transitionTimer);
+            $mediawrapper.removeData(mediaTransitionTimerDataName);
+        }
+    };
+
+    var HasReusableLoadedMedia = function($mediawrapper) {
+
+        var loadState = $mediawrapper.data('cesMediaLoadState');
+        return loadState === 'title-loaded' || loadState === 'video-loaded' || loadState === 'video-unavailable' || loadState === 'unavailable';
+    };
+
     var PrepareMediaWrapper = function($mediawrapper, opt_loadMovie) {
 
         var label = opt_loadMovie ? 'Loading preview...' : 'Loading title screen...';
 
+        ClearMediaTransitionTimer($mediawrapper);
         StopTooltipVideo($mediawrapper);
         $mediawrapper
             .removeData('cesMediaLoadState')
+            .data(mediaSessionActiveDataName, false)
             .removeClass('game-tooltip-media-loaded game-tooltip-media-unavailable game-tooltip-media-video-unavailable')
             .addClass('game-tooltip-media game-tooltip-media-loading')
             .empty()
@@ -279,7 +322,88 @@ var cesTooltips = (function(_config, _Media, _Logging, tooltipSelector, tooltipC
             .append($('<div class="game-tooltip-media-placeholder" />').append($('<span />').text(label)));
     };
 
-    var SetMediaUnavailable = function($mediawrapper, message, instance) {
+    var BeginMediaSession = function($mediawrapper, opt_loadMovie) {
+
+        if (!HasReusableLoadedMedia($mediawrapper)) {
+            PrepareMediaWrapper($mediawrapper, opt_loadMovie);
+        }
+        else {
+            StopTooltipVideo($mediawrapper);
+            ClearMediaTransitionTimer($mediawrapper);
+        }
+
+        $mediawrapper.data(mediaSessionActiveDataName, true);
+        return SetNextMediaSessionToken($mediawrapper);
+    };
+
+    var CancelMediaSession = function($mediawrapper) {
+
+        if (!$mediawrapper || !$mediawrapper.length) {
+            return;
+        }
+
+        ClearMediaTransitionTimer($mediawrapper);
+        $mediawrapper.data(mediaSessionActiveDataName, false);
+        SetNextMediaSessionToken($mediawrapper);
+
+        var loadState = $mediawrapper.data('cesMediaLoadState');
+
+        if (loadState !== 'loading-title' && loadState !== 'loading-video') {
+            return;
+        }
+
+        $mediawrapper.removeClass('game-tooltip-media-loading');
+
+        if ($mediawrapper.find('video').length) {
+            $mediawrapper
+                .data('cesMediaLoadState', 'video-loaded')
+                .addClass('game-tooltip-media-loaded');
+        }
+        else if ($mediawrapper.find('img').length) {
+            $mediawrapper
+                .data('cesMediaLoadState', 'title-loaded')
+                .addClass('game-tooltip-media-loaded');
+        }
+        else {
+            $mediawrapper.removeData('cesMediaLoadState');
+        }
+    };
+
+    var IsMediaSessionCurrent = function($mediawrapper, mediaSession) {
+
+        return !!$mediawrapper &&
+            !!$mediawrapper.length &&
+            $mediawrapper.data(mediaSessionTokenDataName) === mediaSession &&
+            $mediawrapper.data(mediaSessionActiveDataName) !== false;
+    };
+
+    var IsMediaSessionActive = function($mediawrapper, mediaSession, instance) {
+
+        return IsMediaSessionCurrent($mediawrapper, mediaSession) && IsTooltipActive(instance);
+    };
+
+    var StopDetachedVideo = function($video) {
+
+        if (!$video || !$video.length) {
+            return;
+        }
+
+        try {
+            var video = $video.get(0);
+            video.pause();
+            video.removeAttribute('src');
+            video.load();
+        }
+        catch (err) {
+            // Detached preview cleanup is best-effort only.
+        }
+    };
+
+    var SetMediaUnavailable = function($mediawrapper, message, instance, mediaSession) {
+
+        if (!IsMediaSessionActive($mediawrapper, mediaSession, instance)) {
+            return;
+        }
 
         $mediawrapper
             .data('cesMediaLoadState', 'unavailable')
@@ -292,7 +416,11 @@ var cesTooltips = (function(_config, _Media, _Logging, tooltipSelector, tooltipC
         RepositionGameTooltipSoon(instance);
     };
 
-    var SetTitleScreenImage = function($mediawrapper, $img, instance) {
+    var SetTitleScreenImage = function($mediawrapper, $img, instance, mediaSession) {
+
+        if (!IsMediaSessionActive($mediawrapper, mediaSession, instance)) {
+            return;
+        }
 
         $mediawrapper
             .data('cesMediaLoadState', 'title-loaded')
@@ -311,7 +439,11 @@ var cesTooltips = (function(_config, _Media, _Logging, tooltipSelector, tooltipC
         RepositionGameTooltipSoon(instance);
     };
 
-    var SetPreviewVideoUnavailable = function($mediawrapper, instance) {
+    var SetPreviewVideoUnavailable = function($mediawrapper, instance, mediaSession) {
+
+        if (!IsMediaSessionActive($mediawrapper, mediaSession, instance)) {
+            return;
+        }
 
         $mediawrapper
             .data('cesMediaLoadState', 'video-unavailable')
@@ -321,12 +453,14 @@ var cesTooltips = (function(_config, _Media, _Logging, tooltipSelector, tooltipC
         RepositionGameTooltipSoon(instance);
     };
 
-    var SetPreviewVideo = function($mediawrapper, $video, instance) {
+    var SetPreviewVideo = function($mediawrapper, $video, instance, mediaSession) {
 
         var insertVideo = function() {
 
-            if (!IsTooltipActive(instance)) {
-                $mediawrapper.data('cesMediaLoadState', 'title-loaded');
+            $mediawrapper.removeData(mediaTransitionTimerDataName);
+
+            if (!IsMediaSessionActive($mediawrapper, mediaSession, instance)) {
+                StopDetachedVideo($video);
                 return;
             }
 
@@ -349,10 +483,15 @@ var cesTooltips = (function(_config, _Media, _Logging, tooltipSelector, tooltipC
         };
 
         // Let the title screen breathe before replacing it with motion.
-        setTimeout(insertVideo, 500);
+        ClearMediaTransitionTimer($mediawrapper);
+        $mediawrapper.data(mediaTransitionTimerDataName, setTimeout(insertVideo, 500));
     };
 
-    var LoadProgressiveMedia = function($mediawrapper, gameKey, opt_loadMovie, instance) {
+    var LoadProgressiveMedia = function($mediawrapper, gameKey, opt_loadMovie, instance, mediaSession) {
+
+        if (!IsMediaSessionActive($mediawrapper, mediaSession, instance)) {
+            return;
+        }
 
         var loadState = $mediawrapper.data('cesMediaLoadState');
 
@@ -366,7 +505,7 @@ var cesTooltips = (function(_config, _Media, _Logging, tooltipSelector, tooltipC
         }
 
         if (loadState === 'title-loaded' && opt_loadMovie) {
-            LoadPreviewVideo($mediawrapper, gameKey, instance);
+            LoadPreviewVideo($mediawrapper, gameKey, instance, mediaSession);
             return;
         }
 
@@ -379,46 +518,63 @@ var cesTooltips = (function(_config, _Media, _Logging, tooltipSelector, tooltipC
         if (_Media.TitleScreenSource) {
             _Media.TitleScreenSource(gameKey, 'c', function(success, status, src) {
 
+                if (!IsMediaSessionActive($mediawrapper, mediaSession, instance)) {
+                    return;
+                }
+
                 if (!success || !src) {
-                    SetMediaUnavailable($mediawrapper, 'Title screen unavailable', instance);
+                    SetMediaUnavailable($mediawrapper, 'Title screen unavailable', instance, mediaSession);
                     return;
                 }
 
                 var $img = $('<img />')
                     .attr('alt', gameKey.title + ' title screen')
                     .on('load', function() {
-                        SetTitleScreenImage($mediawrapper, $img, instance);
 
-                        if (opt_loadMovie) {
-                            LoadPreviewVideo($mediawrapper, gameKey, instance);
+                        if (!IsMediaSessionActive($mediawrapper, mediaSession, instance)) {
+                            return;
+                        }
+
+                        SetTitleScreenImage($mediawrapper, $img, instance, mediaSession);
+
+                        if (opt_loadMovie && IsMediaSessionActive($mediawrapper, mediaSession, instance)) {
+                            LoadPreviewVideo($mediawrapper, gameKey, instance, mediaSession);
                         }
                     })
                     .on('error', function() {
-                        SetMediaUnavailable($mediawrapper, 'Title screen unavailable', instance);
+                        SetMediaUnavailable($mediawrapper, 'Title screen unavailable', instance, mediaSession);
                     });
 
                 $img.attr('src', src);
             });
         }
         else {
-            _Media.TitleScreen($mediawrapper, gameKey, 'c', function(success, response, $img) {
+            _Media.TitleScreen($('<div />'), gameKey, 'c', function(success, response, $img) {
+
+                if (!IsMediaSessionActive($mediawrapper, mediaSession, instance)) {
+                    return;
+                }
 
                 if (!success || !$img) {
-                    SetMediaUnavailable($mediawrapper, 'Title screen unavailable', instance);
+                    SetMediaUnavailable($mediawrapper, 'Title screen unavailable', instance, mediaSession);
                     return;
                 }
 
                 $img.attr('alt', gameKey.title + ' title screen');
-                SetTitleScreenImage($mediawrapper, $img, instance);
+                SetTitleScreenImage($mediawrapper, $img, instance, mediaSession);
 
-                if (opt_loadMovie) {
-                    LoadPreviewVideo($mediawrapper, gameKey, instance);
+                if (opt_loadMovie && IsMediaSessionActive($mediawrapper, mediaSession, instance)) {
+                    LoadPreviewVideo($mediawrapper, gameKey, instance, mediaSession);
                 }
             });
         }
     };
 
-    var LoadPreviewVideo = function($mediawrapper, gameKey, instance) {
+    var LoadPreviewVideo = function($mediawrapper, gameKey, instance, mediaSession) {
+
+        if (!IsMediaSessionActive($mediawrapper, mediaSession, instance)) {
+            return;
+        }
 
         if ($mediawrapper.data('cesMediaLoadState') === 'loading-video' || $mediawrapper.data('cesMediaLoadState') === 'video-loaded') {
             return;
@@ -429,8 +585,13 @@ var cesTooltips = (function(_config, _Media, _Logging, tooltipSelector, tooltipC
 
         _Media.Video($mediawrapper, 'sq', gameKey, function($video) {
 
+            if (!IsMediaSessionActive($mediawrapper, mediaSession, instance)) {
+                StopDetachedVideo($video);
+                return;
+            }
+
             if (!$video) {
-                SetPreviewVideoUnavailable($mediawrapper, instance);
+                SetPreviewVideoUnavailable($mediawrapper, instance, mediaSession);
                 return;
             }
 
@@ -442,9 +603,14 @@ var cesTooltips = (function(_config, _Media, _Logging, tooltipSelector, tooltipC
                 .prop('muted', true)
                 .prop('loop', true);
 
-            SetPreviewVideo($mediawrapper, $video, instance);
+            SetPreviewVideo($mediawrapper, $video, instance, mediaSession);
         }, null, height, function() {
-            SetPreviewVideoUnavailable($mediawrapper, instance);
+
+            if (!IsMediaSessionActive($mediawrapper, mediaSession, instance)) {
+                return;
+            }
+
+            SetPreviewVideoUnavailable($mediawrapper, instance, mediaSession);
         });
     };
 
@@ -501,6 +667,7 @@ var cesTooltips = (function(_config, _Media, _Logging, tooltipSelector, tooltipC
         }
 
         $el.addClass(gameTooltipOriginClass);
+        $el.data('cesTooltipMediaWrapper', $mediawrapper);
         $content.addClass('game-tooltip-card');
         PrepareMediaWrapper($mediawrapper, opt_loadMovie);
 
@@ -545,11 +712,12 @@ var cesTooltips = (function(_config, _Media, _Logging, tooltipSelector, tooltipC
                 RepositionGameTooltipSoon(instance);
                 BindCloseAfterTooltipLeave(instance, helper);
                 BindCloseAfterTooltipAction(instance, helper);
-                LoadProgressiveMedia($mediawrapper, gameKey, opt_loadMovie, instance);
+                LoadProgressiveMedia($mediawrapper, gameKey, opt_loadMovie, instance, BeginMediaSession($mediawrapper, opt_loadMovie));
             },
             functionAfter: function(instance, helper) {
 
                 SetGameTooltipOpenState($el, false);
+                CancelMediaSession($mediawrapper);
                 StopTooltipVideo($mediawrapper);
 
                 if (!$('.' + gameTooltipOriginClass + alreadyProcessedSelector).filter(function() {
@@ -570,12 +738,14 @@ var cesTooltips = (function(_config, _Media, _Logging, tooltipSelector, tooltipC
 
     this.Hide = function($el) {
         if ($el.hasClass(alreadyProcessedName)) {
+            CancelMediaSession($el.data('cesTooltipMediaWrapper'));
             $el.tooltipster('hide');
         }
     }
 
     this.Close = function($el) {
         if ($el.hasClass(alreadyProcessedName)) {
+            CancelMediaSession($el.data('cesTooltipMediaWrapper'));
             $el.tooltipster('close');
             SetGameTooltipOpenState($el, false);
             $el.trigger('mouseleave');
@@ -584,9 +754,11 @@ var cesTooltips = (function(_config, _Media, _Logging, tooltipSelector, tooltipC
 
     this.Destroy = function($el) {
         if ($el.hasClass(alreadyProcessedName)) {
+            CancelMediaSession($el.data('cesTooltipMediaWrapper'));
             SetGameTooltipOpenState($el, false);
             $el.find(alreadyProcessedSelector).tooltipster('destroy');
             $el.tooltipster('destroy');
+            $el.removeData('cesTooltipMediaWrapper');
         }
     };
     
