@@ -974,6 +974,8 @@ var cesMain = (function() {
 
             _preventLoadingGame = false; //during shader select, allow other games to load
 
+            shader = ResolveShaderSelectionFromPreferences(gameKey, shader);
+
             //show shader selector. returns an object with shader details
             _Dialogs.Open('ShaderSelection', [gameKey, shader], true, function(shaderSelection) {
 
@@ -1087,6 +1089,7 @@ var cesMain = (function() {
 
                                                                     //activate certain sliders
                                                                     _Sliders.Activate('Controls', [gameKey, _Gamepad]);
+                                                                    _Sliders.Activate('Appearance', [gameKey, _Preferences, _Emulator, _Logging, _Media, shaderSelection && shaderSelection.shader]);
                                                                     _Sliders.Activate('Screenshots', [gameKey, _PubSub, _Tooltips, _Compression, _Media]);
                                                                     _Sliders.Activate('Roms', [gameKey, files, _Compression, PlayGame]);
                                                                     
@@ -1191,6 +1194,45 @@ var cesMain = (function() {
             return _config.systemdetails[system].emuextention;
         }
         return 'unknown';
+    };
+
+    var ResolveShaderSelectionFromPreferences = function(gameKey, shader) {
+
+        var savedShaderPreference;
+
+        if (typeof shader !== 'undefined' && shader !== null) {
+            return shader;
+        }
+
+        savedShaderPreference = GetSavedSystemShaderPreference(gameKey && gameKey.system);
+
+        if (savedShaderPreference.exists) {
+            return savedShaderPreference.shader || '';
+        }
+
+        return shader;
+    };
+
+    var GetSavedSystemShaderPreference = function(system) {
+
+        var result = {
+            exists: false,
+            shader: null
+        };
+        var systemPreferences;
+
+        if (!system || !_Preferences || typeof _Preferences.Get !== 'function') {
+            return result;
+        }
+
+        systemPreferences = _Preferences.Get('systems.' + system);
+
+        if (systemPreferences && typeof systemPreferences === 'object' && Object.prototype.hasOwnProperty.call(systemPreferences, 'shader')) {
+            result.exists = true;
+            result.shader = systemPreferences.shader || '';
+        }
+
+        return result;
     };
 
     var IsRetroArch1222StartupPath = function(system) {

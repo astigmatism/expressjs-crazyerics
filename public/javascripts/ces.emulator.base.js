@@ -2056,6 +2056,152 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
         }
     };
 
+    this.GetShaderRuntimeState = function() {
+
+        var state = {
+            runtimeSupported: false,
+            canApply: false,
+            canUnload: false,
+            activePresetPath: null,
+            activePresetRelativePath: null,
+            activeSelection: null,
+            system: _gameKey.system,
+            rawGlslCapable: IsRawGlslShaderCapableSystem(),
+            reason: 'Runtime shader controls are not available.'
+        };
+        var moduleState;
+
+        if (_Module && typeof _Module.cesGetShaderRuntimeState === 'function') {
+            try {
+                moduleState = _Module.cesGetShaderRuntimeState() || {};
+                for (var key in moduleState) {
+                    if (Object.prototype.hasOwnProperty.call(moduleState, key)) {
+                        state[key] = moduleState[key];
+                    }
+                }
+                state.system = _gameKey.system;
+                state.rawGlslCapable = IsRawGlslShaderCapableSystem();
+                if (!state.activePresetRelativePath && state.activePresetPath) {
+                    state.activePresetRelativePath = NormalizeRawGlslShaderAssetPath(state.activePresetPath);
+                }
+                return state;
+            } catch (e) {
+                state.reason = 'Runtime shader state failed: ' + e;
+                _Logging.Console('cesEmulatorBase', state.reason);
+            }
+        }
+
+        if (IsRawGlslShaderCapableSystem()) {
+            state.reason = 'RetroArch 1.22.2 runtime shader helper is not ready.';
+        } else {
+            state.reason = 'This emulator extension uses the older shader package loader.';
+        }
+
+        return state;
+    };
+
+    this.ApplyShaderRuntime = function(selection, callback) {
+
+        var deferred;
+
+        if (!IsRawGlslShaderCapableSystem()) {
+            return RunShaderRuntimeCallback(callback, BuildRuntimeShaderResult(false, 'Live shader changes are only available for RetroArch 1.22.2 systems.', true));
+        }
+
+        if (!_Module || typeof _Module.cesApplyShaderPackageAtRuntime !== 'function') {
+            return RunShaderRuntimeCallback(callback, BuildRuntimeShaderResult(false, 'The running emulator does not expose a safe live shader apply helper.', true));
+        }
+
+        selection = ResolveRawGlslShaderPresetForSelection(selection);
+
+        if (!selection) {
+            return RunShaderRuntimeCallback(callback, BuildRuntimeShaderResult(false, 'Selected look is not a compatible RetroArch GLSL preset.', false));
+        }
+
+        deferred = $.Deferred();
+        LoadRawGlslShaderPreset(selection, selection, deferred);
+
+        $.when(deferred).done(function(err, shaderPackage) {
+            var result;
+
+            if (err) {
+                return RunShaderRuntimeCallback(callback, BuildRuntimeShaderResult(false, 'Shader preset could not be loaded: ' + err, false));
+            }
+
+            if (!shaderPackage || !shaderPackage.valid) {
+                return RunShaderRuntimeCallback(callback, BuildRuntimeShaderResult(false, 'Shader preset is missing one or more required files.', false, shaderPackage));
+            }
+
+            try {
+                result = _Module.cesApplyShaderPackageAtRuntime(shaderPackage, 'Game Look slider');
+            } catch (e) {
+                result = BuildRuntimeShaderResult(false, 'Live shader apply failed: ' + e, false);
+            }
+
+            RunShaderRuntimeCallback(callback, result || BuildRuntimeShaderResult(false, 'Live shader apply did not return a result.', false));
+        });
+    };
+
+    this.ClearShaderRuntime = function(callback) {
+
+        var result;
+
+        if (!IsRawGlslShaderCapableSystem()) {
+            return RunShaderRuntimeCallback(callback, BuildRuntimeShaderResult(false, 'Live shader unloading is only available for RetroArch 1.22.2 systems.', true));
+        }
+
+        if (!_Module || typeof _Module.cesClearShaderPresetAtRuntime !== 'function') {
+            return RunShaderRuntimeCallback(callback, BuildRuntimeShaderResult(false, 'The running emulator does not expose a safe live shader unload helper.', true));
+        }
+
+        try {
+            result = _Module.cesClearShaderPresetAtRuntime('Game Look slider');
+        } catch (e) {
+            result = BuildRuntimeShaderResult(false, 'Live shader unload failed: ' + e, false);
+        }
+
+        RunShaderRuntimeCallback(callback, result || BuildRuntimeShaderResult(false, 'Live shader unload did not return a result.', false));
+    };
+
+    this.ReapplyShaderRuntime = function(callback) {
+
+        var result;
+
+        if (!_Module || typeof _Module.cesReapplyActiveShaderPreset !== 'function') {
+            return RunShaderRuntimeCallback(callback, BuildRuntimeShaderResult(false, 'Reapply is not available for this emulator session.', true));
+        }
+
+        try {
+            result = _Module.cesReapplyActiveShaderPreset('Game Look slider');
+        } catch (e) {
+            return RunShaderRuntimeCallback(callback, BuildRuntimeShaderResult(false, 'Reapply failed: ' + e, false));
+        }
+
+        RunShaderRuntimeCallback(callback, {
+            ok: !!result,
+            error: result ? null : 'The current look could not be reapplied.',
+            state: self.GetShaderRuntimeState()
+        });
+    };
+
+    var BuildRuntimeShaderResult = function(ok, message, nextLaunchOnly, shaderPackage) {
+        return {
+            ok: !!ok,
+            error: ok ? null : message,
+            message: ok ? message : null,
+            nextLaunchOnly: !!nextLaunchOnly,
+            shaderPackage: shaderPackage || null,
+            state: self.GetShaderRuntimeState ? self.GetShaderRuntimeState() : null
+        };
+    };
+
+    var RunShaderRuntimeCallback = function(callback, result) {
+        if (callback) {
+            callback(result);
+        }
+        return result;
+    };
+
     this.AdjustPlayArea = function(toggle) {
 
         //for now, always the more limited size, if they want larger, full screen in an option

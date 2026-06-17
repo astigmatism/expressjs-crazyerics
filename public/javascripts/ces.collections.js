@@ -197,6 +197,11 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
         return false;
     };
 
+    var IsSingleGameDefaultCollection = function() {
+
+        return _self.HasDefaultCollection() && _activeCollectionTitles.length <= 1;
+    };
+
     var UpdateCollectionToolsUnlocked = function() {
 
         if (_collectionToolsUnlocked || _self.HasNoCollections()) {
@@ -212,6 +217,13 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
     var CanShowCollectionTools = function() {
 
         if (_self.IsEmpty()) {
+            return false;
+        }
+
+        // A single game in the starter/default collection is not yet a meaningful
+        // collection-management state. Keep the name/create affordance hidden even
+        // if a prior local unlock flag exists for this browser.
+        if (IsSingleGameDefaultCollection()) {
             return false;
         }
 

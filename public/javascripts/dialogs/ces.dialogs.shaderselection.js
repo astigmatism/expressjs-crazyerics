@@ -55,6 +55,7 @@ var cesDialogsShaderSelection = (function(_config, $el, $wrapper, args) {
     };
 
     var dynamicPreviewSession = 0;
+    var dynamicPreviewDetachedSession = 0;
     var dynamicPreviewPresetCache = {};
     var dynamicPreviewTextCache = {};
     var dynamicPreviewImageAssetCache = {};
@@ -70,7 +71,7 @@ var cesDialogsShaderSelection = (function(_config, $el, $wrapper, args) {
         var gameKey = ResolveGameKey(systemOrGameKey);
         var system = gameKey ? gameKey.system : systemOrGameKey;
         var systemDetails = (_config.systemdetails && _config.systemdetails[system]) ? _config.systemdetails[system] : {};
-        var recommended = systemDetails.recommendedshaders || [];
+        var curatedLooks = GetCuratedLooks(system);
         var previewSession = BeginDynamicPreviewSession();
         var i = 0;
 
@@ -78,9 +79,10 @@ var cesDialogsShaderSelection = (function(_config, $el, $wrapper, args) {
         $('#shaderselectlist').empty(); //clear all previous content
         selection = null;
 
-        //bail early: check if shader already defined for this system (an override value passed in)
-        if (preselectedShader) {
-            OnShaderSelected(system, preselectedShader);
+        //bail early: check if shader already defined for this system (an override value passed in).
+        // Empty string is a meaningful saved Pixel Perfect default, so test explicitly.
+        if (typeof preselectedShader !== 'undefined' && preselectedShader !== null) {
+            OnPreselectedShader(system, preselectedShader);
             return;
         }
 
@@ -94,17 +96,9 @@ var cesDialogsShaderSelection = (function(_config, $el, $wrapper, args) {
         //     }));
         // }
 
-        $('#shaderselectlist').append(BuildShaderListItem(system, 'Pixel Perfect', '', GetShaderPreviewFallbackSrc(''), null));
+        for (i; i < curatedLooks.length; ++i) {
 
-        for (i; i < recommended.length; ++i) {
-
-            var shaderDefinition = NormalizeShaderDefinition(recommended[i]);
-
-            if (!shaderDefinition) {
-                continue;
-            }
-
-            $('#shaderselectlist').append(BuildShaderListItem(system, shaderDefinition.title, shaderDefinition.shader, GetShaderPreviewFallbackSrc(shaderDefinition.shader), shaderDefinition.glslp));
+            $('#shaderselectlist').append(BuildShaderListItem(system, curatedLooks[i].title, curatedLooks[i].shader, GetShaderPreviewFallbackSrc(curatedLooks[i].shader, curatedLooks[i]), curatedLooks[i].glslp));
         }
 
         StartDynamicShaderPreviews(previewSession, system, gameKey);
@@ -129,16 +123,43 @@ var cesDialogsShaderSelection = (function(_config, $el, $wrapper, args) {
             .attr('data-fallback-src', fallbackSrc)
             .attr('width', dynamicPreviewDisplaySize)
             .attr('height', dynamicPreviewDisplaySize)
-            .attr('alt', title + ' shader preview')
+            .attr('alt', title + ' preview')
             .appendTo($previewFrame);
 
         $('<h3 />').text(title).appendTo($li);
 
         $li.on('click', function(e) {
-            OnShaderSelected(system, $(this).attr('data-shader'));
+            OnShaderSelected(system, $(this).attr('data-shader'), $(this).attr('data-glslp'));
         });
 
         return $li;
+    };
+
+    var GetCuratedLooks = function(system) {
+
+        if (window.cesVisualStyles && typeof window.cesVisualStyles.GetForSystem === 'function') {
+            return window.cesVisualStyles.GetForSystem(_config, system);
+        }
+
+        var systemDetails = (_config.systemdetails && _config.systemdetails[system]) ? _config.systemdetails[system] : {};
+        var recommended = systemDetails.recommendedshaders || [];
+        var looks = [{
+            title: 'Pixel Perfect',
+            shader: '',
+            glslp: null,
+            isPixelPerfect: true
+        }];
+        var i;
+
+        for (i = 0; i < recommended.length; ++i) {
+            var shaderDefinition = NormalizeShaderDefinition(recommended[i]);
+
+            if (shaderDefinition) {
+                looks.push(shaderDefinition);
+            }
+        }
+
+        return looks;
     };
 
     var NormalizeShaderDefinition = function(shaderDefinition) {
@@ -162,7 +183,11 @@ var cesDialogsShaderSelection = (function(_config, $el, $wrapper, args) {
         };
     };
 
-    var GetShaderPreviewFallbackSrc = function(shader) {
+    var GetShaderPreviewFallbackSrc = function(shader, look) {
+
+        if (window.cesVisualStyles && typeof window.cesVisualStyles.GetPreviewFallbackSrc === 'function') {
+            return window.cesVisualStyles.GetPreviewFallbackSrc(_config, look || { shader: shader || '' });
+        }
 
         var imageRoot = (_config.paths && _config.paths.images) ? _config.paths.images : '';
 
@@ -182,6 +207,47 @@ var cesDialogsShaderSelection = (function(_config, $el, $wrapper, args) {
         return null;
     };
 
+    var ResolveSelectableShaderValueForSystem = function(system, shader, glslp) {
+
+        if (window.cesVisualStyles && typeof window.cesVisualStyles.ResolveLaunchValueForSystem === 'function') {
+            return window.cesVisualStyles.ResolveLaunchValueForSystem(_config, system, {
+                shader: shader || '',
+                glslp: glslp || null,
+                isPixelPerfect: !shader && !glslp
+            });
+        }
+
+        if (IsRawGlslShaderCapableSystem(system) && glslp) {
+            return glslp;
+        }
+
+        return shader || '';
+    };
+
+    var IsRawGlslShaderCapableSystem = function(system) {
+
+        var systemDetails = (_config.systemdetails && _config.systemdetails[system]) ? _config.systemdetails[system] : {};
+        return systemDetails.emuextention === '1.22.2-stable';
+    };
+
+    var OnPreselectedShader = function(system, preselectedShader) {
+
+        if (selection !== null) {
+            return;
+        }
+
+        CancelDynamicShaderPreviews();
+        selection = preselectedShader || '';
+
+        if (_selectionCallback) {
+            setTimeout(function() {
+                _selectionCallback({
+                    'shader': selection
+                });
+            }, 0);
+        }
+    };
+
     this.OnIntroAnimationComplete = function() {
 
         //stagger in animations
@@ -193,7 +259,9 @@ var cesDialogsShaderSelection = (function(_config, $el, $wrapper, args) {
         });
     };
 
-    var OnShaderSelected = function(system, shader) {
+    var OnShaderSelected = function(system, shader, glslp) {
+
+        var launchShader;
 
         //$('#systemshaderseletorwrapper').addClass('close');
 
@@ -203,7 +271,10 @@ var cesDialogsShaderSelection = (function(_config, $el, $wrapper, args) {
         }
 
         CancelDynamicShaderPreviews();
-        selection = shader;
+        shader = (typeof shader === 'undefined' || shader === null) ? '' : String(shader);
+        glslp = (typeof glslp === 'undefined' || glslp === null) ? null : String(glslp);
+        launchShader = ResolveSelectableShaderValueForSystem(system, shader, glslp);
+        selection = launchShader;
 
         var playerPreferencesToSave = {};
         var saveselection = false;
@@ -213,7 +284,7 @@ var cesDialogsShaderSelection = (function(_config, $el, $wrapper, args) {
             //get result of checkbox
             if ($('#shaderselectcheckbox').is(':checked')) {
                 saveselection = true;
-                _preferences.Set('systems.' + system + '.shader', shader); //we set a flag in pref when update to go out over the next request
+                _preferences.Set('systems.' + system + '.shader', launchShader); //we set a flag in pref when update to go out over the next request
             }
 
             $('#systemshaderseletorwrapper').hide();
@@ -221,7 +292,7 @@ var cesDialogsShaderSelection = (function(_config, $el, $wrapper, args) {
             if (_selectionCallback) {
 
                 _selectionCallback({
-                    'shader': shader
+                    'shader': launchShader
                 });
             }
         });
@@ -261,7 +332,9 @@ var cesDialogsShaderSelection = (function(_config, $el, $wrapper, args) {
         return callback();
     };
 
-    var StartDynamicShaderPreviews = function(previewSession, system, gameKey) {
+    var StartDynamicShaderPreviews = function(previewSession, system, gameKey, options) {
+
+        options = options || {};
 
         if (!gameKey || !gameKey.gk) {
             LogDynamicPreview('Dynamic shader previews skipped: no game title key was available for ' + (system || '(unknown system)') + '.');
@@ -282,7 +355,7 @@ var cesDialogsShaderSelection = (function(_config, $el, $wrapper, args) {
 
         _Media.TitleScreenSource(gameKey, dynamicPreviewTitleSizes, function(success, status, titleScreenSrc, titleScreenContent, selectedTitleSize) {
 
-            if (!IsDynamicPreviewSessionActive(previewSession)) {
+            if (!IsDynamicPreviewSessionActive(previewSession, options)) {
                 return;
             }
 
@@ -297,7 +370,7 @@ var cesDialogsShaderSelection = (function(_config, $el, $wrapper, args) {
 
                 var sourceCanvas;
 
-                if (!IsDynamicPreviewSessionActive(previewSession)) {
+                if (!IsDynamicPreviewSessionActive(previewSession, options)) {
                     return;
                 }
 
@@ -315,14 +388,16 @@ var cesDialogsShaderSelection = (function(_config, $el, $wrapper, args) {
                     return;
                 }
 
-                RenderDynamicPreviewQueue(previewSession, sourceCanvas);
+                RenderDynamicPreviewQueue(previewSession, sourceCanvas, options);
             });
         });
     };
 
-    var RenderDynamicPreviewQueue = function(previewSession, sourceCanvas) {
+    var RenderDynamicPreviewQueue = function(previewSession, sourceCanvas, options) {
 
-        var listItems = $('#shaderselectlist li').toArray();
+        options = options || {};
+
+        var listItems = $(options.itemSelector || '#shaderselectlist li').toArray();
         var previewRenderer = null;
         var attemptedWebGlRenderer = false;
         var index = 0;
@@ -348,7 +423,7 @@ var cesDialogsShaderSelection = (function(_config, $el, $wrapper, args) {
 
         var renderNext = function() {
 
-            if (!IsDynamicPreviewSessionActive(previewSession)) {
+            if (!IsDynamicPreviewSessionActive(previewSession, options)) {
                 DestroyPreviewRenderer(previewRenderer);
                 return;
             }
@@ -362,14 +437,14 @@ var cesDialogsShaderSelection = (function(_config, $el, $wrapper, args) {
             index++;
 
             setTimeout(function() {
-                RenderDynamicPreviewForListItem(previewSession, sourceCanvas, li, getPreviewRenderer, renderNext);
+                RenderDynamicPreviewForListItem(previewSession, sourceCanvas, li, getPreviewRenderer, renderNext, options);
             }, 20);
         };
 
         renderNext();
     };
 
-    var RenderDynamicPreviewForListItem = function(previewSession, sourceCanvas, li, getPreviewRenderer, complete) {
+    var RenderDynamicPreviewForListItem = function(previewSession, sourceCanvas, li, getPreviewRenderer, complete, options) {
 
         var $li = $(li);
         var shader = $li.attr('data-shader') || '';
@@ -378,12 +453,12 @@ var cesDialogsShaderSelection = (function(_config, $el, $wrapper, args) {
         var title = $li.find('h3').first().text() || shader || 'Pixel Perfect';
         var $img = $li.find('img').first();
 
-        if (!IsDynamicPreviewSessionActive(previewSession)) {
+        if (!IsDynamicPreviewSessionActive(previewSession, options)) {
             return complete();
         }
 
         if (!shader) {
-            TrySetDynamicPreviewImage(previewSession, $li, $img, RenderPixelPerfectPreview(sourceCanvas), 'Pixel Perfect');
+            TrySetDynamicPreviewImage(previewSession, $li, $img, RenderPixelPerfectPreview(sourceCanvas), 'Pixel Perfect', options);
             return complete();
         }
 
@@ -407,7 +482,7 @@ var cesDialogsShaderSelection = (function(_config, $el, $wrapper, args) {
 
             var fallbackGlslp;
 
-            if (!IsDynamicPreviewSessionActive(previewSession)) {
+            if (!IsDynamicPreviewSessionActive(previewSession, options)) {
                 return complete();
             }
 
@@ -427,17 +502,17 @@ var cesDialogsShaderSelection = (function(_config, $el, $wrapper, args) {
 
                 return RenderDynamicPreviewPreset(previewSession, sourceCanvas, $li, $img, title, fallbackGlslp, getPreviewRenderer, function(fallbackErr) {
 
-                    if (fallbackErr && IsDynamicPreviewSessionActive(previewSession)) {
+                    if (fallbackErr && IsDynamicPreviewSessionActive(previewSession, options)) {
                         LogDynamicPreview('Dynamic preview fallback for ' + title + ': ' + fallbackErr);
                     }
 
                     return complete();
-                });
+                }, options);
             }
 
             LogDynamicPreview('Dynamic preview fallback for ' + title + ': ' + err);
             return complete();
-        });
+        }, options);
     };
 
     var ResolveDynamicPreviewPresetPath = function(glslp) {
@@ -467,7 +542,7 @@ var cesDialogsShaderSelection = (function(_config, $el, $wrapper, args) {
         return fallbackPath;
     };
 
-    var RenderDynamicPreviewPreset = function(previewSession, sourceCanvas, $li, $img, title, previewGlslp, getPreviewRenderer, callback) {
+    var RenderDynamicPreviewPreset = function(previewSession, sourceCanvas, $li, $img, title, previewGlslp, getPreviewRenderer, callback, options) {
 
         var isCustomSmoothedPreview = IsSmoothedPreviewCellShadePreset(previewGlslp);
 
@@ -481,7 +556,7 @@ var cesDialogsShaderSelection = (function(_config, $el, $wrapper, args) {
 
             var dataUrl;
 
-            if (!IsDynamicPreviewSessionActive(previewSession)) {
+            if (!IsDynamicPreviewSessionActive(previewSession, options)) {
                 return callback(null);
             }
 
@@ -507,7 +582,7 @@ var cesDialogsShaderSelection = (function(_config, $el, $wrapper, args) {
                 LogDynamicPreview('Dynamic preview using bounded thumbnail render size for ' + title + ': requested output ' + dataUrl.renderPlan.requestedOutputWidth + 'x' + dataUrl.renderPlan.requestedOutputHeight + ', capped to ' + dataUrl.renderPlan.outputWidth + 'x' + dataUrl.renderPlan.outputHeight + ' by rendering thumbnail source at ' + dataUrl.renderPlan.sourceWidth + 'x' + dataUrl.renderPlan.sourceHeight + '.');
             }
 
-            if (!TrySetDynamicPreviewImage(previewSession, $li, $img, dataUrl, title)) {
+            if (!TrySetDynamicPreviewImage(previewSession, $li, $img, dataUrl, title, options)) {
                 return callback('renderer did not return an image');
             }
 
@@ -533,7 +608,7 @@ var cesDialogsShaderSelection = (function(_config, $el, $wrapper, args) {
         return fallback;
     };
 
-    var TrySetDynamicPreviewImage = function(previewSession, $li, $img, dataUrl, title) {
+    var TrySetDynamicPreviewImage = function(previewSession, $li, $img, dataUrl, title, options) {
 
         var renderWidth = null;
         var renderHeight = null;
@@ -544,7 +619,7 @@ var cesDialogsShaderSelection = (function(_config, $el, $wrapper, args) {
             dataUrl = dataUrl.dataUrl || dataUrl.src || null;
         }
 
-        if (!IsDynamicPreviewSessionActive(previewSession)) {
+        if (!IsDynamicPreviewSessionActive(previewSession, options)) {
             return false;
         }
 
@@ -573,6 +648,138 @@ var cesDialogsShaderSelection = (function(_config, $el, $wrapper, args) {
             LogDynamicPreview('Dynamic preview fallback for Pixel Perfect: canvas export failed. ' + GetErrorMessage(e));
             return null;
         }
+    };
+
+    var RenderDynamicPreviewForImage = function(previewSession, options) {
+
+        options = options || {};
+
+        var $img = $(options.targetImage || options.targetSelector).first();
+        var $target = options.target ? $(options.target).first() : $img.closest('li, .appearance-current-preview, .screenshot-card').first();
+        var sourceSrc = options.sourceSrc || $img.attr('data-original-src') || $img.attr('src') || '';
+        var shader = options.shader || '';
+        var glslp = options.glslp || '';
+        var title = options.title || 'Image preview';
+
+        if (!$target.length) {
+            $target = $img;
+        }
+
+        var finish = function(success, message) {
+            if (options.onComplete) {
+                options.onComplete(success === true, message || null);
+            }
+        };
+
+        if (!$img.length || !sourceSrc) {
+            finish(false, 'missing image target or source');
+            return;
+        }
+
+        if (!IsDynamicPreviewSessionActive(previewSession, options)) {
+            finish(false, 'cancelled');
+            return;
+        }
+
+        if (!shader && !glslp) {
+            TrySetDynamicPreviewImage(previewSession, $target, $img, sourceSrc, title, options);
+            finish(true);
+            return;
+        }
+
+        LoadDynamicPreviewImage(sourceSrc, function(err, sourceImage) {
+
+            var sourceCanvas;
+            var previewRenderer = null;
+            var attemptedWebGlRenderer = false;
+            var previewGlslp = glslp;
+
+            var getPreviewRenderer = function() {
+
+                if (attemptedWebGlRenderer) {
+                    return previewRenderer;
+                }
+
+                attemptedWebGlRenderer = true;
+
+                try {
+                    previewRenderer = new DynamicShaderPreviewRenderer(sourceCanvas.width, sourceCanvas.height);
+                    LogDynamicPreview('WebGL renderer is available for ' + title + '.');
+                } catch (e) {
+                    previewRenderer = null;
+                    LogDynamicPreview('Shader preview image fallback for ' + title + ': WebGL is unavailable or failed to initialize. ' + GetErrorMessage(e));
+                }
+
+                return previewRenderer;
+            };
+
+            var complete = function(success, message) {
+                DestroyPreviewRenderer(previewRenderer);
+                finish(success, message);
+            };
+
+            if (!IsDynamicPreviewSessionActive(previewSession, options)) {
+                complete(false, 'cancelled');
+                return;
+            }
+
+            if (err) {
+                complete(false, err);
+                return;
+            }
+
+            try {
+                sourceCanvas = BuildDynamicPreviewSourceCanvas(sourceImage, {
+                    preserveImageAspect: options.preserveImageAspect === true
+                });
+            } catch (e) {
+                complete(false, GetErrorMessage(e));
+                return;
+            }
+
+            if (!glslp) {
+                complete(false, 'no raw GLSL preset is configured');
+                return;
+            }
+
+            if (!getPreviewRenderer()) {
+                complete(false, 'WebGL renderer is unavailable');
+                return;
+            }
+
+            previewGlslp = ResolveDynamicPreviewPresetPath(glslp);
+
+            RenderDynamicPreviewPreset(previewSession, sourceCanvas, $target, $img, title, previewGlslp, getPreviewRenderer, function(renderErr) {
+
+                var fallbackGlslp;
+
+                if (!IsDynamicPreviewSessionActive(previewSession, options)) {
+                    complete(false, 'cancelled');
+                    return;
+                }
+
+                if (!renderErr) {
+                    complete(true);
+                    return;
+                }
+
+                fallbackGlslp = ResolveDynamicPreviewFallbackPresetPath(glslp, previewGlslp);
+
+                if (fallbackGlslp) {
+                    RenderDynamicPreviewPreset(previewSession, sourceCanvas, $target, $img, title, fallbackGlslp, getPreviewRenderer, function(fallbackErr) {
+                        if (fallbackErr) {
+                            complete(false, fallbackErr);
+                            return;
+                        }
+
+                        complete(true);
+                    }, options);
+                    return;
+                }
+
+                complete(false, renderErr);
+            }, options);
+        });
     };
 
     var LoadDynamicPreviewImage = function(src, callback) {
@@ -620,7 +827,9 @@ var cesDialogsShaderSelection = (function(_config, $el, $wrapper, args) {
         }
     };
 
-    var BuildDynamicPreviewSourceCanvas = function(titleImage) {
+    var BuildDynamicPreviewSourceCanvas = function(titleImage, options) {
+
+        options = options || {};
 
         var canvas = document.createElement('canvas');
         var context = canvas.getContext('2d');
@@ -639,6 +848,24 @@ var cesDialogsShaderSelection = (function(_config, $el, $wrapper, args) {
 
         if (!sourceWidth || !sourceHeight) {
             throw new Error('title screen image had no measurable size');
+        }
+
+        if (options.preserveImageAspect) {
+            targetSize = Math.min(dynamicPreviewMaxIntermediateSize, Math.max(sourceWidth, sourceHeight));
+            scale = Math.min(1, targetSize / Math.max(sourceWidth, sourceHeight));
+            drawWidth = Math.max(1, Math.round(sourceWidth * scale));
+            drawHeight = Math.max(1, Math.round(sourceHeight * scale));
+
+            canvas.width = drawWidth;
+            canvas.height = drawHeight;
+
+            context.fillStyle = '#000';
+            context.fillRect(0, 0, canvas.width, canvas.height);
+            SetImageSmoothing(context, scale < 1);
+            context.drawImage(titleImage, 0, 0, drawWidth, drawHeight);
+            context.getImageData(0, 0, 1, 1);
+
+            return canvas;
         }
 
         // Preserve as much source detail as practical for zoomable shader previews.
@@ -1452,9 +1679,23 @@ var cesDialogsShaderSelection = (function(_config, $el, $wrapper, args) {
         dynamicPreviewSession++;
     };
 
-    var IsDynamicPreviewSessionActive = function(previewSession) {
+    var IsDynamicPreviewSessionActive = function(previewSession, options) {
 
-        return previewSession === dynamicPreviewSession && selection === null;
+        options = options || {};
+
+        if (options.detachedSession) {
+            return !options.cancelToken || options.cancelToken.active !== false;
+        }
+
+        if (previewSession !== dynamicPreviewSession) {
+            return false;
+        }
+
+        if (options.ignoreDialogSelection) {
+            return true;
+        }
+
+        return selection === null;
     };
 
     var DestroyPreviewRenderer = function(previewRenderer) {
@@ -2379,6 +2620,36 @@ var cesDialogsShaderSelection = (function(_config, $el, $wrapper, args) {
     };
 
     var Constructor = (function() {
+
+        window.cesShaderPreviewBridge = {
+            Start: function(system, gameKey, itemSelector) {
+                var previewSession = BeginDynamicPreviewSession();
+
+                StartDynamicShaderPreviews(previewSession, system, gameKey, {
+                    itemSelector: itemSelector,
+                    ignoreDialogSelection: true
+                });
+
+                return previewSession;
+            },
+            Cancel: function() {
+                CancelDynamicShaderPreviews();
+            },
+            ApplyToImage: function(options) {
+                var token = (options && options.cancelToken) || {
+                    active: true,
+                    id: ++dynamicPreviewDetachedSession
+                };
+
+                options = options || {};
+                options.cancelToken = token;
+                options.detachedSession = true;
+                options.ignoreDialogSelection = true;
+
+                RenderDynamicPreviewForImage(token.id, options);
+                return token;
+            }
+        };
 
     })();
 });

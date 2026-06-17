@@ -23,6 +23,7 @@ const media = require('./routes/media');
 const games = require('./routes/games');
 const collections = require('./routes/collections');
 const featured = require('./routes/featured');
+const shaders = require('./routes/shaders');
 
 const app = express();
 
@@ -182,6 +183,7 @@ app.use('/saves', saves);
 app.use('/suggest', suggest);
 app.use('/games', games);
 app.use('/collections', collections);
+app.use('/shaders', shaders);
 app.use('/featured', featured);
 
 //end point only accessable in dev

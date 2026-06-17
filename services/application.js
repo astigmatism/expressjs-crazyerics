@@ -1,6 +1,8 @@
 'use strict';
 const async = require('async');
 const config = require('config');
+const fs = require('fs');
+const path = require('path');
 const FileService = require('./files');
 const SystemsSQL = require('../db/systems');
 const UtilitiesService = require('./utilities');
@@ -12,6 +14,7 @@ const GamesService = require('./games');
 const FeaturedService = require('./featured');
 const CronService = require('./cron');
 const TitleBannerService = require('./titlebanners');
+const ShaderService = require('./shaders');
 
 module.exports = new (function() {
 
@@ -189,6 +192,9 @@ module.exports = new (function() {
         var canned = config.get('cannedRecipes');
 
         configdata['systemdetails'] = {};
+        configdata['displaystyles'] = {
+            configured: BuildConfiguredDisplayStyles(systems)
+        };
 
         //system specific configs
         for (var system in systems) {
@@ -251,6 +257,268 @@ module.exports = new (function() {
 
             return callback(null, configdata);
         });
+    };
+
+
+    var _shaderRoot = path.join(__dirname, '..', 'public', 'shaders_glsl');
+
+    var BuildConfiguredDisplayStyles = function(systems) {
+
+        var result = [];
+        var seen = {};
+        var systemKeys = Object.keys(systems || {});
+
+        systemKeys.forEach(function(system) {
+            var systemConfig = systems[system] || {};
+            var definitions = GetConfiguredDisplayStyleDefinitionsForSystem(systemConfig);
+            var i;
+
+            for (i = 0; i < definitions.length; i++) {
+                var style = NormalizeConfiguredDisplayStyleDefinition(definitions[i], system, i);
+                var key;
+
+                if (!style) {
+                    continue;
+                }
+
+                key = GetConfiguredDisplayStyleKey(style);
+
+                if (!key || seen[key]) {
+                    continue;
+                }
+
+                style.id = 'configured-display-style-' + result.length;
+                result.push(style);
+                seen[key] = true;
+            }
+        });
+
+        return result;
+    };
+
+    var GetConfiguredDisplayStyleDefinitionsForSystem = function(systemConfig) {
+
+        var result = [];
+        var recommended = systemConfig.recommendedshaders || [];
+        var workaround = systemConfig.browserWorkarounds && systemConfig.browserWorkarounds.postStartupShaderReapply ? systemConfig.browserWorkarounds.postStartupShaderReapply : null;
+        var presets = workaround && Array.isArray(workaround.presets) ? workaround.presets : [];
+        var workaroundTitle = StripConfiguredDisplayStyleLabelSuffix(workaround ? workaround.label || null : null);
+        var i;
+
+        if (Array.isArray(recommended)) {
+            result = result.concat(recommended);
+        }
+
+        for (i = 0; i < presets.length; i++) {
+            result.push({
+                title: workaroundTitle,
+                glslp: presets[i]
+            });
+        }
+
+        return result;
+    };
+
+    var NormalizeConfiguredDisplayStyleDefinition = function(shaderDefinition, system, index) {
+
+        var title = null;
+        var shader = '';
+        var glslp = null;
+        var rawGlslp = null;
+        var sourceValue = null;
+
+        if (!shaderDefinition) {
+            return null;
+        }
+
+        if (typeof shaderDefinition === 'string') {
+            sourceValue = shaderDefinition;
+            glslp = NormalizeConfiguredDisplayStylePreset(shaderDefinition);
+            shader = glslp || NormalizeConfiguredDisplayStyleShaderValue(shaderDefinition);
+            title = BuildConfiguredDisplayStyleTitle(shader, glslp, sourceValue);
+        }
+        else if (typeof shaderDefinition === 'object') {
+            rawGlslp = shaderDefinition.glslp || shaderDefinition.preset || shaderDefinition.path || shaderDefinition.rawglsl || shaderDefinition.rawGlsl || shaderDefinition.raw_glsl || null;
+            glslp = NormalizeConfiguredDisplayStylePreset(rawGlslp);
+
+            if (rawGlslp && !glslp) {
+                return null;
+            }
+
+            shader = NormalizeConfiguredDisplayStyleShaderValue(shaderDefinition.shader || glslp || '');
+
+            if (!shader && glslp) {
+                shader = glslp;
+            }
+
+            title = NormalizeConfiguredDisplayStyleTitle(shaderDefinition.title || shaderDefinition.name || null) || BuildConfiguredDisplayStyleTitle(shader, glslp, null);
+        }
+
+        if (!shader && !glslp) {
+            return null;
+        }
+
+        if (glslp && !ConfiguredDisplayStylePresetExists(glslp)) {
+            return null;
+        }
+
+        return {
+            id: 'configured-display-style-pending-' + (index || 0),
+            title: title || 'Display Style',
+            name: title || 'Display Style',
+            shader: shader || '',
+            glslp: glslp,
+            isPixelPerfect: false,
+            sourceSystem: system || null
+        };
+    };
+
+    var NormalizeConfiguredDisplayStylePreset = function(value) {
+
+        var normalized;
+
+        if (!value) {
+            return null;
+        }
+
+        normalized = ShaderService.NormalizePresetPath(value);
+
+        if (!normalized || path.extname(normalized).toLowerCase() !== '.glslp') {
+            return null;
+        }
+
+        return normalized;
+    };
+
+    var NormalizeConfiguredDisplayStyleShaderValue = function(value) {
+
+        value = String(value || '').replace(/\\/g, '/').trim();
+
+        if (!value || value.indexOf('\0') >= 0 || value.match(/^[a-z][a-z0-9+.-]*:\/\//i)) {
+            return '';
+        }
+
+        if (value.match(/\.glslp$/i)) {
+            return NormalizeConfiguredDisplayStylePreset(value) || '';
+        }
+
+        if (value.charAt(0) === '/' || value.charAt(0) === '.' || value.indexOf('..') >= 0) {
+            return '';
+        }
+
+        if (!value.match(/^[a-z0-9][a-z0-9_\.\/-]*$/i)) {
+            return '';
+        }
+
+        return value;
+    };
+
+    var ConfiguredDisplayStylePresetExists = function(glslp) {
+
+        var fullPath;
+        var relativeFromRoot;
+
+        if (!glslp) {
+            return false;
+        }
+
+        fullPath = path.resolve(_shaderRoot, glslp);
+        relativeFromRoot = path.relative(_shaderRoot, fullPath);
+
+        if (!relativeFromRoot || relativeFromRoot.indexOf('..') === 0 || path.isAbsolute(relativeFromRoot)) {
+            return false;
+        }
+
+        try {
+            return fs.existsSync(fullPath) && fs.statSync(fullPath).isFile();
+        } catch (e) {
+            return false;
+        }
+    };
+
+    var GetConfiguredDisplayStyleKey = function(style) {
+
+        var normalizedPath = NormalizeConfiguredDisplayStylePreset(style.glslp || style.shader || '');
+
+        if (normalizedPath) {
+            return 'glslp:' + normalizedPath.toLowerCase();
+        }
+
+        if (style.shader) {
+            return 'shader:' + String(style.shader).toLowerCase();
+        }
+
+        return null;
+    };
+
+    var NormalizeConfiguredDisplayStyleTitle = function(value) {
+
+        value = String(value || '').replace(/\s+/g, ' ').trim();
+        return value || null;
+    };
+
+    var StripConfiguredDisplayStyleLabelSuffix = function(value) {
+
+        value = NormalizeConfiguredDisplayStyleTitle(value);
+
+        if (!value) {
+            return null;
+        }
+
+        return value.replace(/\s+shader$/i, '').replace(/\s+display\s+style$/i, '').trim() || value;
+    };
+
+    var BuildConfiguredDisplayStyleTitle = function(shader, glslp, fallback) {
+
+        var value = glslp || shader || fallback || '';
+
+        if (value.match(/\.glslp$/i)) {
+            value = path.posix.basename(value).replace(/\.glslp$/i, '');
+        }
+
+        return FriendlyDisplayStyleName(value);
+    };
+
+    var FriendlyDisplayStyleName = function(value) {
+
+        var acronyms = {
+            crt: 'CRT',
+            lcd: 'LCD',
+            ntsc: 'NTSC',
+            pal: 'PAL',
+            vhs: 'VHS',
+            gba: 'GBA',
+            gbc: 'GBC',
+            nes: 'NES',
+            snes: 'SNES',
+            n64: 'N64',
+            ngpc: 'NGPC',
+            xbr: 'XBR',
+            xbrz: 'XBRZ',
+            hqx: 'HQX',
+            fsr: 'FSR',
+            fxaa: 'FXAA'
+        };
+
+        value = String(value || '').replace(/[_\-\/]+/g, ' ').replace(/\s+/g, ' ').trim();
+
+        if (!value) {
+            return 'Display Style';
+        }
+
+        return value.split(' ').map(function(part) {
+            var lower = part.toLowerCase();
+
+            if (acronyms[lower]) {
+                return acronyms[lower];
+            }
+
+            if (part.match(/^\d+x?$/i)) {
+                return part.toUpperCase();
+            }
+
+            return part.charAt(0).toUpperCase() + part.substr(1);
+        }).join(' ');
     };
 
     //try only to include absolutely necessary data for entry

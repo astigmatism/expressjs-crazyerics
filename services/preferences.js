@@ -71,6 +71,68 @@ module.exports = new (function() {
         });
     };
 
+    this.Remove = function(userId, key, callback) {
+
+        _self.Get(userId, (err, cache) => {
+            if (err) {
+                return callback(err);
+            }
+
+            if (!cache) {
+                cache = {
+                    validated: 0
+                };
+            }
+
+            RemoveNestedPreferenceValue(cache, key);
+
+            _cache.Set([userId], cache, (err, success) => {
+                if (err) {
+                    return callback(err);
+                }
+                callback(null, success);
+            });
+        });
+    };
+
+    var RemoveNestedPreferenceValue = function(object, key) {
+        var pieces = String(key || '').split('.');
+        var currentDepth = object;
+        var parents = [];
+        var i;
+
+        for (i = 0; i < pieces.length; ++i) {
+            var currentKey = pieces[i];
+
+            if (!currentDepth || !currentDepth.hasOwnProperty(currentKey)) {
+                return object;
+            }
+
+            if (i == pieces.length - 1) {
+                delete currentDepth[currentKey];
+                break;
+            }
+
+            parents.push({
+                object: currentDepth,
+                key: currentKey
+            });
+            currentDepth = currentDepth[currentKey];
+        }
+
+        for (i = parents.length - 1; i >= 0; i--) {
+            var parentValue = parents[i].object[parents[i].key];
+
+            if (!parentValue || typeof parentValue !== 'object' || Object.keys(parentValue).length > 0) {
+                break;
+            }
+
+            delete parents[i].object[parents[i].key];
+        }
+
+        return object;
+    };
+
     this.SetAsync = function(userId, key, value) {
         _self.Set(userId, key, value, (err, success) => {
             //its async! we don't care!

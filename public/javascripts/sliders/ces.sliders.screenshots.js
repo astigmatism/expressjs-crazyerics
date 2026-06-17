@@ -7,24 +7,34 @@ var cesSlidersScreenshots = (function(_config, $li, $panel, Open) {
     var _gameKey;
     var _compression;
     var _media;
+    var _screenshots = [];
+    var _screenshotChangedEvent = 'ces:screenshotsChanged';
+    var _visualStyleChangedEvent = 'ces:visualStyleChanged';
+    var _applyCurrentLookToScreenshots = false;
 
     this.Activate = function(gameKey, _PubSub, _Tooltips, _Compression, _Media) {
         
+        CancelAllScreenshotLookRenders();
         _grid.isotope('remove', _grid.children()); //clear on activation (sanity)
         _grid.css('min-height', '');
+        _screenshots = [];
         _pubSub = _PubSub;
         _tooltips = _Tooltips;
         _gameKey = gameKey;
         _compression = _Compression;
         _media = _Media;
         UpdateScreenshotKeyLabel();
+        UpdateScreenshotLookToggle();
+        PublishScreenshotCatalogChanged();
         _pubSub.Subscribe('screenshotWritten', self, OnNewScreenshot);
     };
 
     this.Deactivate = function() {
 
+        CancelAllScreenshotLookRenders();
         _grid.isotope('remove', _grid.children()); //clear on deactivation
         _grid.css('min-height', '');
+        _screenshots = [];
 
         if (_pubSub) {
             _pubSub.Unsubscribe('screenshotWritten');
@@ -35,12 +45,16 @@ var cesSlidersScreenshots = (function(_config, $li, $panel, Open) {
         _gameKey = null;
         _compression = null;
         _media = null;
+        UpdateScreenshotLookToggle();
+        PublishScreenshotCatalogChanged();
     };
 
     this.OnOpen = function(callback) {
 
         //TODO: show different messages
         UpdateScreenshotKeyLabel();
+        UpdateScreenshotLookToggle();
+        ApplyScreenshotLookMode();
         (_grid.children().length > 0) ? ToggleEmptyList(false) : ToggleEmptyList(true);
         callback(true);
         ScheduleGridLayout('screenshots slider open');
@@ -109,11 +123,23 @@ var cesSlidersScreenshots = (function(_config, $li, $panel, Open) {
         //create the grid item
         ToggleEmptyList(false);
         var $griditem = $('<div class="grid-item screenshot-card" />');
+        var timestamp = Date.now();
+        var base64String = btoa(String.fromCharCode.apply(null, new Uint8Array(contents)));
+        var src = 'data:image/jpg;base64,' + base64String;
+        var screenshot = {
+            id: 'screenshot-' + timestamp + '-' + _screenshots.length,
+            filename: filename,
+            src: src,
+            title: title || '',
+            system: system || (_gameKey ? _gameKey.system : null),
+            gameGk: GetGameKeyId(_gameKey),
+            ts: timestamp
+        };
 
-        $griditem.data('ts', Date.now());
+        _screenshots.push(screenshot);
+        $griditem.data('ts', timestamp).attr('data-screenshot-id', screenshot.id).attr('data-game-gk', screenshot.gameGk || '');
 
         var $img = $('<img class="close" />');
-        var base64String = btoa(String.fromCharCode.apply(null, new Uint8Array(contents)));
         var revealAndLayout = function() {
             $img.removeClass('close');
             ScheduleGridLayout('new screenshot image ready');
@@ -128,7 +154,8 @@ var cesSlidersScreenshots = (function(_config, $li, $panel, Open) {
         $img.on('load', function() {
             revealAndLayout();
         });
-        $img.attr('src', 'data:image/jpg;base64,' + base64String);
+        $img.attr('src', src);
+        $img.attr('data-original-src', src);
         $img.attr('alt', 'Captured screenshot' + (title ? ' for ' + title : ''));
         $img.on('click', function(e) {
             ImageDownload(e, filename);
@@ -163,6 +190,10 @@ var cesSlidersScreenshots = (function(_config, $li, $panel, Open) {
             sortBy: 'ts',
             sortAscending: false,
         });
+
+        UpdateScreenshotLookToggle();
+        ApplyScreenshotLookMode();
+        PublishScreenshotCatalogChanged();
 
         //open myself
         Open();
@@ -226,7 +257,8 @@ var cesSlidersScreenshots = (function(_config, $li, $panel, Open) {
     var DownloadImage = function(img, filename) {
 
         var link = document.createElement('a');
-        link.setAttribute('href', img.src);
+        var src = $(img).attr('data-original-src') || img.src;
+        link.setAttribute('href', src);
         link.setAttribute('download', filename);
         link.setAttribute('target', '_blank');
         link.style.display = 'none';
@@ -383,7 +415,271 @@ var cesSlidersScreenshots = (function(_config, $li, $panel, Open) {
         return null;
     };
     
+    var GetGameKeyId = function(gameKey) {
+
+        return gameKey && gameKey.gk ? String(gameKey.gk) : '';
+    };
+
+    var GetScreenshotsForGame = function(gameKey) {
+
+        var key = GetGameKeyId(gameKey || _gameKey);
+        var results = [];
+        var i;
+
+        for (i = 0; i < _screenshots.length; i++) {
+            if (!key || _screenshots[i].gameGk === key) {
+                results.push($.extend({}, _screenshots[i]));
+            }
+        }
+
+        return results;
+    };
+
+    var GetLatestScreenshot = function(gameKey) {
+
+        var screenshots = GetScreenshotsForGame(gameKey);
+        var latest = null;
+        var i;
+
+        for (i = 0; i < screenshots.length; i++) {
+            if (!latest || screenshots[i].ts > latest.ts) {
+                latest = screenshots[i];
+            }
+        }
+
+        return latest;
+    };
+
+    var PublishScreenshotCatalogChanged = function() {
+
+        $(document).trigger(_screenshotChangedEvent, [{
+            gameKey: _gameKey,
+            screenshots: GetScreenshotsForGame(_gameKey)
+        }]);
+    };
+
+    var GetCurrentVisualStyle = function() {
+
+        var style = window.cesCurrentVisualStyle || null;
+        var key = GetGameKeyId(_gameKey);
+
+        if (!key) {
+            return null;
+        }
+
+        if (!style) {
+            return null;
+        }
+
+        if (key && style.gameGk && style.gameGk !== key) {
+            return null;
+        }
+
+        return style;
+    };
+
+    var IsPixelPerfectSelection = function(selection) {
+
+        return selection === null || typeof selection === 'undefined' || String(selection) === '';
+    };
+
+    var HasCurrentVisualStyle = function(style) {
+
+        return !!(style && !IsPixelPerfectSelection(style.selection));
+    };
+
+    var BuildVisualStyleKey = function(style) {
+
+        if (!style) {
+            return '';
+        }
+
+        return [style.selection || '', style.shader || '', style.glslp || '', style.name || ''].join('|');
+    };
+
+    var BindScreenshotLookToggle = function() {
+
+        var $toggle = $panel.find('#screenshotsApplyLookToggle');
+
+        if (!$toggle.length) {
+            return;
+        }
+
+        $toggle.off('change.cesScreenshotsLook').on('change.cesScreenshotsLook', function() {
+            _applyCurrentLookToScreenshots = $(this).prop('checked') === true;
+            UpdateScreenshotLookToggle();
+            ApplyScreenshotLookMode();
+        });
+    };
+
+    var UpdateScreenshotLookToggle = function() {
+
+        var $toggle = $panel.find('#screenshotsApplyLookToggle');
+        var $control = $panel.find('.screenshots-look-toggle');
+        var $status = $panel.find('.screenshots-look-toggle-status');
+        var style = GetCurrentVisualStyle();
+        var hasStyle = HasCurrentVisualStyle(style);
+
+        if (!$toggle.length) {
+            return;
+        }
+
+        if (!hasStyle) {
+            _applyCurrentLookToScreenshots = false;
+            $toggle.prop('checked', false).prop('disabled', true);
+            $control.addClass('disabled');
+            $status.text('Pixel Perfect: screenshots are shown as captured.');
+            return;
+        }
+
+        $toggle.prop('disabled', false).prop('checked', _applyCurrentLookToScreenshots);
+        $control.removeClass('disabled');
+
+        if (_applyCurrentLookToScreenshots) {
+            $status.text('Showing ' + (style.name || 'the current look') + ' on screenshots.');
+        }
+        else {
+            $status.text('Screenshots are shown as captured.');
+        }
+    };
+
+    var ApplyScreenshotLookMode = function() {
+
+        var style = GetCurrentVisualStyle();
+        var shouldApply = _applyCurrentLookToScreenshots && HasCurrentVisualStyle(style);
+
+        if (!_grid || !_grid.length) {
+            return;
+        }
+
+        _grid.children('.screenshot-card').each(function() {
+            var $card = $(this);
+
+            if (shouldApply) {
+                ApplyLookToScreenshotCard($card, style);
+            }
+            else {
+                RestoreScreenshotCard($card);
+            }
+        });
+
+        ScheduleGridLayout('screenshot look mode updated');
+    };
+
+    var ApplyLookToScreenshotCard = function($card, style) {
+
+        var $img = $card.find('img').first();
+        var originalSrc = $img.attr('data-original-src') || $img.attr('src');
+        var lookKey = BuildVisualStyleKey(style) + '|' + originalSrc;
+        var token;
+
+        if (!$img.length || !originalSrc) {
+            return;
+        }
+
+        if (!$img.attr('data-original-src')) {
+            $img.attr('data-original-src', originalSrc);
+        }
+
+        if ($card.data('screenshotLookKey') === lookKey && $img.attr('data-dynamic-preview') === 'true') {
+            return;
+        }
+
+        CancelScreenshotLookRender($card);
+        $card.data('screenshotLookKey', lookKey);
+
+        if (!window.cesShaderPreviewBridge || typeof window.cesShaderPreviewBridge.ApplyToImage !== 'function' || !style.glslp) {
+            $img.attr('src', originalSrc);
+            $card.attr('data-current-look-applied', 'unavailable');
+            return;
+        }
+
+        $card.addClass('screenshot-card-look-pending').attr('data-current-look-applied', 'pending');
+        $img.attr('src', originalSrc).removeAttr('data-dynamic-preview data-dynamic-preview-internal-size');
+
+        token = window.cesShaderPreviewBridge.ApplyToImage({
+            sourceSrc: originalSrc,
+            targetImage: $img.get(0),
+            target: $card.get(0),
+            shader: style.shader || style.selection || '',
+            glslp: style.glslp || '',
+            title: style.name || 'Current look',
+            preserveImageAspect: true,
+            onComplete: function(success) {
+                if (token && token.active === false) {
+                    return;
+                }
+
+                $card.removeClass('screenshot-card-look-pending').attr('data-current-look-applied', success ? 'true' : 'unavailable');
+                ScheduleGridLayout('screenshot look render complete');
+            }
+        });
+
+        $card.data('screenshotLookRenderToken', token);
+    };
+
+    var RestoreScreenshotCard = function($card) {
+
+        var $img = $card.find('img').first();
+        var originalSrc = $img.attr('data-original-src');
+
+        CancelScreenshotLookRender($card);
+        $card.removeClass('screenshot-card-look-pending').removeAttr('data-current-look-applied').removeData('screenshotLookKey');
+
+        if (originalSrc && $img.attr('src') !== originalSrc) {
+            $img.attr('src', originalSrc);
+        }
+
+        $img.removeAttr('data-dynamic-preview data-dynamic-preview-internal-size');
+    };
+
+    var CancelScreenshotLookRender = function($card) {
+
+        var token = $card.data('screenshotLookRenderToken');
+
+        if (token) {
+            token.active = false;
+        }
+
+        $card.removeData('screenshotLookRenderToken');
+    };
+
+    var CancelAllScreenshotLookRenders = function() {
+
+        if (!_grid || !_grid.length) {
+            return;
+        }
+
+        _grid.children('.screenshot-card').each(function() {
+            CancelScreenshotLookRender($(this));
+        });
+    };
+
+    var ExposeCapturedScreenshots = function() {
+
+        window.cesCapturedScreenshots = {
+            GetAll: function(gameKey) {
+                return GetScreenshotsForGame(gameKey);
+            },
+            GetLatest: function(gameKey) {
+                return GetLatestScreenshot(gameKey);
+            }
+        };
+    };
+
+    var BindVisualStyleUpdates = function() {
+
+        $(document).off(_visualStyleChangedEvent + '.cesSlidersScreenshots').on(_visualStyleChangedEvent + '.cesSlidersScreenshots', function() {
+            UpdateScreenshotLookToggle();
+            ApplyScreenshotLookMode();
+        });
+    };
+
     var Constructor = (function() {
+
+        ExposeCapturedScreenshots();
+        BindScreenshotLookToggle();
+        BindVisualStyleUpdates();
 
         _grid = $('#screenshotsGrid').isotope({
             layoutMode: 'masonry',
