@@ -44,6 +44,13 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
     var _EmulatorInstance = null;
     var _Module = null;
     var _SavesManager = null;
+    var _SaveFilesManager = null;
+    var _saveFilePageLifecycleHandlersInstalled = false;
+    var _saveFileFreezeHandler = null;
+    var _normalSaveMonitorTimer = null;
+    var _lastNormalSaveBestEffortAt = 0;
+    var _runtimeNormalSaveFlushCommandLastAt = 0;
+    var _normalSaveNotificationLastAt = {};
     
     //protected instance
     this._InputHelper = null;
@@ -62,6 +69,22 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
         if (_Logging && typeof _Logging.Console === 'function') {
             _Logging.Console('cesEmulatorBase.lifecycle', message);
         }
+    };
+
+    var NotifyNormalSaveFailure = function(message, topic) {
+        var key = topic || message;
+        var now = Date.now();
+        var throttleMs = 30000;
+
+        if (_normalSaveNotificationLastAt[key] && now - _normalSaveNotificationLastAt[key] < throttleMs) {
+            if (_Logging && typeof _Logging.Console === 'function') {
+                _Logging.Console('cesEmulatorBase', 'Suppressed repeat normal in-game save notification: ' + message);
+            }
+            return;
+        }
+
+        _normalSaveNotificationLastAt[key] = now;
+        _PubSub.Publish('notification', [message, 2, false, false, topic || null]);
     };
 
     var NormalizeEventListenerCapture = function(options) {
@@ -766,11 +789,13 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
             $.when(emulatorLoadComplete, supportLoadComplete, gameLoadComplete, shaderLoadComplete).done(function(emulator, support, game, shader) {
                 
                 _isLoading = false;
-                if (OnAllLoadsComplete(emulator, support, game, shader) === false) {
-                    deffered.reject('Emulator local filesystem build failed');
-                    return;
-                }
-                deffered.resolve(true);
+                OnAllLoadsComplete(emulator, support, game, shader, function(success) {
+                    if (success === false) {
+                        deffered.reject('Emulator local filesystem build failed');
+                        return;
+                    }
+                    deffered.resolve(true);
+                });
             });
         });
 
@@ -1469,6 +1494,145 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
     this.CleanUp = function(callback) {
 
         var callbacks;
+        var moduleBeforeCleanUpInvoked = false;
+        var moduleExitInvoked = false;
+        var postExitSaveFlushDelayMs = 400;
+
+        var InvokeModuleBeforeCleanUp = function(reason) {
+
+            if (!_Module || moduleBeforeCleanUpInvoked) {
+                return;
+            }
+
+            moduleBeforeCleanUpInvoked = true;
+
+            try {
+                if (typeof _Module.cesBeforeCleanUp === 'function') {
+                    _Module.cesBeforeCleanUp(reason || 'cesEmulatorBase.CleanUp');
+                }
+            } catch (e) {
+                LogLifecycle('Module cesBeforeCleanUp failed for ' + GetLifecycleDescriptor() + ': ' + e);
+            }
+        };
+
+        var InvokeModuleExit = function(reason) {
+
+            if (!_Module || moduleExitInvoked) {
+                return;
+            }
+
+            moduleExitInvoked = true;
+
+            //also unbinds events from document and window. this may have been done already through exit gracefully, but keep it as a sanity check
+            self.GiveEmulatorControlOfInput(false);
+            DisposeInputHelper();
+
+            try {
+
+                //calls exit on emulator ending loop. For normal cartridge saves this is important:
+                //some libretro cores keep save RAM in memory until content close/runtime exit.
+                if (typeof _Module.cesExit === 'function') {
+                    LogLifecycle('Invoking module cesExit for ' + GetLifecycleDescriptor() + '; reason=' + (reason || 'cleanup'));
+                    _Module.cesExit(); //see module class for implementation
+                }
+                else {
+                    LogLifecycle('Module cesExit unavailable during cleanup for ' + GetLifecycleDescriptor());
+                }
+
+            } catch (e2) {
+                LogLifecycle('Module cesExit threw during cleanup for ' + GetLifecycleDescriptor() + ': ' + e2);
+            }
+        };
+
+        var CompleteCleanupAfterSavePersistence = function() {
+
+            RemoveSaveFilePageLifecycleHandlers();
+
+            //since each Module attached an event to the parent document, we need to clean those up too:
+            $(document).unbind('fullscreenchange');
+            $(document).unbind('mozfullscreenchange');
+            $(document).unbind('webkitfullscreenchange');
+            $(document).unbind('MSFullscreenChange');
+
+            $(document).unbind('pointerlockchange');
+            $(document).unbind('mozpointerlockchange');
+            $(document).unbind('webkitpointerlockchange');
+            $(document).unbind('mspointerlockchange');
+
+            //important! tear down all topics subscribed in this class otherwise the handlers will remain and fire on the next instance of emulator
+            _PubSub.Unsubscribe('saveready');
+            _PubSub.Unsubscribe('screenshotWritten');
+            _PubSub.Unsubscribe('stateWritten');
+
+            _isSavingState = false;
+            _isLoadingState = false;
+
+            EndRuntimeGamepadActivation('emulator cleanup');
+
+            //remove the save-state manager component from sync
+            _SavesManager = null;
+            _Sync.DeregisterComponent('s');
+
+            StopNormalSaveMonitor();
+
+            if (_SaveFilesManager && typeof _SaveFilesManager.Stop === 'function') {
+                _SaveFilesManager.Stop();
+            }
+            _SaveFilesManager = null;
+
+            EndRuntimeGamepadConfigurationTransaction({ reason: 'emulator cleanup' });
+            RestoreEmulatorInputAfterRuntimeGamepadConfiguration('emulator cleanup');
+            $('#emulatorwrapperoverlay').hide(); //ensure pause is hidden for next game
+
+            if (_Module) {
+
+                InvokeModuleBeforeCleanUp('cesEmulatorBase.CleanUp final cleanup');
+                InvokeModuleExit('cesEmulatorBase.CleanUp final cleanup');
+
+                StopRuntimeMessageListenerCapture(_Module, 'cesEmulatorBase.CleanUp after module exit', true);
+
+                //we need to manually clear up the audio context
+                if (_Module.RA && _Module.RA.context && _Module.RA.context.close) {
+                     _Module.RA.context.close().then(function() {
+                        //no need
+                    });
+                }
+
+                _Module = null;
+                LogLifecycle('Module reference nulled for ' + GetLifecycleDescriptor());
+
+                if (_EmulatorInstance) {
+                    _EmulatorInstance = null;
+                    LogLifecycle('Emulator instance reference nulled for ' + GetLifecycleDescriptor());
+                }
+                
+                $(_ui.canvas).remove(); //kill all events attached (keyboard, focus, etc)
+            }
+
+            DisposeInputHelper();
+            self._InputHelper = null;
+
+            _cleanupComplete = true;
+            _cleanupInProgress = false;
+            callbacks = _cleanupCallbacks.slice(0);
+            _cleanupCallbacks = [];
+
+            LogLifecycle('CleanUp completed for ' + GetLifecycleDescriptor() + '; callbacks=' + callbacks.length);
+            RunLifecycleCallbacks(callbacks, 'CleanUp');
+        };
+
+        var ExitRuntimeThenFlushNormalSaveFiles = function() {
+
+            FlushNormalSaveFiles('cleanup before emulator exit', function() {
+
+                InvokeModuleBeforeCleanUp('cesEmulatorBase.CleanUp before module exit');
+                InvokeModuleExit('cesEmulatorBase.CleanUp normal save persistence');
+
+                window.setTimeout(function() {
+                    FlushNormalSaveFiles('cleanup after emulator exit', CompleteCleanupAfterSavePersistence);
+                }, postExitSaveFlushDelayMs);
+            });
+        };
 
         if (callback) {
             _cleanupCallbacks.push(callback);
@@ -1490,94 +1654,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
         _cleanupInProgress = true;
         LogLifecycle('CleanUp started for ' + GetLifecycleDescriptor() + '; moduleAvailable=' + (!!_Module) + ', emulatorInstanceAvailable=' + (!!_EmulatorInstance));
 
-        //since each Module attached an event to the parent document, we need to clean those up too:
-        $(document).unbind('fullscreenchange');
-        $(document).unbind('mozfullscreenchange');
-        $(document).unbind('webkitfullscreenchange');
-        $(document).unbind('MSFullscreenChange');
-
-        $(document).unbind('pointerlockchange');
-        $(document).unbind('mozpointerlockchange');
-        $(document).unbind('webkitpointerlockchange');
-        $(document).unbind('mspointerlockchange');
-
-        //important! tear down all topics subscribed in this class otherwise the handlers will remain and fire on the next instance of emulator
-        _PubSub.Unsubscribe('saveready');
-        _PubSub.Unsubscribe('screenshotWritten');
-        _PubSub.Unsubscribe('stateWritten');
-
-        _isSavingState = false;
-        _isLoadingState = false;
-
-        EndRuntimeGamepadActivation('emulator cleanup');
-
-        //remove the saves manager component from sync
-        _SavesManager = null;
-        _Sync.DeregisterComponent('s');
-
-        EndRuntimeGamepadConfigurationTransaction({ reason: 'emulator cleanup' });
-        RestoreEmulatorInputAfterRuntimeGamepadConfiguration('emulator cleanup');
-        $('#emulatorwrapperoverlay').hide(); //ensure pause is hidden for next game
-
-        if (_Module) {
-
-            try {
-                if (typeof _Module.cesBeforeCleanUp === 'function') {
-                    _Module.cesBeforeCleanUp('cesEmulatorBase.CleanUp');
-                }
-            } catch (e) {
-                LogLifecycle('Module cesBeforeCleanUp failed for ' + GetLifecycleDescriptor() + ': ' + e);
-            }
-
-            //also unbinds events from document and window. this may have been done already through exit gracefully, but keep it as a sanity check
-            self.GiveEmulatorControlOfInput(false);
-            DisposeInputHelper();
-
-            try {
-
-                //calls exit on emulator ending loop (just to be safe)
-                if (typeof _Module.cesExit === 'function') {
-                    LogLifecycle('Invoking module cesExit for ' + GetLifecycleDescriptor());
-                    _Module.cesExit(); //see module class for implementation
-                }
-                else {
-                    LogLifecycle('Module cesExit unavailable during cleanup for ' + GetLifecycleDescriptor());
-                }
-
-            } catch (e) {
-                LogLifecycle('Module cesExit threw during cleanup for ' + GetLifecycleDescriptor() + ': ' + e);
-            }
-
-            StopRuntimeMessageListenerCapture(_Module, 'cesEmulatorBase.CleanUp after module exit', true);
-
-            //we need to manually clear up the audio context
-            if (_Module.RA && _Module.RA.context && _Module.RA.context.close) {
-                 _Module.RA.context.close().then(function() {
-                    //no need
-                });
-            }
-
-            _Module = null;
-            LogLifecycle('Module reference nulled for ' + GetLifecycleDescriptor());
-
-            if (_EmulatorInstance) {
-                _EmulatorInstance = null;
-                LogLifecycle('Emulator instance reference nulled for ' + GetLifecycleDescriptor());
-            }
-            
-            $(_ui.canvas).remove(); //kill all events attached (keyboard, focus, etc)
-        }
-
-        DisposeInputHelper();
-        self._InputHelper = null;
-
-        _cleanupComplete = true;
-        _cleanupInProgress = false;
-        callbacks = _cleanupCallbacks.slice(0);
-        _cleanupCallbacks = [];
-
-        LogLifecycle('CleanUp completed for ' + GetLifecycleDescriptor() + '; callbacks=' + callbacks.length);
-        RunLifecycleCallbacks(callbacks, 'CleanUp');
+        ExitRuntimeThenFlushNormalSaveFiles();
     };
 
     this.GiveEmulatorControlOfInput = function(giveEmulatorInput) {
@@ -1595,48 +1672,129 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
         }
     };
 
+    var GetFilenameFromPath = function(path) {
+        var match;
+
+        if (!path) {
+            return '';
+        }
+
+        match = String(path).replace(/\\/g, '/').match(/[^\/]+$/);
+        return match ? match[0] : String(path);
+    };
+
+    var NormalizeEmulatorFileWrite = function(pathOrInfo, contents) {
+        var info = {};
+
+        if (pathOrInfo && typeof pathOrInfo === 'object' && !pathOrInfo.subarray && !pathOrInfo.byteLength) {
+            info.path = pathOrInfo.path || pathOrInfo.fullPath || pathOrInfo.filename || pathOrInfo.name || '';
+            info.filename = pathOrInfo.filename || pathOrInfo.name || GetFilenameFromPath(info.path);
+            info.contents = pathOrInfo.contents || contents || pathOrInfo.data;
+            info.relativePath = pathOrInfo.relativePath || null;
+        } else {
+            info.path = pathOrInfo || '';
+            info.filename = GetFilenameFromPath(pathOrInfo);
+            info.contents = contents;
+            info.relativePath = null;
+        }
+
+        if (!info.filename) {
+            info.filename = GetFilenameFromPath(info.path);
+        }
+
+        return info;
+    };
+
+    var GetNormalSaveRelativePath = function(fileWrite) {
+        var relativePath = null;
+
+        if (!fileWrite || !_Module) {
+            return null;
+        }
+
+        if (fileWrite.relativePath) {
+            relativePath = fileWrite.relativePath;
+        }
+        else if (typeof _Module.cesGetSaveFileRelativePath === 'function') {
+            relativePath = _Module.cesGetSaveFileRelativePath(fileWrite.path || fileWrite.filename);
+        }
+
+        return relativePath || null;
+    };
+
+    var QueueLocalNormalSaveFlush = function(reason) {
+        if (_Module && typeof _Module.cesFlushSaveFileSystem === 'function') {
+            try {
+                _Module.cesFlushSaveFileSystem(function(err) {
+                    if (err) {
+                        _Logging.Console('cesEmulatorBase', 'Normal in-game save local filesystem flush failed after ' + reason + ': ' + err);
+                        NotifyNormalSaveFailure('Could not save in-game progress.', 'normalSaveFileSaveFailure');
+                    }
+                });
+            } catch (e) {
+                _Logging.Console('cesEmulatorBase', 'Unable to queue normal in-game save local filesystem flush: ' + e);
+            }
+        }
+    };
+
     /**
      * this function is registered with the emulator when a file is written.
-     * @param  {string} filename the file name being saved by the emulator
+     * Normal in-game save files are separate from save states and are tracked
+     * by path under RetroArch's active savefile_directory.
+     * @param  {string|Object} filename the file name/path or write event object
      * @param  {UInt8Array} contents the contents of the file saved by the emulator
      * @return {undef}
      */
     this.OnEmulatorFileWrite = function(filename, contents) {
 
-        var statematch = filename.match(/\.state(\d*)$/); //match .state or .statex where x is a digit (although hoping they dont use slots :P)
-        var screenshotmatch = filename.match(/\.bmp$|\.png$/);
-        var srammatch = filename.match(/\.srm$/);
+        var fileWrite = NormalizeEmulatorFileWrite(filename, contents);
+        var fileNameOnly = fileWrite.filename || '';
+        var fileContents = fileWrite.contents || contents;
+        var statematch = fileNameOnly.match(/\.state(\d*)$/); //match .state or .statex where x is a digit (although hoping they dont use slots :P)
+        var screenshotmatch = fileNameOnly.match(/\.bmp$|\.png$/);
+        var srammatch = fileNameOnly.match(/\.(srm|sav|eep|eeprom|flash|fla|rtc|psrm|dsv|mcr|mcd)$/i);
+        var normalSaveRelativePath = GetNormalSaveRelativePath(fileWrite);
 
         // match will return an array when match was successful, our capture group with the slot value, its 1 index
         if (statematch) {
 
-            _PubSub.Publish('stateWritten', [filename, contents]);
+            _PubSub.Publish('stateWritten', [fileNameOnly, fileContents]);
+            return;
+        }
+
+        if (normalSaveRelativePath && _SaveFilesManager) {
+            _Logging.Console('cesEmulatorBase', 'Observed normal in-game save-file write: ' + normalSaveRelativePath + ' (' + (fileContents && fileContents.length ? fileContents.length : 0) + ' bytes)');
+            _SaveFilesManager.MarkSaveFileDirty(normalSaveRelativePath, fileContents, { reason: 'emulator write' });
+            QueueLocalNormalSaveFlush('emulator write');
             return;
         }
 
         if (screenshotmatch) {
 
             //construct image into blob for use
-            var screenDataUnzipped = new Uint8Array(contents);
+            var screenDataUnzipped = new Uint8Array(fileContents);
 
-            _PubSub.Publish('screenshotWritten', [filename, contents, screenDataUnzipped, _gameKey.system, _gameKey.title]);
+            _PubSub.Publish('screenshotWritten', [fileNameOnly, fileContents, screenDataUnzipped, _gameKey.system, _gameKey.title]);
             return;
         }
 
-        if (srammatch) {
+        if (srammatch && _SaveFilesManager) {
 
-            console.log('emulator is outing save file!');
+            // Defensive fallback for older wrappers that only provide the basename.
+            _Logging.Console('cesEmulatorBase', 'Observed basename-only normal save-file write; treating as normal in-game save-file: ' + fileNameOnly);
+            _SaveFilesManager.MarkSaveFileDirty(fileNameOnly, fileContents, { reason: 'basename normal save-file write' });
+            QueueLocalNormalSaveFlush('basename normal save-file write');
             return;
         }
 
-        if (filename === 'retroarch.cfg') {
-            _PubSub.Publish('retroArchConfigWritten', [contents]);
+        if (fileNameOnly === 'retroarch.cfg') {
+            _PubSub.Publish('retroArchConfigWritten', [fileContents]);
             return;
         }
 
         //when this file is written, its the final thing retroarch does on graneful shutdown
-        if (filename === 'retroarch-core-options.cfg') {
-            _PubSub.Publish('retroArchGracefulExit', [contents]);
+        if (fileNameOnly === 'retroarch-core-options.cfg') {
+            _PubSub.Publish('retroArchGracefulExit', [fileContents]);
             return;
         }
     };
@@ -1660,12 +1818,416 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
         self.MakeAutoSave();
     };
 
+    var DescribeNormalSaveFilesForLog = function(files) {
+        var descriptions = [];
+        var i;
+
+        files = files || [];
+        for (i = 0; i < files.length; i++) {
+            if (!files[i]) {
+                continue;
+            }
+
+            descriptions.push(String(files[i].relativePath || '(unknown)') + ':' + String(files[i].sizeBytes || (files[i].data && files[i].data.length) || 0) + 'b');
+        }
+
+        return descriptions.join(', ');
+    };
+
+    var GetNormalSaveScanIntervalMs = function() {
+        var context = null;
+        var interval = null;
+
+        if (_SaveFilesManager && typeof _SaveFilesManager.GetContext === 'function') {
+            context = _SaveFilesManager.GetContext() || {};
+            interval = context.scanIntervalMs;
+        }
+
+        if ((interval === null || typeof interval === 'undefined') && _config && _config.normalSaveFiles) {
+            interval = _config.normalSaveFiles.scanIntervalMs;
+        }
+
+        interval = parseInt(interval || 5000, 10);
+        if (isNaN(interval) || interval < 1000) {
+            interval = 5000;
+        }
+
+        return interval;
+    };
+
+    var GetNormalSaveConfigValue = function(name, defaultValue) {
+        var context = null;
+
+        if (_SaveFilesManager && typeof _SaveFilesManager.GetContext === 'function') {
+            try {
+                context = _SaveFilesManager.GetContext() || {};
+                if (Object.prototype.hasOwnProperty.call(context, name)) {
+                    return context[name];
+                }
+            } catch (e) {}
+        }
+
+        if (_config && _config.normalSaveFiles && Object.prototype.hasOwnProperty.call(_config.normalSaveFiles, name)) {
+            return _config.normalSaveFiles[name];
+        }
+
+        return defaultValue;
+    };
+
+    var IsNormalSaveRuntimeFlushCommandEnabled = function() {
+        var value = GetNormalSaveConfigValue('runtimeFlushCommandEnabled', true);
+
+        return value !== false && value !== 'false';
+    };
+
+    var GetNormalSaveRuntimeFlushThrottleMs = function() {
+        var ms = parseInt(GetNormalSaveConfigValue('runtimeFlushCommandThrottleMs', 5000), 10);
+
+        if (isNaN(ms) || ms < 0) {
+            ms = 5000;
+        }
+
+        if (ms > 60000) {
+            ms = 60000;
+        }
+
+        return ms;
+    };
+
+    var GetNormalSaveRuntimeFlushSettleMs = function() {
+        var ms = parseInt(GetNormalSaveConfigValue('runtimeFlushCommandSettleMs', 250), 10);
+
+        if (isNaN(ms) || ms < 0) {
+            ms = 250;
+        }
+
+        if (ms > 2000) {
+            ms = 2000;
+        }
+
+        return ms;
+    };
+
+    var RequestRetroArchSaveFileFlush = function(reason, options) {
+        var now = Date.now();
+        var throttleMs;
+
+        options = options || {};
+        reason = reason || 'runtime save-file flush';
+
+        if (!IsNormalSaveRuntimeFlushCommandEnabled()) {
+            if (options.forceLog) {
+                _Logging.Console('cesEmulatorBase', 'RetroArch SAVE_FILES request skipped because normal save runtime flush commands are disabled; reason=' + reason);
+            }
+            return { requested: false, reason: 'disabled' };
+        }
+
+        if (!_Module || typeof _Module.EmscriptenSendCommand !== 'function') {
+            if (options.forceLog) {
+                _Logging.Console('cesEmulatorBase', 'RetroArch SAVE_FILES request skipped because the runtime command interface is unavailable; reason=' + reason + ', moduleAvailable=' + (!!_Module));
+            }
+            return { requested: false, reason: 'command interface unavailable' };
+        }
+
+        throttleMs = GetNormalSaveRuntimeFlushThrottleMs();
+        if (!options.force && throttleMs > 0 && now - _runtimeNormalSaveFlushCommandLastAt < throttleMs) {
+            return { requested: false, reason: 'throttled' };
+        }
+
+        try {
+            _Module.EmscriptenSendCommand('SAVE_FILES');
+            _runtimeNormalSaveFlushCommandLastAt = now;
+            _Logging.Console('cesEmulatorBase', 'Requested RetroArch SAVE_FILES normal in-game save flush; reason=' + reason + ', saveDirectory=' + GetActiveNormalSaveDirectoryForLog());
+            return { requested: true };
+        } catch (e) {
+            _Logging.Console('cesEmulatorBase', 'RetroArch SAVE_FILES request failed; reason=' + reason + ': ' + e);
+            return { requested: false, reason: 'command failed', error: e };
+        }
+    };
+
+    var GetActiveNormalSaveDirectoryForLog = function() {
+        try {
+            if (_Module && typeof _Module.cesGetActiveSaveDirectory === 'function') {
+                return _Module.cesGetActiveSaveDirectory();
+            }
+        } catch (e) {}
+
+        return '(unknown)';
+    };
+
+    var ScanNormalSaveFiles = function(reason, options) {
+        var files = [];
+        var marked = 0;
+        var shouldLog;
+
+        options = options || {};
+        reason = reason || 'runtime scan';
+
+        if (!_SaveFilesManager || !_Module || typeof _Module.cesExportSaveFiles !== 'function') {
+            if (options.forceLog) {
+                _Logging.Console('cesEmulatorBase', 'Normal in-game save scan skipped; manager/module unavailable; reason=' + reason + ', moduleAvailable=' + (!!_Module));
+            }
+            return { files: [], marked: 0 };
+        }
+
+        try {
+            files = _Module.cesExportSaveFiles({ quiet: !!options.quiet });
+        } catch (e) {
+            _Logging.Console('cesEmulatorBase', 'Unable to scan normal in-game save files: ' + e + '; reason=' + reason);
+            return { files: [], marked: 0, error: e };
+        }
+
+        if (files && files.length && typeof _SaveFilesManager.MarkSaveFilesDirty === 'function') {
+            marked = _SaveFilesManager.MarkSaveFilesDirty(files, reason);
+        }
+
+        shouldLog = options.forceLog || marked > 0 || (files && files.length && !options.quiet);
+        if (shouldLog) {
+            _Logging.Console('cesEmulatorBase', 'Normal in-game save scan completed; reason=' + reason + ', saveDirectory=' + GetActiveNormalSaveDirectoryForLog() + ', files=' + ((files && files.length) || 0) + ', changed=' + marked + (files && files.length ? ': ' + DescribeNormalSaveFilesForLog(files) : ''));
+        }
+
+        if (marked > 0) {
+            QueueLocalNormalSaveFlush(reason);
+        }
+
+        return { files: files || [], marked: marked };
+    };
+
+    var ScanNormalSaveFilesAfterRuntimeFlush = function(reason, options, callback) {
+        var flushResult;
+        var settleMs = 0;
+
+        options = options || {};
+        callback = callback || function() {};
+
+        flushResult = RequestRetroArchSaveFileFlush(reason, {
+            force: !!options.forceRuntimeFlush,
+            forceLog: !!options.forceLog,
+            quiet: !!options.quiet
+        });
+
+        if (flushResult && flushResult.requested) {
+            settleMs = GetNormalSaveRuntimeFlushSettleMs();
+        }
+
+        if (settleMs > 0) {
+            window.setTimeout(function() {
+                callback(ScanNormalSaveFiles(reason, options));
+            }, settleMs);
+            return;
+        }
+
+        callback(ScanNormalSaveFiles(reason, options));
+    };
+
+    var StartNormalSaveMonitor = function() {
+        var interval;
+
+        if (_normalSaveMonitorTimer || !_SaveFilesManager) {
+            return;
+        }
+
+        interval = GetNormalSaveScanIntervalMs();
+        _Logging.Console('cesEmulatorBase', 'Normal in-game save monitor started; intervalMs=' + interval + ', saveDirectory=' + GetActiveNormalSaveDirectoryForLog());
+
+        // Run one logged scan after startup. After this, unchanged scans stay quiet.
+        window.setTimeout(function() {
+            ScanNormalSaveFilesAfterRuntimeFlush('save monitor startup scan', { forceLog: true, forceRuntimeFlush: true }, function() {});
+        }, 0);
+
+        _normalSaveMonitorTimer = window.setInterval(function() {
+            ScanNormalSaveFilesAfterRuntimeFlush('save monitor interval', { quiet: true }, function() {});
+        }, interval);
+    };
+
+    var StopNormalSaveMonitor = function() {
+        if (_normalSaveMonitorTimer) {
+            window.clearInterval(_normalSaveMonitorTimer);
+            _normalSaveMonitorTimer = null;
+            _Logging.Console('cesEmulatorBase', 'Normal in-game save monitor stopped; saveDirectory=' + GetActiveNormalSaveDirectoryForLog());
+        }
+    };
+
+    var FlushNormalSaveFiles = function(reason, callback) {
+        var finished = false;
+        var finishTimer;
+        var scanResult;
+
+        callback = callback || function() {};
+        reason = reason || 'flush';
+
+        var finish = function(err) {
+            if (finished) {
+                return;
+            }
+            finished = true;
+            if (finishTimer) {
+                clearTimeout(finishTimer);
+            }
+            callback(err);
+        };
+
+        if (!_SaveFilesManager) {
+            return callback();
+        }
+
+        _Logging.Console('cesEmulatorBase', 'Normal in-game save persistence started; reason=' + reason + ', moduleAvailable=' + (!!_Module) + ', saveDirectory=' + GetActiveNormalSaveDirectoryForLog());
+
+        finishTimer = setTimeout(function() {
+            _Logging.Console('cesEmulatorBase', 'Timed out while flushing normal in-game saves for ' + reason);
+            finish('timeout while flushing normal in-game saves');
+        }, 8000);
+
+        var flushServer = function(localErr) {
+            if (localErr) {
+                _Logging.Console('cesEmulatorBase', 'Normal in-game save local flush failed during ' + reason + ': ' + localErr);
+                NotifyNormalSaveFailure('Could not save in-game progress.', 'normalSaveFileSaveFailure');
+            }
+
+            if (_SaveFilesManager && typeof _SaveFilesManager.FlushServer === 'function') {
+                _SaveFilesManager.FlushServer(function(serverErr) {
+                    if (serverErr) {
+                        _Logging.Console('cesEmulatorBase', 'Normal in-game save server flush failed during ' + reason + ': ' + serverErr);
+                    }
+                    finish(serverErr || localErr || (scanResult && scanResult.error));
+                }, reason);
+                return;
+            }
+
+            finish(localErr || (scanResult && scanResult.error));
+        };
+
+        var flushLocalAndServer = function(result) {
+            scanResult = result || { files: [], marked: 0 };
+
+            if (_Module && typeof _Module.cesFlushSaveFileSystem === 'function') {
+                try {
+                    _Module.cesFlushSaveFileSystem(function(err) {
+                        flushServer(err);
+                    });
+                    return;
+                } catch (e2) {
+                    flushServer(e2);
+                    return;
+                }
+            }
+
+            flushServer();
+        };
+
+        ScanNormalSaveFilesAfterRuntimeFlush(reason, { forceLog: true, forceRuntimeFlush: true }, flushLocalAndServer);
+    };
+
+    var FlushNormalSaveFilesBestEffort = function(reason) {
+        var scanResult;
+        var queued = false;
+        var now = Date.now();
+
+        reason = reason || 'page lifecycle best effort';
+
+        if (now - _lastNormalSaveBestEffortAt < 250) {
+            _Logging.Console('cesEmulatorBase', 'Page lifecycle normal in-game save attempt skipped because another attempt just ran; reason=' + reason);
+            return false;
+        }
+        _lastNormalSaveBestEffortAt = now;
+
+        _Logging.Console('cesEmulatorBase', 'Page lifecycle normal in-game save attempt started; reason=' + reason + ', saveDirectory=' + GetActiveNormalSaveDirectoryForLog());
+
+        RequestRetroArchSaveFileFlush(reason, { force: true, forceLog: true });
+        scanResult = ScanNormalSaveFiles(reason, { forceLog: true });
+
+        if (_SaveFilesManager && typeof _SaveFilesManager.FlushServerBestEffort === 'function') {
+            queued = _SaveFilesManager.FlushServerBestEffort(reason);
+        }
+
+        if (!queued && _SaveFilesManager && typeof _SaveFilesManager.HasDirtyFiles === 'function' && _SaveFilesManager.HasDirtyFiles()) {
+            _Logging.Console('cesEmulatorBase', 'Page lifecycle normal save best-effort upload was not queued; dirty files remain local/in-memory; reason=' + reason + ', files=' + ((scanResult && scanResult.files && scanResult.files.length) || 0));
+        }
+
+        return queued;
+    };
+
+    var InstallSaveFilePageLifecycleHandlers = function() {
+        if (_saveFilePageLifecycleHandlersInstalled) {
+            return;
+        }
+
+        _saveFilePageLifecycleHandlersInstalled = true;
+
+        $(window).on('pagehide.cesSaveFiles', function() {
+            FlushNormalSaveFilesBestEffort('pagehide');
+        });
+
+        $(window).on('beforeunload.cesSaveFiles', function() {
+            FlushNormalSaveFilesBestEffort('beforeunload');
+        });
+
+        if (typeof document !== 'undefined' && typeof document.addEventListener === 'function') {
+            _saveFileFreezeHandler = function() {
+                FlushNormalSaveFilesBestEffort('freeze');
+            };
+            document.addEventListener('freeze', _saveFileFreezeHandler, false);
+        }
+
+        $(document).on('visibilitychange.cesSaveFiles', function() {
+            if (document.visibilityState === 'hidden') {
+                FlushNormalSaveFilesBestEffort('visibilitychange hidden');
+                FlushNormalSaveFiles('visibilitychange hidden async fallback', function() {});
+            }
+        });
+
+        _Logging.Console('cesEmulatorBase', 'Normal in-game save page lifecycle handlers installed.');
+    };
+
+    var RemoveSaveFilePageLifecycleHandlers = function() {
+        if (!_saveFilePageLifecycleHandlersInstalled) {
+            return;
+        }
+
+        $(window).off('pagehide.cesSaveFiles');
+        $(window).off('beforeunload.cesSaveFiles');
+        $(document).off('visibilitychange.cesSaveFiles');
+
+        if (typeof document !== 'undefined' && typeof document.removeEventListener === 'function' && _saveFileFreezeHandler) {
+            document.removeEventListener('freeze', _saveFileFreezeHandler, false);
+        }
+        _saveFileFreezeHandler = null;
+        _saveFilePageLifecycleHandlersInstalled = false;
+    };
+
     /* exposed saves manager functionality */
 
     this.InitializeSavesManager = function(saveData, gameKey, callback) {
 
         _SavesManager = new cesSavesManager(_config, _Compression, _Sync, gameKey, saveData);
         _Sync.RegisterComponent('s', _SavesManager.Sync);
+    };
+
+    this.InitializeSaveFilesManager = function(saveFileData, saveFileContext, gameKey) {
+
+        if (typeof cesSaveFilesManager !== 'function') {
+            _Logging.Console('cesEmulatorBase', 'Normal in-game save-file manager script is not loaded.');
+            return;
+        }
+
+        _SaveFilesManager = new cesSaveFilesManager(_config, _Compression, _Sync, gameKey, saveFileData || [], saveFileContext || {}, _Logging, _PubSub);
+        InstallSaveFilePageLifecycleHandlers();
+
+        if (_Module) {
+            StartNormalSaveMonitor();
+        }
+    };
+
+    this.ScanNormalSaveFiles = function(reason) {
+        return ScanNormalSaveFiles(reason || 'manual scan', { forceLog: true });
+    };
+
+    this.FlushNormalSaveFiles = function(callback) {
+        FlushNormalSaveFiles('manual flush', callback);
+    };
+
+    this.FlushNormalSaveFilesBestEffort = function(reason) {
+        return FlushNormalSaveFilesBestEffort(reason || 'manual best-effort flush');
     };
 
 
@@ -1999,19 +2561,97 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
         });
     };
 
+    var ConfigureNormalSaveFilesOnModule = function() {
+        var context;
+        var files;
+
+        if (!_Module || !_SaveFilesManager || typeof _SaveFilesManager.GetContext !== 'function') {
+            return;
+        }
+
+        context = _SaveFilesManager.GetContext();
+        files = typeof _SaveFilesManager.GetInitialFiles === 'function' ? _SaveFilesManager.GetInitialFiles() : [];
+
+        if (_Module && typeof _Module.cesSetSaveFileContext === 'function') {
+            try {
+                _Module.cesSetSaveFileContext(context, files);
+            } catch (e) {
+                _Logging.Console('cesEmulatorBase', 'Unable to set normal save-file context on module: ' + e);
+            }
+        }
+    };
+
+    var PrepareNormalSaveFileSystemBeforeStart = function(callback) {
+        var context;
+        var files;
+        var finished = false;
+        var finishTimer;
+
+        callback = callback || function() {};
+
+        var finish = function(err, result) {
+            if (finished) {
+                return;
+            }
+
+            finished = true;
+            if (finishTimer) {
+                clearTimeout(finishTimer);
+            }
+
+            if (err) {
+                _Logging.Console('cesEmulatorBase', 'Normal in-game save filesystem preparation failed; continuing with available local data: ' + err);
+                NotifyNormalSaveFailure('Could not restore in-game save data.', 'normalSaveFileRestoreFailure');
+            }
+            else {
+                if (_SaveFilesManager && typeof _SaveFilesManager.OnImportedToRuntime === 'function') {
+                    _SaveFilesManager.OnImportedToRuntime((result && result.importedFiles) || files || []);
+                }
+
+                if (result && result.dirtyLocalFiles && result.dirtyLocalFiles.length && _SaveFilesManager && typeof _SaveFilesManager.MarkSaveFilesDirty === 'function') {
+                    _Logging.Console('cesEmulatorBase', 'Preserved ' + result.dirtyLocalFiles.length + ' differing browser-local normal save file(s); scheduling upload after launch.');
+                    _SaveFilesManager.MarkSaveFilesDirty(result.dirtyLocalFiles, 'preserved browser-local save');
+                }
+            }
+
+            StartNormalSaveMonitor();
+            callback(true);
+        };
+
+        if (!_Module || !_SaveFilesManager || typeof _Module.cesPrepareSaveFileSystem !== 'function') {
+            return callback(true);
+        }
+
+        context = _SaveFilesManager.GetContext();
+        files = typeof _SaveFilesManager.GetInitialFiles === 'function' ? _SaveFilesManager.GetInitialFiles() : [];
+
+        finishTimer = setTimeout(function() {
+            finish('timeout while preparing normal save-file filesystem');
+        }, 8000);
+
+        try {
+            _Module.cesPrepareSaveFileSystem(context, files, function(err, result) {
+                finish(err, result);
+            });
+        } catch (e) {
+            finish(e);
+        }
+    };
+
     /**
-     * A helper function to separate the post-response functionality from the LoadEmulator function
+     * A helper function to separate the post-response functionality from the LoadEmulator function.
+     * Normal in-game save files require an asynchronous IDBFS populate/import step before callMain.
      * @param {Array} emulator
      * @param {Array} support
      * @param {Array} game
      * @param {Array} shader
      */
-    var OnAllLoadsComplete = function(emulator, support, game, shader) {
+    var OnAllLoadsComplete = function(emulator, support, game, shader, callback) {
 
         //LoadEmulator result
         if (emulator[0]) {
             console.error(emulator[0]);
-            return;
+            return callback(false);
         }
         _Module = emulator[1];
         _EmulatorInstance = emulator[2];
@@ -2031,16 +2671,19 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
         self.AdjustPlayArea();
 
         try {
+            ConfigureNormalSaveFilesOnModule();
             _Logging.Console('cesEmulatorBase', 'Building emulator local filesystem for ' + _gameKey.system);
             _Module.BuildLocalFileSystem(_gameKey, compressedGameData, compressedSupprtData, compressedShaderData);
             _Logging.Console('cesEmulatorBase', 'Built emulator local filesystem for ' + _gameKey.system);
         } catch (e) {
             _Logging.Console('cesEmulatorBase', 'BuildLocalFileSystem failed for ' + _gameKey.system + ': ' + (e && e.stack ? e.stack : e));
             _PubSub.Publish('error', ['Emulator File System Error:', e]);
-            return false;
+            return callback(false);
         }
 
-        return true;
+        PrepareNormalSaveFileSystemBeforeStart(function() {
+            callback(true);
+        });
     };
 
     this.RefreshPlayArea = function(reason) {

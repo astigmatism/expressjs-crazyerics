@@ -272,9 +272,7 @@ var cesMain = (function() {
         //     console.log('exiting');
         // });
         $(window).bind('beforeunload', function() {
-            CloseEmulator(function() {
-                return true;
-            });
+            TryBestEffortPageExitSave('main beforeunload');
         });
 
         //title banner background image selected by the server from the cached filename list
@@ -630,6 +628,18 @@ var cesMain = (function() {
 
         if (_Logging && typeof _Logging.Console === 'function') {
             _Logging.Console('ces.main.lifecycle', message);
+        }
+    };
+
+    var TryBestEffortPageExitSave = function(reason) {
+
+        if (_Emulator && typeof _Emulator.FlushNormalSaveFilesBestEffort === 'function') {
+            LogLifecycle('Page lifecycle save attempt forwarded to emulator; reason=' + (reason || 'page exit'));
+            try {
+                _Emulator.FlushNormalSaveFilesBestEffort(reason || 'page exit');
+            } catch (e) {
+                LogLifecycle('Page lifecycle save attempt failed to start: ' + e);
+            }
         }
     };
 
@@ -999,6 +1009,8 @@ var cesMain = (function() {
                         $.when(savePreferencesAndGetPlayerGameDetailsComplete).done(function(gameDetails) {
 
                             var saves = gameDetails.saves;
+                            var saveFiles = gameDetails.saveFiles || [];
+                            var saveFileContext = gameDetails.saveFileContext || {};
                             var files = gameDetails.files;
                             var loadSupportFiles = _config.systemdetails[gameKey.system].supportfiles; //will be 0 for systems without support
                             var info = {};
@@ -1012,6 +1024,14 @@ var cesMain = (function() {
                             if (_config.defaults.copyToFeatured) {
                                 _preventLoadingGame = false;
                                 return;
+                            }
+
+                            if (_Emulator && typeof _Emulator.InitializeSaveFilesManager === 'function') {
+                                _Emulator.InitializeSaveFilesManager(saveFiles, saveFileContext, gameKey);
+                            }
+
+                            if (gameDetails.saveFileError) {
+                                _Logging.Console('ces.main', gameDetails.saveFileError);
                             }
 
                             //begin loading all content. I know it seems like some of these (game, emulator, etc) could load while the user

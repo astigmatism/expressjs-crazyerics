@@ -46,7 +46,8 @@ block content
                     label Save this choice for all future #[span] games. You can reset this later.
             div(class="dialogwrapper")
                 div(class="SaveSelection")
-                    h2 Load recent saved progress?
+                    h2 Load a recent save state?
+                    p Save states are emulator snapshots from Crazyerics. In-game saves from the game itself load automatically when the game boots.
                     ul#savesselectlist
                     button#loadnosaves(type="button", class="button zoom noselect") No, start new game
                     p(class="hide max") * You have reached the maximum number of saves allowed for this game. New saves will now replace the oldest saves.
@@ -65,7 +66,7 @@ block content
                     p#emulatorexceptiondetails
             div(class="dialogwrapper")
                 div(class="SaveLoading")
-                    h2 Loading Saved Progress
+                    h2 Loading Save State
                     div#saveloadingwrapper(class="centered")
             div(class="dialogwrapper")
                 div(class="EmulatorCleanup")
@@ -98,7 +99,7 @@ block content
                                 li(class="controls", data-slider="Controls", title="Controls") Controls
                                 li(class="appearance", data-slider="Appearance", title="Display Style") Display Style
                                 li(class="screenshots", data-slider="Screenshots", title="Screenshots") Screenshots
-                                li(class="saves", title="Saves") Saves
+                                li(class="saves", title="Save States") Save States
                                 li(class="info", data-slider="Info", title="Info") Info
                                 li(class="versions", data-slider="Roms", title="Alternate Versions") Versions
                             //- sliding panels
@@ -157,7 +158,7 @@ block content
                                                 select#romsSliderSelect
                                                 ul(class="versions-slider-notes")
                                                     li Your game collection will be updated to use the version of the game you select.
-                                                    li Save progress is specific to the game version you select.
+                                                    li Save states and in-game saves are specific to the game version you select.
                     div#gamedetailsboxfront
                         button#emulatorfullscreenbutton(type="button", class="controls-runtime-gamepad-configure-button button play zoom noselect", title="Enter fullscreen emulator play area", aria-label="Enter fullscreen emulator play area") Enter Fullscreen
                         div#gamedetailsboxfrontimage

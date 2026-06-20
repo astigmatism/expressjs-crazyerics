@@ -81,6 +81,12 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _GamePad, _Pr
     var _fpsMeterSampleStartedAt = 0;
     var _fpsMeterLastConsoleAt = 0;
     var _fpsMeterLastReport = null;
+    var _normalSaveFileContext = null;
+    var _normalSaveInitialFiles = [];
+    var _normalSaveIdbfsMounted = false;
+    var _normalSaveIdbfsAvailable = true;
+    var _normalSaveMetadataFileName = '.crazyerics-savefiles.json';
+    var _activeSaveDirectory = '/saves';
 
     var PublishReady = function(reason) {
         if (_readyPublished) {
@@ -2423,6 +2429,458 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _GamePad, _Pr
             return null;
         };
 
+        var NormalizeFsPath = function(path) {
+            path = String(path || '').replace(/\\/g, '/');
+
+            while (path.indexOf('//') >= 0) {
+                path = path.replace(/\/\//g, '/');
+            }
+
+            if (path.length > 1 && path.charAt(path.length - 1) === '/') {
+                path = path.substring(0, path.length - 1);
+            }
+
+            return path;
+        };
+
+        var NormalizeSaveRelativePath = function(relativePath) {
+            relativePath = String(relativePath || '').replace(/\\/g, '/');
+
+            while (relativePath.indexOf('//') >= 0) {
+                relativePath = relativePath.replace(/\/\//g, '/');
+            }
+
+            if (relativePath.charAt(0) === '/') {
+                relativePath = relativePath.substring(1);
+            }
+
+            return relativePath;
+        };
+
+        var IsInternalSaveMetadataPath = function(relativePath) {
+            relativePath = NormalizeSaveRelativePath(relativePath);
+            return relativePath === _normalSaveMetadataFileName || relativePath.indexOf(_normalSaveMetadataFileName + '/') === 0;
+        };
+
+        var IsSafeSaveRelativePath = function(relativePath) {
+            var parts;
+            var i;
+
+            relativePath = NormalizeSaveRelativePath(relativePath);
+            if (!relativePath || IsInternalSaveMetadataPath(relativePath)) {
+                return false;
+            }
+
+            if (relativePath.indexOf('\0') >= 0 || relativePath.match(/^[A-Za-z]:/)) {
+                return false;
+            }
+
+            parts = relativePath.split('/');
+            for (i = 0; i < parts.length; i++) {
+                if (!parts[i] || parts[i] === '.' || parts[i] === '..') {
+                    return false;
+                }
+            }
+
+            return true;
+        };
+
+        var SanitizeStorageKey = function(storageKey) {
+            storageKey = String(storageKey || '').toLowerCase().replace(/[^a-z0-9_-]/g, '');
+            return storageKey || 'default';
+        };
+
+        var SetNormalSaveFileContext = function(context, files) {
+            var storageKey;
+
+            _normalSaveFileContext = context || {};
+            _normalSaveInitialFiles = files || [];
+
+            if (_normalSaveFileContext.metadataFileName) {
+                _normalSaveMetadataFileName = String(_normalSaveFileContext.metadataFileName);
+            }
+
+            if (_normalSaveFileContext.enabled === false) {
+                _activeSaveDirectory = '/saves';
+                return;
+            }
+
+            storageKey = SanitizeStorageKey(_normalSaveFileContext.storageKey);
+            _activeSaveDirectory = '/saves/' + storageKey;
+        };
+
+        var BytesEqual = function(a, b) {
+            var i;
+
+            a = ToPlainUint8Array(a);
+            b = ToPlainUint8Array(b);
+
+            if (!a || !b || a.length !== b.length) {
+                return false;
+            }
+
+            for (i = 0; i < a.length; i++) {
+                if (a[i] !== b[i]) {
+                    return false;
+                }
+            }
+
+            return true;
+        };
+
+        var GetSaveFileAbsolutePath = function(relativePath) {
+            relativePath = NormalizeSaveRelativePath(relativePath);
+            return NormalizeFsPath(_activeSaveDirectory + '/' + relativePath);
+        };
+
+        var GetSaveFileRelativePathFromAbsolute = function(path) {
+            var normalizedPath = NormalizeFsPath(path);
+            var active = NormalizeFsPath(_activeSaveDirectory);
+
+            if (!active || active === '/saves') {
+                return null;
+            }
+
+            if (normalizedPath.indexOf(active + '/') !== 0) {
+                return null;
+            }
+
+            return NormalizeSaveRelativePath(normalizedPath.substring(active.length + 1));
+        };
+
+        var IsPathInActiveSaveDirectory = function(path) {
+            return !!GetSaveFileRelativePathFromAbsolute(path);
+        };
+
+        var GetIdbfsImplementation = function() {
+            if (_module && _module.IDBFS) {
+                return _module.IDBFS;
+            }
+
+            if (typeof IDBFS !== 'undefined') {
+                return IDBFS;
+            }
+
+            return null;
+        };
+
+        var EnsureSaveRootDirectory = function(FS) {
+            _module.cesEnsureFileSystemCompatibility();
+
+            if (!FsPathExists(FS, '/saves')) {
+                _module.cesCreateFolder('/', 'saves', true, true);
+            }
+        };
+
+        var MountNormalSaveIdbfs = function(FS) {
+            var idbfs;
+
+            if (_normalSaveIdbfsMounted) {
+                return true;
+            }
+
+            if (!_normalSaveFileContext || _normalSaveFileContext.browserSyncEnabled === false) {
+                _normalSaveIdbfsAvailable = false;
+                return false;
+            }
+
+            idbfs = GetIdbfsImplementation();
+            if (!FS || !idbfs || typeof FS.mount !== 'function') {
+                _normalSaveIdbfsAvailable = false;
+                _Logging.Console(_extensionName, 'IDBFS is unavailable for normal in-game saves; continuing with server sync and in-memory FS.');
+                return false;
+            }
+
+            try {
+                FS.mount(idbfs, {}, '/saves');
+                _normalSaveIdbfsMounted = true;
+                _normalSaveIdbfsAvailable = true;
+                _Logging.Console(_extensionName, 'Mounted IDBFS at /saves for normal in-game saves.');
+                return true;
+            } catch (e) {
+                if (String(e).match(/mount point is already mounted|already mounted/i)) {
+                    _normalSaveIdbfsMounted = true;
+                    _normalSaveIdbfsAvailable = true;
+                    _Logging.Console(_extensionName, 'IDBFS at /saves was already mounted for normal in-game saves.');
+                    return true;
+                }
+
+                _normalSaveIdbfsAvailable = false;
+                _Logging.Console(_extensionName, 'Unable to mount IDBFS at /saves; continuing without browser-local persistence: ' + e);
+                return false;
+            }
+        };
+
+        var SyncNormalSaveFileSystem = function(populate, callback) {
+            var FS = _module.FS;
+
+            callback = callback || function() {};
+
+            if (!_normalSaveIdbfsMounted || !FS || typeof FS.syncfs !== 'function') {
+                return callback(null);
+            }
+
+            try {
+                FS.syncfs(!!populate, function(err) {
+                    if (err) {
+                        _Logging.Console(_extensionName, 'IDBFS syncfs(' + (!!populate) + ') failed for normal in-game saves: ' + err);
+                    }
+                    callback(err || null);
+                });
+            } catch (e) {
+                _Logging.Console(_extensionName, 'IDBFS syncfs(' + (!!populate) + ') threw for normal in-game saves: ' + e);
+                callback(e);
+            }
+        };
+
+        var ReadNormalSaveMetadata = function() {
+            var FS = _module.FS;
+            var path = GetSaveFileAbsolutePath(_normalSaveMetadataFileName);
+            var bytes;
+            var text = '';
+            var i;
+
+            if (!FS || !FsPathExists(FS, path)) {
+                return { files: {} };
+            }
+
+            try {
+                bytes = ReadFsFileAsBytes(FS, path);
+                if (!bytes) {
+                    return { files: {} };
+                }
+
+                for (i = 0; i < bytes.length; i++) {
+                    text += String.fromCharCode(bytes[i]);
+                }
+
+                return JSON.parse(text) || { files: {} };
+            } catch (e) {
+                _Logging.Console(_extensionName, 'Unable to read normal save-file metadata; ignoring sidecar: ' + e);
+                return { files: {} };
+            }
+        };
+
+        var WriteNormalSaveMetadata = function(metadata) {
+            var FS = _module.FS;
+            var path = GetSaveFileAbsolutePath(_normalSaveMetadataFileName);
+
+            if (!FS) {
+                return false;
+            }
+
+            try {
+                metadata = metadata || { files: {} };
+                if (!metadata.files) {
+                    metadata.files = {};
+                }
+                WriteFsFileReplacingExisting(FS, path, JSON.stringify(metadata));
+                return true;
+            } catch (e) {
+                _Logging.Console(_extensionName, 'Unable to write normal save-file metadata sidecar: ' + e);
+                return false;
+            }
+        };
+
+        var ReadNormalSaveFile = function(relativePath) {
+            var FS = _module.FS;
+            var path = GetSaveFileAbsolutePath(relativePath);
+            return ReadFsFileAsBytes(FS, path);
+        };
+
+        var WriteNormalSaveFile = function(relativePath, contents) {
+            var FS = _module.FS;
+            var path = GetSaveFileAbsolutePath(relativePath);
+
+            if (!IsSafeSaveRelativePath(relativePath)) {
+                throw new Error('Unsafe normal save-file path: ' + relativePath);
+            }
+
+            return WriteFsFileReplacingExisting(FS, path, ToPlainUint8Array(contents));
+        };
+
+        var DecodeServerSaveFileBytes = function(file) {
+            if (!file || !file.data) {
+                return null;
+            }
+
+            return ToPlainUint8Array(_Compression.Unzip.bytearray(file.data));
+        };
+
+        var ImportServerSaveFiles = function(files) {
+            var result = { importedFiles: [], dirtyLocalFiles: [], skippedFiles: [] };
+            var metadata = ReadNormalSaveMetadata();
+            var i;
+            var file;
+            var relativePath;
+            var serverBytes;
+            var localBytes;
+            var path;
+
+            metadata.files = metadata.files || {};
+            files = files || [];
+
+            _Logging.Console(_extensionName, 'Normal in-game save restore import started: activeSaveDirectory=' + _activeSaveDirectory + ', serverFiles=' + files.length);
+
+            for (i = 0; i < files.length; i++) {
+                file = files[i];
+                relativePath = NormalizeSaveRelativePath(file && file.relativePath);
+
+                if (!IsSafeSaveRelativePath(relativePath)) {
+                    result.skippedFiles.push(relativePath || '(empty path)');
+                    continue;
+                }
+
+                try {
+                    serverBytes = DecodeServerSaveFileBytes(file);
+                } catch (e) {
+                    _Logging.Console(_extensionName, 'Unable to decode server normal save-file ' + relativePath + ': ' + e);
+                    result.skippedFiles.push(relativePath);
+                    continue;
+                }
+
+                if (!serverBytes || !serverBytes.length) {
+                    result.skippedFiles.push(relativePath);
+                    continue;
+                }
+
+                path = GetSaveFileAbsolutePath(relativePath);
+                localBytes = FsPathExists(_module.FS, path) ? ReadNormalSaveFile(relativePath) : null;
+
+                if (localBytes && localBytes.length && !BytesEqual(localBytes, serverBytes)) {
+                    // Prefer preserving local browser data over overwriting potentially newer
+                    // unsynced progress. The base layer will upload these bytes after launch.
+                    _Logging.Console(_extensionName, 'Preserving differing browser-local normal save-file instead of overwriting with server copy: ' + relativePath);
+                    result.dirtyLocalFiles.push({
+                        relativePath: relativePath,
+                        data: localBytes
+                    });
+                    continue;
+                }
+
+                try {
+                    WriteNormalSaveFile(relativePath, serverBytes);
+                    _Logging.Console(_extensionName, 'Restored normal in-game save file before emulator launch: ' + relativePath + ' (' + serverBytes.length + ' bytes)');
+                    metadata.files[relativePath] = {
+                        lastServerSha256: file.sha256 || null,
+                        serverUpdatedAt: file.serverUpdatedAt || null,
+                        clientUpdatedAt: file.clientUpdatedAt || null,
+                        sizeBytes: file.sizeBytes || serverBytes.length
+                    };
+                    result.importedFiles.push({
+                        relativePath: relativePath,
+                        data: serverBytes,
+                        sizeBytes: serverBytes.length,
+                        sha256: file.sha256 || null,
+                        serverUpdatedAt: file.serverUpdatedAt || null,
+                        clientUpdatedAt: file.clientUpdatedAt || null
+                    });
+                } catch (e2) {
+                    _Logging.Console(_extensionName, 'Unable to import server normal save-file ' + relativePath + ': ' + e2);
+                    result.skippedFiles.push(relativePath);
+                }
+            }
+
+            WriteNormalSaveMetadata(metadata);
+            return result;
+        };
+
+        var IsRegularFsFile = function(FS, stat) {
+            if (!stat) {
+                return false;
+            }
+
+            if (typeof FS.isFile === 'function') {
+                return FS.isFile(stat.mode);
+            }
+
+            return !!(stat.mode & 32768);
+        };
+
+        var IsFsDirectory = function(FS, stat) {
+            if (!stat) {
+                return false;
+            }
+
+            if (typeof FS.isDir === 'function') {
+                return FS.isDir(stat.mode);
+            }
+
+            return !!(stat.mode & 16384);
+        };
+
+        var DescribeNormalSaveExportList = function(files) {
+            var descriptions = [];
+            var i;
+
+            files = files || [];
+            for (i = 0; i < files.length; i++) {
+                if (!files[i]) {
+                    continue;
+                }
+
+                descriptions.push(String(files[i].relativePath || '(unknown)') + ':' + String(files[i].sizeBytes || (files[i].data && files[i].data.length) || 0) + 'b');
+            }
+
+            return descriptions.join(', ');
+        };
+
+        var ExportNormalSaveFilesRecursive = function(FS, directory, relativeBase, result, options) {
+            var entries;
+            var i;
+            var name;
+            var path;
+            var relativePath;
+            var stat;
+            var bytes;
+
+            if (!FS || !FsPathExists(FS, directory) || typeof FS.readdir !== 'function') {
+                return;
+            }
+
+            entries = FS.readdir(directory);
+            for (i = 0; i < entries.length; i++) {
+                name = entries[i];
+                if (name === '.' || name === '..') {
+                    continue;
+                }
+
+                path = NormalizeFsPath(directory + '/' + name);
+                relativePath = relativeBase ? relativeBase + '/' + name : name;
+
+                if (IsInternalSaveMetadataPath(relativePath)) {
+                    continue;
+                }
+
+                try {
+                    stat = FS.stat(path);
+                } catch (e) {
+                    continue;
+                }
+
+                if (IsFsDirectory(FS, stat)) {
+                    ExportNormalSaveFilesRecursive(FS, path, relativePath, result, options);
+                    continue;
+                }
+
+                if (!IsRegularFsFile(FS, stat) || !IsSafeSaveRelativePath(relativePath)) {
+                    continue;
+                }
+
+                bytes = ReadFsFileAsBytes(FS, path);
+                if (bytes && bytes.length) {
+                    if (!options || !options.quiet) {
+                        _Logging.Console(_extensionName, 'Found normal in-game save file in virtual filesystem: ' + relativePath + ' (' + bytes.length + ' bytes)');
+                    }
+                    result.push({
+                        relativePath: relativePath,
+                        data: bytes,
+                        sizeBytes: bytes.length
+                    });
+                }
+            }
+        };
+
         var GetScreenshotSearchDirectories = function() {
             return [
                 '/screenshots',
@@ -2913,7 +3371,7 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _GamePad, _Pr
                 if (bytes) {
                     CompleteScreenshotRequest(request, 'filesystem scan: ' + candidate.path);
                     _Logging.Console(_extensionName, 'Detected screenshot file by scan: ' + candidate.path + ' (' + bytes.length + ' bytes)');
-                    _module.cesEmulatorFileWritten(candidate.name, bytes);
+                    _module.cesEmulatorFileWritten({ path: candidate.path, filename: candidate.name }, bytes);
                     return;
                 }
             }
@@ -3162,32 +3620,60 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _GamePad, _Pr
             return contents;
         };
 
-        var GetStreamTrackingName = function(stream) {
+        var GetStreamTrackingPath = function(stream) {
+            var path;
+
             if (!stream) {
                 return null;
             }
 
-            if (stream.node && stream.node.name) {
-                return stream.node.name;
+            if (stream.path) {
+                return NormalizeFsPath(stream.path);
             }
 
-            if (stream.path) {
-                var match = String(stream.path).match(/[^\/]+$/);
-                return match ? match[0] : stream.path;
+            if (_module.FS && stream.node && typeof _module.FS.getPath === 'function') {
+                try {
+                    path = _module.FS.getPath(stream.node);
+                    if (path) {
+                        return NormalizeFsPath(path);
+                    }
+                } catch (ignore) {}
+            }
+
+            if (stream.node && stream.node.name) {
+                return NormalizeFsPath(stream.node.name);
             }
 
             return null;
         };
 
-        var ShouldTrackWriteName = function(filename) {
-            return !!(filename && String(filename).match(/\.state\d*$|\.bmp$|\.png$|\.jpg$|\.jpeg$|\.srm$|^retroarch\.cfg$|^retroarch-core-options\.cfg$/i));
+        var BuildFileWrittenEvent = function(path) {
+            path = NormalizeFsPath(path);
+
+            return {
+                path: path,
+                filename: GetPathBasename(path),
+                relativePath: GetSaveFileRelativePathFromAbsolute(path)
+            };
         };
 
-        var ShouldTrackReadName = function(filename) {
+        var ShouldTrackWritePath = function(path) {
+            var filename = GetPathBasename(path);
+
+            if (IsPathInActiveSaveDirectory(path)) {
+                return true;
+            }
+
+            return !!(filename && String(filename).match(/\.state\d*$|\.bmp$|\.png$|\.jpg$|\.jpeg$|\.(srm|sav|eep|eeprom|flash|fla|rtc|psrm|dsv|mcr|mcd)$|^retroarch\.cfg$|^retroarch-core-options\.cfg$/i));
+        };
+
+        var ShouldTrackReadPath = function(path) {
+            var filename = GetPathBasename(path);
             return !!(filename && String(filename).match(/\.state\d*$/i));
         };
 
-        var ShouldLogShaderReadName = function(filename) {
+        var ShouldLogShaderReadPath = function(path) {
+            var filename = GetPathBasename(path);
             return !!(filename && String(filename).match(/\.(glslp|glsl|params|png|jpg|jpeg|bmp|tga|lut|cube)$/i));
         };
 
@@ -3202,13 +3688,36 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _GamePad, _Pr
                 FS.ces1222OriginalWrite = FS.write;
                 FS.write = function(stream, buffer, offset, length, position, canOwn) {
                     var result = FS.ces1222OriginalWrite.apply(FS, arguments);
-                    var filename = GetStreamTrackingName(stream);
+                    var trackingPath = GetStreamTrackingPath(stream);
                     var contents;
 
-                    if (_mainStarted && ShouldTrackWriteName(filename) && typeof _module.cesEmulatorFileWritten === 'function') {
+                    if (_mainStarted && ShouldTrackWritePath(trackingPath) && typeof _module.cesEmulatorFileWritten === 'function') {
                         contents = GetNodeContentsForTracking(stream && stream.node);
                         if (contents) {
-                            _module.cesEmulatorFileWritten(filename, contents);
+                            _module.cesEmulatorFileWritten(BuildFileWrittenEvent(trackingPath), contents);
+                        }
+                    }
+
+                    return result;
+                };
+            }
+
+            if (typeof FS.writeFile === 'function' && !FS.ces1222OriginalWriteFile) {
+                FS.ces1222OriginalWriteFile = FS.writeFile;
+                FS.writeFile = function(path, data, opts) {
+                    var result = FS.ces1222OriginalWriteFile.apply(FS, arguments);
+                    var trackingPath = NormalizeFsPath(path);
+                    var contents;
+
+                    if (_mainStarted && ShouldTrackWritePath(trackingPath) && typeof _module.cesEmulatorFileWritten === 'function') {
+                        try {
+                            contents = ReadFsFileAsBytes(FS, trackingPath) || ToPlainUint8Array(data);
+                        } catch (e) {
+                            contents = ToPlainUint8Array(data);
+                        }
+
+                        if (contents) {
+                            _module.cesEmulatorFileWritten(BuildFileWrittenEvent(trackingPath), contents);
                         }
                     }
 
@@ -3220,14 +3729,15 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _GamePad, _Pr
                 FS.ces1222OriginalRead = FS.read;
                 FS.read = function(stream, buffer, offset, length, position) {
                     var result = FS.ces1222OriginalRead.apply(FS, arguments);
-                    var filename = GetStreamTrackingName(stream);
+                    var trackingPath = GetStreamTrackingPath(stream);
+                    var filename = GetPathBasename(trackingPath);
                     var contents;
 
-                    if (result > 0 && ShouldLogShaderReadName(filename)) {
-                        _Logging.Console(_extensionName, 'Tracked RetroArch shader asset read through FS.read compatibility wrapper: ' + filename + ' (' + result + ' bytes)');
+                    if (result > 0 && ShouldLogShaderReadPath(trackingPath)) {
+                        _Logging.Console(_extensionName, 'Tracked RetroArch shader asset read through FS.read compatibility wrapper: ' + trackingPath + ' (' + result + ' bytes)');
                     }
 
-                    if (_mainStarted && result > 0 && ShouldTrackReadName(filename) && typeof _module.cesEmulatorFileRead === 'function') {
+                    if (_mainStarted && result > 0 && ShouldTrackReadPath(trackingPath) && typeof _module.cesEmulatorFileRead === 'function') {
                         contents = GetNodeContentsForTracking(stream && stream.node);
                         if (contents) {
                             _module.cesEmulatorFileRead(filename, contents, null, null, position);
@@ -3242,21 +3752,16 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _GamePad, _Pr
                 FS.ces1222OriginalReadFile = FS.readFile;
                 FS.readFile = function(path, opts) {
                     var result = FS.ces1222OriginalReadFile.apply(FS, arguments);
-                    var filename = null;
-                    var match;
+                    var trackingPath = NormalizeFsPath(path);
+                    var filename = GetPathBasename(trackingPath);
                     var contents;
 
-                    if (path) {
-                        match = String(path).match(/[^\/]+$/);
-                        filename = match ? match[0] : String(path);
-                    }
-
-                    if (ShouldLogShaderReadName(filename)) {
+                    if (ShouldLogShaderReadPath(trackingPath)) {
                         contents = ToPlainUint8Array(result);
-                        _Logging.Console(_extensionName, 'Tracked RetroArch shader asset read through FS.readFile compatibility wrapper: ' + String(path) + ' (' + (contents ? contents.length : 'unknown') + ' bytes)');
+                        _Logging.Console(_extensionName, 'Tracked RetroArch shader asset read through FS.readFile compatibility wrapper: ' + trackingPath + ' (' + (contents ? contents.length : 'unknown') + ' bytes)');
                     }
 
-                    if (_mainStarted && ShouldTrackReadName(filename) && typeof _module.cesEmulatorFileRead === 'function') {
+                    if (_mainStarted && ShouldTrackReadPath(trackingPath) && typeof _module.cesEmulatorFileRead === 'function') {
                         contents = ToPlainUint8Array(result);
                         if (contents) {
                             _Logging.Console(_extensionName, 'Tracked state file read through FS.readFile compatibility wrapper: ' + filename + ' (' + contents.length + ' bytes)');
@@ -4662,18 +5167,53 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _GamePad, _Pr
             return eventHandler;
         };
 
-        /**
-         * Files are written a chunk at a time. To know when a file has been written, it is no longer growing
-         * @param  {string} filename [description]
-         * @param  {array} contents the existing file's contents with the added chunk
-         * @param  {number} length   the amount added since the last write
-         * @param  {[type]} pointer  [description]
-         * @param  {[type]} offset   [description]
-         * @return {[type]}          [description]
-         */
-        this.cesEmulatorFileWritten = function(filename, contents) {
+        var NormalizeFileWrittenEvent = function(fileInfo, contents) {
+            var event = {};
+            var path;
 
-            var size = contents.length; //the total length of the file contents as they are written
+            if (fileInfo && typeof fileInfo === 'object' && !(fileInfo instanceof Uint8Array)) {
+                event.path = fileInfo.path || fileInfo.fullPath || fileInfo.filename || fileInfo.name || '';
+                event.filename = fileInfo.filename || fileInfo.name || GetPathBasename(event.path);
+                event.relativePath = fileInfo.relativePath || GetSaveFileRelativePathFromAbsolute(event.path);
+                event.contents = ToPlainUint8Array(contents || fileInfo.contents || fileInfo.data);
+            } else {
+                path = fileInfo || '';
+                event.path = NormalizeFsPath(path);
+                event.filename = GetPathBasename(path);
+                event.relativePath = GetSaveFileRelativePathFromAbsolute(path);
+                event.contents = ToPlainUint8Array(contents);
+            }
+
+            if (!event.filename) {
+                event.filename = GetPathBasename(event.path);
+            }
+
+            if (event.path) {
+                event.path = NormalizeFsPath(event.path);
+            }
+
+            return event;
+        };
+
+        /**
+         * Files are written a chunk at a time. To know when a file has been written, it is no longer growing.
+         * Normal in-game saves are identified by full path under the active RetroArch savefile_directory.
+         * @param  {string|Object} fileInfo filename/path or tracking object
+         * @param  {array} contents the existing file's contents with the added chunk
+         * @return {undef}
+         */
+        this.cesEmulatorFileWritten = function(fileInfo, contents) {
+
+            var event = NormalizeFileWrittenEvent(fileInfo, contents);
+            var filename = event.filename;
+            var timerKey = event.path || filename;
+            var fileContents = event.contents;
+            var size = fileContents ? fileContents.length : 0; //the total length of the file contents as they are written
+
+            if (!filename || !fileContents) {
+                _Logging.Console(_extensionName, 'Ignoring file write tracking event with missing filename or contents.');
+                return;
+            }
 
             if (ShouldSuppressLateScreenshotWrite(filename)) {
                 _Logging.Console(_extensionName, 'Suppressing late duplicate screenshot file after canvas fallback: ' + filename);
@@ -4684,27 +5224,28 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _GamePad, _Pr
                 MarkScreenshotFileWriteObserved(filename);
             }
 
-            //still bring written, extend timer
-            if (_fileWriteTimeout[filename]) {
+            //still being written, extend timer
+            if (_fileWriteTimeout[timerKey]) {
 
-                clearTimeout(_fileWriteTimeout[filename]);
+                clearTimeout(_fileWriteTimeout[timerKey]);
             }
             
             //create a timer which when expires, indicates that no more file writing is taking place
-            _fileWriteTimeout[filename] = setTimeout(function() {
+            _fileWriteTimeout[timerKey] = setTimeout(function() {
 
-                clearTimeout(_fileWriteTimeout[filename]);
+                clearTimeout(_fileWriteTimeout[timerKey]);
 
-                delete _fileWriteTimeout[filename];
+                delete _fileWriteTimeout[timerKey];
 
                 //bubble up
                 if (IsScreenshotFilename(filename)) {
-                    PublishScreenshotToCes(filename, contents, 'tracked filesystem write');
+                    PublishScreenshotToCes(filename, fileContents, 'tracked filesystem write');
                     return;
                 }
 
                 if (self.OnEmulatorFileWrite) {
-                    self.OnEmulatorFileWrite(filename, contents);
+                    event.contents = fileContents;
+                    self.OnEmulatorFileWrite(event, fileContents);
                 }
 
             }, _fileTimerDelay);
@@ -4745,6 +5286,124 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _GamePad, _Pr
             if (callback) {
                 callback(result);
             }
+        };
+
+        this.cesSetSaveFileContext = function(context, files) {
+            SetNormalSaveFileContext(context, files);
+            _Logging.Console(_extensionName, 'Normal in-game save context set: activeSaveDirectory=' + _activeSaveDirectory + ', initialFiles=' + ((_normalSaveInitialFiles && _normalSaveInitialFiles.length) || 0));
+        };
+
+        this.cesGetActiveSaveDirectory = function() {
+            return _activeSaveDirectory || '/saves';
+        };
+
+        this.cesIsPathInActiveSaveDirectory = function(path) {
+            return IsPathInActiveSaveDirectory(path);
+        };
+
+        this.cesGetSaveFileRelativePath = function(path) {
+            return GetSaveFileRelativePathFromAbsolute(path);
+        };
+
+        this.cesListSaveFiles = function() {
+            return this.cesExportSaveFiles();
+        };
+
+        this.cesReadSaveFile = function(relativePath) {
+            if (!IsSafeSaveRelativePath(relativePath)) {
+                return null;
+            }
+            return ReadNormalSaveFile(relativePath);
+        };
+
+        this.cesWriteSaveFile = function(relativePath, contents) {
+            if (!IsSafeSaveRelativePath(relativePath)) {
+                throw new Error('Unsafe normal save-file path: ' + relativePath);
+            }
+
+            return WriteNormalSaveFile(relativePath, contents);
+        };
+
+        this.cesImportSaveFiles = function(files) {
+            return ImportServerSaveFiles(files || []);
+        };
+
+        this.cesExportSaveFiles = function(options) {
+            var result = [];
+            var quiet;
+
+            options = options || {};
+            quiet = options === true || !!options.quiet;
+
+            if (!quiet) {
+                _Logging.Console(_extensionName, 'Normal in-game save export started; scanning save directory: ' + _activeSaveDirectory);
+            }
+
+            try {
+                if (this.FS && FsPathExists(this.FS, _activeSaveDirectory)) {
+                    ExportNormalSaveFilesRecursive(this.FS, _activeSaveDirectory, '', result, { quiet: quiet });
+                }
+                else if (!quiet) {
+                    _Logging.Console(_extensionName, 'Normal in-game save export skipped because the save directory does not exist yet: ' + _activeSaveDirectory);
+                }
+            } catch (e) {
+                _Logging.Console(_extensionName, 'Unable to export normal in-game save files: ' + e);
+            }
+
+            if (!quiet) {
+                _Logging.Console(_extensionName, 'Normal in-game save export completed; found=' + result.length + (result.length ? '; files=' + DescribeNormalSaveExportList(result) : ''));
+            }
+            return result;
+        };
+
+        this.cesSyncSaveFileSystem = function(populate, callback) {
+            SyncNormalSaveFileSystem(populate, callback);
+        };
+
+        this.cesFlushSaveFileSystem = function(callback) {
+            SyncNormalSaveFileSystem(false, callback);
+        };
+
+        this.cesPrepareSaveFileSystem = function(context, files, callback) {
+            var FS = this.FS;
+            var importResult = { importedFiles: [], dirtyLocalFiles: [], skippedFiles: [] };
+
+            callback = callback || function() {};
+
+            try {
+                SetNormalSaveFileContext(context, files);
+                EnsureSaveRootDirectory(FS);
+                MountNormalSaveIdbfs(FS);
+            } catch (e) {
+                _Logging.Console(_extensionName, 'Unable to initialize normal in-game save filesystem; continuing without local persistence: ' + e);
+                return callback(null, {
+                    importedFiles: [],
+                    dirtyLocalFiles: [],
+                    skippedFiles: [],
+                    idbfsMounted: false,
+                    idbfsAvailable: false,
+                    warning: '' + e
+                });
+            }
+
+            SyncNormalSaveFileSystem(true, function(syncErr) {
+                try {
+                    EnsureFsDirectoryPath(FS, _activeSaveDirectory);
+                    importResult = ImportServerSaveFiles(files || []);
+                } catch (e2) {
+                    _Logging.Console(_extensionName, 'Unable to import normal in-game save files before startup: ' + e2);
+                    importResult.warning = '' + e2;
+                }
+
+                SyncNormalSaveFileSystem(false, function(flushErr) {
+                    importResult.idbfsMounted = _normalSaveIdbfsMounted;
+                    importResult.idbfsAvailable = _normalSaveIdbfsAvailable;
+                    importResult.syncError = syncErr || flushErr || null;
+
+                    _Logging.Console(_extensionName, 'Normal in-game save filesystem prepared: activeSaveDirectory=' + _activeSaveDirectory + ', imported=' + importResult.importedFiles.length + ', preservedLocal=' + importResult.dirtyLocalFiles.length + ', skipped=' + importResult.skippedFiles.length + ', idbfsMounted=' + _normalSaveIdbfsMounted);
+                    callback(null, importResult);
+                });
+            });
         };
 
         /**
@@ -4996,6 +5655,14 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _GamePad, _Pr
                 retroArchConfig.input_driver = 'rwebinput';
                 retroArchConfig.input_joypad_driver = 'rwebpad';
                 retroArchConfig.video_shader_dir = '/shaders';
+                // Normal in-game saves live under RetroArch's savefile_directory.
+                // Save states remain separate under /states and are still handled by Crazyerics' existing save-state code.
+                retroArchConfig.savestate_directory = '/states';
+                retroArchConfig.savefile_directory = this.cesGetActiveSaveDirectory ? this.cesGetActiveSaveDirectory() : '/saves';
+                if (typeof retroArchConfig.autosave_interval === 'undefined' || retroArchConfig.autosave_interval === null || retroArchConfig.autosave_interval === '') {
+                    // A nonzero autosave interval gives the wrapper a chance to read normal save files while content is still running.
+                    retroArchConfig.autosave_interval = 10;
+                }
 
                 if (shaderPresetToLoad) {
                     retroArchConfig.video_shader_enable = true;
@@ -5012,6 +5679,7 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _GamePad, _Pr
                 _Logging.Console(_extensionName, 'RetroArch shader config written: video_shader_enable=' + retroArchConfig.video_shader_enable + ', video_shader_dir=' + retroArchConfig.video_shader_dir + ', video_shader=' + (retroArchConfig.video_shader || '(none)'));
                 _Logging.Console(_extensionName, 'RetroArch shader config serialized lines: video_shader_enable = ' + SerializeRetroArchConfigValue(retroArchConfig.video_shader_enable) + ', video_shader_dir = ' + SerializeRetroArchConfigValue(retroArchConfig.video_shader_dir) + ', video_shader = ' + (retroArchConfig.video_shader ? SerializeRetroArchConfigValue(retroArchConfig.video_shader) : '(not written)'));
                 _Logging.Console(_extensionName, 'RetroArch state config: savestate_directory=' + retroArchConfig.savestate_directory + ', sort_savestates_enable=' + retroArchConfig.sort_savestates_enable + ', sort_savestates_by_content_enable=' + retroArchConfig.sort_savestates_by_content_enable);
+                _Logging.Console(_extensionName, 'RetroArch normal in-game save config: savefile_directory=' + retroArchConfig.savefile_directory + ', autosave_interval=' + (retroArchConfig.autosave_interval || '(default)'));
 
                 //get input assignments
                 _Logging.Console(_extensionName, 'Applying strict virtual browser Gamepad API joypad config before RetroArch startup. RetroArch will only see controllers that CES has validated against saved mappings for this system.');

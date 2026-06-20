@@ -4,6 +4,7 @@ const router = express.Router();
 const config = require('config');
 const UserService = require('../services/users');
 const SaveService = require('../services/saves');
+const SaveFilesService = require('../services/savefiles');
 const GameService = require('../services/games');
 const CollectionService = require('../services/collections');
 const UtilitiesService = require('../services/utilities');
@@ -47,16 +48,33 @@ router.post('/load', function(req, res, next) {
                     SaveService.Sync.Outgoing(userId, eGameKey, (err, initialSaveData) => {
                         if (err) return next(err);
 
-                        var result = {
-                            saves: initialSaveData,         //initial save data
-                            files: gameDetails.files,       //rom files
-                            info: gameDetails.info         //thegamesdb data
-                        };
-    
-                        SyncService.Outgoing(result, userId, eGameKey, (err, compressedResult) => {
-                            if (err) return res.json(err);
-                            
-                            res.json(compressedResult);
+                        SaveFilesService.GetInitialSaveFiles(userId, eGameKey, (saveFilesErr, initialSaveFiles) => {
+                            if (saveFilesErr) {
+                                // Normal in-game saves should not block launching a game. A missing
+                                // migration or temporary DB error is logged and the browser-local IDBFS
+                                // layer can still preserve progress until server sync is fixed.
+                                console.log('Normal save-file preload failed for user_id=' + userId + ', file_id=' + eGameKey.fileId + ':', saveFilesErr);
+                                initialSaveFiles = {
+                                    context: SaveFilesService.BuildContext(userId, eGameKey),
+                                    files: [],
+                                    error: 'Normal save-file preload failed; using browser-local saves only for this launch.'
+                                };
+                            }
+
+                            var result = {
+                                saves: initialSaveData,                 //emulator save-state data
+                                saveFiles: initialSaveFiles.files,      //normal in-game save data
+                                saveFileContext: initialSaveFiles.context,
+                                saveFileError: initialSaveFiles.error || null,
+                                files: gameDetails.files,               //rom files
+                                info: gameDetails.info                  //thegamesdb data
+                            };
+        
+                            SyncService.Outgoing(result, userId, eGameKey, (err, compressedResult) => {
+                                if (err) return res.json(err);
+                                
+                                res.json(compressedResult);
+                            });
                         });
                     });
                 });

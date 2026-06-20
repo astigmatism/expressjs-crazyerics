@@ -13,8 +13,9 @@ module.exports = new (function() {
 
     this.Incoming = function(req, res, next) {
 
-        //manage incoming from client sync component. client adds header
-        if (req.body && req.headers.sync == 1) {
+        //manage incoming from client sync component. Normal AJAX adds the sync header.
+        // Page-lifecycle sendBeacon cannot set custom headers, so allow ?sync=1 for same route/auth context.
+        if (req.body && (req.headers.sync == 1 || (req.query && req.query.sync == 1))) {
             
             var components;
 

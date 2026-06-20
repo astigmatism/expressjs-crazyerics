@@ -246,6 +246,10 @@ module.exports = new (function() {
         //settings defaults for client
         configdata['defaults'] = config.get('defaults');
 
+        if (config.has('normalSaveFiles')) {
+            configdata['normalSaveFiles'] = config.get('normalSaveFiles');
+        }
+
         TitleBannerService.GetRandomBannerUrl(function(err, titleBannerUrl) {
             if (err) {
                 console.log('titlebanner: failed to select banner', err);

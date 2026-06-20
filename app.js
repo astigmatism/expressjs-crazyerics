@@ -17,6 +17,7 @@ const RedisCache = require('./services/cache/cache.redis.js');
 
 const routes = require('./routes/index');
 const saves = require('./routes/saves');
+const savefiles = require('./routes/savefiles');
 const suggest = require('./routes/suggest');
 const dev = require('./routes/dev');
 const media = require('./routes/media');
@@ -130,6 +131,63 @@ function ForceHttps(allowedHosts, redirectStatus, redirectHost) {
     };
 }
 
+
+function IsSaveFilesApiRequest(req) {
+    return !!(req && req.originalUrl && req.originalUrl.indexOf('/savefiles') === 0);
+}
+
+function IsMissingSaveFilesSchemaError(err) {
+    if (!err) {
+        return false;
+    }
+
+    return err.code === '42P01' && String(err.message || '').indexOf('save_files') >= 0;
+}
+
+function GetApiErrorStatus(err) {
+    var status = err && (err.status || err.statusCode);
+
+    if (IsMissingSaveFilesSchemaError(err)) {
+        return 503;
+    }
+
+    if (status && status >= 400 && status < 600) {
+        return status;
+    }
+
+    if (typeof err === 'string') {
+        return 400;
+    }
+
+    return 500;
+}
+
+function GetApiErrorMessage(err, status) {
+    if (IsMissingSaveFilesSchemaError(err)) {
+        return 'Normal save-file storage is not ready. Run the database migrations before using in-game save sync.';
+    }
+
+    if (status < 500) {
+        if (typeof err === 'string') {
+            return err;
+        }
+
+        if (err && err.message) {
+            return err.message;
+        }
+    }
+
+    return 'Normal save-file API request failed.';
+}
+
+function GetApiErrorCode(err) {
+    if (IsMissingSaveFilesSchemaError(err)) {
+        return 'save_files_schema_missing';
+    }
+
+    return err && err.safeCode ? err.safeCode : undefined;
+}
+
 var trustProxy = GetConfigValue('security.trustProxy', false);
 var forceHttps = GetConfigValue('security.forceHttps', false);
 
@@ -180,6 +238,7 @@ app.use(SyncService.Incoming); //syncs client to server
 
 app.use('/', routes);
 app.use('/saves', saves);
+app.use('/savefiles', savefiles);
 app.use('/suggest', suggest);
 app.use('/games', games);
 app.use('/collections', collections);
@@ -213,6 +272,34 @@ ApplicationService.ApplicationStart(function(err) {
 });
 
 // error handlers
+
+app.use(function(err, req, res, next) {
+    var status;
+    var body;
+    var safeCode;
+
+    if (!IsSaveFilesApiRequest(req)) {
+        return next(err);
+    }
+
+    if (res.headersSent) {
+        return next(err);
+    }
+
+    status = GetApiErrorStatus(err);
+    safeCode = GetApiErrorCode(err);
+    body = {
+        ok: false,
+        error: GetApiErrorMessage(err, status)
+    };
+
+    if (safeCode) {
+        body.code = safeCode;
+    }
+
+    console.log('Save-files API error for ' + req.method + ' ' + req.originalUrl + ':', err);
+    res.status(status).json(body);
+});
 
 // development error handler
 // will print stacktrace

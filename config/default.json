@@ -39,6 +39,21 @@
     "firstCollection": "$",
     "copyToFeatured": false
   },
+  "normalSaveFiles": {
+    "enabled": true,
+    "serverSyncEnabled": true,
+    "browserSyncEnabled": true,
+    "syncIntervalMs": 15000,
+    "scanIntervalMs": 5000,
+    "writeDebounceMs": 750,
+    "pageLifecycleKeepaliveMaxBytes": 60000,
+    "maxFileBytes": 8388608,
+    "maxFilesPerGame": 64,
+    "maxUploadBytes": 33554432,
+    "runtimeFlushCommandEnabled": true,
+    "runtimeFlushCommandThrottleMs": 5000,
+    "runtimeFlushCommandSettleMs": 250
+  },
   "db": {
     "postgre": {
       "host": "192.168.1.4",
@@ -2701,7 +2716,8 @@
         "video_gpu_screenshot": false,
         "sort_savestates_enable": false,
         "sort_savestates_by_content_enable": false,
-        "input_toggle_fullscreen": "nul"
+        "input_toggle_fullscreen": "nul",
+        "autosave_interval": 10
       },
       "browserPerformance": {
         "fpsMeter": false,

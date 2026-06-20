@@ -74,7 +74,7 @@ var cesDialogsSaveSelection = (function(_config, $el, $wrapper, args) {
 
         var savePreviewWidth = 300;
         var $image = $(BuildScreenshot(_config, _system, saveData.save.screenshot, savePreviewWidth))
-            .attr('alt', saveTypeText + ' saved progress screenshot');
+            .attr('alt', saveTypeText + ' save-state screenshot');
 
         var $li = $('<li class="zoom transparent" data-timestamp="' + timestamp + '"></li>').on('click', function(e) {
             
