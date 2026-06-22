@@ -1806,8 +1806,22 @@ p {
 	vertical-align: top;
 }
 
-#emulatorfullscreenbutton {
+.emulator-presentation-buttons {
 	margin: 0px 0px 20px 0px;
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+	gap: 8px;
+}
+
+#emulatorfullscreenbutton,
+#emulatorwindowfillbutton,
+#emulatorfullscreenoverlaybutton {
+	margin: 0px;
+}
+
+#emulatorfullscreencontrols {
+	display: none;
 }
 
 #gamedetailsboxfrontimage img {
@@ -1834,12 +1848,13 @@ body.ces-emulator-css-fullscreen-active {
 	height: 100%;
 }
 
-body.ces-emulator-css-fullscreen-active #emulatorfullscreenbutton {
+body.ces-emulator-css-fullscreen-active .emulator-presentation-buttons {
 	position: fixed;
 	top: 14px;
 	right: 14px;
 	z-index: 10020;
 	margin: 0px;
+	align-items: flex-end;
 }
 
 #emulatorwrapper.ces-emulator-fullscreen-layout {
@@ -1855,6 +1870,16 @@ body.ces-emulator-css-fullscreen-active #emulatorfullscreenbutton {
 	overflow: hidden;
 	background-color: #000;
 	z-index: 10000;
+}
+
+#emulatorwrapper.ces-emulator-native-fullscreen #emulatorfullscreencontrols {
+	position: absolute;
+	top: 14px;
+	right: 14px;
+	display: flex;
+	align-items: flex-end;
+	justify-content: flex-end;
+	z-index: 10030;
 }
 
 #emulatorwrapper.ces-emulator-fullscreen-layout #emulatorcanvas {

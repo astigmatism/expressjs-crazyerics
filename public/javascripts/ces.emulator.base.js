@@ -32,6 +32,8 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
     var _runtimeGamepadConfigurationLayoutRestoreTimer = null;
     var _runtimeGamepadConfigurationShimClass = 'ces-runtime-gamepad-configure-shim';
     var _runtimeGamepadConfigurationInputRevoked = false;
+    var _fullscreenTransitionBlurSuppressUntil = 0;
+    var _fullscreenTransitionBlurSuppressReason = '';
 
     var _displayDurationShow = 1000;
     var _displayDurationHide = 500;
@@ -991,6 +993,29 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
         } catch (ignoreHideOverlay) {}
     };
 
+    var SuppressPauseOnBlurForFullscreenTransition = function(reason, durationMs) {
+
+        var duration = Math.max(250, parseInt(durationMs, 10) || 1800);
+
+        _fullscreenTransitionBlurSuppressUntil = Date.now() + duration;
+        _fullscreenTransitionBlurSuppressReason = reason || 'fullscreen transition';
+
+        if (_Module && typeof _Module.cesSuppressAutoPauseFor === 'function') {
+            try {
+                _Module.cesSuppressAutoPauseFor(duration, _fullscreenTransitionBlurSuppressReason);
+            } catch (e) {
+                _Logging.Console('cesEmulatorBase', 'Unable to forward fullscreen transition blur suppression to emulator module: ' + e);
+            }
+        }
+
+        _Logging.Console('cesEmulatorBase', 'Suppressing canvas blur auto-pause for ' + duration + 'ms during ' + _fullscreenTransitionBlurSuppressReason);
+    };
+
+    var IsFullscreenTransitionBlurSuppressed = function() {
+
+        return Date.now() < _fullscreenTransitionBlurSuppressUntil;
+    };
+
     var IsRuntimeGamepadConfigurationFocusFenceActive = function() {
         if (_runtimeGamepadConfigurationFocusFence) {
             return true;
@@ -1284,6 +1309,48 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
         }
     };
 
+    this.SuppressPauseOnBlurForFullscreenTransition = function(reason, durationMs) {
+
+        SuppressPauseOnBlurForFullscreenTransition(reason || 'fullscreen transition', durationMs);
+        return true;
+    };
+
+    this.ResumeAudioForFullscreenTransition = function(reason) {
+
+        var audioContext = _Module && _Module.RA ? _Module.RA.context : null;
+        var resumeResult;
+
+        if (!audioContext || typeof audioContext.resume !== 'function') {
+            return { resumed: false, reason: 'audio context unavailable' };
+        }
+
+        if (audioContext.state && audioContext.state !== 'suspended') {
+            return { resumed: false, state: audioContext.state, reason: 'audio context is not suspended' };
+        }
+
+        if (!audioContext.state) {
+            return { resumed: false, reason: 'audio context state unavailable' };
+        }
+
+        try {
+            resumeResult = audioContext.resume();
+            _Logging.Console('cesEmulatorBase', 'Requested suspended WebAudio context resume after ' + (reason || 'fullscreen transition'));
+
+            if (resumeResult && typeof resumeResult.then === 'function') {
+                resumeResult.then(function() {
+                    _Logging.Console('cesEmulatorBase', 'WebAudio context resume completed after ' + (reason || 'fullscreen transition'));
+                }, function(error) {
+                    _Logging.Console('cesEmulatorBase', 'WebAudio context resume rejected after ' + (reason || 'fullscreen transition') + ': ' + error);
+                });
+            }
+
+            return { resumed: true, state: audioContext.state || null };
+        } catch (e) {
+            _Logging.Console('cesEmulatorBase', 'WebAudio context resume failed after ' + (reason || 'fullscreen transition') + ': ' + e);
+            return { resumed: false, error: String(e) };
+        }
+    };
+
     //emulator is revealed, control is given to player
     this.ReadyPlayerOne = function (duration, callback) {
 
@@ -1316,6 +1383,12 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
                             HideEmulatorPauseOverlay();
                         }
                         _Logging.Console('cesEmulatorBase', 'Suppressed CES pause overlay while runtime gamepad configuration owns focus.');
+                        return;
+                    }
+
+                    if (IsFullscreenTransitionBlurSuppressed()) {
+                        HideEmulatorPauseOverlay();
+                        _Logging.Console('cesEmulatorBase', 'Suppressed CES pause overlay during fullscreen transition blur (' + (_fullscreenTransitionBlurSuppressReason || 'fullscreen transition') + ')');
                         return;
                     }
 

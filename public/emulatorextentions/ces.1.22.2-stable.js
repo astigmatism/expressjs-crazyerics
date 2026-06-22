@@ -1845,8 +1845,8 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _GamePad, _Pr
         };
 
         this.fullscreenEnter = function() {
-            _Logging.Console(_extensionName, 'RetroArch requested fullscreen; suppressing native browser fullscreen for embedded CES canvas');
-            this.cesPrepareCanvas('fullscreen request suppressed');
+            _Logging.Console(_extensionName, 'RetroArch internal fullscreen request ignored; CES browser fullscreen controls own native and window-fill presentation modes');
+            this.cesPrepareCanvas('RetroArch internal fullscreen request ignored');
             return false;
         };
 
@@ -4225,6 +4225,13 @@ var cesEmulator = (function(_Compression, _PubSub, _config, _Sync, _GamePad, _Pr
 
         this.cesIsRuntimeGamepadConfigurationUiActive = function() {
             return !!_runtimeGamepadConfigurationUiActive;
+        };
+
+        this.cesSuppressAutoPauseFor = function(milliseconds, reason) {
+            var duration = Math.max(250, parseInt(milliseconds, 10) || 1800);
+            SuppressAutoPauseFor(duration, reason || 'external blur suppression');
+            _Logging.Console(_extensionName, 'External request suppressed canvas blur auto-pause for ' + duration + 'ms (' + (reason || 'external blur suppression') + ')');
+            return true;
         };
 
         this.cesPauseForRuntimeGamepadConfiguration = function(reason) {

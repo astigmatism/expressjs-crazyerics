@@ -75,6 +75,8 @@ block content
                         
 
         div#emulatorwrapper
+            div#emulatorfullscreencontrols(class="emulator-fullscreen-controls", aria-label="Emulator fullscreen controls")
+                button#emulatorfullscreenoverlaybutton(type="button", class="controls-runtime-gamepad-configure-button button play zoom noselect", title="Exit native browser fullscreen", aria-label="Exit native browser fullscreen") Exit Fullscreen
             div#emulatorcanvas
                 div#emulatorpositionhelper
             
@@ -160,7 +162,9 @@ block content
                                                     li Your game collection will be updated to use the version of the game you select.
                                                     li Save states and in-game saves are specific to the game version you select.
                     div#gamedetailsboxfront
-                        button#emulatorfullscreenbutton(type="button", class="controls-runtime-gamepad-configure-button button play zoom noselect", title="Enter fullscreen emulator play area", aria-label="Enter fullscreen emulator play area") Enter Fullscreen
+                        div(class="emulator-presentation-buttons")
+                            button#emulatorfullscreenbutton(type="button", class="controls-runtime-gamepad-configure-button button play zoom noselect", title="Enter native browser fullscreen", aria-label="Enter native browser fullscreen") Enter Fullscreen
+                            button#emulatorwindowfillbutton(type="button", class="controls-runtime-gamepad-configure-button button play zoom noselect", title="Fill browser window without native fullscreen", aria-label="Fill browser window without native fullscreen") Window Fill
                         div#gamedetailsboxfrontimage
                         div#gamedetailsboxfrontmetadata
                             div#gamedetailsboxfronttitle

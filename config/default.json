@@ -38,7 +38,9 @@
     "maxSavesPerGame": 40,
     "firstCollection": "$",
     "copyToFeatured": false,
-    "emulatorUseNativeBrowserFullscreen": false
+    "emulatorUseNativeBrowserFullscreen": true,
+    "emulatorDefaultFullscreenMode": "native",
+    "emulatorEnableCssWindowFillFullscreen": true
   },
   "normalSaveFiles": {
     "enabled": true,
