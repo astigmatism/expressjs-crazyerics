@@ -36,6 +36,8 @@ var cesMain = (function() {
     var _ClientCache = {}; //a consistant location to store items in client memory during a non-refresh session
     var _currentGameKey = null;
     var _fullscreenResizeTimer = null;
+    var _isEmulatorCssFullscreen = false;
+    var _dispatchingEmulatorResizeEvent = false;
     var _activeEmulatorCleanup = null;
     var _emulatorCleanupSequence = 0;
     var _launchQueuedDuringEmulatorCleanup = false;
@@ -292,6 +294,23 @@ var cesMain = (function() {
         }
     };
 
+    var IsExplicitTrueConfigValue = function(value) {
+
+        return value === true ||
+            value === 1 ||
+            value === '1' ||
+            value === 'true' ||
+            value === 'yes' ||
+            value === 'on';
+    };
+
+    var IsNativeBrowserFullscreenEnabled = function() {
+
+        var defaults = _config && _config.defaults ? _config.defaults : {};
+
+        return IsExplicitTrueConfigValue(defaults.emulatorUseNativeBrowserFullscreen);
+    };
+
     var GetRequestFullscreenFunction = function(element) {
 
         if (!element) {
@@ -326,7 +345,7 @@ var cesMain = (function() {
             null;
     };
 
-    var IsFullscreenSupported = function() {
+    var IsNativeFullscreenSupported = function() {
 
         return !!GetRequestFullscreenFunction(document.documentElement);
     };
@@ -398,64 +417,41 @@ var cesMain = (function() {
         };
     };
 
-    var IsFullscreenLimitDisabled = function(value) {
+    var GetEmulatorFullscreenLayoutSize = function() {
 
-        return value === false ||
-            value === null ||
-            value === 0 ||
-            value === '0' ||
-            value === 'false' ||
-            value === 'none' ||
-            value === 'off';
-    };
+        var viewport = GetViewportSize();
+        var aspectRatio = GetEmulatorAspectRatio();
+        var width = viewport.width;
+        var height = Math.round(width / aspectRatio);
 
-    var GetConfiguredFullscreenLimit = function(name, fallback, viewportDimension) {
-
-        var defaults = _config && _config.defaults ? _config.defaults : {};
-        var value = defaults[name];
-        var parsed;
-
-        if (typeof value === 'undefined') {
-            return Math.min(viewportDimension, fallback);
+        if (height > viewport.height) {
+            height = viewport.height;
+            width = Math.round(height * aspectRatio);
         }
-
-        if (IsFullscreenLimitDisabled(value)) {
-            return viewportDimension;
-        }
-
-        parsed = parseFloat(value);
-
-        if (isNaN(parsed) || !isFinite(parsed) || parsed <= 0) {
-            return Math.min(viewportDimension, fallback);
-        }
-
-        return Math.min(viewportDimension, parsed);
-    };
-
-    var GetEmulatorFullscreenDisplayBounds = function(viewport) {
 
         return {
-            width: Math.max(1, Math.round(GetConfiguredFullscreenLimit('emulatorFullscreenMaxCssWidth', 1280, viewport.width))),
-            height: Math.max(1, Math.round(GetConfiguredFullscreenLimit('emulatorFullscreenMaxCssHeight', 960, viewport.height)))
+            width: Math.max(1, Math.round(width)),
+            height: Math.max(1, Math.round(height))
         };
     };
 
-    var ApplyEmulatorFullscreenLayout = function(isFullscreen) {
+    var SetCssFullscreenDocumentState = function(isActive) {
+
+        $('html, body').toggleClass('ces-emulator-css-fullscreen-active', !!isActive);
+    };
+
+    var ApplyEmulatorFullscreenLayout = function(isFullscreen, mode) {
 
         var $wrapper = $('#emulatorwrapper');
         var $helper = $('#emulatorpositionhelper');
-        var viewport;
-        var bounds;
-        var aspectRatio;
-        var width;
-        var height;
+        var size;
 
         if (!$wrapper.length || !$helper.length) {
             return;
         }
 
         if (!isFullscreen) {
-            $wrapper.removeClass('ces-emulator-fullscreen');
+            $wrapper.removeClass('ces-emulator-fullscreen-layout ces-emulator-css-fullscreen ces-emulator-native-fullscreen');
             $helper.css({
                 width: '',
                 height: ''
@@ -463,24 +459,16 @@ var cesMain = (function() {
             return;
         }
 
-        viewport = GetViewportSize();
-        bounds = GetEmulatorFullscreenDisplayBounds(viewport);
-        aspectRatio = GetEmulatorAspectRatio();
-        width = bounds.width;
-        height = Math.round(width / aspectRatio);
+        size = GetEmulatorFullscreenLayoutSize();
 
-        if (height > bounds.height) {
-            height = bounds.height;
-            width = Math.round(height * aspectRatio);
-        }
+        $wrapper
+            .removeClass('ces-emulator-css-fullscreen ces-emulator-native-fullscreen')
+            .addClass('ces-emulator-fullscreen-layout')
+            .addClass(mode === 'native' ? 'ces-emulator-native-fullscreen' : 'ces-emulator-css-fullscreen');
 
-        width = Math.max(1, Math.round(width));
-        height = Math.max(1, Math.round(height));
-
-        $wrapper.addClass('ces-emulator-fullscreen');
         $helper.css({
-            width: width + 'px',
-            height: height + 'px'
+            width: size.width + 'px',
+            height: size.height + 'px'
         });
     };
 
@@ -496,8 +484,12 @@ var cesMain = (function() {
                 event.initUIEvent('resize', true, false, window, 0);
             }
 
+            _dispatchingEmulatorResizeEvent = true;
             window.dispatchEvent(event);
         } catch (e) {}
+        finally {
+            _dispatchingEmulatorResizeEvent = false;
+        }
     };
 
     var RefreshEmulatorPlayArea = function(reason) {
@@ -529,7 +521,7 @@ var cesMain = (function() {
         }, 100);
     };
 
-    var IsEmulatorTargetFullscreen = function() {
+    var IsEmulatorTargetNativeFullscreen = function() {
 
         var fullscreenElement = GetBrowserFullscreenElement();
         var wrapper = document.getElementById('emulatorwrapper');
@@ -537,78 +529,194 @@ var cesMain = (function() {
         return !!(fullscreenElement && wrapper && fullscreenElement === wrapper);
     };
 
-    var HandleEmulatorFullscreenChange = function() {
+    var SetEmulatorFullscreenButtonState = function() {
 
-        var isFullscreen = IsEmulatorTargetFullscreen();
-        var $wrapper = $('#emulatorwrapper');
+        var $button = $('#emulatorfullscreenbutton');
+        var isActive = _isEmulatorCssFullscreen || IsEmulatorTargetNativeFullscreen();
+        var nativeEnabled = IsNativeBrowserFullscreenEnabled();
+        var title;
 
-        if (isFullscreen) {
-            ApplyEmulatorFullscreenLayout(true);
-            ScheduleEmulatorPlayAreaRefresh('browser fullscreen enter');
+        if (!$button.length) {
             return;
         }
 
-        if ($wrapper.hasClass('ces-emulator-fullscreen')) {
+        title = isActive ? 'Exit fullscreen emulator play area' : 'Enter fullscreen emulator play area';
+
+        if (!isActive && nativeEnabled) {
+            title = 'Enter native browser fullscreen emulator play area';
+        }
+
+        $button
+            .toggleClass('active', isActive)
+            .text(isActive ? 'Exit Fullscreen' : 'Enter Fullscreen')
+            .attr('title', title)
+            .attr('aria-label', title);
+    };
+
+    var HandleEmulatorFullscreenChange = function() {
+
+        var isFullscreen = IsEmulatorTargetNativeFullscreen();
+        var $wrapper = $('#emulatorwrapper');
+
+        if (isFullscreen) {
+            if (_isEmulatorCssFullscreen) {
+                _isEmulatorCssFullscreen = false;
+                SetCssFullscreenDocumentState(false);
+            }
+
+            ApplyEmulatorFullscreenLayout(true, 'native');
+            SetEmulatorFullscreenButtonState();
+            ScheduleEmulatorPlayAreaRefresh('native browser fullscreen enter');
+            return;
+        }
+
+        if ($wrapper.hasClass('ces-emulator-native-fullscreen')) {
             ApplyEmulatorFullscreenLayout(false);
-            ScheduleEmulatorPlayAreaRefresh('browser fullscreen exit');
+            SetEmulatorFullscreenButtonState();
+            ScheduleEmulatorPlayAreaRefresh('native browser fullscreen exit');
         }
     };
 
-    var ExitBrowserFullscreen = function() {
+    var ExitNativeBrowserFullscreen = function() {
 
         var exitFullscreen = GetExitFullscreenFunction();
         var result;
 
         if (!exitFullscreen) {
-            LogFullscreen('Fullscreen exit requested but the browser exit API is unavailable');
+            LogFullscreen('Native browser fullscreen exit requested but the browser exit API is unavailable');
             return;
         }
 
         try {
             result = exitFullscreen.call(document);
         } catch (e) {
-            LogFullscreen('Fullscreen exit failed: ' + e);
+            LogFullscreen('Native browser fullscreen exit failed: ' + e);
             return;
         }
 
         if (result && typeof result.then === 'function') {
             result.then(function() {
-                LogFullscreen('Fullscreen exit completed');
+                LogFullscreen('Native browser fullscreen exit completed');
             }, function(error) {
-                LogFullscreen('Fullscreen exit rejected: ' + error);
+                LogFullscreen('Native browser fullscreen exit rejected: ' + error);
             });
         }
     };
 
-    var RequestEmulatorFullscreen = function(target) {
+    var EnterEmulatorCssFullscreen = function(reason) {
+
+        var target = GetEmulatorFullscreenTarget();
+        var fullscreenElement = GetBrowserFullscreenElement();
+
+        if (!target) {
+            LogFullscreen('CSS fullscreen requested but the emulator wrapper/canvas was not available');
+            return false;
+        }
+
+        if (fullscreenElement && !IsEmulatorTargetNativeFullscreen()) {
+            LogFullscreen('CSS fullscreen requested but another element is already in native browser fullscreen: ' + DescribeElement(fullscreenElement));
+            return false;
+        }
+
+        _isEmulatorCssFullscreen = true;
+        SetCssFullscreenDocumentState(true);
+        ApplyEmulatorFullscreenLayout(true, 'css');
+        SetEmulatorFullscreenButtonState();
+        LogFullscreen((reason || 'Fullscreen button clicked') + '; using CSS fullscreen for ' + DescribeElement(target));
+        ScheduleEmulatorPlayAreaRefresh('css fullscreen enter');
+        return true;
+    };
+
+    var ExitEmulatorCssFullscreen = function(reason, options) {
+
+        if (!_isEmulatorCssFullscreen) {
+            return false;
+        }
+
+        _isEmulatorCssFullscreen = false;
+        SetCssFullscreenDocumentState(false);
+        ApplyEmulatorFullscreenLayout(false);
+        SetEmulatorFullscreenButtonState();
+        LogFullscreen((reason || 'Fullscreen button clicked') + '; exited CSS fullscreen');
+
+        if (!options || !options.skipRefresh) {
+            ScheduleEmulatorPlayAreaRefresh('css fullscreen exit');
+        }
+
+        return true;
+    };
+
+    var ExitEmulatorFullscreenForCleanup = function(reason) {
+
+        ExitEmulatorCssFullscreen(reason || 'emulator cleanup', { skipRefresh: true });
+
+        if (IsEmulatorTargetNativeFullscreen()) {
+            ExitNativeBrowserFullscreen();
+        } else if ($('#emulatorwrapper').hasClass('ces-emulator-native-fullscreen')) {
+            ApplyEmulatorFullscreenLayout(false);
+            SetEmulatorFullscreenButtonState();
+        }
+    };
+
+    var RequestNativeEmulatorFullscreen = function(target) {
 
         var requestFullscreen = GetRequestFullscreenFunction(target);
         var result;
 
         if (!requestFullscreen) {
-            LogFullscreen('Fullscreen request unavailable for target ' + DescribeElement(target));
+            LogFullscreen('Native browser fullscreen request unavailable for target ' + DescribeElement(target));
+            EnterEmulatorCssFullscreen('native browser fullscreen unavailable fallback');
             return;
         }
 
-        LogFullscreen('Fullscreen button clicked; requesting browser fullscreen for ' + DescribeElement(target));
+        LogFullscreen('Fullscreen button clicked; requesting native browser fullscreen for ' + DescribeElement(target));
 
         try {
             result = requestFullscreen.call(target);
         } catch (e) {
-            LogFullscreen('Fullscreen request failed: ' + e);
+            LogFullscreen('Native browser fullscreen request failed: ' + e);
             ApplyEmulatorFullscreenLayout(false);
+            EnterEmulatorCssFullscreen('native browser fullscreen request exception fallback');
             return;
         }
 
         if (result && typeof result.then === 'function') {
             result.then(function() {
-                LogFullscreen('Fullscreen request succeeded for ' + DescribeElement(target));
+                LogFullscreen('Native browser fullscreen request succeeded for ' + DescribeElement(target));
             }, function(error) {
-                LogFullscreen('Fullscreen request rejected: ' + error);
+                LogFullscreen('Native browser fullscreen request rejected: ' + error);
                 ApplyEmulatorFullscreenLayout(false);
+                SetEmulatorFullscreenButtonState();
+                EnterEmulatorCssFullscreen('native browser fullscreen request rejected fallback');
             });
         } else {
             setTimeout(HandleEmulatorFullscreenChange, 0);
+        }
+    };
+
+    var HandleEmulatorFullscreenKeydown = function(event) {
+
+        var key;
+
+        if (!_isEmulatorCssFullscreen) {
+            return;
+        }
+
+        event = event || window.event;
+        key = event.key || event.keyCode || event.which;
+
+        if (key === 'Escape' || key === 'Esc' || key === 27) {
+            if (event.preventDefault) {
+                event.preventDefault();
+            }
+            if (event.stopImmediatePropagation) {
+                event.stopImmediatePropagation();
+            } else if (event.stopPropagation) {
+                event.stopPropagation();
+            }
+
+            ExitEmulatorCssFullscreen('escape key');
+            return false;
         }
     };
 
@@ -620,52 +728,77 @@ var cesMain = (function() {
             return;
         }
 
-        if (!IsFullscreenSupported()) {
-            $button.addClass('disabled');
-            $button.attr('title', 'Browser fullscreen is not supported here');
-        }
+        $button.on('mousedown', function(event) {
+            if (!event || event.which === 1) {
+                event.preventDefault();
+            }
+        });
 
         $button.on('click', function(event) {
             var target;
 
             event.preventDefault();
 
-            if (!IsFullscreenSupported()) {
-                LogFullscreen('Fullscreen button clicked but the browser Fullscreen API is unsupported');
+            if (_isEmulatorCssFullscreen) {
+                ExitEmulatorCssFullscreen('fullscreen button toggle');
                 return;
             }
 
-            if (IsEmulatorTargetFullscreen()) {
-                ExitBrowserFullscreen();
+            if (IsEmulatorTargetNativeFullscreen()) {
+                ExitNativeBrowserFullscreen();
                 return;
             }
 
-            if (GetBrowserFullscreenElement()) {
-                LogFullscreen('Fullscreen button clicked but another element is already fullscreen: ' + DescribeElement(GetBrowserFullscreenElement()));
+            if (IsNativeBrowserFullscreenEnabled()) {
+                if (!IsNativeFullscreenSupported()) {
+                    LogFullscreen('Native browser fullscreen is explicitly enabled but unsupported here; falling back to CSS fullscreen');
+                    EnterEmulatorCssFullscreen('native browser fullscreen unsupported fallback');
+                    return;
+                }
+
+                if (GetBrowserFullscreenElement()) {
+                    LogFullscreen('Fullscreen button clicked but another element is already in native browser fullscreen: ' + DescribeElement(GetBrowserFullscreenElement()));
+                    return;
+                }
+
+                target = GetEmulatorFullscreenTarget();
+
+                if (!target) {
+                    LogFullscreen('Fullscreen button clicked but the emulator wrapper/canvas was not available');
+                    return;
+                }
+
+                RequestNativeEmulatorFullscreen(target);
                 return;
             }
 
-            target = GetEmulatorFullscreenTarget();
-
-            if (!target) {
-                LogFullscreen('Fullscreen button clicked but the emulator wrapper/canvas was not available');
-                return;
-            }
-
-            RequestEmulatorFullscreen(target);
+            EnterEmulatorCssFullscreen('fullscreen button clicked');
         });
 
         document.addEventListener('fullscreenchange', HandleEmulatorFullscreenChange, false);
         document.addEventListener('webkitfullscreenchange', HandleEmulatorFullscreenChange, false);
         document.addEventListener('mozfullscreenchange', HandleEmulatorFullscreenChange, false);
         document.addEventListener('MSFullscreenChange', HandleEmulatorFullscreenChange, false);
+        document.addEventListener('keydown', HandleEmulatorFullscreenKeydown, true);
 
         $(window).on('resize', function() {
-            if (IsEmulatorTargetFullscreen()) {
-                ApplyEmulatorFullscreenLayout(true);
-                ScheduleEmulatorPlayAreaRefresh('browser fullscreen resize');
+            if (_dispatchingEmulatorResizeEvent) {
+                return;
+            }
+
+            if (_isEmulatorCssFullscreen) {
+                ApplyEmulatorFullscreenLayout(true, 'css');
+                ScheduleEmulatorPlayAreaRefresh('css fullscreen resize');
+                return;
+            }
+
+            if (IsEmulatorTargetNativeFullscreen()) {
+                ApplyEmulatorFullscreenLayout(true, 'native');
+                ScheduleEmulatorPlayAreaRefresh('native browser fullscreen resize');
             }
         });
+
+        SetEmulatorFullscreenButtonState();
     };
     
     var LogLifecycle = function(message) {
@@ -831,6 +964,8 @@ var cesMain = (function() {
 
         emulatorToClose = _Emulator;
 
+        ExitEmulatorFullscreenForCleanup('CloseEmulator cleanup');
+
         //no emulator, just callback
         if (!emulatorToClose) {
             LogLifecycle('CloseEmulator requested with no active emulator; cleanup skipped because it was already completed or no game was running.');
@@ -906,6 +1041,8 @@ var cesMain = (function() {
         }
 
         emulatorToClose = _Emulator;
+
+        ExitEmulatorFullscreenForCleanup('ForceCloseEmulator cleanup');
 
         if (!emulatorToClose) {
             LogLifecycle('ForceCloseEmulator requested with no active emulator; cleanup skipped.');

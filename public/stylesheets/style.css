@@ -1824,18 +1824,40 @@ p {
 	box-shadow: 0px 6px 16px rgba(0,0,0,0.55);
 }
 
-#emulatorwrapper.ces-emulator-fullscreen {
-	position: relative;
-	top: 0px;
-	left: 0px;
-	width: 100%;
-	height: 100%;
-	padding-top: 0px;
+html.ces-emulator-css-fullscreen-active,
+body.ces-emulator-css-fullscreen-active {
 	overflow: hidden;
-	background-color: #000;
 }
 
-#emulatorwrapper.ces-emulator-fullscreen #emulatorcanvas {
+html.ces-emulator-css-fullscreen-active,
+body.ces-emulator-css-fullscreen-active {
+	height: 100%;
+}
+
+body.ces-emulator-css-fullscreen-active #emulatorfullscreenbutton {
+	position: fixed;
+	top: 14px;
+	right: 14px;
+	z-index: 10020;
+	margin: 0px;
+}
+
+#emulatorwrapper.ces-emulator-fullscreen-layout {
+	position: fixed;
+	top: 0px;
+	left: 0px;
+	right: 0px;
+	bottom: 0px;
+	display: block;
+	width: 100vw;
+	height: 100vh;
+	padding: 0px;
+	overflow: hidden;
+	background-color: #000;
+	z-index: 10000;
+}
+
+#emulatorwrapper.ces-emulator-fullscreen-layout #emulatorcanvas {
 	position: absolute;
 	top: 0px;
 	right: 0px;
@@ -1844,21 +1866,23 @@ p {
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	background-color: #000;
 }
 
-#emulatorwrapper.ces-emulator-fullscreen #emulatorpositionhelper,
-#emulatorwrapper.ces-emulator-fullscreen #emulatorpositionhelper.limited {
+#emulatorwrapper.ces-emulator-fullscreen-layout #emulatorpositionhelper,
+#emulatorwrapper.ces-emulator-fullscreen-layout #emulatorpositionhelper.limited {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	max-width: 100%;
-	max-height: 100%;
+	max-width: 100vw;
+	max-height: 100vh;
 	padding: 0px;
 	margin: 0px auto;
+	box-sizing: border-box;
 }
 
-#emulatorwrapper.ces-emulator-fullscreen #emulator,
-#emulatorwrapper.ces-emulator-fullscreen #emulator.limited {
+#emulatorwrapper.ces-emulator-fullscreen-layout #emulator,
+#emulatorwrapper.ces-emulator-fullscreen-layout #emulator.limited {
 	display: block;
 	width: 100%;
 	height: 100%;
@@ -1867,7 +1891,7 @@ p {
 	background-color: #000;
 }
 
-#emulatorwrapper.ces-emulator-fullscreen #notificationwrapper {
+#emulatorwrapper.ces-emulator-fullscreen-layout #notificationwrapper {
 	width: calc(100% - 30px);
 }
 
