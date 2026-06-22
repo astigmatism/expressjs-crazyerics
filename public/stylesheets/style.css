@@ -1809,13 +1809,22 @@ p {
 .emulator-presentation-buttons {
 	margin: 0px 0px 20px 0px;
 	display: flex;
-	flex-direction: column;
+	flex-direction: row;
 	align-items: stretch;
+	justify-content: center;
 	gap: 8px;
+	flex-wrap: nowrap;
 }
 
 #emulatorfullscreenbutton,
-#emulatorwindowfillbutton,
+#emulatorwindowfillbutton {
+	margin: 0px;
+	min-width: 0px;
+	padding-left: 8px;
+	padding-right: 8px;
+	white-space: nowrap;
+}
+
 #emulatorfullscreenoverlaybutton {
 	margin: 0px;
 }
@@ -1854,7 +1863,39 @@ body.ces-emulator-css-fullscreen-active .emulator-presentation-buttons {
 	right: 14px;
 	z-index: 10020;
 	margin: 0px;
-	align-items: flex-end;
+	align-items: stretch;
+	justify-content: flex-end;
+	opacity: 1;
+	pointer-events: auto;
+	transition: opacity 220ms ease-in-out;
+	-webkit-transition: opacity 220ms ease-in-out;
+	-moz-transition: opacity 220ms ease-in-out;
+	-o-transition: opacity 220ms ease-in-out;
+}
+
+body.ces-emulator-css-fullscreen-active #emulatorfullscreenbutton {
+	display: none !important;
+}
+
+body.ces-emulator-fullscreen-ui-idle.ces-emulator-css-fullscreen-active .emulator-presentation-buttons {
+	opacity: 0;
+	pointer-events: none;
+}
+
+body.ces-emulator-fullscreen-ui-idle,
+body.ces-emulator-fullscreen-ui-idle * {
+	cursor: none !important;
+}
+
+@media screen and (max-width: 360px) {
+	.emulator-presentation-buttons {
+		flex-wrap: wrap;
+	}
+
+	#emulatorfullscreenbutton,
+	#emulatorwindowfillbutton {
+		width: 100%;
+	}
 }
 
 #emulatorwrapper.ces-emulator-fullscreen-layout {
@@ -1880,6 +1921,17 @@ body.ces-emulator-css-fullscreen-active .emulator-presentation-buttons {
 	align-items: flex-end;
 	justify-content: flex-end;
 	z-index: 10030;
+	opacity: 1;
+	pointer-events: auto;
+	transition: opacity 220ms ease-in-out;
+	-webkit-transition: opacity 220ms ease-in-out;
+	-moz-transition: opacity 220ms ease-in-out;
+	-o-transition: opacity 220ms ease-in-out;
+}
+
+body.ces-emulator-fullscreen-ui-idle #emulatorwrapper.ces-emulator-native-fullscreen #emulatorfullscreencontrols {
+	opacity: 0;
+	pointer-events: none;
 }
 
 #emulatorwrapper.ces-emulator-fullscreen-layout #emulatorcanvas {
