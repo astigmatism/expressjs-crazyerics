@@ -398,11 +398,54 @@ var cesMain = (function() {
         };
     };
 
+    var IsFullscreenLimitDisabled = function(value) {
+
+        return value === false ||
+            value === null ||
+            value === 0 ||
+            value === '0' ||
+            value === 'false' ||
+            value === 'none' ||
+            value === 'off';
+    };
+
+    var GetConfiguredFullscreenLimit = function(name, fallback, viewportDimension) {
+
+        var defaults = _config && _config.defaults ? _config.defaults : {};
+        var value = defaults[name];
+        var parsed;
+
+        if (typeof value === 'undefined') {
+            return Math.min(viewportDimension, fallback);
+        }
+
+        if (IsFullscreenLimitDisabled(value)) {
+            return viewportDimension;
+        }
+
+        parsed = parseFloat(value);
+
+        if (isNaN(parsed) || !isFinite(parsed) || parsed <= 0) {
+            return Math.min(viewportDimension, fallback);
+        }
+
+        return Math.min(viewportDimension, parsed);
+    };
+
+    var GetEmulatorFullscreenDisplayBounds = function(viewport) {
+
+        return {
+            width: Math.max(1, Math.round(GetConfiguredFullscreenLimit('emulatorFullscreenMaxCssWidth', 1280, viewport.width))),
+            height: Math.max(1, Math.round(GetConfiguredFullscreenLimit('emulatorFullscreenMaxCssHeight', 960, viewport.height)))
+        };
+    };
+
     var ApplyEmulatorFullscreenLayout = function(isFullscreen) {
 
         var $wrapper = $('#emulatorwrapper');
         var $helper = $('#emulatorpositionhelper');
         var viewport;
+        var bounds;
         var aspectRatio;
         var width;
         var height;
@@ -421,12 +464,13 @@ var cesMain = (function() {
         }
 
         viewport = GetViewportSize();
+        bounds = GetEmulatorFullscreenDisplayBounds(viewport);
         aspectRatio = GetEmulatorAspectRatio();
-        width = viewport.width;
+        width = bounds.width;
         height = Math.round(width / aspectRatio);
 
-        if (height > viewport.height) {
-            height = viewport.height;
+        if (height > bounds.height) {
+            height = bounds.height;
             width = Math.round(height * aspectRatio);
         }
 
