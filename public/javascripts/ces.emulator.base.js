@@ -2354,7 +2354,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
             
             //dont show the screenshot note when making a save state=
             if (!_isSavingState) {
-                _PubSub.Publish('notification', ['Saving Game Screenshot', 3, true, true, 'screenshotWritten']);
+                _PubSub.Publish('notification', ['Saving Game Screenshot', 3, true, true, 'screenshotWritten', { minimumDisplayDurationMs: 3500 }]);
             }
             proceed(true);
         });
@@ -2385,7 +2385,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
                 proceed(true);
             }
             else {
-                _Logging.Console('cesEmulatorBase', 'No saved game progress is available to load; suppressing routine no-save notification');
+                _Logging.Console('cesEmulatorBase', 'No saved game progress state is available to load');
                 proceed(false);
             }
         });

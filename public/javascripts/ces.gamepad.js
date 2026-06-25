@@ -20,7 +20,9 @@ var cesGamePad = (function(_config, _Compression, _PubSub, _Tooltips, _Preferenc
     var _runtimeActivation = null;
     var _runtimePollTimer = null;
     var _runtimePollInterval = 500;
-    var _runtimeGamepadConnectedNotificationTimeout = 3500;
+    var _runtimeGamepadNotificationDuration = 3500;
+    var _runtimeGamepadDisconnectDebounceMs = 1500;
+    var _pendingGamepadDisconnects = {};
     var _runtimeMaxControllersDefault = 2;
     var _runtimeVirtualButtonCount = 16;
     var _runtimeVirtualAxisCount = 4;
@@ -708,6 +710,95 @@ var cesGamePad = (function(_config, _Compression, _PubSub, _Tooltips, _Preferenc
             clearInterval(_runtimePollTimer);
             _runtimePollTimer = null;
         }
+    };
+
+    var GetGamepadIndexKey = function(gamepad) {
+        if (!gamepad || typeof gamepad.index === 'undefined') {
+            return null;
+        }
+
+        return String(gamepad.index);
+    };
+
+    var IsSameGamepadIdentity = function(a, b) {
+        if (!a || !b) {
+            return false;
+        }
+
+        return parseInt(a.index, 10) === parseInt(b.index, 10) && String(a.id || '') === String(b.id || '');
+    };
+
+    var IsGamepadSnapshotPresent = function(gamepad) {
+        var gamepads;
+        var i;
+
+        if (!gamepad || !HasGamepadApi()) {
+            return false;
+        }
+
+        gamepads = GetRawGamepads();
+        for (i = 0; i < gamepads.length; i++) {
+            if (gamepads[i] && IsSameGamepadIdentity(gamepads[i], gamepad)) {
+                return true;
+            }
+        }
+
+        return false;
+    };
+
+    var CancelPendingGamepadDisconnect = function(gamepad, reason) {
+        var key = GetGamepadIndexKey(gamepad);
+        var pending;
+
+        if (key === null || !Object.prototype.hasOwnProperty.call(_pendingGamepadDisconnects, key)) {
+            return false;
+        }
+
+        pending = _pendingGamepadDisconnects[key];
+        if (gamepad && pending.gamepad && !IsSameGamepadIdentity(pending.gamepad, gamepad)) {
+            return false;
+        }
+
+        clearTimeout(pending.timer);
+        delete _pendingGamepadDisconnects[key];
+        Log('Canceled pending gamepad disconnect for index=' + key + ', id=' + (pending.gamepad && pending.gamepad.id ? pending.gamepad.id : '(unknown)') + ', source=' + (reason || 'gamepad available'));
+        return true;
+    };
+
+    var QueueGamepadDisconnect = function(gamepad, reason) {
+        var key = GetGamepadIndexKey(gamepad);
+
+        if (key === null) {
+            return false;
+        }
+
+        if (Object.prototype.hasOwnProperty.call(_pendingGamepadDisconnects, key)) {
+            return false;
+        }
+
+        _pendingGamepadDisconnects[key] = {
+            gamepad: gamepad,
+            reason: reason || 'gamepad disconnect pending',
+            timer: setTimeout(function() {
+                var pending = _pendingGamepadDisconnects[key];
+
+                if (!pending) {
+                    return;
+                }
+
+                delete _pendingGamepadDisconnects[key];
+
+                if (IsGamepadSnapshotPresent(pending.gamepad)) {
+                    Log('Suppressed transient gamepad disconnect for index=' + key + ', id=' + (pending.gamepad && pending.gamepad.id ? pending.gamepad.id : '(unknown)') + ', source=' + pending.reason);
+                    return;
+                }
+
+                RemoveGamepad(pending.gamepad, pending.reason + ' confirmed after ' + _runtimeGamepadDisconnectDebounceMs + 'ms');
+            }, _runtimeGamepadDisconnectDebounceMs)
+        };
+
+        Log('Queued gamepad disconnect confirmation for index=' + key + ', id=' + (gamepad.id || '(unknown)') + ', source=' + (reason || 'unknown'));
+        return true;
     };
 
     var CaptureNativeGamepadGetters = function() {
@@ -1710,7 +1801,7 @@ var cesGamePad = (function(_config, _Compression, _PubSub, _Tooltips, _Preferenc
         }
 
         var message = record.slot === 1 ? 'Gamepad connected: ' + record.name : 'Controller ' + record.slot + ' connected: ' + record.name;
-        _PubSub.Publish('notification', [message, 3, false, false, null, { timeout: _runtimeGamepadConnectedNotificationTimeout }]);
+        _PubSub.Publish('notification', [message, 3, false, false, null, { timeout: _runtimeGamepadNotificationDuration }]);
     };
 
     var NotifyRuntimeGamepadDisconnect = function(record) {
@@ -2142,7 +2233,7 @@ var cesGamePad = (function(_config, _Compression, _PubSub, _Tooltips, _Preferenc
         }
 
         if (event.type === 'gamepaddisconnected') {
-            RemoveGamepad(event.gamepad, 'gamepaddisconnected event gated for strict runtime activation');
+            QueueGamepadDisconnect(event.gamepad, 'gamepaddisconnected event gated for strict runtime activation');
             StopNativeGamepadEvent(event);
         }
     };
@@ -2152,6 +2243,15 @@ var cesGamePad = (function(_config, _Compression, _PubSub, _Tooltips, _Preferenc
         if (!gamepad) {
             return;
         }
+
+        var existingGamepad = _gamepads[gamepad.index];
+        if (existingGamepad && !IsSameGamepadIdentity(existingGamepad, gamepad)) {
+            CancelPendingGamepadDisconnect(existingGamepad, reason || 'gamepad replaced');
+            RemoveGamepad(existingGamepad, (reason || 'gamepad connected') + ' replaced by new gamepad at same index');
+            existingGamepad = null;
+        }
+
+        CancelPendingGamepadDisconnect(gamepad, reason || 'gamepad available');
 
         //if gamepad already assigned, keep latest browser snapshot and preserve CES session-only flags
         if (_gamepads[gamepad.index]) {
@@ -2189,6 +2289,8 @@ var cesGamePad = (function(_config, _Compression, _PubSub, _Tooltips, _Preferenc
         if (!gamepad) {
             return;
         }
+
+        CancelPendingGamepadDisconnect(gamepad, reason || 'gamepad disconnected');
 
         Log('Gamepad disconnected from index=' + gamepad.index + ', id=' + gamepad.id + ', source=' + (reason || 'unknown'));
 
@@ -2343,6 +2445,13 @@ var cesGamePad = (function(_config, _Compression, _PubSub, _Tooltips, _Preferenc
             if (gamepads[i]) {
                 seenIndexes[gamepads[i].index] = true;
                 if (gamepads[i].index in _gamepads) {
+                    if (!IsSameGamepadIdentity(_gamepads[gamepads[i].index], gamepads[i])) {
+                        AddGamepad(gamepads[i], reason || 'scan replacement');
+                        changed = true;
+                        continue;
+                    }
+
+                    CancelPendingGamepadDisconnect(gamepads[i], reason || 'scan update');
                     gamepads[i].inputconfig = _gamepads[gamepads[i].index].inputconfig;
                     gamepads[i].skipinputconfig = _gamepads[gamepads[i].index].skipinputconfig;
                     _gamepads[gamepads[i].index] = gamepads[i];
@@ -2366,7 +2475,7 @@ var cesGamePad = (function(_config, _Compression, _PubSub, _Tooltips, _Preferenc
             }
 
             if (!seenIndexes[index]) {
-                RemoveGamepad(_gamepads[index], reason || 'scan missing');
+                QueueGamepadDisconnect(_gamepads[index], reason || 'scan missing');
             }
         }
 
@@ -2514,7 +2623,7 @@ var cesGamePad = (function(_config, _Compression, _PubSub, _Tooltips, _Preferenc
             if (e && e.cesRuntimeGamepadApproved) {
                 return;
             }
-            RemoveGamepad(e.gamepad, 'gamepaddisconnected event');
+            QueueGamepadDisconnect(e.gamepad, 'gamepaddisconnected event');
         });
 
         //default gamepad tooltips

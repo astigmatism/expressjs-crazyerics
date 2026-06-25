@@ -4,14 +4,79 @@
  */
 var cesNotifications = (function(_config, _Compression, _PubSub, $wrapper) {
 
+    function NormalizeDuration(value, fallback) {
+        var duration = parseInt(value, 10);
+
+        if (isNaN(duration) || duration <= 0) {
+            return fallback;
+        }
+
+        return duration;
+    }
+
+    function GetConfigDuration(names, fallback) {
+        var sources = [];
+        var i;
+        var j;
+
+        if (_config) {
+            sources.push(_config.notifications);
+            sources.push(_config.notificationDurations);
+            sources.push(_config);
+        }
+
+        for (i = 0; i < sources.length; i++) {
+            if (!sources[i]) {
+                continue;
+            }
+
+            for (j = 0; j < names.length; j++) {
+                if (Object.prototype.hasOwnProperty.call(sources[i], names[j])) {
+                    return NormalizeDuration(sources[i][names[j]], fallback);
+                }
+            }
+        }
+
+        return fallback;
+    }
+
+    function NormalizeOptions(options) {
+        if (typeof options === 'number' || typeof options === 'string') {
+            return { timeout: options };
+        }
+
+        if (options && typeof options === 'object') {
+            return options;
+        }
+
+        return {};
+    }
+
+    function GetOptionDuration(options, names, fallback) {
+        var i;
+
+        options = NormalizeOptions(options);
+
+        for (i = 0; i < names.length; i++) {
+            if (Object.prototype.hasOwnProperty.call(options, names[i])) {
+                return NormalizeDuration(options[names[i]], fallback);
+            }
+        }
+
+        return fallback;
+    }
+
     //private members
     var self = this;
     var $message = $wrapper.find('p');
     var $icon = $wrapper.find('div.spinner');
     var _transitionDuration = 500; //a magic number, check with css transition
+    var _defaultTimeToShow = GetConfigDuration(['defaultTimeToShow', 'defaultTimeout', 'defaultTimeoutMs', 'defaultDuration', 'defaultDurationMs', 'defaultDisplayDuration', 'defaultDisplayDurationMs'], 3500); //in ms
+    var _minimumTimeToShow = GetConfigDuration(['minimumTimeToShow', 'minimumTimeout', 'minimumTimeoutMs', 'minimumDuration', 'minimumDurationMs', 'minimumDisplayDuration', 'minimumDisplayDurationMs'], 300); //in ms
     var _notificationQueue = [];
-    var _minimumTimeToShow = 300; //in ms
-    var _minimumTimeTimeout = null; //holds a setTimeout
+    var _autoHideTimeout = null; //holds a setTimeout for normal auto close
+    var _deferredHideTimeout = null; //holds a setTimeout when enforcing minimum display time
+    var _transitionTimeout = null; //holds a setTimeout for css close transition
     var _currentlyShowing = null; //holds a note instance
     var _currentShowingTimeStamp = null; //holds a date instance of when note began showing
     var _passageOfTime = 10; //in s. the amount of time to pass before showing (n seconds ago) on the notification
@@ -23,50 +88,46 @@ var cesNotifications = (function(_config, _Compression, _PubSub, $wrapper) {
     3 - normal prior
     */
 
-    var GetNumericOption = function(options, names) {
-        var value = null;
-        var i;
-
-        if (typeof options === 'number' || typeof options === 'string') {
-            value = options;
-        }
-        else if (options && typeof options === 'object') {
-            for (i = 0; i < names.length; i++) {
-                if (Object.prototype.hasOwnProperty.call(options, names[i])) {
-                    value = options[names[i]];
-                    break;
-                }
-            }
-        }
-
-        value = parseInt(value, 10);
-        if (isNaN(value)) {
-            return null;
-        }
-
-        return value;
-    };
-
-    var GetDisplayDuration = function(options) {
-        var duration = GetNumericOption(options, ['duration', 'durationMs', 'displayDuration', 'displayDurationMs', 'timeout', 'timeoutMs']);
-
-        if (duration === null) {
-            return _minimumTimeToShow;
-        }
-
-        return Math.max(duration, _minimumTimeToShow);
-    };
-
     var _notification = (function(message, priority, hold, icon, topic, options) {
+
+        options = NormalizeOptions(options);
 
         this.message = message || ''; //the message to show
         this.priority = priority || 3; //1-3. 1 being most important
         this.hold = hold || false; //true holds message until clear is published
         this.icon = icon || false; //to show spinner or not, default yes
         this.topic = topic || null; //the pubsub topic to subscribe to for when to close
-        this.displayDuration = GetDisplayDuration(options); //how long a transient note remains visible
+        this.timeToShow = GetOptionDuration(options, ['duration', 'durationMs', 'displayDuration', 'displayDurationMs', 'timeout', 'timeoutMs'], _defaultTimeToShow);
+        this.minimumTimeToShow = GetOptionDuration(options, ['minimumDuration', 'minimumDurationMs', 'minimumDisplayDuration', 'minimumDisplayDurationMs', 'minimumTimeToShow', 'minimumTimeToShowMs'], _minimumTimeToShow);
         this.timeAdded = Date.now(); //the time the notification was supposed to occur
     });
+
+    var ClearAutoHideTimeout = function() {
+        if (_autoHideTimeout) {
+            clearTimeout(_autoHideTimeout);
+            _autoHideTimeout = null;
+        }
+    };
+
+    var ClearDeferredHideTimeout = function() {
+        if (_deferredHideTimeout) {
+            clearTimeout(_deferredHideTimeout);
+            _deferredHideTimeout = null;
+        }
+    };
+
+    var ClearTransitionTimeout = function() {
+        if (_transitionTimeout) {
+            clearTimeout(_transitionTimeout);
+            _transitionTimeout = null;
+        }
+    };
+
+    var ClearNotificationTimeouts = function() {
+        ClearAutoHideTimeout();
+        ClearDeferredHideTimeout();
+        ClearTransitionTimeout();
+    };
 
     //public members
 
@@ -79,15 +140,16 @@ var cesNotifications = (function(_config, _Compression, _PubSub, $wrapper) {
 
         switch (note.priority)
         {
-            case 3:
+            case 1:
+                //stop everything!
+                self.Reset();
                 _notificationQueue.push(note);
                 break;
             case 2:
                 _notificationQueue.unshift(note); //insert at front
                 break;
-            case 1:
-                //stop everything!
-                self.Reset();
+            case 3:
+            default:
                 _notificationQueue.push(note);
                 break;
         }
@@ -117,6 +179,8 @@ var cesNotifications = (function(_config, _Compression, _PubSub, $wrapper) {
 
     this.ShowNext = function() {
         
+        ClearNotificationTimeouts();
+
         if (_notificationQueue.length > 0)
         {
             _currentlyShowing = _notificationQueue.shift();
@@ -141,47 +205,57 @@ var cesNotifications = (function(_config, _Compression, _PubSub, $wrapper) {
                 $icon.hide();
             }
 
+            _currentShowingTimeStamp = Date.now();
+
             //auto hide if not hold
             if (!_currentlyShowing.hold) {
-                _minimumTimeTimeout = setTimeout(function() {
+                _autoHideTimeout = setTimeout(function() {
+                    _autoHideTimeout = null;
                     self.Hide();
-                }, _currentlyShowing.displayDuration);
+                }, _currentlyShowing.timeToShow);
             }
-
-            _currentShowingTimeStamp = Date.now();
         }
     };
 
     this.Hide = function() {
         
-        if (_minimumTimeTimeout) {
-            clearTimeout(_minimumTimeTimeout);
-            _minimumTimeTimeout = null;
-        }
-
         //sanity check
         if (_currentShowingTimeStamp && _currentlyShowing)
         {
+            var note = _currentlyShowing;
             var timeShown = Date.now() - _currentShowingTimeStamp;
             _currentShowingTimeStamp = null;
 
+            ClearAutoHideTimeout();
+            ClearDeferredHideTimeout();
+
             var onMinimumTimeShown = function() {
+
+                if (_currentlyShowing !== note) {
+                    return;
+                }
 
                 $wrapper.addClass('closed');
                 
                 //when css animation is complete
-                setTimeout(function() {
+                ClearTransitionTimeout();
+                _transitionTimeout = setTimeout(function() {
 
-                    _currentlyShowing = false;
+                    _transitionTimeout = null;
+
+                    if (_currentlyShowing === note) {
+                        _currentlyShowing = false;
+                    }
                     self.ShowNext(); //move to next in queue
 
                 }, _transitionDuration);
             };
 
-            if (timeShown < _minimumTimeToShow) {
-                _minimumTimeTimeout = setTimeout(function() {
+            if (timeShown < note.minimumTimeToShow) {
+                _deferredHideTimeout = setTimeout(function() {
+                    _deferredHideTimeout = null;
                     onMinimumTimeShown();
-                }, _minimumTimeToShow - timeShown);
+                }, note.minimumTimeToShow - timeShown);
             }
             else {
                 onMinimumTimeShown();
@@ -195,11 +269,7 @@ var cesNotifications = (function(_config, _Compression, _PubSub, $wrapper) {
         $wrapper.addClass('closed');
         _currentShowingTimeStamp = null;
         _currentlyShowing = null;
-        
-        if (_minimumTimeTimeout) {
-            clearTimeout(_minimumTimeTimeout);
-        }
-        _minimumTimeTimeout = null;
+        ClearNotificationTimeouts();
     };
 
     return this;
