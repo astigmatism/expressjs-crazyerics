@@ -20,6 +20,7 @@ var cesGamePad = (function(_config, _Compression, _PubSub, _Tooltips, _Preferenc
     var _runtimeActivation = null;
     var _runtimePollTimer = null;
     var _runtimePollInterval = 500;
+    var _runtimeGamepadConnectedNotificationTimeout = 3500;
     var _runtimeMaxControllersDefault = 2;
     var _runtimeVirtualButtonCount = 16;
     var _runtimeVirtualAxisCount = 4;
@@ -1709,7 +1710,7 @@ var cesGamePad = (function(_config, _Compression, _PubSub, _Tooltips, _Preferenc
         }
 
         var message = record.slot === 1 ? 'Gamepad connected: ' + record.name : 'Controller ' + record.slot + ' connected: ' + record.name;
-        _PubSub.Publish('notification', [message, 3, false, false]);
+        _PubSub.Publish('notification', [message, 3, false, false, null, { timeout: _runtimeGamepadConnectedNotificationTimeout }]);
     };
 
     var NotifyRuntimeGamepadDisconnect = function(record) {

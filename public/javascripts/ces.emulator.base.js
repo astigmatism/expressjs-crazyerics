@@ -2385,7 +2385,7 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
                 proceed(true);
             }
             else {
-                _PubSub.Publish('notification', ['No Saved Game Progress to Load', 3, false, false]);
+                _Logging.Console('cesEmulatorBase', 'No saved game progress is available to load; suppressing routine no-save notification');
                 proceed(false);
             }
         });

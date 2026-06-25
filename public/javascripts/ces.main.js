@@ -270,8 +270,8 @@ var cesMain = (function() {
         });
 
         //pubsub for notifications
-        _PubSub.Subscribe('notification', self, function(message, priority, hold, icon, topic) {
-            _Notifications.Enqueue(message, priority, hold, icon, topic);
+        _PubSub.Subscribe('notification', self, function(message, priority, hold, icon, topic, options) {
+            _Notifications.Enqueue(message, priority, hold, icon, topic, options);
         });
 
         //pubsub for when window is reloaded/closed

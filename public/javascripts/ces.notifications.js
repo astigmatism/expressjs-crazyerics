@@ -23,13 +23,48 @@ var cesNotifications = (function(_config, _Compression, _PubSub, $wrapper) {
     3 - normal prior
     */
 
-    var _notification = (function(message, priority, hold, icon, topic) {
+    var GetNumericOption = function(options, names) {
+        var value = null;
+        var i;
+
+        if (typeof options === 'number' || typeof options === 'string') {
+            value = options;
+        }
+        else if (options && typeof options === 'object') {
+            for (i = 0; i < names.length; i++) {
+                if (Object.prototype.hasOwnProperty.call(options, names[i])) {
+                    value = options[names[i]];
+                    break;
+                }
+            }
+        }
+
+        value = parseInt(value, 10);
+        if (isNaN(value)) {
+            return null;
+        }
+
+        return value;
+    };
+
+    var GetDisplayDuration = function(options) {
+        var duration = GetNumericOption(options, ['duration', 'durationMs', 'displayDuration', 'displayDurationMs', 'timeout', 'timeoutMs']);
+
+        if (duration === null) {
+            return _minimumTimeToShow;
+        }
+
+        return Math.max(duration, _minimumTimeToShow);
+    };
+
+    var _notification = (function(message, priority, hold, icon, topic, options) {
 
         this.message = message || ''; //the message to show
         this.priority = priority || 3; //1-3. 1 being most important
         this.hold = hold || false; //true holds message until clear is published
         this.icon = icon || false; //to show spinner or not, default yes
         this.topic = topic || null; //the pubsub topic to subscribe to for when to close
+        this.displayDuration = GetDisplayDuration(options); //how long a transient note remains visible
         this.timeAdded = Date.now(); //the time the notification was supposed to occur
     });
 
@@ -37,10 +72,10 @@ var cesNotifications = (function(_config, _Compression, _PubSub, $wrapper) {
 
     //public methods
     
-    this.Enqueue = function(message, priority, hold, icon, topic) {
+    this.Enqueue = function(message, priority, hold, icon, topic, options) {
 
         //create notification
-        var note = new _notification(message, priority, hold, icon, topic);
+        var note = new _notification(message, priority, hold, icon, topic, options);
 
         switch (note.priority)
         {
@@ -110,7 +145,7 @@ var cesNotifications = (function(_config, _Compression, _PubSub, $wrapper) {
             if (!_currentlyShowing.hold) {
                 _minimumTimeTimeout = setTimeout(function() {
                     self.Hide();
-                }, _minimumTimeToShow);
+                }, _currentlyShowing.displayDuration);
             }
 
             _currentShowingTimeStamp = Date.now();
@@ -119,6 +154,11 @@ var cesNotifications = (function(_config, _Compression, _PubSub, $wrapper) {
 
     this.Hide = function() {
         
+        if (_minimumTimeTimeout) {
+            clearTimeout(_minimumTimeTimeout);
+            _minimumTimeTimeout = null;
+        }
+
         //sanity check
         if (_currentShowingTimeStamp && _currentlyShowing)
         {
