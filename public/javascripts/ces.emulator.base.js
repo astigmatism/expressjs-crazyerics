@@ -78,6 +78,21 @@ var cesEmulatorBase = (function(_Compression, _PubSub, _config, _Sync, _GamePad,
         var now = Date.now();
         var throttleMs = 30000;
 
+        if (topic === 'normalSaveFileSaveFailure' || message === 'Could not save in-game progress.') {
+            if (_normalSaveNotificationLastAt[key] && now - _normalSaveNotificationLastAt[key] < throttleMs) {
+                if (_Logging && typeof _Logging.Console === 'function') {
+                    _Logging.Console('cesEmulatorBase', 'Suppressed repeat normal in-game save persistence log: ' + message);
+                }
+                return;
+            }
+
+            _normalSaveNotificationLastAt[key] = now;
+            if (_Logging && typeof _Logging.Console === 'function') {
+                _Logging.Console('cesEmulatorBase', 'Normal in-game save persistence issue suppressed from toast: ' + message + (topic ? '; topic=' + topic : ''));
+            }
+            return;
+        }
+
         if (_normalSaveNotificationLastAt[key] && now - _normalSaveNotificationLastAt[key] < throttleMs) {
             if (_Logging && typeof _Logging.Console === 'function') {
                 _Logging.Console('cesEmulatorBase', 'Suppressed repeat normal in-game save notification: ' + message);

@@ -63,7 +63,34 @@ var cesSaveFilesManager = (function(_config, _Compression, _Sync, _gameKey, _ini
     };
 
     var NotifySaveFailure = function(message, topic) {
-        Notify(message || 'Could not save in-game progress.', 2, false, false, topic || 'normalSaveFileFailure', 30000);
+        var key = topic || 'normalSaveFileFailure';
+        var now = Date.now();
+        var throttleMs = 30000;
+
+        // Negative normal in-game save-file persistence messages are intentionally
+        // hidden from the player. They are background persistence details and can
+        // occur during routine scans, flushes, uploads, or unavailable storage.
+        if (_lastNotificationAt[key] && now - _lastNotificationAt[key] < throttleMs) {
+            Log('Suppressed repeat normal save-file persistence log: ' + (message || 'Could not save in-game progress.'));
+            return;
+        }
+
+        _lastNotificationAt[key] = now;
+        Log('Normal save-file persistence issue suppressed from toast: ' + (message || 'Could not save in-game progress.') + '; topic=' + key);
+    };
+
+    var NotifySaveSuccess = function(fileCount) {
+        var throttleMs = parseInt(GetConfigValue('successNotificationThrottleMs', 30000), 10);
+
+        if (isNaN(throttleMs) || throttleMs < 0) {
+            throttleMs = 30000;
+        }
+
+        if (!fileCount || fileCount <= 0) {
+            return;
+        }
+
+        Notify('In-game progress saved.', 3, false, false, null, throttleMs);
     };
 
     var NormalizeRelativePath = function(relativePath) {
@@ -519,6 +546,10 @@ var cesSaveFilesManager = (function(_config, _Compression, _Sync, _gameKey, _ini
             _self.OnServerUploadComplete(response);
             MarkSnapshotUploaded(snapshot, response);
             Log('Normal save-file upload completed; uploaded=' + upload.files.length + ', responseFiles=' + ((response && response.files && response.files.length) || 0) + '; reason=' + (reason || 'manual'));
+
+            if (response && response.ok !== false) {
+                NotifySaveSuccess(upload.files.length);
+            }
 
             if (_dirtyCount <= 0) {
                 _lastStatus = 'synced';
