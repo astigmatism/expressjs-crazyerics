@@ -1294,7 +1294,7 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
             $gi.find('.collection-inline-editor, .collection-inline-editor-input, .collection-inline-editor-button').off('.collectionInlineEditor');
             DestroyTooltipsIn($gi);
 
-            var label = _self.HasDefaultCollection() ? 'Name this Game Collection' : '+ Collection';
+            var label = _self.HasDefaultCollection() ? 'Name this collection of games' : '+ Collection';
             var ariaLabel = _self.HasDefaultCollection() ? 'Give a name to your current collection of games to begin creating a library of several more' : 'Create a new personal game collection';
 
             $gi
@@ -1326,8 +1326,8 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
             //early exit if the controls are openned (dont want tooltips to get in the way)
             if (controlsOpenned || _isOpen) return;
 
-            $griditem.find('.collection-tab-add-label').text(_self.HasDefaultCollection() ? 'Name this Game Collection' : '+ Collection');
-            $griditem.attr('aria-label', _self.HasDefaultCollection() ? 'Name this game collection' : 'Create a new personal game collection');
+            $griditem.find('.collection-tab-add-label').text(_self.HasDefaultCollection() ? 'Name this collection of games' : '+ Collection');
+            $griditem.attr('aria-label', _self.HasDefaultCollection() ? 'Name this collection of games' : 'Create a new personal game collection');
             $griditem.removeClass('tooltip tooltip-static-right').removeAttr('title');
 
             //add a tooltip depending on context
