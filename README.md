@@ -81,3 +81,66 @@ n stable
 node --version
 node app.js
 
+
+Runtime administrator key file
+__________________
+
+Crazyerics can optionally recognize a runtime administrator without usernames,
+emails, passwords, registration, or normal account creation. The administrator
+drops a small local key file onto the site banner. The server hashes the file
+contents and compares that hash with a configured SHA-256 value. The key file is
+not stored by the server and is not echoed back to the browser.
+
+This feature is disabled by default. Do not enable it until the deployment also
+uses HTTPS and a deployment-specific session secret.
+
+Generate a local admin key file and print the hash to configure on the server:
+
+```bash
+node - <<'NODE'
+const crypto = require('crypto');
+const fs = require('fs');
+const keyPath = 'crazyerics-admin.key';
+const token = crypto.randomBytes(32).toString('base64url');
+fs.writeFileSync(keyPath, token, { mode: 0o600 });
+console.log('Admin key file written to ' + keyPath);
+console.log('CRAZYERICS_ADMIN_KEY_SHA256=' + crypto.createHash('sha256').update(fs.readFileSync(keyPath)).digest('hex'));
+NODE
+```
+
+Configure the deployment with environment variables, PM2 secrets, or another
+out-of-source configuration mechanism. Do not commit the key file, the raw token,
+or real secret values.
+
+```bash
+export CRAZYERICS_SESSION_SECRET="$(node -e 'console.log(require("crypto").randomBytes(64).toString("hex"))')"
+export CRAZYERICS_ADMIN_KEY_ENABLED=true
+export CRAZYERICS_ADMIN_KEY_SHA256="paste-the-64-character-sha256-hash-here"
+```
+
+Optional tuning variables are also supported:
+
+```bash
+export CRAZYERICS_ADMIN_SESSION_TTL_MS=7200000
+export CRAZYERICS_ADMIN_KEY_MAX_BYTES=4096
+export CRAZYERICS_ADMIN_KEY_RATE_WINDOW_MS=900000
+export CRAZYERICS_ADMIN_KEY_RATE_MAX_FAILURES=6
+export CRAZYERICS_ADMIN_KEY_RATE_LOCKOUT_MS=900000
+```
+
+The admin session flag is stored server-side in the existing Express/Postgres
+session and expires after `CRAZYERICS_ADMIN_SESSION_TTL_MS` milliseconds, even
+though the ordinary site session cookie may live longer. Future admin-only
+routes should use `require('./middleware/admin').RequireAdmin` or
+`IsAdminSessionActive(req)` as the server-side authority. Client-side state is
+only a display signal.
+
+The upload endpoint accepts only one very small multipart file field named
+`adminKey`, rate-limits failed attempts in memory, logs failures without logging
+submitted key material, and returns JSON rather than HTML. There is also a
+banner-visible `Leave admin` control after admin mode is active.
+
+A signed challenge-response key would be stronger because the reusable bearer
+secret would never be uploaded. The current implementation keeps complexity and
+new dependencies low; consider upgrading to challenge-response or WebAuthn if
+admin actions later become powerful or broadly exposed.

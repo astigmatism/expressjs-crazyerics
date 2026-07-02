@@ -25,6 +25,8 @@ const games = require('./routes/games');
 const collections = require('./routes/collections');
 const featured = require('./routes/featured');
 const shaders = require('./routes/shaders');
+const admin = require('./routes/admin');
+const AdminMiddleware = require('./middleware/admin');
 
 const app = express();
 
@@ -34,6 +36,46 @@ function GetConfigValue(name, defaultValue) {
     }
 
     return defaultValue;
+}
+
+function GetBooleanConfigValue(name, defaultValue, envName) {
+    var value = typeof process.env[envName] !== 'undefined' ? process.env[envName] : GetConfigValue(name, defaultValue);
+
+    if (typeof value === 'boolean') {
+        return value;
+    }
+
+    if (typeof value === 'string') {
+        value = value.toLowerCase().trim();
+        return value === 'true' || value === '1' || value === 'yes' || value === 'on';
+    }
+
+    return !!value;
+}
+
+function GetSessionSecret() {
+    var secret = process.env.CRAZYERICS_SESSION_SECRET || GetConfigValue('security.sessionSecret', AdminMiddleware.DEFAULT_SESSION_SECRET);
+
+    if (!secret || secret === AdminMiddleware.DEFAULT_SESSION_SECRET || secret === AdminMiddleware.LEGACY_SESSION_SECRET) {
+        console.log('WARNING: Crazyerics is using a development or legacy session secret. Set CRAZYERICS_SESSION_SECRET before enabling admin key authentication.');
+    }
+
+    return secret;
+}
+
+function GetSessionCookieSameSite() {
+    var sameSite = String(process.env.CRAZYERICS_SESSION_COOKIE_SAME_SITE || GetConfigValue('security.sessionCookieSameSite', 'lax')).toLowerCase();
+    var allowed = ['lax', 'strict', 'none', 'false'];
+
+    if (allowed.indexOf(sameSite) < 0) {
+        return 'lax';
+    }
+
+    return sameSite === 'false' ? false : sameSite;
+}
+
+function GetSessionCookieSecure() {
+    return GetBooleanConfigValue('security.sessionCookieSecure', forceHttps, 'CRAZYERICS_SESSION_COOKIE_SECURE');
 }
 
 function GetFirstHeaderValue(value) {
@@ -205,7 +247,6 @@ app.set('view engine', 'pug');
 //app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
-app.use(bodyParser.text({limit: '50mb'}));
 app.use(cookieParser());
 
 //these folders will serve content statically
@@ -222,9 +263,12 @@ var _pgStore = new pgSession({
 });
 
 var _session = session({
-    secret: 'ill have what im having',
+    secret: GetSessionSecret(),
     cookie: {
-        maxAge: 30 * 24 * 60 * 60 * 1000 //30 days
+        maxAge: 30 * 24 * 60 * 60 * 1000, //30 days
+        httpOnly: true,
+        sameSite: GetSessionCookieSameSite(),
+        secure: GetSessionCookieSecure()
     },
     saveUninitialized: true, //this saves uninitiallized sessions making it so that simply visiting the site resets expiration
     resave: true, //Forces the session to be saved back to the session store, even if the session was never modified during the request.
@@ -233,6 +277,14 @@ var _session = session({
 });
 
 app.use(_session);
+app.use(AdminMiddleware.AttachAdminState);
+app.use('/admin', admin);
+
+// Large text bodies are used by existing compressed sync APIs. Keep this parser
+// after the admin-key route so direct requests to /admin/key cannot be parsed as
+// large text before the route-specific upload limits run.
+app.use(bodyParser.text({limit: '50mb'}));
+
 app.use(UsersService.GetUserMiddleware); //attaches user to request
 app.use(SyncService.Incoming); //syncs client to server
 

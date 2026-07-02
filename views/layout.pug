@@ -59,6 +59,8 @@ html
             script(src='/javascripts/jquery.easing.js')
             script(src='/javascripts/three.min.js')
 
+        script(src='/javascripts/ces.admin.js', type='text/javascript')
+
         if (process.env.NODE_ENV === 'production')
             link(rel='stylesheet', href='/build/style.min.css')
         else
@@ -68,6 +70,8 @@ html
             link(rel='stylesheet', href='/stylesheets/selectordie.css')
             link(rel='stylesheet', href='/stylesheets/tooltipster.bundle.min.css')
             link(rel='stylesheet', href='/stylesheets/tooltipster-sideTip-shadow.min.css')
+
+        link(rel='stylesheet', href='/stylesheets/ces.admin.css')
 
         link(rel='stylesheet', type='text/css', href='https://fonts.googleapis.com/css?family=Open+Sans|Poppins|Kanit')
         link(rel='shortcut icon', href='favicon.ico', type='image/x-icon')
@@ -80,5 +84,8 @@ html
                     div(class='bannergradient')
                     div(class='titlewrapper')
                         h1 crazyerics.com
+                    div#runtimeadminstatus(class='runtime-admin-status', aria-live='polite')
+                        span(class='runtime-admin-status-message')
+                        button#runtimeadminexit(type='button', class='runtime-admin-exit', aria-label='Leave administrator mode') Leave admin
                 block content
             - //div#menucolumn

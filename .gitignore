@@ -3,3 +3,7 @@ node_modules/
 node_modules
 .ai-update-backups
 .ai-update-backups/*
+# Crazyerics local admin key/config files
+crazyerics-admin*.env
+crazyerics-admin*.key
+*.admin-key-limit-backup

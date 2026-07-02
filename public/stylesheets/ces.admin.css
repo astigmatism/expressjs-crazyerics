@@ -1,0 +1,52 @@
+#titlebanner.runtime-admin-key-drag:after {
+	content: '';
+	position: absolute;
+	left: 10px;
+	right: 10px;
+	top: 10px;
+	bottom: 10px;
+	z-index: 3;
+	border: 1px solid rgba(255,255,255,0.18);
+	box-shadow: inset 0 0 30px rgba(255,255,255,0.08);
+	pointer-events: none;
+}
+
+.runtime-admin-status {
+	display: none;
+	position: absolute;
+	right: 18px;
+	bottom: 16px;
+	z-index: 4;
+	align-items: center;
+	gap: 8px;
+	padding: 5px 7px;
+	font-size: 11px;
+	line-height: 1;
+	color: rgba(255,255,255,0.76);
+	background: rgba(0,0,0,0.38);
+	border: 1px solid rgba(255,255,255,0.12);
+	border-radius: 3px;
+	box-shadow: 0 1px 6px rgba(0,0,0,0.25);
+}
+
+.runtime-admin-status.runtime-admin-status-visible,
+body.runtime-admin-active #runtimeadminstatus {
+	display: flex;
+}
+
+.runtime-admin-exit {
+	padding: 3px 6px;
+	font-size: 10px;
+	line-height: 1;
+	color: rgba(255,255,255,0.82);
+	background: rgba(255,255,255,0.08);
+	border: 1px solid rgba(255,255,255,0.18);
+	border-radius: 2px;
+	cursor: pointer;
+}
+
+.runtime-admin-exit:hover,
+.runtime-admin-exit:focus {
+	color: #fff;
+	background: rgba(255,255,255,0.16);
+}
