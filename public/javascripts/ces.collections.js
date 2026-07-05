@@ -35,6 +35,8 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
     var _collectionToolsStoragePrefix = 'ces.collections.toolsUnlocked.';
     var _collectionToolsStorageKey = null;
     var _collectionToolsUnlocked = false;
+    var _featuredAvailable = false;
+    var _isAdminActive = false;
 
 	//public members
 
@@ -42,7 +44,9 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
 
     this.SortBy = function(property, sortAscending) {
         
-        sortAscending = sortAscending === true || false;
+        if (typeof sortAscending === 'undefined') {
+            sortAscending = false;
+        }
 
         //ensure data is up to date5
         _titlesGrid.isotope('updateSortData').isotope();
@@ -89,6 +93,12 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
         RenderCollectionHeader();
     };
 
+    this.SetFeaturedAvailable = function(available) {
+        _featuredAvailable = available === true;
+        UpdateCollectionsWrapperEmptyState();
+        ApplyCollectionToolsVisibility();
+    };
+
     this.AddTitleWithoutPlaying = function(gameKey) {
         //use sync for outgoing. will update this object on response
         var url = _baseUrl + '/?gk=' + encodeURIComponent(gameKey.gk);
@@ -114,6 +124,118 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
     var GetCollectionsWrapper = function() {
 
         return $collectionsWrapper.length ? $collectionsWrapper : $collectionNamesWrapper.parent();
+    };
+
+    var ReadAdminActive = function() {
+
+        if (window.cesAdmin && window.cesAdmin.IsActive) {
+            return window.cesAdmin.IsActive() === true;
+        }
+
+        return $('body').hasClass('runtime-admin-active');
+    };
+
+    var CanShowCollectionRail = function() {
+
+        return CanShowCollectionTools() || _featuredAvailable;
+    };
+
+    var UpdateCollectionsWrapperEmptyState = function() {
+
+        var $wrapper = GetCollectionsWrapper();
+
+        if (!$wrapper.length) {
+            return;
+        }
+
+        $wrapper.toggleClass('collection-featured-available', _featuredAvailable);
+        $wrapper.toggleClass('new-user', _self.IsEmpty() && !_featuredAvailable);
+    };
+
+    var GetOrderedActiveCollectionGameKeys = function() {
+
+        var gridTitles = _titlesGrid ? _titlesGrid.isotope('getItemElements') : [];
+        var gks = [];
+        var seen = {};
+
+        for (var i = 0, len = gridTitles.length; i < len; ++i) {
+            var $gridTitle = $(gridTitles[i]);
+            var gk = $gridTitle.data('gk');
+
+            if ($gridTitle.data('type') === 'personal' && gk && !seen[gk]) {
+                seen[gk] = true;
+                gks.push(gk);
+            }
+        }
+
+        if (gks.length < 1) {
+            for (var j = 0, jlen = _activeCollectionTitles.length; j < jlen; ++j) {
+                if (_activeCollectionTitles[j].gameKey && _activeCollectionTitles[j].gameKey.gk && !seen[_activeCollectionTitles[j].gameKey.gk]) {
+                    seen[_activeCollectionTitles[j].gameKey.gk] = true;
+                    gks.push(_activeCollectionTitles[j].gameKey.gk);
+                }
+            }
+        }
+
+        return gks;
+    };
+
+    var GetCurrentCollectionSortState = function() {
+
+        if (!_TitlesSort || !_TitlesSort.Get) {
+            return {};
+        }
+
+        return _TitlesSort.Get();
+    };
+
+    var CanPublishCollection = function(collection) {
+
+        return _isAdminActive &&
+            collection &&
+            collection.id &&
+            _activeCollectionId === collection.id &&
+            IsEditableCollection(collection) &&
+            !IsDefaultCollection(collection) &&
+            _activeCollectionTitles.length > 0;
+    };
+
+    var PublishCollection = function(collection, $button) {
+
+        if (!CanPublishCollection(collection)) {
+            return;
+        }
+
+        if ($button && $button.length) {
+            $button.prop('disabled', true).addClass('saving').text('Publishing...');
+        }
+
+        var sortState = GetCurrentCollectionSortState();
+
+        _Sync.Post(_featureUrl + '/publish', {
+            c: collection.id,
+            gks: GetOrderedActiveCollectionGameKeys(),
+            sort: sortState.sort,
+            asc: sortState.asc
+        }, function(response) {
+            if ($button && $button.length) {
+                $button.prop('disabled', false).removeClass('saving').text('Publish as Featured');
+            }
+
+            CloseCollectionOptionsMenu(collection);
+            RenderCollectionHeader();
+        });
+    };
+
+    var RefreshAdminControls = function() {
+
+        _isAdminActive = ReadAdminActive();
+
+        if (_collectionNames && _collectionNames.length) {
+            _self.PopulateCollections();
+        }
+
+        RenderCollectionHeader();
     };
 
     var SetCollectionToolsStorageKey = function(payload) {
@@ -233,16 +355,18 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
     var ApplyCollectionToolsVisibility = function() {
 
         var showTools = CanShowCollectionTools();
+        var showRail = CanShowCollectionRail();
         var $wrapper = GetCollectionsWrapper();
         var $rail = $collectionNamesWrapper.closest('#collectionsRail');
         var wasLocked = $wrapper.length && $wrapper.hasClass(_collectionToolsLockedClass);
 
         if ($wrapper.length) {
-            $wrapper.toggleClass(_collectionToolsLockedClass, !showTools && !_self.IsEmpty());
+            $wrapper.toggleClass('collection-featured-available', _featuredAvailable);
+            $wrapper.toggleClass(_collectionToolsLockedClass, !showTools && (!_self.IsEmpty() || _featuredAvailable));
         }
 
         if ($rail.length) {
-            $rail.attr('aria-hidden', showTools ? 'false' : 'true');
+            $rail.attr('aria-hidden', showRail ? 'false' : 'true');
         }
 
         if (!showTools) {
@@ -253,7 +377,7 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
             DestroyTooltipsIn($collectionHeaderWrapper);
             $collectionHeaderWrapper.empty();
         }
-        else if (wasLocked && _collectionsGrid && _collectionsGrid.length) {
+        else if ((wasLocked || showRail) && _collectionsGrid && _collectionsGrid.length) {
             _collectionsGrid.isotope('layout');
         }
     };
@@ -428,6 +552,25 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
         return count + ' ' + (count === 1 ? 'game' : 'games');
     };
 
+    var NormalizeReleaseSortValue = function(value) {
+
+        value = parseInt(value, 10);
+
+        if (isNaN(value)) {
+            return null;
+        }
+
+        return value;
+    };
+
+    var ApplyReleaseSortData = function($griditem, releaseSort) {
+
+        releaseSort = NormalizeReleaseSortValue(releaseSort);
+
+        $griditem.data('releaseDate', releaseSort !== null ? releaseSort : 0);
+        $griditem.data('releaseMissing', releaseSort === null ? 1 : 0);
+    };
+
     var RenderCollectionHeader = function() {
 
         if (!$collectionHeaderWrapper.length || _isCollectionNameEditorOpen) {
@@ -476,6 +619,16 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
                 OpenCollectionNameEditor('rename', activeCollection, $collectionHeaderWrapper);
             });
             $actions.append($rename);
+        }
+
+        if (CanPublishCollection(activeCollection)) {
+            var $publish = $('<button type="button" class="collection-header-action collection-publish-featured-action" />');
+            $publish.text('Publish Featured');
+            $publish.attr('aria-label', 'Publish ' + activeName + ' as a featured collection');
+            $publish.on('click', function() {
+                PublishCollection(activeCollection, $publish);
+            });
+            $actions.append($publish);
         }
 
         $titlegroup.append($eyebrow);
@@ -756,6 +909,7 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
                     $gridTitle.attr('data-lastPlayed', activeTitle.lastPlayed); //store as epoch time for sorting
                     $gridTitle.attr('data-playCount', activeTitle.playCount);
                     $gridTitle.attr('data-topRanked', activeTitle.topRanked);
+                    ApplyReleaseSortData($gridTitle, activeTitle.releaseSort);
                 }
             }
 
@@ -793,6 +947,7 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
         $griditem.data('playCount', activeTitle.playCount);
         $griditem.data('type', 'personal'); //to denote collection type (personal/featured)
         $griditem.data('topRanked', activeTitle.topRanked); //bool. is this the top ranked file (true) or an alternate version?
+        ApplyReleaseSortData($griditem, activeTitle.releaseSort);
 
         $griditem.append(activeTitle.gameLink.GetDOM()); //add all visual content from gamelink to grid
 
@@ -960,7 +1115,8 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
         }
 
         if (collection.type === 'featured' || collection.type === 'server') {
-            return 'd';
+            // Keep server-managed/featured collections after the personal add-collection control.
+            return 'za';
         }
 
         return collection.sortType || collection.type || 'c';
@@ -1048,9 +1204,13 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
                     gks.push($(gridTitles[i]).data('gk'));
                 }
 
+                var sortState = GetCurrentCollectionSortState();
+
                 _Sync.Post(_featureUrl, {
                     name: _activeCollectionName,
-                    gks: gks
+                    gks: gks,
+                    sort: sortState.sort,
+                    asc: sortState.asc
                 }, function(data) {
                     
                 });
@@ -1152,6 +1312,13 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
         });
         $tooltipContent.append($nameSort);
 
+        var $releaseDateSort = $('<span class="button noselect">Sort: Release Date</span>');
+        BindTooltipAction($releaseDateSort, function(e) {
+            CloseCollectionOptionsMenu(collection);
+            _TitlesSort.Change('releaseDate', true);
+        });
+        $tooltipContent.append($releaseDateSort);
+
         var $playCountSort = $('<span class="button noselect">Sort: Play Count</span>');
         BindTooltipAction($playCountSort, function(e) {
             CloseCollectionOptionsMenu(collection);
@@ -1165,6 +1332,14 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
             OpenCollectionNameEditor('rename', collection, collection.gridItem);
         });
         $tooltipContent.append($rename);
+
+        if (CanPublishCollection(collection)) {
+            var $publish = $('<button type="button" class="button noselect collection-tooltip-publish-featured">Publish as Featured</button>');
+            BindTooltipAction($publish, function(e) {
+                PublishCollection(collection, $publish);
+            });
+            $tooltipContent.append($publish);
+        }
     
         var $remove = $('<span class="button remove noselect">Delete</span>');
         BindTooltipAction($remove, function(e) {
@@ -1401,7 +1576,16 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
 
         this.Sort = function() {
             
-            _self.SortBy(_sort, _asc);
+            if (_sort === 'releaseDate') {
+                _self.SortBy(['releaseMissing', 'releaseDate', 'name'], {
+                    releaseMissing: true,
+                    releaseDate: _asc,
+                    name: true
+                });
+            }
+            else {
+                _self.SortBy(_sort, _asc);
+            }
     
             _titlesGrid.isotope('layout');
         };
@@ -1465,14 +1649,15 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
             _self.PopulateTitles();
             _self.PopulateCollections();
 
-            //dont show default collection when no titles (new user experience)
+            //dont show default collection when no titles (new user experience), unless featured
+            // content needs the same rail for a read-only curated collection.
+            UpdateCollectionsWrapperEmptyState();
+
             if (_self.IsEmpty()) {
-                GetCollectionsWrapper().addClass('new-user');
                 if (_collectionControls) {
                     _collectionControls.Reset();
                 }
             } else {
-                GetCollectionsWrapper().removeClass('new-user');
                 
                 //in this condition, the default collection is present with titles but unnamed
                 if (_self.HasDefaultCollection()) {
@@ -1565,6 +1750,8 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
                         _activeCollectionTitles[j].lastPlayed = lastPlayed;
                         _activeCollectionTitles[j].playCount = payload[i].playCount;
                         _activeCollectionTitles[j].saveCount = payload[i].saveCount;
+                        _activeCollectionTitles[j].releaseSort = payload[i].releaseSort;
+                        _activeCollectionTitles[j].releaseLabel = payload[i].releaseLabel;
 
                     }
                 }
@@ -1591,6 +1778,8 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
                         playCount: payload[i].playCount,
                         saveCount: payload[i].saveCount,
                         topRanked: payload[i].topRanked,
+                        releaseSort: payload[i].releaseSort,
+                        releaseLabel: payload[i].releaseLabel,
                         gameLink: gameLink
                     });
                 }
@@ -1622,6 +1811,12 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
      */
     var Constructor = (function() {
         
+        _isAdminActive = ReadAdminActive();
+        $(document).on('ces.admin.state', function(e, active) {
+            _isAdminActive = active === true;
+            RefreshAdminControls();
+        });
+
         _TitlesSort = new TitleSortHelper(); //sorting helper
 
         //first, build the grid
@@ -1643,6 +1838,16 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
                 playCount: function(item) {
                     var played = $(item).data('playCount');
                     return parseInt(played, 10);
+                },
+                releaseMissing: function(item) {
+                    var missing = $(item).data('releaseMissing');
+                    missing = parseInt(missing, 10);
+                    return isNaN(missing) ? 1 : missing;
+                },
+                releaseDate: function(item) {
+                    var releaseDate = $(item).data('releaseDate');
+                    releaseDate = parseInt(releaseDate, 10);
+                    return isNaN(releaseDate) ? 0 : releaseDate;
                 }
             }
         });
@@ -1666,7 +1871,7 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
         _collectionControls = new NewCollectionControls($add);
 
         //will also disable on the server for prod
-        if (_copyToFeaturedButton) {
+        if (_copyToFeaturedButton && _isAdminActive) {
             var $featureAdd = CreateCollectionGirdItem({
                 name: '!', 
                 type: 'y'

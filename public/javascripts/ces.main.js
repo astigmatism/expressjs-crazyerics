@@ -86,6 +86,7 @@ var cesMain = (function() {
         _Sync.RegisterComponent('c', _Collections.Sync);
 
         _Featured = new cesFeatured(_config, _Compression, _Preferences, _Media, _Sync, _Tooltips, PlayGame, _Collections, clientdata.components.f, null);
+        _Sync.RegisterComponent('f', _Featured.Sync);
 
         //register dialogs after setting up components
         var welcomeBack =  _Collections.IsEmpty() ? false : true;

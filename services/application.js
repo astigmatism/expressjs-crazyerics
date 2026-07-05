@@ -179,8 +179,8 @@ module.exports = new (function() {
             });
         });
 
-        //build the featured titles cache from the sets saved in the file system
-        FeaturedService.RefreshFromFiles((err) => {
+        //build the server-persisted featured collections cache at startup
+        FeaturedService.ApplicationStart((err) => {
             if (err) console.log(err);
         });
     };

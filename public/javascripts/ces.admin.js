@@ -86,8 +86,10 @@
     }
 
     function SetAdminState(adminState) {
+        adminState = adminState || { active: false };
         _adminActive = !!(adminState && adminState.active);
         $('body').toggleClass('runtime-admin-active', _adminActive);
+        $(document).trigger('ces.admin.state', [_adminActive, adminState]);
 
         if (_adminActive) {
             ShowStatusMessage('Admin mode active', true);

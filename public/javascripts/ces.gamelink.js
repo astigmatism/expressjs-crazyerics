@@ -1,4 +1,4 @@
-var cesGameLink = (function(_config, _Media, _Tooltips, _Collections, gameKey, cdnPathValue, opt_tooltip, opt_PlayGame, opt_OnImageLoaded, opt_ImageAnimation) {
+var cesGameLink = (function(_config, _Media, _Tooltips, _Collections, gameKey, cdnPathValue, opt_tooltip, opt_PlayGame, opt_OnImageLoaded, opt_ImageAnimation, opt_ShowAddWhenCollectionEmpty) {
 
     //private members
     var self = this;
@@ -143,7 +143,7 @@ var cesGameLink = (function(_config, _Media, _Tooltips, _Collections, gameKey, c
             });
 
             var CheckCollectionOnTooltipOpen = (function() {
-                if (_Collections.IsEmpty()) {
+                if (_Collections.IsEmpty() && !opt_ShowAddWhenCollectionEmpty) {
                     $addbutton.hide();
                     $playbutton.addClass('first');
                 }

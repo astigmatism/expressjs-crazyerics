@@ -3,6 +3,7 @@ const config = require('config');
 const CollectionsSQL = require('../db/collections');
 const Cache = require('../services/cache/cache.redis.js');
 const UtilitiesService = require('./utilities');
+const FileService = require('./files');
 
 module.exports = new (function() {
 
@@ -353,6 +354,337 @@ module.exports = new (function() {
         return data.id;
     };
 
+    var BuildClientTitlePayload = function(titleRecords, callback) {
+
+        var result = [];
+        titleRecords = titleRecords || [];
+
+        var next = function(index) {
+
+            if (index >= titleRecords.length) {
+                return callback(null, result);
+            }
+
+            var record = titleRecords[index];
+            var clientTitle = {
+                gk: record.game_key,
+                lastPlayed: record.last_played,
+                playCount: record.play_count,
+                saveCount: record.save_count,
+                topRanked: record.top_ranked
+            };
+
+            GetReleaseMetadata(record.game_key, (err, releaseMetadata) => {
+                if (err) {
+                    console.log('Collection release metadata lookup failed:', err && err.message ? err.message : err);
+                }
+
+                if (releaseMetadata) {
+                    clientTitle.releaseSort = releaseMetadata.sort;
+                    clientTitle.releaseLabel = releaseMetadata.label;
+                }
+
+                result.push(clientTitle);
+                next(index + 1);
+            });
+        };
+
+        next(0);
+    };
+
+    var GetReleaseMetadata = function(gk, callback) {
+
+        var gameKey;
+
+        try {
+            gameKey = UtilitiesService.Decompress.gamekey(gk);
+        }
+        catch (err) {
+            return callback(null, null);
+        }
+
+        if (!gameKey || !gameKey.system || !gameKey.title) {
+            return callback(null, null);
+        }
+
+        FileService.Get('/data/' + gameKey.system + '_metadata', (err, metadata) => {
+            if (err || !metadata || !metadata[gameKey.title]) {
+                return callback(null, null);
+            }
+
+            callback(null, ExtractReleaseMetadata(metadata[gameKey.title]));
+        });
+    };
+
+    var ExtractReleaseMetadata = function(metadata) {
+
+        if (!metadata) {
+            return null;
+        }
+
+        var releaseDate = GetFirstMetadataValue(metadata, ['ReleaseDate', 'releaseDate', 'release_date']);
+        var releaseYear = GetFirstMetadataValue(metadata, ['ReleaseYear', 'releaseYear', 'release_year', 'Year', 'year']);
+        var parsedDate = ParseReleaseDate(releaseDate);
+
+        if (parsedDate) {
+            return {
+                sort: parsedDate.getTime(),
+                label: String(releaseDate)
+            };
+        }
+
+        var parsedYear = parseInt(releaseYear, 10);
+        if (!isNaN(parsedYear) && parsedYear > 0) {
+            return {
+                sort: new Date(parsedYear, 0, 1).getTime(),
+                label: String(parsedYear)
+            };
+        }
+
+        return null;
+    };
+
+    var GetFirstMetadataValue = function(metadata, keys) {
+
+        for (var i = 0, len = keys.length; i < len; ++i) {
+            if (metadata.hasOwnProperty(keys[i]) && metadata[keys[i]] !== null && metadata[keys[i]] !== '') {
+                return metadata[keys[i]];
+            }
+        }
+
+        return null;
+    };
+
+    var ParseReleaseDate = function(value) {
+
+        if (value === null || value === undefined || value === '') {
+            return null;
+        }
+
+        if (value instanceof Date && !isNaN(value.getTime())) {
+            return value;
+        }
+
+        var rawValue = String(value).trim();
+
+        if (!rawValue) {
+            return null;
+        }
+
+        var normalizedValue = NormalizeReleaseDateText(rawValue);
+        var parts = ParseIsoReleaseDate(normalizedValue) ||
+            ParseCompactReleaseDate(normalizedValue) ||
+            ParseNumericReleaseDate(normalizedValue) ||
+            ParseMonthNameReleaseDate(normalizedValue) ||
+            ParseYearOnlyReleaseDate(normalizedValue) ||
+            ParseNativeReleaseDate(normalizedValue);
+
+        if (!parts) {
+            return null;
+        }
+
+        return BuildReleaseDate(parts.year, parts.month, parts.day);
+    };
+
+    var NormalizeReleaseDateText = function(value) {
+
+        return String(value)
+            .replace(/\u00a0/g, ' ')
+            .replace(/,/g, ' ')
+            .replace(/\b([A-Za-z]{3,})\./g, '$1')
+            .replace(/\s+/g, ' ')
+            .trim();
+    };
+
+    var ParseIsoReleaseDate = function(value) {
+
+        var datePart = '(?:\\d{1,2}|0{1,2}|x{1,2}|X{1,2}|\\?{1,2})';
+        var match = value.match(new RegExp('^(\\d{4})(?:[-\\/.](' + datePart + ')(?:[-\\/.](' + datePart + '))?)?$'));
+
+        if (!match) {
+            match = value.match(new RegExp('^(\\d{4})[-\\/.](' + datePart + ')(?:[-\\/.](' + datePart + '))?(?:[T\\s].*)$'));
+        }
+
+        if (!match) {
+            return null;
+        }
+
+        return NormalizeDateParts(match[1], match[2], match[3]);
+    };
+
+    var ParseCompactReleaseDate = function(value) {
+
+        var match = value.match(/^(\d{4})(\d{2})(\d{2})$/);
+        if (match) {
+            return NormalizeDateParts(match[1], match[2], match[3]);
+        }
+
+        match = value.match(/^(\d{4})(\d{2})$/);
+        if (match) {
+            return NormalizeDateParts(match[1], match[2], '1');
+        }
+
+        return null;
+    };
+
+    var ParseNumericReleaseDate = function(value) {
+
+        var match = value.match(/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{4})$/);
+
+        if (match) {
+            var first = parseInt(match[1], 10);
+            var second = parseInt(match[2], 10);
+
+            // Most LaunchBox-style month/day dates are US-formatted. If the first
+            // segment cannot be a month, treat it as day/month instead.
+            if (first > 12 && second <= 12) {
+                return NormalizeDateParts(match[3], match[2], match[1]);
+            }
+
+            return NormalizeDateParts(match[3], match[1], match[2]);
+        }
+
+        match = value.match(/^(\d{1,2})[-\/.](\d{4})$/);
+
+        if (match) {
+            return NormalizeDateParts(match[2], match[1], '1');
+        }
+
+        return null;
+    };
+
+    var ParseMonthNameReleaseDate = function(value) {
+
+        var monthPattern = '(jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)';
+        var match = value.match(new RegExp('^' + monthPattern + '(?:\\s+(?:of\\s+)?)?(?:(\\d{1,2})(?:st|nd|rd|th)?\\s+)?(\\d{4})$', 'i'));
+
+        if (match) {
+            return NormalizeDateParts(match[3], MonthNameToNumber(match[1]), match[2] || '1');
+        }
+
+        match = value.match(new RegExp('^(\\d{1,2})(?:st|nd|rd|th)?\\s+' + monthPattern + '\\s+(\\d{4})$', 'i'));
+
+        if (match) {
+            return NormalizeDateParts(match[3], MonthNameToNumber(match[2]), match[1]);
+        }
+
+        match = value.match(new RegExp('^(\\d{4})\\s+' + monthPattern + '(?:\\s+(\\d{1,2})(?:st|nd|rd|th)?)?$', 'i'));
+
+        if (match) {
+            return NormalizeDateParts(match[1], MonthNameToNumber(match[2]), match[3] || '1');
+        }
+
+        return null;
+    };
+
+    var ParseYearOnlyReleaseDate = function(value) {
+
+        var match = value.match(/(?:^|\D)(\d{4})(?:\D|$)/);
+
+        if (!match) {
+            return null;
+        }
+
+        return NormalizeDateParts(match[1], '1', '1');
+    };
+
+    var ParseNativeReleaseDate = function(value) {
+
+        var date = new Date(value);
+
+        if (isNaN(date.getTime())) {
+            return null;
+        }
+
+        return NormalizeDateParts(date.getUTCFullYear(), date.getUTCMonth() + 1, date.getUTCDate());
+    };
+
+    var MonthNameToNumber = function(value) {
+
+        if (!value) {
+            return null;
+        }
+
+        var month = String(value).toLowerCase().substr(0, 3);
+
+        switch (month) {
+            case 'jan': return 1;
+            case 'feb': return 2;
+            case 'mar': return 3;
+            case 'apr': return 4;
+            case 'may': return 5;
+            case 'jun': return 6;
+            case 'jul': return 7;
+            case 'aug': return 8;
+            case 'sep': return 9;
+            case 'oct': return 10;
+            case 'nov': return 11;
+            case 'dec': return 12;
+            default: return null;
+        }
+    };
+
+    var NormalizeDateParts = function(year, month, day) {
+
+        year = parseInt(year, 10);
+        month = NormalizeDatePart(month, 1);
+        day = NormalizeDatePart(day, 1);
+
+        if (isNaN(year) || year < 1800 || year > 2200) {
+            return null;
+        }
+
+        if (month < 1 || month > 12) {
+            month = 1;
+        }
+
+        if (day < 1 || day > 31) {
+            day = 1;
+        }
+
+        return {
+            year: year,
+            month: month,
+            day: day
+        };
+    };
+
+    var NormalizeDatePart = function(value, defaultValue) {
+
+        if (value === null || value === undefined || value === '') {
+            return defaultValue;
+        }
+
+        value = String(value).trim();
+
+        if (!value || value === '0' || value === '00' || /^x+$/i.test(value) || /^\?+$/.test(value)) {
+            return defaultValue;
+        }
+
+        var result = parseInt(value, 10);
+
+        if (isNaN(result)) {
+            return defaultValue;
+        }
+
+        return result;
+    };
+
+    var BuildReleaseDate = function(year, month, day) {
+
+        var date = new Date(Date.UTC(year, month - 1, day));
+
+        if (date.getUTCFullYear() !== year || date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) {
+            return null;
+        }
+
+        return date;
+    };
+
+    // Exposed for featured collections so the release-date default sort can use the
+    // same metadata lookup and parsing rules as personal collections.
+    this.GetReleaseMetadata = GetReleaseMetadata;
+
     //for external calls, only a userId is needed, we'll look up collection details
     this.ResetActiveCollectionCache = function(userId, callback) {
 
@@ -387,55 +719,50 @@ module.exports = new (function() {
             _self.GetActiveCollection(userId, (err, envelope) => {
                 if (err) { return callback(err); }
 
-                //sanitize data going to client
-                var titles = [];
+                //sanitize data going to client. Release metadata is read from the
+                //same per-system metadata files used by suggestions, but a missing
+                //metadata file or title-level date should never block collection sync.
+                BuildClientTitlePayload(envelope.titles, (err, titles) => {
+                    if (err) { return callback(err); }
 
-                for (var i = 0, len = envelope.titles.length; i < len; ++i) {
-                    titles.push({
-                        gk: envelope.titles[i].game_key,
-                        lastPlayed: envelope.titles[i].last_played,
-                        playCount: envelope.titles[i].play_count,
-                        saveCount: envelope.titles[i].save_count,
-                        topRanked: envelope.titles[i].top_ranked
+                    //get list of all collections
+                    GetCollectionNames(userId, (err, collectionRecords) => {
+                        if (err) {
+                            return callback(err);
+                        }
+
+                        //sanitize result as well, didn't see a general need to move this into its own func
+                        var collectionNames = [];
+                        for (var i = 0, len = collectionRecords.length; i < len; ++i) {
+                            var id = EncodeClientCollectionId(collectionRecords[i].collection_id, collectionRecords[i].created);
+                            collectionNames.push({
+                                id: id,
+                                name: collectionRecords[i].name,
+                                sort: collectionRecords[i].sort,
+                                asc: collectionRecords[i].asc
+                            });
+                        }
+
+                        var active = {
+                            id: null,
+                            name: null,
+                            titles: titles
+                        };
+
+                        if (envelope.collection) {
+                            active.id = EncodeClientCollectionId(envelope.collection.collection_id, envelope.collection.created);
+                            active.name = envelope.collection.name;
+                        }
+
+                        var collectionToolsStorageKey = UtilitiesService.Compress.string('collection-tools:' + userId);
+                        var result = new _payload(active, collectionNames, collectionToolsStorageKey);
+
+                        callback(null, result);
                     });
-                }
-
-                //get list of all collections
-                GetCollectionNames(userId, (err, collectionRecords) => {
-                    if (err) {
-                        return callback(err);
-                    }
-
-                    //sanitize result as well, didn't see a general need to move this into its own func
-                    var collectionNames = [];
-                    for (var i = 0, len = collectionRecords.length; i < len; ++i) {
-                        var id = EncodeClientCollectionId(collectionRecords[i].collection_id, collectionRecords[i].created);
-                        collectionNames.push({
-                            id: id,
-                            name: collectionRecords[i].name,
-                            sort: collectionRecords[i].sort,
-                            asc: collectionRecords[i].asc
-                        });
-                    }
-
-                    var active = {
-                        id: null,
-                        name: null,
-                        titles: titles
-                    };
-
-                    if (envelope.collection) {
-                        active.id = EncodeClientCollectionId(envelope.collection.collection_id, envelope.collection.created);
-                        active.name = envelope.collection.name;
-                    }
-
-                    var collectionToolsStorageKey = UtilitiesService.Compress.string('collection-tools:' + userId);
-                    var result = new _payload(active, collectionNames, collectionToolsStorageKey);
-
-                    callback(null, result);
                 });
             });
         };
+
 
         return this;
     })();
