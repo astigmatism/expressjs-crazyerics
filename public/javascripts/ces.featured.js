@@ -24,6 +24,15 @@ var ReadAdminActive = function() {
     return $('body').hasClass('runtime-admin-active');
 };
 
+var CanRenderFeaturedCollection = function() {
+
+    if (_Collections && _Collections.CanShowServerManagedCollections) {
+        return _Collections.CanShowServerManagedCollections() === true;
+    }
+
+    return true;
+};
+
 var FeaturedId = function(collection) {
 
     if (!collection || collection.id === undefined || collection.id === null) {
@@ -150,7 +159,13 @@ var RemoveCurrentPill = function() {
     }
 
     _Tooltips.Destroy(_collection.gridItem);
-    _collectionsGrid.isotope('remove', _collection.gridItem).isotope('layout');
+    _collectionsGrid.isotope('remove', _collection.gridItem);
+    if (_Collections.LayoutCollectionTabs) {
+        _Collections.LayoutCollectionTabs();
+    }
+    else {
+        _collectionsGrid.isotope('layout');
+    }
     delete _collection.gridItem;
 };
 
@@ -183,8 +198,18 @@ var ClearFeaturedIfActive = function(collectionId) {
 
 var Render = function() {
 
+    var collectionId = _collection ? FeaturedId(_collection) : null;
+
     if (!_collection) {
         _Collections.SetFeaturedAvailable(false);
+        return;
+    }
+
+    _Collections.SetFeaturedAvailable(true);
+
+    if (!CanRenderFeaturedCollection()) {
+        RemoveCurrentPill();
+        ClearFeaturedIfActive(collectionId);
         return;
     }
 
@@ -193,8 +218,13 @@ var Render = function() {
     }
 
     UpdateCollectionGridItem(_collection);
-    _Collections.SetFeaturedAvailable(true);
-    _collectionsGrid.isotope('updateSortData').isotope({ sortBy : 'type' });
+    _collectionsGrid.isotope('updateSortData');
+    if (_Collections.LayoutCollectionTabs) {
+        _Collections.LayoutCollectionTabs({ sortBy : 'type' });
+    }
+    else {
+        _collectionsGrid.isotope({ sortBy : 'type' });
+    }
 };
 
 var AddCollection = function(collection) {
@@ -203,6 +233,9 @@ var AddCollection = function(collection) {
 
     $griditem.data('type', _featuredCollectionSortType);
     _collectionsGrid.isotope('insert', $griditem[0]);
+    if (_Collections.LayoutCollectionTabs) {
+        _Collections.LayoutCollectionTabs({ sortBy : 'type' });
+    }
 
     return $griditem;
 };
@@ -237,7 +270,7 @@ var UpdateCollectionGridItem = function(collection) {
     }
 
     $star.text('\u2605');
-    $name.text('Featured: ' + collection.name);
+    $name.text(collection.name);
 
     if (_isAdminActive && collection.id) {
         $griditem.addClass('collection-tab-has-featured-delete');
@@ -283,6 +316,10 @@ var UpdateCollectionGridItem = function(collection) {
 
 var OpenFeaturedCollection = function(collection) {
 
+    if (!CanRenderFeaturedCollection()) {
+        return;
+    }
+
     _collectionsGrid.find('.grid-item').removeClass('on').attr('aria-selected', 'false').removeAttr('aria-current');
 
     if (collection.gridItem && collection.gridItem.length) {
@@ -306,6 +343,10 @@ var OpenFeaturedCollection = function(collection) {
 
 var Populate = function(collection) {
 
+    if (_Collections.HoldCollectionPanelHeight) {
+        _Collections.HoldCollectionPanelHeight();
+    }
+
     RemoveFeaturedTitles();
 
     for (var i = 0, len = collection.gks.length; i < len; ++i) {
@@ -313,6 +354,10 @@ var Populate = function(collection) {
     }
 
     ApplyFeaturedSort(collection);
+
+    if (_Collections.ReleaseCollectionPanelHeight) {
+        _Collections.ReleaseCollectionPanelHeight();
+    }
 
     _Tooltips.Any();
 };
@@ -362,7 +407,7 @@ var AddTitle = function(gk, batchIndex, titleMetadata) {
         return null;
     }
 
-    var $griditem = $('<div class="grid-item collection-grid-item featured-grid-item" />');
+    var $griditem = $('<div class="grid-item collection-grid-item featured-grid-item collection-card-awaiting-entry" />');
 
     $griditem.data('gk', gk);
     $griditem.data('active', 1);
@@ -379,6 +424,10 @@ var AddTitle = function(gk, batchIndex, titleMetadata) {
 
     $griditem.append(gameLink.GetDOM());
     _titlesGrid.isotope('insert', $griditem[0]);
+
+    if (_Collections.StartCollectionTitleEntry) {
+        _Collections.StartCollectionTitleEntry($griditem, batchIndex);
+    }
 
     return $griditem;
 };
@@ -440,6 +489,10 @@ this.Sync = new (function() {
 
 $(document).on('ces.admin.state', function(e, active) {
     _isAdminActive = active === true;
+    Render();
+});
+
+$(document).on('ces.collections.serverManagedVisibility', function(e, visible) {
     Render();
 });
 

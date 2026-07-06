@@ -27,6 +27,7 @@ var cesMain = (function() {
     var _Dialogs = null;
     var _Collections = null;
     var _Featured = null;
+    var _SiteStatisticCollections = null;
     var _Suggestions = null;
     var _SaveSelection = null;
     var _Notifications = null;
@@ -87,6 +88,9 @@ var cesMain = (function() {
 
         _Featured = new cesFeatured(_config, _Compression, _Preferences, _Media, _Sync, _Tooltips, PlayGame, _Collections, clientdata.components.f, null);
         _Sync.RegisterComponent('f', _Featured.Sync);
+
+        _SiteStatisticCollections = new cesSiteStatisticCollections(_config, _Compression, _Preferences, _Media, _Sync, _Tooltips, PlayGame, _Collections, clientdata.components.sc, null);
+        _Sync.RegisterComponent('sc', _SiteStatisticCollections.Sync);
 
         //register dialogs after setting up components
         var welcomeBack =  _Collections.IsEmpty() ? false : true;

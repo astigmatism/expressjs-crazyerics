@@ -12,6 +12,7 @@ const PreferencesService = require('./preferences');
 const SuggestionService = require('./suggestions');
 const GamesService = require('./games');
 const FeaturedService = require('./featured');
+const SiteStatisticCollectionsService = require('./site-statistic-collections');
 const CronService = require('./cron');
 const TitleBannerService = require('./titlebanners');
 const ShaderService = require('./shaders');
@@ -181,6 +182,11 @@ module.exports = new (function() {
 
         //build the server-persisted featured collections cache at startup
         FeaturedService.ApplicationStart((err) => {
+            if (err) console.log(err);
+        });
+
+        //build cached dynamic site statistic collections at startup
+        SiteStatisticCollectionsService.ApplicationStart((err) => {
             if (err) console.log(err);
         });
     };
@@ -532,7 +538,8 @@ module.exports = new (function() {
         var components = {
             c: {},
             p: {},
-            f: {}
+            f: {},
+            sc: {}
         };
 
         if (req.user) {
@@ -555,7 +562,13 @@ module.exports = new (function() {
 
                         components.f = featuredPayload;
 
-                        callback(null, components);
+                        SiteStatisticCollectionsService.Sync.Outgoing((err, siteStatisticCollectionsPayload) => {
+                            if (err) return callback(err);
+
+                            components.sc = siteStatisticCollectionsPayload;
+
+                            callback(null, components);
+                        });
                     });
                 });
             });

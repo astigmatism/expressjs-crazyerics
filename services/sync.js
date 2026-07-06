@@ -5,6 +5,7 @@ const UtilitiesService = require('./utilities');
 const CollectionsService = require('./collections');
 const SavesService = require('./saves');
 const FeaturedService = require('./featured');
+const SiteStatisticCollectionsService = require('./site-statistic-collections');
 const PreferenceService = require('./preferences');
 
 module.exports = new (function() {
@@ -78,9 +79,17 @@ module.exports = new (function() {
                         response._c.f = data;
                     }
 
-                    var compressed = UtilitiesService.Compress.json(response); //compress entire response for sync on client side
-                    
-                    callback(null, compressed);
+                    CheckSiteStatisticCollections((err, data) => {
+                        if (err) return callback(err);
+
+                        if (data) {
+                            response._c.sc = data;
+                        }
+
+                        var compressed = UtilitiesService.Compress.json(response); //compress entire response for sync on client side
+                        
+                        callback(null, compressed);
+                    });
                 });
             });
         });
@@ -110,6 +119,19 @@ module.exports = new (function() {
             if (err) return callback(err);
             return callback(null, data);
         });
+    };
+
+    var CheckSiteStatisticCollections = function(callback) {
+
+        if (!SiteStatisticCollectionsService.Sync.ready) {
+            return callback();
+        }
+
+        SiteStatisticCollectionsService.Sync.Outgoing((err, data) => {
+            if (err) return callback(err);
+            return callback(null, data);
+        });
+
     };
 
     var CheckFeatured = function(callback) {

@@ -4796,15 +4796,20 @@ body.controls-show-coordinate-guides .controls-manual-coordinate-guides,
 
 #collectionsWrapper {
 	height: auto;
-	padding: 14px 12px 12px 12px;
+	margin: 0px 0px 14px 0px;
+	padding: 14px 12px 14px 12px;
+	border: 1px solid rgba(255,255,255,0.06);
+	border-radius: 10px;
+	background-color: rgba(8,13,19,0.90);
 
-	background: -moz-linear-gradient(top, rgba(0,0,0,.98) 0%, rgba(10,16,22,.82) 42%, rgba(0,0,0,0) 100%); /* FF3.6+ */
-	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(0,0,0,.98)), color-stop(42%,rgba(10,16,22,.82)), color-stop(100%,rgba(0,0,0,0))); /* Chrome,Safari4+ */
-	background: -webkit-linear-gradient(top, rgba(0,0,0,.98) 0%,rgba(10,16,22,.82) 42%,rgba(0,0,0,0) 100%); /* Chrome10+,Safari5.1+ */
-	background: -o-linear-gradient(top, rgba(0,0,0,.98) 0%,rgba(10,16,22,.82) 42%,rgba(0,0,0,0) 100%); /* Opera 11.10+ */
-	background: -ms-linear-gradient(top, rgba(0,0,0,.98) 0%,rgba(10,16,22,.82) 42%,rgba(0,0,0,0) 100%); /* IE10+ */
-	background: linear-gradient(to bottom, rgba(0,0,0,.98) 0%,rgba(10,16,22,.82) 42%,rgba(0,0,0,0) 100%); /* W3C */
-	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#000000', endColorstr='#00000000',GradientType=0 ); /* IE6-9 */
+	background: -moz-linear-gradient(top, rgba(10,16,22,.98) 0%, rgba(10,16,22,.92) 56%, rgba(10,16,22,.84) 100%); /* FF3.6+ */
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(10,16,22,.98)), color-stop(56%,rgba(10,16,22,.92)), color-stop(100%,rgba(10,16,22,.84))); /* Chrome,Safari4+ */
+	background: -webkit-linear-gradient(top, rgba(10,16,22,.98) 0%,rgba(10,16,22,.92) 56%,rgba(10,16,22,.84) 100%); /* Chrome10+,Safari5.1+ */
+	background: -o-linear-gradient(top, rgba(10,16,22,.98) 0%,rgba(10,16,22,.92) 56%,rgba(10,16,22,.84) 100%); /* Opera 11.10+ */
+	background: -ms-linear-gradient(top, rgba(10,16,22,.98) 0%,rgba(10,16,22,.92) 56%,rgba(10,16,22,.84) 100%); /* IE10+ */
+	background: linear-gradient(to bottom, rgba(10,16,22,.98) 0%,rgba(10,16,22,.92) 56%,rgba(10,16,22,.84) 100%); /* W3C */
+	box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0px 8px 24px rgba(0,0,0,0.20);
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#fa0a1016', endColorstr='#d60a1016',GradientType=0 ); /* IE6-9 */
 }
 
 #collectionsWrapper.new-user {
@@ -4814,14 +4819,6 @@ body.controls-show-coordinate-guides .controls-manual-coordinate-guides,
 
 #collectionsWrapper.collection-tools-locked #collectionTitle,
 #collectionsWrapper.collection-tools-locked #collectionsRail {
-	display: none;
-}
-
-#collectionsWrapper.collection-tools-locked.collection-featured-available #collectionsRail {
-	display: block;
-}
-
-#collectionsWrapper.collection-tools-locked.collection-featured-available #collectionsGrid .collection-tab:not(.collection-tab-featured) {
 	display: none;
 }
 
@@ -5106,25 +5103,100 @@ body.controls-show-coordinate-guides .controls-manual-coordinate-guides,
 	box-shadow: inset 0 1px 3px rgba(0,0,0,0.45), 0px 0px 0px 2px rgba(75,112,150,0.16);
 }
 
+.collection-rail-editor-host {
+	display: none;
+	box-sizing: border-box;
+	max-width: 640px;
+	margin: 7px 0px 0px 12px;
+	padding: 8px 10px 9px 10px;
+	clear: both;
+	border: 1px solid rgba(125,166,207,0.24);
+	border-top-color: rgba(255,255,255,0.07);
+	border-radius: 0px 0px 8px 8px;
+	background: rgba(10,16,22,0.92);
+	box-shadow: inset 0 1px 0 rgba(255,255,255,0.045), 0px 8px 18px rgba(0,0,0,0.20);
+}
+
+.collection-rail-editor-host-open {
+	display: block;
+}
+
+.collection-rail-editor-host .collection-name-editor {
+	min-height: 38px;
+	padding: 0px;
+	border-bottom: 0px;
+}
+
+.collection-rail-editor-host .collection-name-editor-label {
+	line-height: 30px;
+}
+
+.collection-rail-editor-host .collection-name-editor-input {
+	height: 30px;
+}
+
 #openCollectionGrid {
+	box-sizing: border-box;
 	min-height: 112px;
-	transition:All 200ms ease-in;
-	-webkit-transition:All 200ms ease-in;
-	-moz-transition:All 200ms ease-in;
-	-o-transition:All 200ms ease-in;
+	padding: 10px 8px 12px 8px;
+	border-radius: 8px 8px 0px 0px;
+	background: -moz-linear-gradient(top, rgba(13,20,28,0.97) 0%, rgba(7,11,16,0.92) 100%);
+	background: -webkit-linear-gradient(top, rgba(13,20,28,0.97) 0%, rgba(7,11,16,0.92) 100%);
+	background: linear-gradient(to bottom, rgba(13,20,28,0.97) 0%, rgba(7,11,16,0.92) 100%);
+	box-shadow: inset 0 1px 0 rgba(255,255,255,0.055), 0px 10px 24px rgba(0,0,0,0.22);
+	transition:background 160ms ease-in, border-color 160ms ease-in, box-shadow 160ms ease-in;
+	-webkit-transition:background 160ms ease-in, border-color 160ms ease-in, box-shadow 160ms ease-in;
+	-moz-transition:background 160ms ease-in, border-color 160ms ease-in, box-shadow 160ms ease-in;
+	-o-transition:background 160ms ease-in, border-color 160ms ease-in, box-shadow 160ms ease-in;
+}
+
+#collectionsWrapper.collection-tools-locked #openCollectionGrid {
+	border-radius: 10px;
 }
 
 #collectionsGrid.hidden {
 	visibility: hidden;
 }
 
+#collectionsRail {
+	position: relative;
+	z-index: 2;
+	box-sizing: border-box;
+	margin: -1px 0px 0px 0px;
+	padding: 0px 0px 9px 0px;
+	overflow-x: auto;
+	overflow-y: hidden;
+	-webkit-overflow-scrolling: touch;
+	border: 1px solid rgba(125,166,207,0.22);
+	border-top: 0px;
+	border-radius: 0px 0px 8px 8px;
+	background: rgba(7,11,16,0.92);
+	box-shadow: inset 0px -1px 0px rgba(255,255,255,0.045);
+}
+
+#collectionsRail::-webkit-scrollbar {
+	height: 8px;
+}
+
+#collectionsRail::-webkit-scrollbar-track {
+	background: rgba(255,255,255,0.03);
+}
+
+#collectionsRail::-webkit-scrollbar-thumb {
+	border-radius: 8px;
+	background: rgba(125,166,207,0.24);
+}
+
 #collectionsGrid {
-	min-height: 46px;
-	margin: 8px 0px 0px 0px;
-	padding: 10px 0px 4px 0px;
+	position: relative;
+	min-width: 100%;
+	min-height: 45px;
+	margin: 0px;
+	padding: 0px 0px 0px 0px;
 }
 
 #collectionsGrid .grid-item {
+	position: relative;
 	display: -webkit-box;
 	display: -webkit-flex;
 	display: -ms-flexbox;
@@ -5140,13 +5212,13 @@ body.controls-show-coordinate-guides .controls-manual-coordinate-guides,
 	box-sizing: border-box;
 	max-width: none;
 	min-width: 58px;
-	min-height: 34px;
-	height: 34px;
-	margin: 5px 6px 5px 0px;
-	padding: 0px 12px;
+	min-height: 36px;
+	height: 36px;
+	margin: 0px 3px 0px 0px;
+	padding: 0px 13px;
 	cursor: pointer;
 	overflow: visible;
-	color: #c3ced8;
+	color: #9eacb9;
 	font-size: 12px;
 	font-weight: bold;
 	letter-spacing: .04em;
@@ -5155,43 +5227,44 @@ body.controls-show-coordinate-guides .controls-manual-coordinate-guides,
 	text-overflow: clip;
 	text-shadow: 1px 1px 2px #000;
 	white-space: nowrap;
-	border: 1px solid rgba(255,255,255,0.10);
-	border-radius: 17px;
-	background-color: rgba(81,97,112,0.24);
-	box-shadow: inset 0 1px 0 rgba(255,255,255,0.045);
+	opacity: .70;
+	border-radius: 0px 0px 8px 8px;
+	box-shadow: inset 0 1px 0 rgba(255,255,255,0.035), 0px 5px 12px rgba(0,0,0,0.18);
 
-	transition:All 160ms ease-in;
-	-webkit-transition:All 160ms ease-in;
-	-moz-transition:All 160ms ease-in;
-	-o-transition:All 160ms ease-in;
+	transition:color 140ms ease-in, opacity 140ms ease-in, border-color 140ms ease-in, background 140ms ease-in, box-shadow 140ms ease-in;
+	-webkit-transition:color 140ms ease-in, opacity 140ms ease-in, border-color 140ms ease-in, background 140ms ease-in, box-shadow 140ms ease-in;
+	-moz-transition:color 140ms ease-in, opacity 140ms ease-in, border-color 140ms ease-in, background 140ms ease-in, box-shadow 140ms ease-in;
+	-o-transition:color 140ms ease-in, opacity 140ms ease-in, border-color 140ms ease-in, background 140ms ease-in, box-shadow 140ms ease-in;
 }
 
 #collectionsGrid .grid-item:hover,
 #collectionsGrid .grid-item:focus {
-	color: #fff;
+	color: #e3edf6;
 	outline: none;
-	border-color: rgba(125,166,207,0.42);
-	background-color: rgba(81,97,112,0.52);
-	box-shadow: inset 0 1px 0 rgba(255,255,255,0.12), 0px 0px 0px 2px rgba(75,112,150,0.14);
+	box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), 0px 0px 0px 2px rgba(75,112,150,0.12), 0px 6px 14px rgba(0,0,0,0.22);
+	opacity: .92;
 }
 
 #collectionsGrid .grid-item.on {
+	z-index: 3;
 	color: #fff;
-	border-color: rgba(125,166,207,0.58);
-	background: rgba(10,16,22,0.96);
-	box-shadow: inset 0 1px 0 rgba(255,255,255,0.10), 0px 3px 10px rgba(0,0,0,0.30), 0px 0px 0px 1px rgba(75,112,150,0.14);
+	border-color: rgba(125,166,207,0.46);
+	border-top-color: rgba(7,11,16,0.92);
+	background: rgba(7,11,16,0.92);
+	box-shadow: inset 0 -1px 0 rgba(255,255,255,0.055), 0px 8px 18px rgba(0,0,0,0.28), 0px 0px 0px 1px rgba(75,112,150,0.12);
+	opacity: 1;
 }
-/*
-#collectionsGrid .grid-item.on:after {
+
+#collectionsGrid .grid-item.on:before {
 	content: '';
-	display: block;
-	width: 18px;
-	height: 2px;
-	margin: 6px auto -2px auto;
-	border-radius: 2px;
-	background: rgba(125,166,207,0.82);
+	position: absolute;
+	top: -2px;
+	left: -1px;
+	right: -1px;
+	height: 3px;
+	pointer-events: none;
+	background: rgba(7,11,16,0.92);
 }
-*/
 
 #collectionsGrid .collection-tab-name {
 	display: block;
@@ -5254,11 +5327,10 @@ body.controls-show-coordinate-guides .controls-manual-coordinate-guides,
 	border-radius: 12px;
 	background: transparent;
 	box-shadow: none;
-
-	transition:All 140ms ease-in;
-	-webkit-transition:All 140ms ease-in;
-	-moz-transition:All 140ms ease-in;
-	-o-transition:All 140ms ease-in;
+	transition:color 140ms ease-in, background-color 140ms ease-in, border-color 140ms ease-in, box-shadow 140ms ease-in;
+	-webkit-transition:color 140ms ease-in, background-color 140ms ease-in, border-color 140ms ease-in, box-shadow 140ms ease-in;
+	-moz-transition:color 140ms ease-in, background-color 140ms ease-in, border-color 140ms ease-in, box-shadow 140ms ease-in;
+	-o-transition:color 140ms ease-in, background-color 140ms ease-in, border-color 140ms ease-in, box-shadow 140ms ease-in;
 }
 
 #collectionsGrid .collection-options-trigger:hover,
@@ -5275,30 +5347,21 @@ body.controls-show-coordinate-guides .controls-manual-coordinate-guides,
 }
 
 #collectionsGrid .collection-tab-add {
-	color: #dce8f5;
-	border-color: rgba(125,166,207,0.30);
-	background-color: rgba(43,67,93,0.24);
+	min-width: 42px;
+	padding-left: 14px;
+	padding-right: 14px;
 }
 
-#collectionsGrid .collection-tab-add:hover,
-#collectionsGrid .collection-tab-add:focus {
-	border-color: rgba(125,166,207,0.58);
-	background-color: rgba(43,67,93,0.42);
+#collectionsGrid .collection-tab-add-label {
+	font-size: 17px;
+	line-height: 16px;
 }
 
 #collectionsGrid .collection-tab-dev-action {
-	color: #d8e2ec;
 	border-style: dashed;
 }
 
 #collectionsGrid .collection-tab-featured {
-	margin-left: 18px;
-	color: #dce8f5;
-	border-color: rgba(125,166,207,0.26);
-	background-color: rgba(43,67,93,0.24);
-}
-
-#collectionsWrapper.collection-tools-locked.collection-featured-available #collectionsGrid .collection-tab-featured {
 	margin-left: 0px;
 }
 
@@ -5309,16 +5372,42 @@ body.controls-show-coordinate-guides .controls-manual-coordinate-guides,
 	-ms-flex: 0 0 auto;
 	flex: 0 0 auto;
 	margin: 0px 6px 1px 0px;
-	color: #ffd875;
+	color: currentColor;
 	font-size: 11px;
 	line-height: 1;
-	text-shadow: 0px 0px 6px rgba(255,216,117,0.32), 1px 1px 2px #000;
+	text-shadow: 1px 1px 2px #000;
+	opacity: .86;
 }
 
-#collectionsGrid .collection-tab-featured:hover,
-#collectionsGrid .collection-tab-featured:focus {
-	border-color: rgba(125,166,207,0.50);
-	background-color: rgba(43,67,93,0.42);
+#collectionsGrid .collection-tab-site-statistic {
+	margin-left: 0px;
+}
+
+#collectionsGrid .collection-tab-site-statistic-icon {
+	display: inline-block;
+	-webkit-box-flex: 0;
+	-webkit-flex: 0 0 auto;
+	-ms-flex: 0 0 auto;
+	flex: 0 0 auto;
+	margin: 0px 6px 1px 0px;
+	color: currentColor;
+	font-size: 12px;
+	line-height: 1;
+	text-shadow: 1px 1px 2px #000;
+	opacity: .82;
+}
+
+#collectionsGrid .grid-item.on .collection-tab-featured-star,
+#collectionsGrid .grid-item.on .collection-tab-site-statistic-icon,
+#collectionsGrid .grid-item:hover .collection-tab-featured-star,
+#collectionsGrid .grid-item:hover .collection-tab-site-statistic-icon,
+#collectionsGrid .grid-item:focus .collection-tab-featured-star,
+#collectionsGrid .grid-item:focus .collection-tab-site-statistic-icon {
+	opacity: 1;
+}
+
+#openCollectionGrid .site-statistic-grid-item .gamelink {
+	position: relative;
 }
 
 #collectionsGrid .collection-tab-has-featured-delete {
@@ -5359,11 +5448,10 @@ body.controls-show-coordinate-guides .controls-manual-coordinate-guides,
 	border-radius: 12px;
 	background: rgba(140,40,40,0.18);
 	box-shadow: none;
-
-	transition:All 140ms ease-in;
-	-webkit-transition:All 140ms ease-in;
-	-moz-transition:All 140ms ease-in;
-	-o-transition:All 140ms ease-in;
+	transition:color 140ms ease-in, background-color 140ms ease-in, border-color 140ms ease-in, box-shadow 140ms ease-in;
+	-webkit-transition:color 140ms ease-in, background-color 140ms ease-in, border-color 140ms ease-in, box-shadow 140ms ease-in;
+	-moz-transition:color 140ms ease-in, background-color 140ms ease-in, border-color 140ms ease-in, box-shadow 140ms ease-in;
+	-o-transition:color 140ms ease-in, background-color 140ms ease-in, border-color 140ms ease-in, box-shadow 140ms ease-in;
 }
 
 #collectionsGrid .collection-featured-delete:hover,
@@ -5424,13 +5512,13 @@ body.controls-show-coordinate-guides .controls-manual-coordinate-guides,
 	border: 1px solid rgba(255,255,255,0.16);
 	border-radius: 13px;
 	background: rgba(4,7,10,0.86);
-	box-shadow: inset 0 1px 3px rgba(0,0,0,0.45);
+	box-shadow: inset 0px 1px 3px rgba(0,0,0,0.45);
 }
 
 #collectionsGrid .collection-inline-editor-input:focus {
 	outline: none;
 	border-color: rgba(125,166,207,0.56);
-	box-shadow: inset 0 1px 3px rgba(0,0,0,0.45), 0px 0px 0px 2px rgba(75,112,150,0.16);
+	box-shadow: inset 0px 1px 3px rgba(0,0,0,0.45), 0px 0px 0px 2px rgba(75,112,150,0.16);
 }
 
 #collectionsGrid .collection-inline-editor-button {
@@ -5506,7 +5594,6 @@ body.controls-show-coordinate-guides .controls-manual-coordinate-guides,
 	height: 20px;
 	width: 20px;
 	margin: 0px auto;
-
 	transition:All 200ms ease-in;
 	-webkit-transition:All 200ms ease-in;
 	-moz-transition:All 200ms ease-in;
@@ -5527,6 +5614,20 @@ body.controls-show-coordinate-guides .controls-manual-coordinate-guides,
 		max-width: 100%;
 		font-size: 16px;
 		line-height: 21px;
+	}
+
+	#openCollectionGrid {
+		padding: 7px 5px 9px 5px;
+	}
+
+	#collectionsRail {
+		padding-left: 7px;
+	}
+
+	.collection-rail-editor-host {
+		max-width: none;
+		margin-left: 7px;
+		margin-right: 7px;
 	}
 
 	.collection-name-editor-label,
@@ -6668,3 +6769,317 @@ div.suggestionsbar input {
 			  user-select: none; /* Non-prefixed version, currently
 									supported by Chrome, Edge, Opera and Firefox */
   }
+/* collection folder-tab revision: unified panel + attached bottom tabs */
+#collectionsWrapper {
+	margin: 0px 0px 14px 0px;
+	padding: 14px 12px 18px 12px;
+	border: 0px;
+	border-radius: 0px;
+	background: -moz-linear-gradient(top, rgba(0,0,0,.98) 0%, rgba(10,16,22,.86) 48%, rgba(0,0,0,0) 100%);
+	background: -webkit-linear-gradient(top, rgba(0,0,0,.98) 0%, rgba(10,16,22,.86) 48%, rgba(0,0,0,0) 100%);
+	background: linear-gradient(to bottom, rgba(0,0,0,.98) 0%, rgba(10,16,22,.86) 48%, rgba(0,0,0,0) 100%);
+	box-shadow: none;
+}
+
+#openCollectionGrid {
+	position: relative;
+	box-sizing: border-box;
+	padding: 12px 10px 18px 10px;
+	border-radius: 10px 10px 0px 0px;
+	background: -moz-linear-gradient(top, rgba(13,20,28,0.98) 0%, rgba(8,13,19,0.96) 100%);
+	background: -webkit-linear-gradient(top, rgba(13,20,28,0.98) 0%, rgba(8,13,19,0.96) 100%);
+	background: linear-gradient(to bottom, rgba(13,20,28,0.98) 0%, rgba(8,13,19,0.96) 100%);
+	box-shadow: inset 0px 1px 0px rgba(255,255,255,0.045), 0px 8px 18px rgba(0,0,0,0.18);
+	transition: background-color 140ms ease-in, border-color 140ms ease-in, box-shadow 140ms ease-in;
+	-webkit-transition: background-color 140ms ease-in, border-color 140ms ease-in, box-shadow 140ms ease-in;
+	-moz-transition: background-color 140ms ease-in, border-color 140ms ease-in, box-shadow 140ms ease-in;
+	-o-transition: background-color 140ms ease-in, border-color 140ms ease-in, box-shadow 140ms ease-in;
+}
+
+#openCollectionGrid.collection-panel-height-held {
+	overflow: hidden;
+	will-change: height;
+	transition: height 300ms cubic-bezier(.22,.61,.36,1), background-color 140ms ease-in, border-color 140ms ease-in, box-shadow 140ms ease-in;
+	-webkit-transition: height 300ms cubic-bezier(.22,.61,.36,1), background-color 140ms ease-in, border-color 140ms ease-in, box-shadow 140ms ease-in;
+	-moz-transition: height 300ms cubic-bezier(.22,.61,.36,1), background-color 140ms ease-in, border-color 140ms ease-in, box-shadow 140ms ease-in;
+	-o-transition: height 300ms cubic-bezier(.22,.61,.36,1), background-color 140ms ease-in, border-color 140ms ease-in, box-shadow 140ms ease-in;
+}
+
+#collectionsWrapper.collection-tools-locked #openCollectionGrid {
+	border-radius: 10px;
+}
+
+#collectionsRail {
+	position: relative;
+	z-index: 2;
+	box-sizing: border-box;
+	margin: -1px 0px 0px 0px;
+	padding: 0px 0px 10px 0px;
+	overflow-x: auto;
+	overflow-y: visible;
+	-webkit-overflow-scrolling: touch;
+	border: 0px;
+	border-radius: 0px;
+	background: transparent;
+	box-shadow: none;
+}
+
+#collectionsRail::-webkit-scrollbar {
+	height: 7px;
+}
+
+#collectionsRail::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+#collectionsRail::-webkit-scrollbar-thumb {
+	border-radius: 7px;
+	background: rgba(125,166,207,0.18);
+}
+
+#collectionsGrid {
+	position: relative;
+	min-width: 100%;
+	min-height: 43px;
+	margin: 0px;
+	padding: 0px;
+}
+
+#collectionsGrid .grid-item {
+	position: relative;
+	box-sizing: border-box;
+	max-width: none;
+	min-width: 48px;
+	min-height: 35px;
+	height: 35px;
+	margin: 3px 3px 0px 0px;
+	padding: 0px 13px;
+	cursor: pointer;
+	color: #d0dae4;
+	font-size: 12px;
+	font-weight: bold;
+	letter-spacing: .035em;
+	line-height: 15px;
+	text-shadow: 1px 1px 2px #000;
+	white-space: nowrap;
+	opacity: .46;
+	border-radius: 0px 0px 8px 8px;
+	box-shadow: inset 0px 1px 0px rgba(255,255,255,0.035), 0px 5px 10px rgba(0,0,0,0.16);
+	transition: color 120ms ease-in, opacity 120ms ease-in, border-color 120ms ease-in, background-color 120ms ease-in, box-shadow 120ms ease-in;
+	-webkit-transition: color 120ms ease-in, opacity 120ms ease-in, border-color 120ms ease-in, background-color 120ms ease-in, box-shadow 120ms ease-in;
+	-moz-transition: color 120ms ease-in, opacity 120ms ease-in, border-color 120ms ease-in, background-color 120ms ease-in, box-shadow 120ms ease-in;
+	-o-transition: color 120ms ease-in, opacity 120ms ease-in, border-color 120ms ease-in, background-color 120ms ease-in, box-shadow 120ms ease-in;
+}
+
+#collectionsGrid .grid-item:hover,
+#collectionsGrid .grid-item:focus {
+	color: #edf4fb;
+	outline: none;
+	opacity: .72;
+	box-shadow: inset 0px 1px 0px rgba(255,255,255,0.06), 0px 0px 0px 2px rgba(75,112,150,0.10), 0px 5px 10px rgba(0,0,0,0.18);
+}
+
+#collectionsGrid .grid-item.on {
+	z-index: 4;
+	min-height: 38px;
+	height: 38px;
+	margin-top: 0px;
+	color: #fff;
+	opacity: 1;
+	box-shadow: inset 0px -1px 0px rgba(255,255,255,0.045), 0px 7px 14px rgba(0,0,0,0.24), 0px 0px 0px 1px rgba(75,112,150,0.10);
+}
+
+#collectionsGrid .grid-item.on:before {
+	content: '';
+	position: absolute;
+	top: -3px;
+	left: -1px;
+	right: -1px;
+	height: 5px;
+	pointer-events: none;
+	background: rgba(8,13,19,0.98);
+}
+
+#collectionsGrid .grid-item.on:after {
+	content: '';
+	position: absolute;
+	top: -1px;
+	left: 0px;
+	right: 0px;
+	height: 1px;
+	pointer-events: none;
+	background: rgba(13,20,28,0.98);
+}
+
+#collectionsGrid .collection-tab-name {
+	max-width: none;
+	overflow: visible;
+	text-overflow: clip;
+}
+
+#collectionsGrid .collection-tab-add,
+#collectionsGrid .collection-tab-featured,
+#collectionsGrid .collection-tab-site-statistic,
+#collectionsGrid .collection-tab-dev-action {
+	margin-left: 0px;
+	color: #d0dae4;
+	border-color: rgba(125,166,207,0.18);
+	background: -moz-linear-gradient(top, rgba(20,28,36,0.72) 0%, rgba(12,18,25,0.72) 100%);
+	background: -webkit-linear-gradient(top, rgba(20,28,36,0.72) 0%, rgba(12,18,25,0.72) 100%);
+	background: linear-gradient(to bottom, rgba(20,28,36,0.72) 0%, rgba(12,18,25,0.72) 100%);
+}
+
+#collectionsGrid .collection-tab-add:hover,
+#collectionsGrid .collection-tab-add:focus,
+#collectionsGrid .collection-tab-featured:hover,
+#collectionsGrid .collection-tab-featured:focus,
+#collectionsGrid .collection-tab-site-statistic:hover,
+#collectionsGrid .collection-tab-site-statistic:focus,
+#collectionsGrid .collection-tab-dev-action:hover,
+#collectionsGrid .collection-tab-dev-action:focus {
+	color: #edf4fb;
+	border-color: rgba(125,166,207,0.32);
+	background: -moz-linear-gradient(top, rgba(25,34,44,0.84) 0%, rgba(14,21,29,0.82) 100%);
+	background: -webkit-linear-gradient(top, rgba(25,34,44,0.84) 0%, rgba(14,21,29,0.82) 100%);
+	background: linear-gradient(to bottom, rgba(25,34,44,0.84) 0%, rgba(14,21,29,0.82) 100%);
+}
+
+#collectionsGrid .collection-tab-add.on,
+#collectionsGrid .collection-tab-featured.on,
+#collectionsGrid .collection-tab-site-statistic.on,
+#collectionsGrid .collection-tab-dev-action.on {
+	color: #fff;
+	border-color: rgba(125,166,207,0.38);
+	background: -moz-linear-gradient(top, rgba(13,20,28,0.98) 0%, rgba(8,13,19,0.96) 100%);
+	background: -webkit-linear-gradient(top, rgba(13,20,28,0.98) 0%, rgba(8,13,19,0.96) 100%);
+	background: linear-gradient(to bottom, rgba(13,20,28,0.98) 0%, rgba(8,13,19,0.96) 100%);
+}
+
+#collectionsGrid .collection-tab-add {
+	min-width: 40px;
+	padding-left: 14px;
+	padding-right: 14px;
+}
+
+#collectionsGrid .collection-tab-add-label {
+	font-size: 18px;
+	line-height: 14px;
+}
+
+#collectionsGrid .collection-tab-featured-star,
+#collectionsGrid .collection-tab-site-statistic-icon {
+	color: currentColor;
+	text-shadow: 1px 1px 2px #000;
+	opacity: .84;
+}
+
+#collectionsGrid .grid-item.on .collection-tab-featured-star,
+#collectionsGrid .grid-item.on .collection-tab-site-statistic-icon,
+#collectionsGrid .grid-item:hover .collection-tab-featured-star,
+#collectionsGrid .grid-item:hover .collection-tab-site-statistic-icon,
+#collectionsGrid .grid-item:focus .collection-tab-featured-star,
+#collectionsGrid .grid-item:focus .collection-tab-site-statistic-icon {
+	opacity: 1;
+}
+
+#collectionsGrid .collection-options-trigger,
+#collectionsGrid .collection-featured-delete {
+	background: transparent;
+	box-shadow: none;
+}
+
+#collectionsGrid .collection-options-trigger:hover,
+#collectionsGrid .collection-options-trigger:focus {
+	background: rgba(125,166,207,0.12);
+}
+
+.collection-rail-editor-host {
+	max-width: 620px;
+	margin: 2px 12px 0px 0px;
+	padding: 8px 10px 9px 10px;
+	border: 1px solid rgba(125,166,207,0.20);
+	border-top: 0px;
+	border-radius: 0px 0px 8px 8px;
+	background: rgba(8,13,19,0.96);
+	box-shadow: inset 0px 1px 0px rgba(255,255,255,0.035), 0px 8px 16px rgba(0,0,0,0.18);
+}
+
+#openCollectionGrid .collection-card-awaiting-entry .gamelink {
+	opacity: 0;
+	-webkit-transform: none;
+	-moz-transform: none;
+	-o-transform: none;
+	-ms-transform: none;
+	transform: none;
+}
+
+#openCollectionGrid .collection-card-enter .gamelink {
+	will-change: opacity;
+	-webkit-animation-duration: 260ms;
+	animation-duration: 260ms;
+	-webkit-animation-timing-function: ease-out;
+	animation-timing-function: ease-out;
+}
+
+#openCollectionGrid .collection-card-enter .gamelink .box:after {
+	-webkit-animation-name: none;
+	animation-name: none;
+}
+
+@-webkit-keyframes collection-library-card-lift {
+	0% { opacity: 0; -webkit-transform: none; transform: none; }
+	100% { opacity: 1; -webkit-transform: none; transform: none; }
+}
+
+@keyframes collection-library-card-lift {
+	0% { opacity: 0; -webkit-transform: none; transform: none; }
+	100% { opacity: 1; -webkit-transform: none; transform: none; }
+}
+
+@media screen and (max-width: 620px) {
+	#collectionsWrapper {
+		padding-left: 8px;
+		padding-right: 8px;
+	}
+
+	#openCollectionGrid {
+		padding: 8px 6px 14px 6px;
+	}
+
+	#collectionsRail {
+		padding-left: 8px;
+	}
+
+	#collectionsGrid .grid-item {
+		min-height: 34px;
+		height: 34px;
+		padding-left: 10px;
+		padding-right: 10px;
+	}
+
+	#collectionsGrid .grid-item.on {
+		min-height: 37px;
+		height: 37px;
+	}
+
+	.collection-rail-editor-host {
+		max-width: none;
+		margin-right: 8px;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	#openCollectionGrid.collection-panel-height-held {
+		transition: none;
+		-webkit-transition: none;
+		-moz-transition: none;
+		-o-transition: none;
+		overflow: visible;
+	}
+
+	#openCollectionGrid .collection-card-enter .gamelink,
+	#openCollectionGrid .collection-card-enter .gamelink .box:after {
+		-webkit-animation: none;
+		animation: none;
+	}
+}
