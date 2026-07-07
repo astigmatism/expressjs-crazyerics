@@ -47,22 +47,12 @@
     "refreshIntervalSeconds": 300,
     "collections": [
       {
-        "id": "most-recently-played",
-        "enabled": true,
-        "type": "mostRecentlyPlayed",
-        "label": "Most Recently Played on Crazyerics",
-        "system": null,
-        "limit": 12,
-        "refreshIntervalSeconds": 300,
-        "icon": "◷"
-      },
-      {
         "id": "most-played",
         "enabled": true,
         "type": "mostPlayed",
         "label": "Most Played on Crazyerics",
         "system": null,
-        "limit": 12,
+        "limit": 20,
         "minPlayCount": 1,
         "refreshIntervalSeconds": 300,
         "icon": "◆"

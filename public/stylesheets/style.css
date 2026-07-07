@@ -7083,3 +7083,79 @@ div.suggestionsbar input {
 		animation: none;
 	}
 }
+
+/* collection tab inactive styling generation 2: borderless soft surface */
+#collectionsGrid .grid-item.collection-tab:not(.collection-tab-editor):not(.on) {
+	color: #d4dee8;
+	opacity: .62;
+	border: 0px;
+	background: rgba(125,166,207,0.07);
+	box-shadow: inset 0px 1px 0px rgba(255,255,255,0.035), 0px 4px 8px rgba(0,0,0,0.12);
+}
+
+#collectionsGrid .grid-item.collection-tab:not(.collection-tab-editor):not(.on):hover,
+#collectionsGrid .grid-item.collection-tab:not(.collection-tab-editor):not(.on):focus {
+	color: #edf4fb;
+	outline: none;
+	opacity: .78;
+	background: rgba(125,166,207,0.12);
+	box-shadow: inset 0px 1px 0px rgba(255,255,255,0.055), 0px 5px 10px rgba(0,0,0,0.14);
+}
+
+#collectionsGrid .collection-tab-add:not(.on),
+#collectionsGrid .collection-tab-featured:not(.on),
+#collectionsGrid .collection-tab-site-statistic:not(.on),
+#collectionsGrid .collection-tab-dev-action:not(.on) {
+	background: rgba(125,166,207,0.09);
+}
+
+#collectionsGrid .collection-tab-add:not(.on):hover,
+#collectionsGrid .collection-tab-add:not(.on):focus,
+#collectionsGrid .collection-tab-featured:not(.on):hover,
+#collectionsGrid .collection-tab-featured:not(.on):focus,
+#collectionsGrid .collection-tab-site-statistic:not(.on):hover,
+#collectionsGrid .collection-tab-site-statistic:not(.on):focus,
+#collectionsGrid .collection-tab-dev-action:not(.on):hover,
+#collectionsGrid .collection-tab-dev-action:not(.on):focus {
+	background: rgba(125,166,207,0.14);
+}
+
+
+/* collection game grid refinement: restore ten 116px game boxes across the desktop collection panel
+   The rendered game box is 116px wide. The existing .gamelink side margins add 10px,
+   so each reliable masonry column needs 126px. Ten columns therefore need 1260px. */
+@media screen and (min-width: 621px) {
+	#collectionsWrapper {
+		padding-left: 10px;
+		padding-right: 10px;
+	}
+
+	#openCollectionGrid {
+		padding-left: 0px;
+		padding-right: 0px;
+	}
+
+	#openCollectionGrid .collection-grid-item {
+		box-sizing: border-box;
+		width: 126px;
+		min-width: 126px;
+		max-width: 126px;
+	}
+
+	#openCollectionGrid .collection-grid-item .gamelink {
+		box-sizing: border-box;
+		width: 116px;
+		margin-left: 5px;
+		margin-right: 5px;
+	}
+
+	#openCollectionGrid .collection-grid-item .gamelink .box {
+		width: 116px;
+		max-width: 116px;
+	}
+
+	#openCollectionGrid .collection-grid-item .gamelink .box img {
+		max-width: 116px;
+		height: auto;
+	}
+}

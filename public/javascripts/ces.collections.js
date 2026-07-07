@@ -45,6 +45,7 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
     var _collectionPanelHeightAnimationMs = 300;
     var _collectionPanelHeightReleaseBufferMs = 80;
     var _collectionPanelImageReadyMaxMs = 700;
+    var _collectionTabRightGroupGap = 16;
 
 	//public members
 
@@ -194,6 +195,80 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
         return $host && $host.length && $host.closest('#collectionsGrid').length > 0;
     };
 
+    var IsRightAlignedCollectionTab = function($item) {
+
+        return $item && $item.length && ($item.hasClass('collection-tab-featured') || $item.hasClass('collection-tab-site-statistic'));
+    };
+
+    var GetOrderedCollectionTabElements = function() {
+
+        if (!_collectionsGrid || !_collectionsGrid.length) {
+            return [];
+        }
+
+        if ($.fn && $.fn.isotope && _collectionsGrid.data('isotope')) {
+            try {
+                return _collectionsGrid.isotope('getFilteredItemElements') || [];
+            }
+            catch (e) {
+
+            }
+        }
+
+        return _collectionsGrid.children('.grid-item').toArray();
+    };
+
+    var MeasureCollectionTabs = function() {
+
+        var groups = {
+            left: [],
+            right: [],
+            leftWidth: 0,
+            rightWidth: 0,
+            itemCount: 0,
+            maxHeight: 0
+        };
+        var elements = GetOrderedCollectionTabElements();
+
+        $.each(elements, function(i, element) {
+            var $item = $(element);
+            var width;
+            var height;
+            var itemInfo;
+
+            if (!$item.is(':visible')) {
+                return;
+            }
+
+            width = Math.ceil($item.outerWidth(true));
+            height = Math.ceil($item.outerHeight(true));
+            itemInfo = {
+                item: $item,
+                width: width
+            };
+
+            groups.itemCount++;
+            groups.maxHeight = Math.max(groups.maxHeight, height);
+
+            if (IsRightAlignedCollectionTab($item)) {
+                groups.right.push(itemInfo);
+                groups.rightWidth += width;
+            }
+            else {
+                groups.left.push(itemInfo);
+                groups.leftWidth += width;
+            }
+        });
+
+        return groups;
+    };
+
+    var GetCollectionTabsRequiredWidth = function(groups) {
+
+        var splitGap = groups.left.length && groups.right.length ? _collectionTabRightGroupGap : 0;
+        return groups.leftWidth + groups.rightWidth + splitGap + 2;
+    };
+
     var StabilizeCollectionTabsWidth = function() {
 
         if (!_collectionsGrid || !_collectionsGrid.length) {
@@ -202,26 +277,70 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
 
         var $rail = GetCollectionRail();
         var railWidth = $rail.length ? $rail.width() : 0;
-        var totalWidth = 0;
-        var itemCount = 0;
+        var groups = MeasureCollectionTabs();
 
-        _collectionsGrid.find('.grid-item').each(function() {
-            var $item = $(this);
-
-            if (!$item.is(':visible')) {
-                return;
-            }
-
-            totalWidth += Math.ceil($item.outerWidth(true));
-            itemCount++;
-        });
-
-        if (itemCount < 1) {
+        if (groups.itemCount < 1) {
             _collectionsGrid.css('width', '');
             return;
         }
 
-        _collectionsGrid.css('width', Math.max(totalWidth + 2, railWidth) + 'px');
+        _collectionsGrid.css('width', Math.max(GetCollectionTabsRequiredWidth(groups), railWidth) + 'px');
+    };
+
+    var SetCollectionTabPosition = function($item, x, y) {
+
+        $item.css({
+            position: 'absolute',
+            left: Math.max(0, Math.round(x)) + 'px',
+            right: '',
+            top: Math.max(0, Math.round(y)) + 'px',
+            bottom: '',
+            '-webkit-transform': '',
+            '-moz-transform': '',
+            '-ms-transform': '',
+            '-o-transform': '',
+            transform: ''
+        });
+    };
+
+    var AlignCollectionTabGroups = function() {
+
+        if (!_collectionsGrid || !_collectionsGrid.length) {
+            return;
+        }
+
+        var $rail = GetCollectionRail();
+        var railWidth = $rail.length ? $rail.width() : 0;
+        var groups = MeasureCollectionTabs();
+        var gridWidth = Math.max(GetCollectionTabsRequiredWidth(groups), railWidth);
+        var x = 0;
+        var rightStart;
+
+        if (groups.itemCount < 1) {
+            _collectionsGrid.css({
+                width: '',
+                height: ''
+            });
+            return;
+        }
+
+        $.each(groups.left, function(i, itemInfo) {
+            SetCollectionTabPosition(itemInfo.item, x, 0);
+            x += itemInfo.width;
+        });
+
+        rightStart = groups.right.length ? Math.max(x + (groups.left.length ? _collectionTabRightGroupGap : 0), gridWidth - groups.rightWidth) : x;
+        x = rightStart;
+
+        $.each(groups.right, function(i, itemInfo) {
+            SetCollectionTabPosition(itemInfo.item, x, 0);
+            x += itemInfo.width;
+        });
+
+        _collectionsGrid.css({
+            width: gridWidth + 'px',
+            height: Math.max(groups.maxHeight, 1) + 'px'
+        });
     };
 
     var LayoutCollectionTabs = function(options) {
@@ -243,6 +362,7 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
 
         StabilizeCollectionTabsWidth();
         _collectionsGrid.isotope('layout');
+        AlignCollectionTabGroups();
     };
 
     var PrefersReducedCollectionMotion = function() {
@@ -2068,6 +2188,7 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
             layoutMode: 'masonry',
             transitionDuration: 120,
             masonry: {
+                columnWidth: 126,
                 horizontalOrder: true
             },
             itemSelector: '.grid-item',
@@ -2107,6 +2228,18 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
                 }
             }
         });
+
+        _collectionsGrid
+            .off('arrangeComplete.collectionTabAlignment layoutComplete.collectionTabAlignment')
+            .on('arrangeComplete.collectionTabAlignment layoutComplete.collectionTabAlignment', function() {
+                AlignCollectionTabGroups();
+            });
+
+        $(window)
+            .off('resize.collectionTabAlignment')
+            .on('resize.collectionTabAlignment', function() {
+                LayoutCollectionTabs();
+            });
 
         BindCollectionOptionsDocumentHandlers();
 
