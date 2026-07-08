@@ -30,7 +30,17 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
     var _defaultCollectionDisplayName = 'My Collection';
     var _personalCollectionType = 'user';
     var _collectionOptionsTriggerSelector = '.collection-options-trigger';
+    var _collectionOptionsDropdownSelector = '.collection-options-dropdown';
+    var _collectionOptionsDropdownOpenClass = 'collection-options-dropdown-open';
+    var _collectionOptionsDropdownClosingClass = 'collection-options-dropdown-closing';
     var _collectionOptionsDocumentNamespace = '.cesCollectionOptionsMenu';
+    var _openCollectionOptionsDropdown = null;
+    var _collectionOptionsDropdownAnimationMs = 130;
+    var _collectionNameEditorSelector = '.collection-name-floating-editor';
+    var _collectionNameEditorOpenClass = 'collection-name-floating-editor-open';
+    var _collectionNameEditorAboveClass = 'collection-name-floating-editor-above';
+    var _collectionNameEditorDocumentNamespace = '.cesCollectionNameEditor';
+    var _openCollectionNameEditor = null;
     var _collectionToolsLockedClass = 'collection-tools-locked';
     var _collectionToolsStoragePrefix = 'ces.collections.toolsUnlocked.';
     var _collectionToolsStorageKey = null;
@@ -169,30 +179,6 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
 
         var $rail = $collectionNamesWrapper.closest('#collectionsRail');
         return $rail.length ? $rail : $collectionNamesWrapper.parent();
-    };
-
-    var GetCollectionEditorHost = function() {
-
-        var $rail = GetCollectionRail();
-        var $host;
-
-        if (!$rail.length) {
-            return $collectionHeaderWrapper;
-        }
-
-        $host = $rail.children('.collection-rail-editor-host').first();
-
-        if (!$host.length) {
-            $host = $('<div class="collection-rail-editor-host" aria-live="polite" />');
-            $rail.append($host);
-        }
-
-        return $host;
-    };
-
-    var IsCollectionTabHost = function($host) {
-
-        return $host && $host.length && $host.closest('#collectionsGrid').length > 0;
     };
 
     var IsRightAlignedCollectionTab = function($item) {
@@ -538,23 +524,192 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
         }
     };
 
-    var CloseCollectionNameEditor = function() {
+    var ResolveCollectionNameEditorAnchor = function(mode, collection, $anchor) {
 
-        var $host = GetCollectionEditorHost();
-
-        _isCollectionNameEditorOpen = false;
-
-        if ($host && $host.length) {
-            DestroyTooltipsIn($host);
-            $host.removeClass('collection-rail-editor-host-open').empty();
+        if ($anchor && $anchor.length && $.contains(document, $anchor[0])) {
+            return $anchor;
         }
 
-        if (_collectionControls) {
+        if (collection && collection.optionsTrigger && collection.optionsTrigger.length && $.contains(document, collection.optionsTrigger[0])) {
+            return collection.optionsTrigger;
+        }
+
+        if (collection && collection.gridItem && collection.gridItem.length && $.contains(document, collection.gridItem[0])) {
+            return collection.gridItem;
+        }
+
+        if (mode === 'create' && _collectionsGrid && _collectionsGrid.length) {
+            var $add = _collectionsGrid.find('.collection-tab-add').first();
+            if ($add.length) {
+                return $add;
+            }
+        }
+
+        if ($collectionNamesWrapper && $collectionNamesWrapper.length) {
+            return $collectionNamesWrapper;
+        }
+
+        return $collectionHeaderWrapper;
+    };
+
+    var IsCollectionNameEditorTarget = function($target, open) {
+
+        if (!$target || !$target.length) {
+            return false;
+        }
+
+        if ($target.closest(_collectionNameEditorSelector).length || $target.closest(_collectionOptionsDropdownSelector).length || $target.closest(_collectionOptionsTriggerSelector).length) {
+            return true;
+        }
+
+        if (open && open.$anchor && open.$anchor.length && ($target[0] === open.$anchor[0] || $.contains(open.$anchor[0], $target[0]))) {
+            return true;
+        }
+
+        return false;
+    };
+
+    var PositionOpenCollectionNameEditor = function() {
+
+        var open = _openCollectionNameEditor;
+        var $editor;
+        var $anchor;
+        var anchorRect;
+        var viewportWidth;
+        var viewportHeight;
+        var editorWidth;
+        var editorHeight;
+        var left;
+        var top;
+        var gap = 7;
+        var margin = 8;
+        var placedAbove = false;
+
+        if (!open || !open.$editor || !open.$editor.length || !open.$anchor || !open.$anchor.length) {
+            return;
+        }
+
+        if (!$.contains(document, open.$anchor[0])) {
+            $anchor = ResolveCollectionNameEditorAnchor(open.mode, open.collection, null);
+            if (!$anchor || !$anchor.length || !$.contains(document, $anchor[0])) {
+                CloseCollectionNameEditor({ skipHeaderRender: true, skipControlsUpdate: true });
+                return;
+            }
+            open.$anchor = $anchor;
+        }
+
+        $editor = open.$editor;
+        $anchor = open.$anchor;
+        anchorRect = $anchor[0].getBoundingClientRect();
+
+        viewportWidth = window.innerWidth || document.documentElement.clientWidth || $(window).width();
+        viewportHeight = window.innerHeight || document.documentElement.clientHeight || $(window).height();
+
+        if ((anchorRect.width <= 0 && anchorRect.height <= 0) || anchorRect.right < 0 || anchorRect.left > viewportWidth || anchorRect.bottom < 0 || anchorRect.top > viewportHeight) {
+            CloseCollectionNameEditor({ skipHeaderRender: true, skipControlsUpdate: true });
+            return;
+        }
+
+        $editor.css('max-width', Math.max(220, viewportWidth - (margin * 2)) + 'px');
+
+        editorWidth = Math.ceil($editor.outerWidth());
+        editorHeight = Math.ceil($editor.outerHeight());
+        left = anchorRect.left + (anchorRect.width / 2) - (editorWidth / 2);
+        top = anchorRect.bottom + gap;
+
+        if (left + editorWidth > viewportWidth - margin) {
+            left = viewportWidth - editorWidth - margin;
+        }
+
+        if (left < margin) {
+            left = margin;
+        }
+
+        if (top + editorHeight > viewportHeight - margin && anchorRect.top - editorHeight - gap > margin) {
+            top = anchorRect.top - editorHeight - gap;
+            placedAbove = true;
+        }
+        else if (top + editorHeight > viewportHeight - margin) {
+            top = Math.max(margin, viewportHeight - editorHeight - margin);
+        }
+
+        $editor
+            .toggleClass(_collectionNameEditorAboveClass, placedAbove)
+            .css({
+                left: Math.round(left) + 'px',
+                top: Math.round(top) + 'px'
+            });
+    };
+
+    var BindCollectionNameEditorDocumentHandlers = function() {
+
+        $(document)
+            .off('keydown' + _collectionNameEditorDocumentNamespace)
+            .on('keydown' + _collectionNameEditorDocumentNamespace, function(e) {
+                var key = e.which || e.keyCode;
+                if (key === 27) {
+                    e.preventDefault();
+                    CloseCollectionNameEditor({ restoreFocus: true });
+                }
+            })
+            .off('click' + _collectionNameEditorDocumentNamespace)
+            .on('click' + _collectionNameEditorDocumentNamespace, function(e) {
+                var open = _openCollectionNameEditor;
+                var $target = $(e.target);
+
+                if (!open || IsCollectionNameEditorTarget($target, open)) {
+                    return;
+                }
+
+                CloseCollectionNameEditor();
+            });
+
+        $(window)
+            .off('resize' + _collectionNameEditorDocumentNamespace + ' scroll' + _collectionNameEditorDocumentNamespace)
+            .on('resize' + _collectionNameEditorDocumentNamespace + ' scroll' + _collectionNameEditorDocumentNamespace, function() {
+                PositionOpenCollectionNameEditor();
+            });
+
+        GetCollectionRail()
+            .off('scroll' + _collectionNameEditorDocumentNamespace)
+            .on('scroll' + _collectionNameEditorDocumentNamespace, function() {
+                PositionOpenCollectionNameEditor();
+            });
+    };
+
+    var CloseCollectionNameEditor = function(opt_options) {
+
+        var options = opt_options || {};
+        var open = _openCollectionNameEditor;
+        var $restoreFocus = open ? open.$anchor : null;
+
+        _isCollectionNameEditorOpen = false;
+        _openCollectionNameEditor = null;
+
+        $(document).off(_collectionNameEditorDocumentNamespace);
+        $(window).off(_collectionNameEditorDocumentNamespace);
+        GetCollectionRail().off('scroll' + _collectionNameEditorDocumentNamespace);
+
+        if (open && open.$editor && open.$editor.length) {
+            DestroyTooltipsIn(open.$editor);
+            open.$editor.remove();
+        }
+
+        $(_collectionNameEditorSelector).remove();
+
+        if (!options.skipControlsUpdate && _collectionControls) {
             _collectionControls.Update();
         }
 
-        RenderCollectionHeader();
-        LayoutCollectionTabs();
+        if (!options.skipHeaderRender) {
+            RenderCollectionHeader();
+        }
+
+        if (options.restoreFocus && $restoreFocus && $restoreFocus.length && $.contains(document, $restoreFocus[0])) {
+            setTimeout(function() {
+                $restoreFocus.focus();
+            }, 0);
+        }
     };
 
     var NormalizeCollectionNameForComparison = function(value) {
@@ -833,8 +988,8 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
 
         if (!showTools) {
             CloseCollectionOptionsMenus();
-            if (_isCollectionNameEditorOpen) {
-                _isCollectionNameEditorOpen = false;
+            if (_isCollectionNameEditorOpen || _openCollectionNameEditor) {
+                CloseCollectionNameEditor({ skipHeaderRender: true, skipControlsUpdate: true });
             }
             DestroyTooltipsIn($collectionHeaderWrapper);
             $collectionHeaderWrapper.empty();
@@ -846,8 +1001,14 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
 
     var DestroyTooltipsIn = function($el) {
 
+        var openDropdownTrigger = _openCollectionOptionsDropdown ? _openCollectionOptionsDropdown.$trigger : null;
+
         if (!$el || !$el.length) {
             return;
+        }
+
+        if (openDropdownTrigger && openDropdownTrigger.length && ($el[0] === openDropdownTrigger[0] || $.contains($el[0], openDropdownTrigger[0]))) {
+            CloseCollectionOptionsDropdown({ animate: false });
         }
 
         $el.find('.tooltipstered').each(function() {
@@ -868,7 +1029,293 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
         return $scope.find(_collectionOptionsTriggerSelector);
     };
 
-    var CloseCollectionOptionsMenus = function($except) {
+    var SetCollectionOptionsTriggerOpenState = function($trigger, isOpen, $menu) {
+
+        if (!$trigger || !$trigger.length) {
+            return;
+        }
+
+        $trigger
+            .toggleClass('collection-options-trigger-open', !!isOpen)
+            .attr('aria-expanded', isOpen ? 'true' : 'false');
+
+        if (isOpen && $menu && $menu.length && $menu.attr('id')) {
+            $trigger.attr('aria-controls', $menu.attr('id'));
+        }
+        else {
+            $trigger.removeAttr('aria-controls');
+        }
+    };
+
+    var GetCollectionOptionsMenuId = function(collection) {
+
+        var id = collection && collection.id ? collection.id : 'current';
+        return 'collectionOptionsMenu_' + String(id).replace(/[^A-Za-z0-9_-]/g, '_');
+    };
+
+    var GetFocusableCollectionOptions = function($menu) {
+
+        if (!$menu || !$menu.length) {
+            return $();
+        }
+
+        return $menu.find('.collection-options-menu-item').filter(':visible:not(:disabled)');
+    };
+
+    var FocusCollectionOptionsItem = function($menu, index) {
+
+        var $items = GetFocusableCollectionOptions($menu);
+
+        if (!$items.length) {
+            return;
+        }
+
+        if (index < 0) {
+            index = $items.length - 1;
+        }
+        else if (index >= $items.length) {
+            index = 0;
+        }
+
+        $items.eq(index).focus();
+    };
+
+    var BindCollectionOptionsMenuKeyboard = function($menu) {
+
+        $menu
+            .off('keydown.collectionOptionsMenu')
+            .on('keydown.collectionOptionsMenu', function(e) {
+
+                var key = e.which || e.keyCode;
+                var $items;
+                var itemElements;
+                var currentIndex;
+                var nextIndex;
+
+                if (key === 27) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    CloseCollectionOptionsMenus(null, { restoreFocus: true });
+                    return;
+                }
+
+                if (key !== 38 && key !== 40 && key !== 36 && key !== 35) {
+                    return;
+                }
+
+                $items = GetFocusableCollectionOptions($menu);
+
+                if (!$items.length) {
+                    return;
+                }
+
+                e.preventDefault();
+                e.stopPropagation();
+
+                itemElements = $items.toArray();
+                currentIndex = $.inArray(document.activeElement, itemElements);
+
+                if (key === 36) {
+                    nextIndex = 0;
+                }
+                else if (key === 35) {
+                    nextIndex = $items.length - 1;
+                }
+                else if (currentIndex < 0) {
+                    nextIndex = key === 38 ? $items.length - 1 : 0;
+                }
+                else {
+                    nextIndex = key === 38 ? currentIndex - 1 : currentIndex + 1;
+                }
+
+                FocusCollectionOptionsItem($menu, nextIndex);
+            });
+    };
+
+    var RemoveCollectionOptionsDropdownElement = function($menu, animate) {
+
+        var closeTimer;
+
+        if (!$menu || !$menu.length) {
+            return;
+        }
+
+        closeTimer = $menu.data('collectionOptionsCloseTimer');
+
+        if (closeTimer) {
+            clearTimeout(closeTimer);
+            $menu.removeData('collectionOptionsCloseTimer');
+        }
+
+        if (animate === false) {
+            $menu.remove();
+            return;
+        }
+
+        $menu
+            .removeClass(_collectionOptionsDropdownOpenClass)
+            .addClass(_collectionOptionsDropdownClosingClass);
+
+        closeTimer = setTimeout(function() {
+            $menu.remove();
+        }, _collectionOptionsDropdownAnimationMs);
+
+        $menu.data('collectionOptionsCloseTimer', closeTimer);
+    };
+
+    var CloseCollectionOptionsDropdown = function(opt_options) {
+
+        var options = opt_options || {};
+        var open = _openCollectionOptionsDropdown;
+        var $trigger;
+
+        if (!open) {
+            $(_collectionOptionsDropdownSelector).remove();
+            return;
+        }
+
+        _openCollectionOptionsDropdown = null;
+        $trigger = open.$trigger;
+
+        SetCollectionOptionsTriggerOpenState($trigger, false);
+        RemoveCollectionOptionsDropdownElement(open.$menu, options.animate);
+
+        if (options.restoreFocus && $trigger && $trigger.length && $.contains(document, $trigger[0])) {
+            setTimeout(function() {
+                $trigger.focus();
+            }, 0);
+        }
+    };
+
+    var PositionOpenCollectionOptionsDropdown = function() {
+
+        var open = _openCollectionOptionsDropdown;
+        var $menu;
+        var triggerRect;
+        var viewportWidth;
+        var viewportHeight;
+        var menuWidth;
+        var menuHeight;
+        var left;
+        var top;
+        var gap = 6;
+        var margin = 8;
+        var placedAbove = false;
+
+        if (!open || !open.$trigger || !open.$trigger.length || !open.$menu || !open.$menu.length) {
+            return;
+        }
+
+        if (!$.contains(document, open.$trigger[0])) {
+            CloseCollectionOptionsDropdown({ animate: false });
+            return;
+        }
+
+        $menu = open.$menu;
+        triggerRect = open.$trigger[0].getBoundingClientRect();
+
+        if ((triggerRect.width <= 0 && triggerRect.height <= 0) || triggerRect.bottom < 0 || triggerRect.top > (window.innerHeight || $(window).height())) {
+            CloseCollectionOptionsDropdown({ animate: false });
+            return;
+        }
+
+        viewportWidth = window.innerWidth || document.documentElement.clientWidth || $(window).width();
+        viewportHeight = window.innerHeight || document.documentElement.clientHeight || $(window).height();
+
+        if (triggerRect.right < 0 || triggerRect.left > viewportWidth) {
+            CloseCollectionOptionsDropdown({ animate: false });
+            return;
+        }
+
+        $menu.css('max-height', Math.max(120, viewportHeight - (margin * 2)) + 'px');
+
+        menuWidth = $menu.outerWidth();
+        menuHeight = $menu.outerHeight();
+        left = triggerRect.right - menuWidth;
+        top = triggerRect.bottom + gap;
+
+        if (left + menuWidth > viewportWidth - margin) {
+            left = viewportWidth - menuWidth - margin;
+        }
+
+        if (left < margin) {
+            left = margin;
+        }
+
+        if (top + menuHeight > viewportHeight - margin && triggerRect.top - menuHeight - gap > margin) {
+            top = triggerRect.top - menuHeight - gap;
+            placedAbove = true;
+        }
+        else if (top + menuHeight > viewportHeight - margin) {
+            top = Math.max(margin, viewportHeight - menuHeight - margin);
+        }
+
+        $menu
+            .toggleClass('collection-options-dropdown-above', placedAbove)
+            .css({
+                left: Math.round(left) + 'px',
+                top: Math.round(top) + 'px'
+            });
+    };
+
+    var OpenCollectionOptionsDropdown = function(collection, $trigger, focusTarget) {
+
+        var $menu;
+        var focusIndex;
+
+        if (!collection || !$trigger || !$trigger.length || !IsEditableCollection(collection)) {
+            return;
+        }
+
+        if (_openCollectionOptionsDropdown && _openCollectionOptionsDropdown.$trigger && _openCollectionOptionsDropdown.$trigger[0] === $trigger[0]) {
+            CloseCollectionOptionsDropdown();
+            return;
+        }
+
+        if (_isCollectionNameEditorOpen || _openCollectionNameEditor) {
+            CloseCollectionNameEditor({ skipHeaderRender: true });
+        }
+
+        CloseCollectionOptionsMenus(null, { animate: false });
+        $(_collectionOptionsDropdownSelector).remove();
+
+        $menu = GenerateCollectionOptionsDropdownContent(collection);
+        $('body').append($menu);
+
+        _openCollectionOptionsDropdown = {
+            collection: collection,
+            $trigger: $trigger,
+            $menu: $menu
+        };
+
+        SetCollectionOptionsTriggerOpenState($trigger, true, $menu);
+        BindCollectionOptionsMenuKeyboard($menu);
+        PositionOpenCollectionOptionsDropdown();
+
+        if (window.requestAnimationFrame) {
+            window.requestAnimationFrame(function() {
+                $menu.addClass(_collectionOptionsDropdownOpenClass);
+            });
+        }
+        else {
+            setTimeout(function() {
+                $menu.addClass(_collectionOptionsDropdownOpenClass);
+            }, 0);
+        }
+
+        if (focusTarget) {
+            focusIndex = focusTarget === 'last' ? -1 : 0;
+            setTimeout(function() {
+                FocusCollectionOptionsItem($menu, focusIndex);
+            }, 0);
+        }
+    };
+
+    var CloseCollectionOptionsMenus = function($except, opt_options) {
+
+        if (!_openCollectionOptionsDropdown || !$except || !$except.length || _openCollectionOptionsDropdown.$trigger[0] !== $except[0]) {
+            CloseCollectionOptionsDropdown(opt_options);
+        }
 
         GetCollectionOptionsTriggers().each(function() {
             var $trigger = $(this);
@@ -881,7 +1328,14 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
         });
     };
 
-    var CloseCollectionOptionsMenu = function(collection) {
+    var CloseCollectionOptionsMenu = function(collection, opt_options) {
+
+        if (_openCollectionOptionsDropdown && collection && collection.optionsTrigger && collection.optionsTrigger.length && _openCollectionOptionsDropdown.$trigger[0] === collection.optionsTrigger[0]) {
+            CloseCollectionOptionsDropdown(opt_options);
+        }
+        else if (_openCollectionOptionsDropdown && collection && _openCollectionOptionsDropdown.collection && _openCollectionOptionsDropdown.collection.id === collection.id) {
+            CloseCollectionOptionsDropdown(opt_options);
+        }
 
         if (collection && collection.optionsTrigger && collection.optionsTrigger.length) {
             _Tooltips.Close(collection.optionsTrigger);
@@ -895,9 +1349,10 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
 
         $(document)
             .off('keyup' + _collectionOptionsDocumentNamespace)
-            .on('keyup' + _collectionOptionsDocumentNamespace, function(e) {
+            .off('keydown' + _collectionOptionsDocumentNamespace)
+            .on('keydown' + _collectionOptionsDocumentNamespace, function(e) {
                 if (e.which === 27) {
-                    CloseCollectionOptionsMenus();
+                    CloseCollectionOptionsMenus(null, { restoreFocus: true });
                 }
             })
             .off('click' + _collectionOptionsDocumentNamespace)
@@ -905,11 +1360,23 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
 
                 var $target = $(e.target);
 
-                if ($target.closest(_collectionOptionsTriggerSelector).length || $target.closest('.tooltipster-base').length) {
+                if ($target.closest(_collectionOptionsTriggerSelector).length || $target.closest(_collectionOptionsDropdownSelector).length || $target.closest('.tooltipster-base').length) {
                     return;
                 }
 
                 CloseCollectionOptionsMenus();
+            });
+
+        $(window)
+            .off('resize' + _collectionOptionsDocumentNamespace + ' scroll' + _collectionOptionsDocumentNamespace)
+            .on('resize' + _collectionOptionsDocumentNamespace + ' scroll' + _collectionOptionsDocumentNamespace, function() {
+                PositionOpenCollectionOptionsDropdown();
+            });
+
+        GetCollectionRail()
+            .off('scroll' + _collectionOptionsDocumentNamespace)
+            .on('scroll' + _collectionOptionsDocumentNamespace, function() {
+                PositionOpenCollectionOptionsDropdown();
             });
     };
 
@@ -922,22 +1389,23 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
         collection.optionsTrigger
             .off('click.collectionOptionsTrigger keydown.collectionOptionsTrigger')
             .on('click.collectionOptionsTrigger', function(e) {
+                e.preventDefault();
                 e.stopPropagation();
-                CloseCollectionOptionsMenus($(this));
+                OpenCollectionOptionsDropdown(collection, $(this));
             })
             .on('keydown.collectionOptionsTrigger', function(e) {
 
                 var key = e.which || e.keyCode;
 
-                if (key === 13 || key === 32) {
+                if (key === 13 || key === 32 || key === 40 || key === 38) {
                     e.preventDefault();
                     e.stopPropagation();
-                    $(this).trigger('click');
+                    OpenCollectionOptionsDropdown(collection, $(this), key === 38 ? 'last' : 'first');
                 }
                 else if (key === 27) {
                     e.preventDefault();
                     e.stopPropagation();
-                    CloseCollectionOptionsMenus();
+                    CloseCollectionOptionsMenus(null, { restoreFocus: true });
                 }
             });
     };
@@ -1078,7 +1546,7 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
             $rename.text(IsDefaultCollection(activeCollection) ? 'Name' : 'Rename');
             $rename.attr('aria-label', IsDefaultCollection(activeCollection) ? 'Name this collection' : 'Rename ' + activeName);
             $rename.on('click', function() {
-                OpenCollectionNameEditor('rename', activeCollection, $collectionHeaderWrapper);
+                OpenCollectionNameEditor('rename', activeCollection, $rename);
             });
             $actions.append($rename);
         }
@@ -1172,7 +1640,7 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
         });
     };
 
-    var OpenCollectionNameEditor = function(mode, collection, $host) {
+    var OpenCollectionNameEditor = function(mode, collection, $anchor) {
 
         if (!CanShowCollectionTools()) {
             return;
@@ -1192,26 +1660,29 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
             return;
         }
 
-        if (!$host || !$host.length || IsCollectionTabHost($host)) {
-            $host = GetCollectionEditorHost();
-        }
+        $anchor = ResolveCollectionNameEditorAnchor(mode, collection, $anchor);
 
-        if (!$host.length) {
+        if (!$anchor || !$anchor.length) {
             return;
         }
 
+        CloseCollectionNameEditor({ skipHeaderRender: true, skipControlsUpdate: true });
+        CloseCollectionOptionsMenus(null, { animate: false });
+
         _isCollectionNameEditorOpen = true;
-        CloseCollectionOptionsMenus();
-        DestroyTooltipsIn($host);
+        _Tooltips.Close($anchor);
 
         var displayName = collection ? GetCollectionDisplayName(collection) : '';
         var existingName = (isRename && collection && !IsDefaultCollection(collection)) ? displayName : '';
         var editorId = 'collectionNameEditorInput';
-        var $editor = $('<div class="collection-name-editor collection-name-editor-rail" />');
-        var $label = $('<label class="collection-name-editor-label" />');
-        var $input = $('<input type="text" maxlength="60" class="collection-name-editor-input tooltip" />');
-        var $save = $('<button type="button" class="collection-name-editor-button collection-name-editor-save" />');
-        var $cancel = $('<button type="button" class="collection-name-editor-button collection-name-editor-cancel" />');
+        var labelId = 'collectionNameEditorLabel';
+        var $editor = $('<div class="collection-name-floating-editor" role="dialog" aria-modal="false" />');
+        var $label = $('<label class="collection-name-floating-editor-label" />');
+        var $body = $('<div class="collection-name-floating-editor-body" />');
+        var $actions = $('<div class="collection-name-floating-editor-actions" />');
+        var $input = $('<input type="text" maxlength="60" class="collection-name-floating-editor-input tooltip" autocomplete="off" />');
+        var $save = $('<button type="button" class="collection-name-floating-editor-button collection-name-floating-editor-save" />');
+        var $cancel = $('<button type="button" class="collection-name-floating-editor-button collection-name-floating-editor-cancel" />');
         var CloseEditor = function(e) {
 
             if (e) {
@@ -1220,7 +1691,7 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
             }
 
             $input.val('');
-            CloseCollectionNameEditor();
+            CloseCollectionNameEditor({ restoreFocus: true });
         };
         var Confirm = function(e) {
 
@@ -1237,10 +1708,11 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
 
             $save.prop('disabled', true);
             $cancel.prop('disabled', true);
-            $editor.addClass('saving');
+            $input.prop('disabled', true);
+            $editor.addClass('collection-name-floating-editor-saving');
 
             SaveCollectionName(value, mode, isRename ? collection : null, function() {
-                CloseCollectionNameEditor();
+                CloseCollectionNameEditor({ skipHeaderRender: true, skipControlsUpdate: true });
                 _self.PopulateCollections();
                 if (_collectionControls) {
                     _collectionControls.Reset();
@@ -1249,9 +1721,16 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
             });
         };
 
-        $editor.toggleClass('collection-name-editor-create', isCreate);
-        $editor.toggleClass('collection-name-editor-rename', isRename);
-        $label.attr('for', editorId).text(isCreate ? 'New collection' : 'Rename collection');
+        $editor
+            .toggleClass('collection-name-floating-editor-create', isCreate)
+            .toggleClass('collection-name-floating-editor-rename', isRename)
+            .attr('aria-labelledby', labelId);
+
+        $label
+            .attr('id', labelId)
+            .attr('for', editorId)
+            .text(isCreate ? 'New collection' : 'Rename collection');
+
         $input.attr('id', editorId);
         $input.val(existingName);
         $input.attr('placeholder', isCreate ? 'Collection name' : (IsDefaultCollection(collection) ? _defaultCollectionDisplayName : displayName));
@@ -1265,10 +1744,12 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
             });
 
         $input.on('keydown.collectionNameEditor', function(e) {
-            if (e.which === 13) {
+            var key = e.which || e.keyCode;
+
+            if (key === 13) {
                 Confirm(e);
             }
-            else if (e.which === 27) {
+            else if (key === 27) {
                 CloseEditor(e);
             }
         });
@@ -1276,16 +1757,45 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
         $save.on('click.collectionNameEditor', Confirm);
         $cancel.on('click.collectionNameEditor', CloseEditor);
 
+        $actions.append($cancel);
+        $actions.append($save);
+        $body.append($input);
+        $body.append($actions);
         $editor.append($label);
-        $editor.append($input);
-        $editor.append($save);
-        $editor.append($cancel);
+        $editor.append($body);
 
-        $host.addClass('collection-rail-editor-host-open').empty().append($editor);
+        $('body').append($editor);
+        _openCollectionNameEditor = {
+            mode: mode,
+            collection: collection,
+            $anchor: $anchor,
+            $editor: $editor
+        };
 
-        LayoutCollectionTabs();
+        BindCollectionNameEditorDocumentHandlers();
+        PositionOpenCollectionNameEditor();
+
+        if (window.requestAnimationFrame) {
+            window.requestAnimationFrame(function() {
+                $editor.addClass(_collectionNameEditorOpenClass);
+                PositionOpenCollectionNameEditor();
+            });
+        }
+        else {
+            setTimeout(function() {
+                $editor.addClass(_collectionNameEditorOpenClass);
+                PositionOpenCollectionNameEditor();
+            }, 0);
+        }
+
         _Tooltips.Any();
-        $input.focus().select();
+
+        setTimeout(function() {
+            $input.focus();
+            if (isRename && existingName) {
+                $input.select();
+            }
+        }, 0);
     };
     
     var RemoveTitle = function(activeTitle, onRemoveComplete) {
@@ -1314,7 +1824,7 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
     var RemoveCollection = function(collection, onRemoveComplete) {
 
         CloseCollectionOptionsMenus();
-        _isCollectionNameEditorOpen = false;
+        CloseCollectionNameEditor({ skipHeaderRender: true, skipControlsUpdate: true });
 
         _Tooltips.Destroy(collection.gridItem);
         _collectionsGrid.isotope('remove', collection.gridItem); //immediately remove from grid (i used to wait for response but why right?)
@@ -1524,16 +2034,11 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
                 //AddContentMenuToActiveCollection($(collection.gridItem));
             }
 
-            //generate new toolips content for the explicit collection options trigger (sort options, remove etc)
+            //bind the explicit collection options trigger (sort options, rename, publish, remove etc)
             if (IsEditableCollection(collection) && collection.optionsTrigger && collection.optionsTrigger.length) {
-                var $tooltipContent = GenerateCollectionTooltipContent(collection);
-
-                // Older builds attached this menu to the whole badge. Keep the badge itself calm and clickable.
-                _Tooltips.Destroy(collection.gridItem);
-                _Tooltips.SingleHTML(collection.optionsTrigger, $tooltipContent, true, function() {
-                    CloseCollectionOptionsMenus(collection.optionsTrigger);
-                    return true;
-                }, 'click'); //reapply tooltips on the three-dot button only
+                // Older builds attached this menu to Tooltipster, which rendered a popover bubble.
+                // Ensure any previous tooltip instance is removed before binding the custom dropdown.
+                DestroyTooltipsIn(collection.optionsTrigger);
                 BindCollectionOptionsTrigger(collection);
             }
             else {
@@ -1590,6 +2095,7 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
         var $name = collection.gridItem.find('.collection-tab-name').first();
         var $optionsTrigger = collection.gridItem.find(_collectionOptionsTriggerSelector).first();
         var showOptionsTrigger = IsEditableCollection(collection);
+        var isOptionsDropdownOpen;
 
         collection.gridItem
             .removeClass('collection-tab-user collection-tab-default')
@@ -1625,9 +2131,15 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
                 .text('▾')
                 .attr('aria-label', 'Collection options for ' + displayName)
                 .attr('aria-haspopup', 'menu')
+                .attr('title', 'Collection options')
                 .attr('tabindex', '0');
 
             collection.optionsTrigger = $optionsTrigger;
+            isOptionsDropdownOpen = _openCollectionOptionsDropdown &&
+                _openCollectionOptionsDropdown.$trigger &&
+                _openCollectionOptionsDropdown.$trigger[0] === $optionsTrigger[0];
+
+            SetCollectionOptionsTriggerOpenState($optionsTrigger, isOptionsDropdownOpen, _openCollectionOptionsDropdown ? _openCollectionOptionsDropdown.$menu : null);
         }
         else {
             collection.gridItem.removeClass('collection-tab-has-options');
@@ -1755,68 +2267,93 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
         _Tooltips.SingleHTMLWithTitleScreen(activeTitle.gridItem, $tooltipContent, $mediawrapper, activeTitle.gameKey, true, false, null, ['top']);
     };
 
-    var GenerateCollectionTooltipContent = function(collection) {
-        
-        //create the tooltip content
-        var $tooltipContent = $('<div class="collection-tooltip collection-options-menu" role="menu" />');
+    var GenerateCollectionOptionsDropdownContent = function(collection) {
 
-        $tooltipContent.append($('<div class="collection-tooltip-title" />').text(GetCollectionDisplayName(collection)));
+        var displayName = GetCollectionDisplayName(collection);
+        var $menu = $('<div class="collection-options-dropdown collection-options-menu" role="menu" />');
+        var $title = $('<div class="collection-options-menu-title" />').text(displayName);
+        var AppendSeparator = function() {
+            $menu.append($('<div class="collection-options-menu-separator" aria-hidden="true" />'));
+        };
+        var CreateMenuItem = function(label, className, handler) {
+            var $item = $('<button type="button" class="collection-options-menu-item noselect" />');
 
-        var $lastPlayed = $('<span class="button first noselect">Sort: Last Played</span>');
-        BindTooltipAction($lastPlayed, function(e) {
+            $item.text(label);
+
+            if (className) {
+                $item.addClass(className);
+            }
+
+            BindTooltipAction($item, handler);
+            return $item;
+        };
+        var $lastPlayed;
+        var $nameSort;
+        var $releaseDateSort;
+        var $playCountSort;
+        var $rename;
+        var $publish;
+        var $remove;
+
+        $menu
+            .attr('id', GetCollectionOptionsMenuId(collection))
+            .attr('aria-label', 'Collection options for ' + displayName)
+            .data('collectionId', collection.id);
+
+        // $menu.append($title);
+
+        $lastPlayed = CreateMenuItem('Sort: Last Played', 'collection-options-menu-item-sort', function(e) {
             CloseCollectionOptionsMenu(collection);
             _TitlesSort.Change('lastPlayed', false);
         });
-        $tooltipContent.append($lastPlayed);
+        $menu.append($lastPlayed);
 
-        var $nameSort = $('<span class="button noselect">Sort: Name</span>');
-        BindTooltipAction($nameSort, function(e) {
+        $nameSort = CreateMenuItem('Sort: Name', 'collection-options-menu-item-sort', function(e) {
             CloseCollectionOptionsMenu(collection);
             _TitlesSort.Change('name', false);
         });
-        $tooltipContent.append($nameSort);
+        $menu.append($nameSort);
 
-        var $releaseDateSort = $('<span class="button noselect">Sort: Release Date</span>');
-        BindTooltipAction($releaseDateSort, function(e) {
+        $releaseDateSort = CreateMenuItem('Sort: Release Date', 'collection-options-menu-item-sort', function(e) {
             CloseCollectionOptionsMenu(collection);
             _TitlesSort.Change('releaseDate', true);
         });
-        $tooltipContent.append($releaseDateSort);
+        $menu.append($releaseDateSort);
 
-        var $playCountSort = $('<span class="button noselect">Sort: Play Count</span>');
-        BindTooltipAction($playCountSort, function(e) {
+        $playCountSort = CreateMenuItem('Sort: Play Count', 'collection-options-menu-item-sort', function(e) {
             CloseCollectionOptionsMenu(collection);
             _TitlesSort.Change('playCount', false);
         });
-        $tooltipContent.append($playCountSort);
+        $menu.append($playCountSort);
 
-        var $rename = $('<span class="button noselect">Rename</span>');
-        BindTooltipAction($rename, function(e) {
+        AppendSeparator();
+
+        $rename = CreateMenuItem('Rename', 'collection-options-menu-item-rename', function(e) {
             CloseCollectionOptionsMenu(collection);
-            OpenCollectionNameEditor('rename', collection, collection.gridItem);
+            OpenCollectionNameEditor('rename', collection, collection.optionsTrigger || collection.gridItem);
         });
-        $tooltipContent.append($rename);
+        $menu.append($rename);
 
         if (CanPublishCollection(collection)) {
-            var $publish = $('<button type="button" class="button noselect collection-tooltip-publish-featured">Publish as Featured</button>');
-            BindTooltipAction($publish, function(e) {
+            $publish = CreateMenuItem('Publish as Featured', 'collection-options-menu-item-publish collection-tooltip-publish-featured', function(e) {
                 PublishCollection(collection, $publish);
             });
-            $tooltipContent.append($publish);
+            $menu.append($publish);
         }
-    
-        var $remove = $('<span class="button remove noselect">Delete</span>');
-        BindTooltipAction($remove, function(e) {
+
+        AppendSeparator();
+
+        $remove = CreateMenuItem('Delete', 'collection-options-menu-item-danger remove', function(e) {
             $remove.off('click.collectionActivate keydown.collectionActivate');
             CloseCollectionOptionsMenu(collection);
             _Preferences.Remove('collections.sort.' + collection.name);
             RemoveCollection(collection, function() {
-                
+
             });
         });
-        $tooltipContent.append($remove);
+        $menu.append($remove);
 
-        return $tooltipContent;
+        return $menu;
     };
 
     var NewCollectionControls = (function($griditem) {
@@ -1836,7 +2373,7 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
             }
 
             CloseCollectionOptionsMenus();
-            OpenCollectionNameEditor('create', null, GetCollectionEditorHost());
+            OpenCollectionNameEditor('create', null, $gi);
             __self.Update();
         };
 
@@ -1846,7 +2383,7 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
 
             $gi
                 .off('click.collectionActivate keydown.collectionActivate')
-                .removeClass('collection-tab-editor collection-tab-has-options tooltip tooltip-static-right')
+                .removeClass('collection-tab-has-options tooltip tooltip-static-right')
                 .addClass('collection-tab collection-tab-add')
                 .data('type', GetCollectionSortType({ name: '' }))
                 .attr('role', 'button')
@@ -1997,7 +2534,7 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
 
             if (!_activeCollectionId && payload.collections.length === 0) {
                 CloseCollectionOptionsMenus();
-                _isCollectionNameEditorOpen = false;
+                CloseCollectionNameEditor({ skipHeaderRender: true, skipControlsUpdate: true });
                 _TitlesSort.Reset();
             }
 
@@ -2084,6 +2621,7 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
                     }
                 }
                 if (!found) {
+                    CloseCollectionOptionsMenu(_collectionNames[k], { animate: false });
                     if (_collectionNames[k].gridItem && _collectionNames[k].gridItem.length) {
                         _Tooltips.Destroy(_collectionNames[k].gridItem);
                         _collectionsGrid.isotope('remove', _collectionNames[k].gridItem);
