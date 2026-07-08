@@ -74,6 +74,45 @@ block content
                     p Please wait while we cleanup this game and prepare for the next
                         
 
+            div(class="dialogwrapper")
+                div(class="FeaturedCollectionsAdmin dialog dialog-animation hide close")
+                    h2 Manage Featured Collections
+                    p(class="featured-admin-intro") Rename, hide, sort, delete, or create featured collections. Download the master inventory TSV for exact Crazyerics system, title, and ROM values.
+                    div#featuredcollectionsadminstatus(class="featured-admin-status", aria-live="polite")
+                    div(class="featured-admin-body")
+                        section(class="featured-admin-section featured-admin-list-section")
+                            h3 Existing featured collections
+                            div#featuredcollectionsadminlist(class="featured-admin-list")
+                        section(class="featured-admin-section featured-admin-create-section")
+                            h3 Create from CSV
+                            div(class="featured-admin-inventory-tools")
+                                h4 Master inventory
+                                p Use #[code master-inventory.tsv] with an AI model or spreadsheet editor to build featured collection CSV imports from exact inventory rows.
+                                a#featuredcollectionsadmininventorydownload(href="/admin/featured-collections/master-inventory.tsv", class="button zoom noselect featured-admin-inventory-download", download="master-inventory.tsv", target="featuredcollectionsadmininventoryframe") Download master-inventory.tsv
+                                span#featuredcollectionsadmininventorynote(class="featured-admin-inventory-note")
+                                iframe#featuredcollectionsadmininventoryframe(name="featuredcollectionsadmininventoryframe", class="featured-admin-download-frame", title="Master inventory download")
+                            div(class="featured-admin-create-grid")
+                                label(for="featuredcollectionsadmintitle") Title
+                                input#featuredcollectionsadmintitle(type="text", maxlength="120")
+                                label(for="featuredcollectionsadminsort") Sort field
+                                select#featuredcollectionsadminsort
+                                label(for="featuredcollectionsadmindirection") Sort direction
+                                select#featuredcollectionsadmindirection
+                                label(class="featured-admin-checkbox", for="featuredcollectionsadminpublished")
+                                    input#featuredcollectionsadminpublished(type="checkbox", checked)
+                                    span Publish immediately
+                            label(class="featured-admin-textarea-label", for="featuredcollectionsadminimport") Game CSV
+                            textarea#featuredcollectionsadminimport(rows="8", spellcheck="false")
+                            pre#featuredcollectionsadminexample(class="featured-admin-example")
+                            div(class="featured-admin-create-actions")
+                                button#featuredcollectionsadminpreview(type="button", class="button zoom noselect") Preview import
+                                button#featuredcollectionsadmincreate(type="button", class="button play zoom noselect") Create featured collection
+                            div#featuredcollectionsadminpreviewresult(class="featured-admin-preview-result")
+                    div(class="featured-admin-footer")
+                        button#featuredcollectionsadminrefresh(type="button", class="button zoom noselect") Refresh
+                        button#featuredcollectionsadminclose(type="button", class="button remove zoom noselect") Close
+
+
         div#emulatorwrapper
             div#emulatorfullscreencontrols(class="emulator-fullscreen-controls", aria-label="Emulator fullscreen controls")
                 button#emulatorfullscreenoverlaybutton(type="button", class="controls-runtime-gamepad-configure-button button play zoom noselect", title="Exit browser fullscreen", aria-label="Exit browser fullscreen") Exit Full Screen

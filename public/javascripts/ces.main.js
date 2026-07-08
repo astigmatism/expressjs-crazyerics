@@ -104,6 +104,20 @@ var cesMain = (function() {
         _Dialogs.Register('Exception', 500);
         _Dialogs.Register('EmulatorCleanup', 300);
         _Dialogs.Register('PlayAgain', 200);
+        _Dialogs.Register('FeaturedCollectionsAdmin', 700);
+
+        $(document).on('ces.admin.featuredCollections.open', function(event) {
+            event.preventDefault();
+            if (window.cesAdmin && window.cesAdmin.IsActive && window.cesAdmin.IsActive() !== true) {
+                return;
+            }
+            _Dialogs.Open('FeaturedCollectionsAdmin');
+        });
+
+        $(document).on('ces.admin.featuredCollections.close', function(event) {
+            event.preventDefault();
+            _Dialogs.Close();
+        });
 
         _toolbars.system = $('#toolbar .systemfilter select');
         _toolbars.search = $('#toolbar .search input');

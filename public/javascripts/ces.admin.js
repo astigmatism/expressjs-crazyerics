@@ -16,6 +16,7 @@
     var _$status = null;
     var _$message = null;
     var _$exit = null;
+    var _$featured = null;
 
     function GetNativeEvent(event) {
         return event && event.originalEvent ? event.originalEvent : event;
@@ -93,9 +94,11 @@
 
         if (_adminActive) {
             ShowStatusMessage('Admin mode active', true);
+            _$featured.show();
             _$exit.show();
         }
         else {
+            _$featured.hide();
             _$exit.hide();
             if (!_statusTimer) {
                 _$status.removeClass('runtime-admin-status-visible');
@@ -206,11 +209,21 @@
         _$banner = $('#titlebanner');
         _$status = $('#runtimeadminstatus');
         _$message = _$status.find('.runtime-admin-status-message');
+        _$featured = $('#runtimeadminfeatured');
         _$exit = $('#runtimeadminexit');
 
         if (!_$banner.length || !window.FormData) {
             return;
         }
+
+        _$featured.hide().on('click.cesadmin', function(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            if (!_adminActive) {
+                return;
+            }
+            $(document).trigger('ces.admin.featuredCollections.open');
+        });
 
         _$exit.hide().on('click.cesadmin', function(event) {
             event.preventDefault();

@@ -382,7 +382,7 @@ module.exports = new (function() {
 
                 //console.log('suggestions.' + system + ' (threshold: ' + systemSuggestionThreshold + ') "inviting" suggestions --> ' + suggestions.top.length + '. suggestions above threshold --> ' + suggestions.above.length + '. suggestions below threshhold --> ' + suggestions.below.length + '. total with thegamesdb rating --> ' + titlesWithRating);
                 
-                return callback(null, all_search, all_suggestions_top, all_suggestions_above, system_suggestions.genres, system_suggestions.years, total_titles);
+                return callback(null, all_search, all_suggestions_top, all_suggestions_above, system_suggestions.genres, system_suggestions.years, total_titles, boxFrontData);
 
             });
         }, '/data/' + system + '_boxfronts'); //box front audit request. final param is the path to save the response to

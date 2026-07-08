@@ -5,6 +5,7 @@ html
         script(src='https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js')
         if (process.env.NODE_ENV === 'production')
             script(src='/build/app.min.js', type='text/javascript')
+            script(src='/javascripts/ces.featured.js', type='text/javascript')
         else
             script(src='/javascripts/ces.main.js', type='text/javascript')
             script(src='/javascripts/ces.sync.js', type='text/javascript')
@@ -61,6 +62,7 @@ html
             script(src='/javascripts/three.min.js')
 
         script(src='/javascripts/ces.admin.js', type='text/javascript')
+        script(src='/javascripts/dialogs/ces.dialogs.featuredcollectionsadmin.js', type='text/javascript')
 
         if (process.env.NODE_ENV === 'production')
             link(rel='stylesheet', href='/build/style.min.css')
@@ -87,6 +89,7 @@ html
                         h1 crazyerics.com
                     div#runtimeadminstatus(class='runtime-admin-status', aria-live='polite')
                         span(class='runtime-admin-status-message')
-                        button#runtimeadminexit(type='button', class='runtime-admin-exit', aria-label='Leave administrator mode') Leave admin
+                        button#runtimeadminfeatured(type='button', class='runtime-admin-action runtime-admin-featured-manager', aria-label='Manage featured collections') Featured Collections
+                        button#runtimeadminexit(type='button', class='runtime-admin-exit runtime-admin-action', aria-label='Leave administrator mode') Leave admin
                 block content
             - //div#menucolumn

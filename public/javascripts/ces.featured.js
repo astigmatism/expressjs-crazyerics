@@ -380,9 +380,20 @@ var ApplyFeaturedSort = function(collection) {
             sortAscending: collection.asc === true
         });
     }
+    else if (collection && collection.sort === 'lastPlayed') {
+        _titlesGrid.isotope('updateSortData').isotope({
+            sortBy: 'lastPlayed',
+            sortAscending: collection.asc === true
+        });
+    }
+    else if (collection && collection.sort === 'playCount') {
+        _titlesGrid.isotope('updateSortData').isotope({
+            sortBy: 'playCount',
+            sortAscending: collection.asc === true
+        });
+    }
     else {
-        // Preserve the curated/published game order for sort modes whose original
-        // personal-collection data is user-specific or unavailable to featured viewers.
+        // Preserve the curated/published game order when no explicit featured sort is set.
         _titlesGrid.isotope({
             sortBy: 'original-order',
             sortAscending: true
@@ -413,6 +424,8 @@ var AddTitle = function(gk, batchIndex, titleMetadata) {
     $griditem.data('active', 1);
     $griditem.data('name', gameKey.title);
     $griditem.data('system', gameKey.system);
+    $griditem.data('lastPlayed', titleMetadata && typeof titleMetadata.lastPlayed !== 'undefined' ? titleMetadata.lastPlayed : -1);
+    $griditem.data('playCount', titleMetadata && typeof titleMetadata.playCount !== 'undefined' ? titleMetadata.playCount : 0);
     $griditem.data('type', 'featured');
     ApplyReleaseSortData($griditem, titleMetadata && titleMetadata.releaseSort);
 
@@ -430,6 +443,15 @@ var AddTitle = function(gk, batchIndex, titleMetadata) {
     }
 
     return $griditem;
+};
+
+var RefreshFeaturedFromServer = function() {
+
+    _Sync.Get(_baseUrl, function(response) {
+        if ($.isArray(response)) {
+            _self.Sync.Incoming(response);
+        }
+    });
 };
 
 var DeleteCollection = function(collection) {
@@ -494,6 +516,10 @@ $(document).on('ces.admin.state', function(e, active) {
 
 $(document).on('ces.collections.serverManagedVisibility', function(e, visible) {
     Render();
+});
+
+$(document).on('ces.admin.featuredCollections.changed', function() {
+    RefreshFeaturedFromServer();
 });
 
 _isAdminActive = ReadAdminActive();

@@ -16,6 +16,7 @@ const SiteStatisticCollectionsService = require('./site-statistic-collections');
 const CronService = require('./cron');
 const TitleBannerService = require('./titlebanners');
 const ShaderService = require('./shaders');
+const MasterInventoryService = require('./master-inventory');
 
 module.exports = new (function() {
 
@@ -64,6 +65,7 @@ module.exports = new (function() {
 
         var all_genres = {};
         var all_years = {};
+        var masterInventorySources = {};
 
         //operations for each system
         async.each(Object.keys(systems), function(system, nextsystem) {
@@ -99,7 +101,7 @@ module.exports = new (function() {
                         if (err) metadata = {};
 
                         //callback includes categories for "all" suggestions and search
-                        SuggestionService.CreateSystemSuggestions(system, masterfile, metadata, (err, search, top, above, genres, years, total) => {
+                        SuggestionService.CreateSystemSuggestions(system, masterfile, metadata, (err, search, top, above, genres, years, total, boxFrontData) => {
                             if (err) return nextsystem(err);
 
                             //append the all_search which appropriate titles discovered for this system
@@ -124,8 +126,26 @@ module.exports = new (function() {
                             }
 
                             total_titles += total;
-                            
-                            return nextsystem();
+
+                            if (boxFrontData && Object.keys(boxFrontData).length > 0) {
+                                masterInventorySources[system] = {
+                                    config: systems[system],
+                                    master: masterfile,
+                                    boxFronts: boxFrontData
+                                };
+
+                                return nextsystem();
+                            }
+
+                            FileService.Get('/data/' + system + '_boxfronts', function(err, localBoxFronts) {
+                                masterInventorySources[system] = {
+                                    config: systems[system],
+                                    master: masterfile,
+                                    boxFronts: err ? {} : localBoxFronts
+                                };
+
+                                return nextsystem();
+                            });
                         });
                     }, '/data/' + system + '_metadata');
                 });
@@ -168,15 +188,27 @@ module.exports = new (function() {
             FileService.Set('metadata.years', Object.keys(all_years));
             
 
-            //i found that generating a unique suggestions (for all, system) was inefficient, so I will create canned versions instead, the player will not notice :)
-            SuggestionService.CreateCanned((err) => {
-                if (err) {
-                    return callback(err);
+            MasterInventoryService.Write(masterInventorySources, (inventoryErr, inventoryResult) => {
+                if (inventoryErr) {
+                    console.log('master-inventory: failed to generate master-inventory.tsv', inventoryErr);
+                }
+                else {
+                    console.log('master-inventory: wrote ' + inventoryResult.count + ' titles to ' + inventoryResult.filename +
+                        ' (skipped no box art: ' + inventoryResult.stats.skipped.noBoxArt +
+                        ', malformed: ' + GetMasterInventoryMalformedCount(inventoryResult.stats) +
+                        ', duplicates: ' + inventoryResult.stats.skipped.duplicates + ')');
                 }
 
-                console.log('Crazyerics application start-up complete! Enjoy ;)');
+                //i found that generating a unique suggestions (for all, system) was inefficient, so I will create canned versions instead, the player will not notice :)
+                SuggestionService.CreateCanned((err) => {
+                    if (err) {
+                        return callback(err);
+                    }
 
-                callback();
+                    console.log('Crazyerics application start-up complete! Enjoy ;)');
+
+                    callback();
+                });
             });
         });
 
@@ -189,6 +221,20 @@ module.exports = new (function() {
         SiteStatisticCollectionsService.ApplicationStart((err) => {
             if (err) console.log(err);
         });
+    };
+
+    var GetMasterInventoryMalformedCount = function(stats) {
+
+        if (!stats || !stats.skipped) {
+            return 0;
+        }
+
+        return stats.skipped.missingTitle +
+            stats.skipped.missingRom +
+            stats.skipped.missingSystem +
+            stats.skipped.invalidMasterFiles +
+            stats.skipped.invalidBoxFrontEntries +
+            stats.skipped.malformed;
     };
 
     var BuildConfigForEntry = function(callback) {
