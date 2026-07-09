@@ -33,6 +33,7 @@ var cesSuggestions = (function(_config, _Media, _Compression, _Tooltips, _Collec
     var _renderedKeys = {};
     var _renderSequence = 0;
     var _loadGeneration = 0;
+    var _activeSuggestionRequest = null;
     var _ended = false;
     var _observer = null;
     var _scrollHandler = null;
@@ -47,6 +48,13 @@ var cesSuggestions = (function(_config, _Media, _Compression, _Tooltips, _Collec
         _ended = false;
         _loading = true;
         _loadGeneration++;
+        _loadingRequestCount = 0;
+
+        AbortActiveSuggestionRequest();
+
+        if (!_opt_alphaHelper) {
+            ClearActiveBrowseLetter();
+        }
 
         ResetLoadingState();
 
@@ -111,48 +119,50 @@ var cesSuggestions = (function(_config, _Media, _Compression, _Tooltips, _Collec
         Fetch(recipe, function(err, suggestions) {
 
             if (loadGeneration !== _loadGeneration) {
-                return CompleteRequest(callback, false);
+                return CompleteRequest(callback, false, loadGeneration);
             }
 
             if (err) {
                 _ended = true;
                 _loading = false;
-                return CompleteRequest(callback, true);
+                return CompleteRequest(callback, true, loadGeneration);
             }
 
             Build(suggestions, function(batchSummary) {
 
                 if (loadGeneration !== _loadGeneration) {
-                    return CompleteRequest(callback, false);
+                    return CompleteRequest(callback, false, loadGeneration);
                 }
 
                 _loading = false;
                 _ended = ShouldEndAfterBatch(batchSummary, recipe, opt_canned);
 
-                CompleteRequest(callback, true);
-                ScheduleLoadCheck();
-            });
+                CompleteRequest(callback, true, loadGeneration);
+                ScheduleLoadCheck(loadGeneration);
+            }, loadGeneration);
 
-        }, opt_canned);
+        }, opt_canned, loadGeneration);
     };
 
-    var CompleteRequest = function(callback, invokeCallback) {
+    var CompleteRequest = function(callback, invokeCallback, loadGeneration) {
 
-        _loadingRequestCount--;
-        if (_loadingRequestCount < 0) {
-            _loadingRequestCount = 0;
+        if (IsCurrentLoadGeneration(loadGeneration)) {
+            _loadingRequestCount--;
+            if (_loadingRequestCount < 0) {
+                _loadingRequestCount = 0;
+            }
+
+            if (_loadingRequestCount < 1) {
+                HideLoading();
+            }
         }
 
-        if (_loadingRequestCount < 1) {
-            HideLoading();
-        }
-
-        if (invokeCallback && callback) {
+        if (invokeCallback && callback && IsCurrentLoadGeneration(loadGeneration)) {
             callback();
         }
     };
 
-    var Fetch = function(recipe, callback, opt_canned) {
+    var Fetch = function(recipe, callback, opt_canned, loadGeneration) {
 
         _loadingRequestCount++;
         ShowLoading();
@@ -160,26 +170,78 @@ var cesSuggestions = (function(_config, _Media, _Compression, _Tooltips, _Collec
         //are we fetching a canned result?
         opt_canned = (opt_canned == true) ? true : false;
 
+        var request = null;
+
         if (opt_canned) {
 
-            $.get('/suggest?rp=' + recipe, function(response) {
+            request = $.get('/suggest?rp=' + recipe, function(response) {
+                ClearActiveSuggestionRequest(request);
                 callback(null, DecodeResponse(response));
             }).fail(function(response) {
+                ClearActiveSuggestionRequest(request);
                 callback(response || true);
             });
         }
         else {
             var compressedRecipe = _Compression.Zip.json(recipe);
 
-            $.post('/suggest', {
+            request = $.post('/suggest', {
                 'recipe': compressedRecipe
 
             }, function(response) {
+                ClearActiveSuggestionRequest(request);
                 callback(null, DecodeResponse(response));
             }).fail(function(response) {
+                ClearActiveSuggestionRequest(request);
                 callback(response || true);
             });
         }
+
+        TrackActiveSuggestionRequest(request, loadGeneration);
+        return request;
+    };
+
+    var TrackActiveSuggestionRequest = function(request, loadGeneration) {
+
+        if (!IsCurrentLoadGeneration(loadGeneration) || !request || !request.abort) {
+            return;
+        }
+
+        _activeSuggestionRequest = request;
+    };
+
+    var ClearActiveSuggestionRequest = function(request) {
+
+        if (_activeSuggestionRequest === request) {
+            _activeSuggestionRequest = null;
+        }
+    };
+
+    var AbortActiveSuggestionRequest = function() {
+
+        if (!_activeSuggestionRequest || !_activeSuggestionRequest.abort) {
+            _activeSuggestionRequest = null;
+            return;
+        }
+
+        try {
+            _activeSuggestionRequest.abort();
+        }
+        catch (err) {
+            // The request may already have completed or been canceled.
+        }
+
+        _activeSuggestionRequest = null;
+    };
+
+    var IsCurrentLoadGeneration = function(loadGeneration) {
+
+        return loadGeneration === _loadGeneration;
+    };
+
+    var IsCurrentSuggestionItem = function($item, loadGeneration) {
+
+        return IsCurrentLoadGeneration(loadGeneration) && $item && $item.data('suggestionLoadGeneration') === loadGeneration;
     };
 
     var DecodeResponse = function(response) {
@@ -226,7 +288,23 @@ var cesSuggestions = (function(_config, _Media, _Compression, _Tooltips, _Collec
         });
     };
 
-    var Build = function(suggestions, callback) {
+    var ClearActiveBrowseLetter = function() {
+
+        $wrapper.find('div.suggestionsbar a.active')
+            .removeClass('active')
+            .removeAttr('aria-current');
+    };
+
+    var SetActiveBrowseLetter = function($link) {
+
+        ClearActiveBrowseLetter();
+
+        $link
+            .addClass('active')
+            .attr('aria-current', 'true');
+    };
+
+    var Build = function(suggestions, callback, loadGeneration) {
 
         var batchSummary = {
             received: suggestions ? suggestions.length : 0,
@@ -234,7 +312,7 @@ var cesSuggestions = (function(_config, _Media, _Compression, _Tooltips, _Collec
             inserted: 0
         };
 
-        if (!suggestions || !suggestions.length) {
+        if (!IsCurrentLoadGeneration(loadGeneration) || !suggestions || !suggestions.length) {
             return callback(batchSummary);
         }
 
@@ -243,7 +321,7 @@ var cesSuggestions = (function(_config, _Media, _Compression, _Tooltips, _Collec
         var items = [];
 
         for (var i = 0; i < suggestions.length; ++i) {
-            var item = CreateSuggestionItem(suggestions[i], items.length);
+            var item = CreateSuggestionItem(suggestions[i], items.length, loadGeneration);
 
             if (item) {
                 items.push(item);
@@ -255,10 +333,14 @@ var cesSuggestions = (function(_config, _Media, _Compression, _Tooltips, _Collec
             return callback(batchSummary);
         }
 
-        WaitForItemsAndInsert(items, batchSummary, callback);
+        WaitForItemsAndInsert(items, batchSummary, callback, loadGeneration);
     };
 
-    var CreateSuggestionItem = function(compressedGameKey, batchIndex) {
+    var CreateSuggestionItem = function(compressedGameKey, batchIndex, loadGeneration) {
+
+        if (!IsCurrentLoadGeneration(loadGeneration)) {
+            return null;
+        }
 
         var gameKey = null;
 
@@ -278,10 +360,11 @@ var cesSuggestions = (function(_config, _Media, _Compression, _Tooltips, _Collec
         var $griditem = $('<div class="grid-item suggestion-grid-item" />');
         $griditem.attr('data-gk', gameKey.gk);
         $griditem.data('suggestionSequence', _renderSequence++);
+        $griditem.data('suggestionLoadGeneration', loadGeneration);
 
         var onImageLoaded = function() {
-            if ($griditem.parent().length) {
-                ScheduleLayoutRefresh();
+            if (IsCurrentSuggestionItem($griditem, loadGeneration) && $griditem.parent().length) {
+                ScheduleLayoutRefresh(loadGeneration);
             }
         };
 
@@ -300,34 +383,53 @@ var cesSuggestions = (function(_config, _Media, _Compression, _Tooltips, _Collec
         };
     };
 
-    var WaitForItemsAndInsert = function(items, batchSummary, callback) {
+    var WaitForItemsAndInsert = function(items, batchSummary, callback, loadGeneration) {
 
         var nextToInsert = 0;
         var remaining = items.length;
         var finished = false;
 
+        var finish = function() {
+
+            if (finished) {
+                return;
+            }
+
+            finished = true;
+            callback(batchSummary);
+        };
+
         var flushReadyItems = function() {
 
+            if (finished) {
+                return;
+            }
+
+            if (!IsCurrentLoadGeneration(loadGeneration)) {
+                return finish();
+            }
+
             while (nextToInsert < items.length && items[nextToInsert].ready) {
-                InsertGridItem(items[nextToInsert].$el, items[nextToInsert].batchIndex, false);
-                items[nextToInsert].inserted = true;
-                batchSummary.inserted++;
+                if (InsertGridItem(items[nextToInsert].$el, items[nextToInsert].batchIndex, false, loadGeneration)) {
+                    items[nextToInsert].inserted = true;
+                    batchSummary.inserted++;
+                }
+
                 nextToInsert++;
                 remaining--;
             }
 
-            if (remaining < 1 && !finished) {
-                finished = true;
-                callback(batchSummary);
+            if (remaining < 1) {
+                finish();
             }
         };
 
         for (var i = 0; i < items.length; ++i) {
-            MarkItemReadyWhenImagesSettle(items[i], flushReadyItems);
+            MarkItemReadyWhenImagesSettle(items[i], flushReadyItems, loadGeneration);
         }
     };
 
-    var MarkItemReadyWhenImagesSettle = function(item, onReady) {
+    var MarkItemReadyWhenImagesSettle = function(item, onReady, loadGeneration) {
 
         var done = false;
         var $images = item.$el.find('img');
@@ -337,6 +439,12 @@ var cesSuggestions = (function(_config, _Media, _Compression, _Tooltips, _Collec
                 return;
             }
             done = true;
+
+            if (!IsCurrentLoadGeneration(loadGeneration)) {
+                onReady();
+                return;
+            }
+
             item.ready = true;
             onReady();
         };
@@ -430,7 +538,11 @@ var cesSuggestions = (function(_config, _Media, _Compression, _Tooltips, _Collec
         return items;
     };
 
-    var InsertGridItem = function($item, batchIndex, skipAnimation) {
+    var InsertGridItem = function($item, batchIndex, skipAnimation, loadGeneration) {
+
+        if (typeof loadGeneration !== 'undefined' && !IsCurrentSuggestionItem($item, loadGeneration)) {
+            return false;
+        }
 
         var columnIndex = GetShortestColumnIndex();
 
@@ -440,6 +552,8 @@ var cesSuggestions = (function(_config, _Media, _Compression, _Tooltips, _Collec
 
         _columns[columnIndex].append($item);
         _columnHeights[columnIndex] += GetItemHeight($item);
+
+        return true;
     };
 
     var GetShortestColumnIndex = function() {
@@ -524,10 +638,14 @@ var cesSuggestions = (function(_config, _Media, _Compression, _Tooltips, _Collec
         }
     };
 
-    var ScheduleLayoutRefresh = function() {
+    var ScheduleLayoutRefresh = function(loadGeneration) {
+
+        if (typeof loadGeneration !== 'undefined' && !IsCurrentLoadGeneration(loadGeneration)) {
+            return;
+        }
 
         if (_layoutRefreshHandler) {
-            _layoutRefreshHandler();
+            _layoutRefreshHandler(loadGeneration);
         }
     };
 
@@ -608,14 +726,16 @@ var cesSuggestions = (function(_config, _Media, _Compression, _Tooltips, _Collec
         return scrollBottom >= $(document).height() - _loadMoreThreshold;
     };
 
-    var ScheduleLoadCheck = function() {
+    var ScheduleLoadCheck = function(loadGeneration) {
 
-        if (_ended) {
+        if (_ended || !IsCurrentLoadGeneration(loadGeneration)) {
             return;
         }
 
         setTimeout(function() {
-            self.MaybeLoadMore();
+            if (IsCurrentLoadGeneration(loadGeneration)) {
+                self.MaybeLoadMore();
+            }
         }, 120);
     };
 
@@ -689,7 +809,11 @@ var cesSuggestions = (function(_config, _Media, _Compression, _Tooltips, _Collec
 
         $loading = $('#suggestionsloading');
         _grid = $grid;
-        _layoutRefreshHandler = CreateThrottle(function() {
+        _layoutRefreshHandler = CreateThrottle(function(loadGeneration) {
+            if (typeof loadGeneration !== 'undefined' && !IsCurrentLoadGeneration(loadGeneration)) {
+                return;
+            }
+
             RelayoutExistingItems();
         }, 120);
 
@@ -700,8 +824,10 @@ var cesSuggestions = (function(_config, _Media, _Compression, _Tooltips, _Collec
         var $checkbox = $('#browse-show-obscure');
 
         //for browsing with alpha characters
-        $wrapper.find('a').each(function(index, item) {
-            $(item).on('click', function(e) {
+        $wrapper.find('div.suggestionsbar a').each(function(index, item) {
+            $(item).off('click.cesSuggestionsBrowse').on('click.cesSuggestionsBrowse', function(e) {
+                e.preventDefault();
+                SetActiveBrowseLetter($(item));
                 var system = $('#toolbar select').val();
                 var term = $(item).text(); //is also cache name (A, B, #...)
 
@@ -723,8 +849,8 @@ var cesSuggestions = (function(_config, _Media, _Compression, _Tooltips, _Collec
                     randomize: false
                 };
 
-                $checkbox.off('change');
-                $checkbox.change(function() {
+                $checkbox.off('change.cesSuggestionsBrowse');
+                $checkbox.on('change.cesSuggestionsBrowse', function() {
                     if($(this).is(':checked')) {
                         self.Load(all, function() {
                             _Tooltips.Any();

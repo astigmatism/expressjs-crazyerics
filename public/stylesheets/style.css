@@ -78,6 +78,10 @@ p {
 	color: rgb(81,97,112);
 }
 
+#maincolumn a.active {
+	color: #ccc;
+}
+
 #menucolumn
 {
     position: absolute;
@@ -6090,6 +6094,10 @@ div.suggestionsbar a {
 	padding: 0px 8px;
 	cursor: pointer;
 	text-decoration: none;
+}
+
+div.suggestionsbar a.active {
+	color: #ccc;
 }
 
 div.suggestionsbar div, div.suggestionsbar input {
