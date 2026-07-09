@@ -207,6 +207,19 @@ body.runtime-admin-active #runtimeadminstatus {
     line-height: 1.25;
 }
 
+.featured-admin-game-count-note {
+    margin-left: 3px;
+    color: rgba(255,255,255,0.52);
+    font-size: 11px;
+}
+
+.featured-admin-warning {
+    margin-top: 3px;
+    color: #ffd9a4;
+    font-size: 11px;
+    line-height: 1.25;
+}
+
 .featured-admin-row-actions {
     display: flex;
     flex-wrap: wrap;
@@ -335,13 +348,24 @@ body.runtime-admin-active #runtimeadminstatus {
     font-size: 12px;
 }
 
+.featured-admin-preview-summary.featured-admin-preview-blocked {
+    color: #ffd9a4;
+}
+
+.featured-admin-preview-matches,
 .featured-admin-preview-issues {
     margin-top: 6px;
 }
 
+.featured-admin-preview-matches ul,
 .featured-admin-preview-issues ul {
     margin: 3px 0 0 18px;
     padding: 0;
+}
+
+.featured-admin-candidate-list {
+    color: rgba(255,255,255,0.62);
+    font-size: 11px;
 }
 
 .featured-admin-empty {

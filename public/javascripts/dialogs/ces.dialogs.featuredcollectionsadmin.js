@@ -182,7 +182,21 @@ var cesDialogsFeaturedCollectionsAdmin = (function(_config, $el, $wrapper, args)
         RenderMasterInventoryDownload();
 
         if (_importSettings && _importSettings.example) {
-            $example.text('Example CSV:\n' + _importSettings.example);
+            var exampleText = '';
+
+            if (_importSettings.notes) {
+                exampleText += _importSettings.notes + '\n\n';
+            }
+
+            exampleText += 'Required CSV headers: ' + (_importSettings.requiredHeaders || 'System,Title,File') + '\n';
+
+            if (_importSettings.alternateHeaders) {
+                exampleText += 'Alternate identifier header: ' + _importSettings.alternateHeaders + '\n';
+            }
+
+            exampleText += '\nExample CSV:\n' + _importSettings.example;
+
+            $example.text(exampleText);
             if (!$import.val()) {
                 $import.attr('placeholder', _importSettings.example);
             }
@@ -274,12 +288,24 @@ var cesDialogsFeaturedCollectionsAdmin = (function(_config, $el, $wrapper, args)
         $('<td />').append($nameInput).appendTo($row);
         $('<td />').append($statusBadge).appendTo($row);
 
-        $('<td />')
-            .append($('<span />').text(collection.gameCount || 0))
-            .append($preview)
-            .appendTo($row);
+        var $gameCell = $('<td />');
+        var invalidCount = parseInt(collection.invalidGameCount || 0, 10) || 0;
+        var rawCount = parseInt(collection.rawGameCount || collection.gameCount || 0, 10) || 0;
+        var validCount = parseInt(collection.gameCount || 0, 10) || 0;
 
-        RenderPreview($preview, collection.preview || []);
+        $gameCell.append($('<span />').text(validCount));
+
+        if (rawCount && rawCount !== validCount) {
+            $gameCell.append($('<span class="featured-admin-game-count-note" />').text(' of ' + rawCount + ' hydratable'));
+        }
+
+        if (invalidCount) {
+            $gameCell.append($('<div class="featured-admin-warning" />').text(invalidCount + ' stored game reference' + (invalidCount === 1 ? '' : 's') + ' could not be hydrated.'));
+        }
+
+        $gameCell.append($preview).appendTo($row);
+
+        RenderPreview($preview, collection.preview || [], collection.warnings || []);
 
         $('<td />').append($sortSelect).appendTo($row);
         $('<td />').append($directionSelect).appendTo($row);
@@ -293,7 +319,7 @@ var cesDialogsFeaturedCollectionsAdmin = (function(_config, $el, $wrapper, args)
         return $row;
     }
 
-    function RenderPreview($target, preview) {
+    function RenderPreview($target, preview, warnings) {
         var labels = [];
 
         for (var i = 0; i < preview.length; ++i) {
@@ -303,7 +329,12 @@ var cesDialogsFeaturedCollectionsAdmin = (function(_config, $el, $wrapper, args)
         }
 
         if (labels.length) {
-            $target.text(labels.join(', '));
+            $('<div />').text(labels.join(', ')).appendTo($target);
+        }
+
+        warnings = warnings || [];
+        for (var j = 0; j < warnings.length; ++j) {
+            $('<div class="featured-admin-warning" />').text(warnings[j]).appendTo($target);
         }
     }
 
@@ -498,15 +529,42 @@ var cesDialogsFeaturedCollectionsAdmin = (function(_config, $el, $wrapper, args)
         var $summary = $('<div class="featured-admin-preview-summary" />');
         var matched = result.matched ? result.matched.length : 0;
         var unmatched = result.unmatched ? result.unmatched.length : 0;
+        var ambiguous = result.ambiguous ? result.ambiguous.length : 0;
         var duplicates = result.duplicates ? result.duplicates.length : 0;
         var errors = result.errors ? result.errors.length : 0;
+        var hasBlockingIssues = unmatched || ambiguous || errors;
 
-        $summary.text('Matched ' + matched + ' game' + (matched === 1 ? '' : 's') + '. Unmatched: ' + unmatched + '. Duplicates: ' + duplicates + '. Other errors: ' + errors + '.');
+        $summary
+            .toggleClass('featured-admin-preview-blocked', hasBlockingIssues > 0)
+            .text('Matched ' + matched + ' game' + (matched === 1 ? '' : 's') + '. Unmatched: ' + unmatched + '. Ambiguous: ' + ambiguous + '. Duplicates: ' + duplicates + '. Other errors: ' + errors + '.');
         $previewResult.append($summary);
 
+        AppendMatchedGames(result.matched);
         AppendImportIssues('Unmatched games', result.unmatched);
+        AppendImportIssues('Ambiguous games', result.ambiguous);
         AppendImportIssues('Duplicates ignored', result.duplicates);
         AppendImportIssues('Errors', result.errors);
+    }
+
+    function AppendMatchedGames(items) {
+        if (!items || !items.length) {
+            return;
+        }
+
+        var $group = $('<div class="featured-admin-preview-matches" />');
+        $('<strong />').text('Matched canonical games').appendTo($group);
+        var $list = $('<ul />').appendTo($group);
+
+        for (var i = 0; i < Math.min(items.length, 10); ++i) {
+            var item = items[i] || {};
+            $('<li />').text('Line ' + (item.line || '?') + ': ' + FormatResolvedGame(item)).appendTo($list);
+        }
+
+        if (items.length > 10) {
+            $('<li />').text('Additional matched games omitted from this preview.').appendTo($list);
+        }
+
+        $previewResult.append($group);
     }
 
     function AppendImportIssues(title, items) {
@@ -520,7 +578,9 @@ var cesDialogsFeaturedCollectionsAdmin = (function(_config, $el, $wrapper, args)
 
         for (var i = 0; i < Math.min(items.length, 20); ++i) {
             var item = items[i] || {};
-            $('<li />').text('Line ' + (item.line || '?') + ': ' + (item.error || 'Could not import') + FormatReference(item)).appendTo($list);
+            var $issue = $('<li />').appendTo($list);
+            $issue.text('Line ' + (item.line || '?') + ': ' + (item.error || 'Could not import') + FormatReference(item));
+            AppendCandidateList($issue, item.candidates);
         }
 
         if (items.length > 20) {
@@ -530,10 +590,36 @@ var cesDialogsFeaturedCollectionsAdmin = (function(_config, $el, $wrapper, args)
         $previewResult.append($group);
     }
 
+    function AppendCandidateList($issue, candidates) {
+        if (!candidates || !candidates.length) {
+            return;
+        }
+
+        var $candidateList = $('<ul class="featured-admin-candidate-list" />').appendTo($issue);
+
+        for (var i = 0; i < Math.min(candidates.length, 5); ++i) {
+            $('<li />').text(FormatResolvedGame(candidates[i] || {})).appendTo($candidateList);
+        }
+
+        if (candidates.length > 5) {
+            $('<li />').text('Additional candidates omitted.').appendTo($candidateList);
+        }
+    }
+
+    function FormatResolvedGame(item) {
+        var parts = [];
+
+        if (item.system || item.systemKey) { parts.push(item.system || item.systemKey); }
+        if (item.title) { parts.push(item.title); }
+        if (item.file) { parts.push(item.file); }
+
+        return parts.length ? parts.join(' / ') : 'matched game';
+    }
+
     function FormatReference(item) {
         var parts = [];
 
-        if (item.system) { parts.push(item.system); }
+        if (item.system || item.systemKey) { parts.push(item.system || item.systemKey); }
         if (item.title) { parts.push(item.title); }
         if (item.file) { parts.push(item.file); }
 
