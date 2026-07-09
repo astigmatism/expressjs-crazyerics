@@ -232,6 +232,10 @@ var SetSiteStatisticAvailable = function(available) {
 
 var CanRenderSiteStatisticCollections = function() {
 
+    if (!_collectionsGrid || !_collectionsGrid.length) {
+        return false;
+    }
+
     if (_Collections && _Collections.CanShowServerManagedCollections) {
         return _Collections.CanShowServerManagedCollections() === true;
     }
@@ -246,6 +250,11 @@ var RemoveCollectionPill = function(collection) {
     }
 
     _Tooltips.Destroy(collection.gridItem);
+    if (!_collectionsGrid || !_collectionsGrid.length) {
+        delete collection.gridItem;
+        return;
+    }
+
     _collectionsGrid.isotope('remove', collection.gridItem);
     if (_Collections.LayoutCollectionTabs) {
         _Collections.LayoutCollectionTabs();

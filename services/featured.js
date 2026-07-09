@@ -32,7 +32,20 @@ module.exports = new (function() {
         { value: 'lastPlayed', label: 'Last played' },
         { value: 'playCount', label: 'Play count' }
     ];
+    const _defaultTags = ['all'];
+    const _defaultPriority = 0;
+    const _priorityMin = -2;
+    const _priorityMax = 2;
+    const _priorityOptions = [
+        { value: -2, label: '-2 Lowest' },
+        { value: -1, label: '-1 Low' },
+        { value: 0, label: '0 Normal' },
+        { value: 1, label: '1 High' },
+        { value: 2, label: '2 Highest' }
+    ];
     var _systemAliasMap = null;
+    var _systemTagMap = null;
+    var _tagOptions = null;
     var _catalogCache = {};
 
     //master control
@@ -52,22 +65,38 @@ module.exports = new (function() {
         _self.ApplicationStart(callback);
     };
 
-    this.Create = function(name, gks, sortState, callback) {
+    this.Create = function(name, gks, sortState, metadata, callback) {
 
         if (typeof sortState === 'function') {
             callback = sortState;
             sortState = null;
+            metadata = null;
+        }
+
+        if (typeof metadata === 'function') {
+            callback = metadata;
+            metadata = null;
         }
 
         // Maintains the old development helper route, but persists through the new database-backed store.
-        PublishDirect(name, gks, null, null, sortState, callback);
+        PublishDirect(name, gks, null, null, sortState, metadata, callback);
     };
 
-    this.CreateFromImport = function(name, importText, sortState, active, callback) {
+    this.CreateFromImport = function(name, importText, sortState, active, metadata, callback) {
+
+        if (typeof metadata === 'function') {
+            callback = metadata;
+            metadata = null;
+        }
 
         var cleanName = NormalizeCollectionName(name);
         var normalizedSortState = NormalizeManagementSortState(sortState);
         var isActive = NormalizeBoolean(active, true);
+        var normalizedMetadata = NormalizeMetadataForCreate(metadata);
+
+        if (normalizedMetadata.error) {
+            return callback(normalizedMetadata.error);
+        }
 
         if (!cleanName || cleanName === _defaultCollectionName || cleanName === '!') {
             return callback(CreateValidationError('A featured collection name is required.'));
@@ -88,7 +117,7 @@ module.exports = new (function() {
                     return callback(CreateValidationError('Some imported games could not be matched unambiguously.', importResult));
                 }
 
-                FeaturedSQL.Insert(cleanName, importResult.gameKeys, null, null, isActive, normalizedSortState, (err, record) => {
+                FeaturedSQL.Insert(cleanName, importResult.gameKeys, null, null, isActive, normalizedSortState, normalizedMetadata.metadata, (err, record) => {
                     if (err) { return callback(err); }
 
                     ReturnManagementRecordAfterRefresh(record, 'insert', importResult, callback);
@@ -155,6 +184,17 @@ module.exports = new (function() {
         return _sortFieldOptions.slice(0);
     };
 
+    this.GetMetadataOptions = function() {
+        return {
+            tags: GetTagOptions(),
+            priorities: _priorityOptions.slice(0),
+            defaults: {
+                tags: _defaultTags.slice(0),
+                priority: _defaultPriority
+            }
+        };
+    };
+
     this.GetImportSettings = function() {
         return {
             format: 'csv',
@@ -189,9 +229,12 @@ module.exports = new (function() {
             var name = record.name;
             var active = IsRecordActive(record);
             var sortState = GetRecordSortState(record);
+            var metadata = GetRecordMetadata(record);
             var hasNameChange = Object.prototype.hasOwnProperty.call(changes, 'name');
             var hasActiveChange = Object.prototype.hasOwnProperty.call(changes, 'active') || Object.prototype.hasOwnProperty.call(changes, 'published') || Object.prototype.hasOwnProperty.call(changes, 'hidden');
             var hasSortChange = Object.prototype.hasOwnProperty.call(changes, 'sort') || Object.prototype.hasOwnProperty.call(changes, 'sortField') || Object.prototype.hasOwnProperty.call(changes, 'sortDirection') || Object.prototype.hasOwnProperty.call(changes, 'asc') || Object.prototype.hasOwnProperty.call(changes, 'sortState');
+            var hasTagsChange = Object.prototype.hasOwnProperty.call(changes, 'tags') || Object.prototype.hasOwnProperty.call(changes, 'metadataTags') || Object.prototype.hasOwnProperty.call(changes, 'visibilityTags');
+            var hasPriorityChange = Object.prototype.hasOwnProperty.call(changes, 'priority') || Object.prototype.hasOwnProperty.call(changes, 'displayPriority') || Object.prototype.hasOwnProperty.call(changes, 'suggestionPriority');
 
             if (hasNameChange) {
                 name = NormalizeCollectionName(changes.name);
@@ -211,13 +254,29 @@ module.exports = new (function() {
                 sortState = NormalizeManagementSortState(GetSortStateFromChanges(changes));
             }
 
+            if (hasTagsChange) {
+                var normalizedTags = NormalizeTagsForMutation(GetTagsFromChanges(changes));
+                if (normalizedTags.error) {
+                    return callback(normalizedTags.error);
+                }
+                metadata.tags = normalizedTags.tags;
+            }
+
+            if (hasPriorityChange) {
+                var normalizedPriority = NormalizePriorityForMutation(GetPriorityFromChanges(changes));
+                if (normalizedPriority.error) {
+                    return callback(normalizedPriority.error);
+                }
+                metadata.priority = normalizedPriority.priority;
+            }
+
             FeaturedSQL.GetByName(name, (err, sameNameRecord) => {
                 if (err) { return callback(err); }
                 if (sameNameRecord && String(sameNameRecord.featured_collection_id) !== String(featuredCollectionId)) {
                     return callback(CreateValidationError('A featured collection with that name already exists.'));
                 }
 
-                FeaturedSQL.UpdateManagement(featuredCollectionId, name, NormalizeRecordGameKeys(record), active, sortState, (err, updatedRecord, action) => {
+                FeaturedSQL.UpdateManagement(featuredCollectionId, name, NormalizeRecordGameKeys(record), active, sortState, metadata, (err, updatedRecord, action) => {
                     if (err) { return callback(err); }
                     if (!updatedRecord) {
                         return callback(CreateValidationError('Featured collection was not found.'));
@@ -380,10 +439,20 @@ module.exports = new (function() {
         return this;
     })();
 
-    var PublishDirect = function(name, gks, sourceCollectionId, publishedByUserId, sortState, callback) {
+    var PublishDirect = function(name, gks, sourceCollectionId, publishedByUserId, sortState, metadata, callback) {
+
+        if (typeof metadata === 'function') {
+            callback = metadata;
+            metadata = null;
+        }
 
         sortState = NormalizeSortState(sortState);
         var cleanName = NormalizeCollectionName(name);
+        var normalizedMetadata = NormalizeMetadataForCreate(metadata);
+
+        if (normalizedMetadata.error) {
+            return callback(normalizedMetadata.error);
+        }
 
         if (!cleanName || cleanName === _defaultCollectionName || cleanName === '!') {
             return callback('A featured collection name is required.');
@@ -395,7 +464,7 @@ module.exports = new (function() {
                 return callback('Cannot publish an empty featured collection.');
             }
 
-            FeaturedSQL.UpsertByName(cleanName, validatedGameKeys, sourceCollectionId, publishedByUserId, sortState, (err, record, action) => {
+            FeaturedSQL.UpsertByName(cleanName, validatedGameKeys, sourceCollectionId, publishedByUserId, sortState, normalizedMetadata.metadata, (err, record, action) => {
                 if (err) { return callback(err); }
 
                 ReturnRecordAfterRefresh(record, action, callback);
@@ -693,6 +762,359 @@ module.exports = new (function() {
         };
     };
 
+    var GetRecordMetadata = function(record) {
+
+        record = record || {};
+
+        return {
+            tags: NormalizeStoredTags(GetRecordTagsValue(record)),
+            priority: NormalizeStoredPriority(GetRecordPriorityValue(record))
+        };
+    };
+
+    var NormalizeMetadataForCreate = function(metadata) {
+
+        metadata = metadata || {};
+
+        var tags = _defaultTags.slice(0);
+        var priority = _defaultPriority;
+
+        if (HasDefinedProperty(metadata, 'tags') || HasDefinedProperty(metadata, 'metadataTags') || HasDefinedProperty(metadata, 'visibilityTags')) {
+            var normalizedTags = NormalizeTagsForMutation(GetTagsFromChanges(metadata));
+            if (normalizedTags.error) {
+                return { error: normalizedTags.error };
+            }
+            tags = normalizedTags.tags;
+        }
+
+        if (HasDefinedProperty(metadata, 'priority') || HasDefinedProperty(metadata, 'displayPriority') || HasDefinedProperty(metadata, 'suggestionPriority')) {
+            var normalizedPriority = NormalizePriorityForMutation(GetPriorityFromChanges(metadata));
+            if (normalizedPriority.error) {
+                return { error: normalizedPriority.error };
+            }
+            priority = normalizedPriority.priority;
+        }
+
+        return {
+            metadata: {
+                tags: tags,
+                priority: priority
+            }
+        };
+    };
+
+    var GetRecordTagsValue = function(record) {
+
+        if (HasDefinedProperty(record, 'tags')) {
+            return record.tags;
+        }
+
+        if (HasDefinedProperty(record, 'metadata_tags')) {
+            return record.metadata_tags;
+        }
+
+        if (HasDefinedProperty(record, 'visibility_tags')) {
+            return record.visibility_tags;
+        }
+
+        return null;
+    };
+
+    var GetRecordPriorityValue = function(record) {
+
+        if (HasDefinedProperty(record, 'priority')) {
+            return record.priority;
+        }
+
+        if (HasDefinedProperty(record, 'display_priority')) {
+            return record.display_priority;
+        }
+
+        if (HasDefinedProperty(record, 'suggestion_priority')) {
+            return record.suggestion_priority;
+        }
+
+        return null;
+    };
+
+    var GetTagsFromChanges = function(changes) {
+
+        changes = changes || {};
+
+        if (HasDefinedProperty(changes, 'tags')) {
+            return changes.tags;
+        }
+
+        if (HasDefinedProperty(changes, 'metadataTags')) {
+            return changes.metadataTags;
+        }
+
+        return changes.visibilityTags;
+    };
+
+    var GetPriorityFromChanges = function(changes) {
+
+        changes = changes || {};
+
+        if (HasDefinedProperty(changes, 'priority')) {
+            return changes.priority;
+        }
+
+        if (HasDefinedProperty(changes, 'displayPriority')) {
+            return changes.displayPriority;
+        }
+
+        return changes.suggestionPriority;
+    };
+
+    var NormalizeTagsForMutation = function(value) {
+
+        var rawTags = ParseTagInput(value);
+        var result = [];
+        var seen = {};
+
+        if (!rawTags.length) {
+            return { error: CreateValidationError('Featured collection tags must include at least one allowed tag. Allowed tags: ' + BuildAllowedTagsLabel() + '.') };
+        }
+
+        for (var i = 0, len = rawTags.length; i < len; ++i) {
+            var normalized = NormalizeSingleTag(rawTags[i]);
+
+            if (normalized.error) {
+                return { error: normalized.error };
+            }
+
+            if (!seen[normalized.tag]) {
+                seen[normalized.tag] = true;
+                result.push(normalized.tag);
+            }
+        }
+
+        if (!result.length) {
+            return { error: CreateValidationError('Featured collection tags must include at least one allowed tag. Allowed tags: ' + BuildAllowedTagsLabel() + '.') };
+        }
+
+        return { tags: result };
+    };
+
+    var NormalizeStoredTags = function(value) {
+
+        var rawTags = ParseTagInput(value);
+        var result = [];
+        var seen = {};
+
+        for (var i = 0, len = rawTags.length; i < len; ++i) {
+            var normalized = NormalizeSingleTag(rawTags[i], true);
+
+            if (!normalized.error && normalized.tag && !seen[normalized.tag]) {
+                seen[normalized.tag] = true;
+                result.push(normalized.tag);
+            }
+        }
+
+        return result.length ? result : _defaultTags.slice(0);
+    };
+
+    var ParseTagInput = function(value) {
+
+        if (Array.isArray(value)) {
+            return value;
+        }
+
+        if (typeof value === 'string') {
+            value = value.trim();
+
+            if (!value) {
+                return [];
+            }
+
+            if (value.charAt(0) === '[') {
+                try {
+                    var parsed = JSON.parse(value);
+                    return Array.isArray(parsed) ? parsed : [];
+                }
+                catch (err) {
+                    return [];
+                }
+            }
+
+            return value.split(/[\n,]/);
+        }
+
+        return [];
+    };
+
+    var NormalizeSingleTag = function(value, suppressError) {
+
+        var raw = String(value || '').trim();
+        var systemResolution;
+        var tagMap;
+
+        if (!raw) {
+            return suppressError ? { error: true } : { error: CreateValidationError('Featured collection tags cannot include empty values.') };
+        }
+
+        if (raw.toLowerCase() === 'all') {
+            return { tag: 'all' };
+        }
+
+        systemResolution = ResolveSystemKey(raw);
+        tagMap = GetSystemTagMap();
+
+        if (systemResolution && systemResolution.ok && tagMap[systemResolution.systemKey]) {
+            return { tag: systemResolution.systemKey };
+        }
+
+        if (suppressError) {
+            return { error: true };
+        }
+
+        return { error: CreateValidationError('Unknown featured collection tag "' + raw.substring(0, 80) + '". Allowed tags: ' + BuildAllowedTagsLabel() + '.') };
+    };
+
+    var NormalizePriorityForMutation = function(value) {
+
+        var priority = ParseStrictInteger(value);
+
+        if (priority === null || priority < _priorityMin || priority > _priorityMax) {
+            return { error: CreateValidationError('Featured collection priority must be an integer from ' + _priorityMin + ' through ' + _priorityMax + '.') };
+        }
+
+        return { priority: priority };
+    };
+
+    var NormalizeStoredPriority = function(value) {
+
+        var priority = ParseStrictInteger(value);
+
+        if (priority === null || priority < _priorityMin || priority > _priorityMax) {
+            return _defaultPriority;
+        }
+
+        return priority;
+    };
+
+    var ParseStrictInteger = function(value) {
+
+        if (typeof value === 'number') {
+            if (!isFinite(value) || Math.floor(value) !== value) {
+                return null;
+            }
+            return value;
+        }
+
+        if (typeof value !== 'string') {
+            return null;
+        }
+
+        value = value.trim();
+
+        if (!value.match(/^-?\d+$/)) {
+            return null;
+        }
+
+        return parseInt(value, 10);
+    };
+
+    var GetTagOptions = function() {
+
+        if (!_tagOptions) {
+            var systems = config.has('systems') ? config.get('systems') : {};
+            var systemOptions = [];
+
+            Object.keys(systems || {}).forEach(function(systemKey) {
+                var systemConfig = systems[systemKey] || {};
+
+                if (!IsAllowedSystemTag(systemKey, systemConfig)) {
+                    return;
+                }
+
+                systemOptions.push({
+                    value: systemKey,
+                    label: GetSystemTagLabel(systemKey, systemConfig)
+                });
+            });
+
+            systemOptions.sort(function(a, b) {
+                if (a.label > b.label) { return 1; }
+                if (a.label < b.label) { return -1; }
+                return 0;
+            });
+
+            _tagOptions = [{ value: 'all', label: 'all - All Consoles' }].concat(systemOptions);
+        }
+
+        return CloneTagOptions(_tagOptions);
+    };
+
+    var GetSystemTagMap = function() {
+
+        if (!_systemTagMap) {
+            _systemTagMap = {};
+
+            GetTagOptions().forEach(function(option) {
+                if (option && option.value && option.value !== 'all') {
+                    _systemTagMap[option.value] = true;
+                }
+            });
+        }
+
+        return _systemTagMap;
+    };
+
+    var CloneTagOptions = function(options) {
+
+        var result = [];
+
+        options = Array.isArray(options) ? options : [];
+
+        for (var i = 0, len = options.length; i < len; ++i) {
+            result.push({
+                value: options[i].value,
+                label: options[i].label
+            });
+        }
+
+        return result;
+    };
+
+    var IsAllowedSystemTag = function(systemKey, systemConfig) {
+
+        if (!systemKey || systemKey === 'default') {
+            return false;
+        }
+
+        return systemConfig && systemConfig.live === true;
+    };
+
+    var GetSystemTagLabel = function(systemKey, systemConfig) {
+
+        var sourceKey = GetSystemDisplayKey(systemKey);
+        var label = systemConfig && (systemConfig.shortname || systemConfig.shortName || systemConfig.name) || '';
+
+        if (!label || label.toLowerCase() === sourceKey.toLowerCase()) {
+            return sourceKey;
+        }
+
+        return sourceKey + ' - ' + label;
+    };
+
+    var BuildAllowedTagsLabel = function() {
+
+        var values = [];
+        var options = GetTagOptions();
+
+        for (var i = 0, len = options.length; i < len; ++i) {
+            values.push(options[i].value);
+        }
+
+        return values.join(', ');
+    };
+
+    var HasDefinedProperty = function(object, key) {
+        return object && Object.prototype.hasOwnProperty.call(object, key) && typeof object[key] !== 'undefined';
+    };
+
     var BuildClientCollections = function(records, callback) {
 
         var collections = [];
@@ -871,12 +1293,15 @@ module.exports = new (function() {
 
         var id = record.featured_collection_id || record.id;
         var sortState = GetRecordSortState(record);
+        var metadata = GetRecordMetadata(record);
 
         return {
             id: id,
             index: typeof index === 'number' ? index : 0,
             name: record.name,
             gks: NormalizeRecordGameKeys(record),
+            tags: metadata.tags,
+            priority: metadata.priority,
             sort: sortState.sort,
             asc: sortState.asc,
             type: 'featured',
@@ -895,6 +1320,8 @@ module.exports = new (function() {
             name: collection.name,
             gks: NormalizeGameKeyList(collection.gks),
             titles: CloneClientTitles(collection.titles),
+            tags: NormalizeStoredTags(collection.tags),
+            priority: NormalizeStoredPriority(collection.priority),
             sort: NormalizeSortName(collection.sort),
             asc: NormalizeSortAscending(collection.asc),
             type: 'featured',
@@ -926,6 +1353,7 @@ module.exports = new (function() {
         var rawGameKeys = NormalizeRecordGameKeys(record);
         var sortState = GetRecordSortState(record);
         var active = IsRecordActive(record);
+        var metadata = GetRecordMetadata(record);
 
         HydrateGameKeys(rawGameKeys, (err, hydration) => {
             if (err) { return callback(err); }
@@ -953,6 +1381,8 @@ module.exports = new (function() {
                 rawGameCount: rawGameKeys.length,
                 invalidGameCount: hydration.invalid.length,
                 duplicateGameCount: hydration.duplicates.length,
+                tags: metadata.tags,
+                priority: metadata.priority,
                 sort: sortState.sort || '',
                 sortField: sortState.sort || '',
                 asc: sortState.asc === false ? false : true,

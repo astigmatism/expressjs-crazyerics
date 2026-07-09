@@ -3,6 +3,12 @@ var cesDialogsFeaturedCollectionsAdmin = (function(_config, $el, $wrapper, args)
     var _collections = [];
     var _sortFields = [];
     var _sortDirections = [];
+    var _tagOptions = [];
+    var _priorityOptions = [];
+    var _metadataDefaults = {
+        tags: ['all'],
+        priority: 0
+    };
     var _importSettings = null;
     var _masterInventory = null;
     var _eventsBound = false;
@@ -13,6 +19,8 @@ var cesDialogsFeaturedCollectionsAdmin = (function(_config, $el, $wrapper, args)
     var $title = null;
     var $sort = null;
     var $direction = null;
+    var $tags = null;
+    var $priority = null;
     var $published = null;
     var $import = null;
     var $example = null;
@@ -51,6 +59,8 @@ var cesDialogsFeaturedCollectionsAdmin = (function(_config, $el, $wrapper, args)
         $title = $el.find('#featuredcollectionsadmintitle');
         $sort = $el.find('#featuredcollectionsadminsort');
         $direction = $el.find('#featuredcollectionsadmindirection');
+        $tags = $el.find('#featuredcollectionsadmintags');
+        $priority = $el.find('#featuredcollectionsadminpriority');
         $published = $el.find('#featuredcollectionsadminpublished');
         $import = $el.find('#featuredcollectionsadminimport');
         $example = $el.find('#featuredcollectionsadminexample');
@@ -167,6 +177,9 @@ var cesDialogsFeaturedCollectionsAdmin = (function(_config, $el, $wrapper, args)
             _collections = response.collections || [];
             _sortFields = response.sortFields || [];
             _sortDirections = response.sortDirections || [];
+            _tagOptions = response.metadata && response.metadata.tags ? response.metadata.tags : [];
+            _priorityOptions = response.metadata && response.metadata.priorities ? response.metadata.priorities : [];
+            _metadataDefaults = response.metadata && response.metadata.defaults ? response.metadata.defaults : _metadataDefaults;
             _importSettings = response.import || null;
             _masterInventory = response.masterInventory || null;
 
@@ -179,6 +192,8 @@ var cesDialogsFeaturedCollectionsAdmin = (function(_config, $el, $wrapper, args)
     function RenderCreateControls() {
         RenderSortOptions($sort, '');
         RenderDirectionOptions($direction, 'asc');
+        RenderTagInput($tags, GetDefaultTags(), 'featured-admin-create-tag-input', true);
+        RenderPriorityOptions($priority, GetDefaultPriority());
         RenderMasterInventoryDownload();
 
         if (_importSettings && _importSettings.example) {
@@ -254,7 +269,7 @@ var cesDialogsFeaturedCollectionsAdmin = (function(_config, $el, $wrapper, args)
         var $table = $('<table class="featured-admin-table" />');
         var $thead = $('<thead />').appendTo($table);
         var $headRow = $('<tr />').appendTo($thead);
-        var headers = ['Name', 'Status', 'Games', 'Sort', 'Direction', 'Updated', 'Actions'];
+        var headers = ['Name', 'Status', 'Games', 'Tags', 'Order', 'Actions'];
 
         for (var h = 0; h < headers.length; ++h) {
             $('<th />').text(headers[h]).appendTo($headRow);
@@ -274,6 +289,8 @@ var cesDialogsFeaturedCollectionsAdmin = (function(_config, $el, $wrapper, args)
             .attr('data-id', collection.id)
             .data('collection', collection);
         var $nameInput = $('<input type="text" class="featured-admin-row-name" maxlength="120" />').val(collection.name || '');
+        var $tagControl = $('<div class="featured-admin-tags-control featured-admin-row-tags" />');
+        var $prioritySelect = $('<select class="featured-admin-row-priority" />');
         var $sortSelect = $('<select class="featured-admin-row-sort" />');
         var $directionSelect = $('<select class="featured-admin-row-direction" />');
         var $statusBadge = $('<span class="featured-admin-status-badge" />')
@@ -282,11 +299,16 @@ var cesDialogsFeaturedCollectionsAdmin = (function(_config, $el, $wrapper, args)
         var $preview = $('<div class="featured-admin-game-preview" />');
         var $actions = $('<div class="featured-admin-row-actions" />');
 
+        RenderTagInput($tagControl, collection.tags || GetDefaultTags(), 'featured-admin-row-tag-input', false);
+        RenderPriorityOptions($prioritySelect, typeof collection.priority !== 'undefined' ? collection.priority : GetDefaultPriority());
         RenderSortOptions($sortSelect, collection.sortField || collection.sort || '');
         RenderDirectionOptions($directionSelect, collection.sortDirection || (collection.asc === false ? 'desc' : 'asc'));
 
         $('<td />').append($nameInput).appendTo($row);
-        $('<td />').append($statusBadge).appendTo($row);
+        $('<td />')
+            .append($statusBadge)
+            .append($('<div class="featured-admin-row-updated" />').text(FormatDate(collection.updated || collection.created)))
+            .appendTo($row);
 
         var $gameCell = $('<td />');
         var invalidCount = parseInt(collection.invalidGameCount || 0, 10) || 0;
@@ -307,9 +329,12 @@ var cesDialogsFeaturedCollectionsAdmin = (function(_config, $el, $wrapper, args)
 
         RenderPreview($preview, collection.preview || [], collection.warnings || []);
 
-        $('<td />').append($sortSelect).appendTo($row);
-        $('<td />').append($directionSelect).appendTo($row);
-        $('<td />').text(FormatDate(collection.updated || collection.created)).appendTo($row);
+        $('<td class="featured-admin-tags-cell" />').append($tagControl).appendTo($row);
+        $('<td class="featured-admin-order-cell" />')
+            .append(BuildCompactField('Priority', $prioritySelect))
+            .append(BuildCompactField('Sort', $sortSelect))
+            .append(BuildCompactField('Direction', $directionSelect))
+            .appendTo($row);
 
         $('<button type="button" class="featured-admin-row-save button zoom noselect" />').text('Save').appendTo($actions);
         $('<button type="button" class="featured-admin-row-toggle button zoom noselect" />').text(collection.active ? 'Hide' : 'Show').appendTo($actions);
@@ -381,10 +406,204 @@ var cesDialogsFeaturedCollectionsAdmin = (function(_config, $el, $wrapper, args)
         }
     }
 
+    function RenderTagInput($target, selectedTags, inputClass, showHelp) {
+        var values = FormatTagsForInput(selectedTags);
+        var $input;
+
+        if (!$target || !$target.length) {
+            return;
+        }
+
+        $target.empty();
+
+        $input = $('<input type="text" class="featured-admin-tag-input" maxlength="300" autocomplete="off" spellcheck="false" />')
+            .addClass(inputClass || '')
+            .val(values)
+            .attr('placeholder', 'all, nes, snes')
+            .attr('title', BuildAllowedTagsTitle())
+            .on('blur.featuredAdminTags', function() {
+                $(this).val(FormatTagsForInput(ParseTagsInputValue($(this).val())));
+            });
+
+        if ($target.attr('id') === 'featuredcollectionsadmintags') {
+            $input.attr('id', 'featuredcollectionsadmintagsinput');
+        }
+        else {
+            $input.attr('aria-label', 'Tags');
+        }
+
+        $target.append($input);
+
+        if (showHelp) {
+            $('<div class="featured-admin-tag-help" />')
+                .text('Comma-separated tags. You can use IDs such as all, nes, snes, gba, or gen.')
+                .appendTo($target);
+            $('<details class="featured-admin-tag-reference" />')
+                .append($('<summary />').text('Allowed tags'))
+                .append($('<div />').text(BuildAllowedTagsLabel()))
+                .appendTo($target);
+        }
+    }
+
+    function BuildCompactField(label, $control) {
+        var $field = $('<div class="featured-admin-compact-field" />');
+
+        $('<span class="featured-admin-compact-label" />').text(label).appendTo($field);
+        $field.append($control);
+
+        return $field;
+    }
+
+    function RenderPriorityOptions($select, selected) {
+        var options = GetPriorityOptions();
+
+        selected = parseInt(selected, 10);
+        if (isNaN(selected)) {
+            selected = GetDefaultPriority();
+        }
+
+        $select.empty();
+
+        for (var i = 0; i < options.length; ++i) {
+            $('<option />')
+                .attr('value', options[i].value)
+                .text(options[i].label)
+                .prop('selected', parseInt(options[i].value, 10) === selected)
+                .appendTo($select);
+        }
+    }
+
+    function GetTagOptions() {
+        if (!_tagOptions || !_tagOptions.length) {
+            return [
+                { value: 'all', label: 'all - All Consoles' }
+            ];
+        }
+
+        return _tagOptions;
+    }
+
+    function GetPriorityOptions() {
+        if (!_priorityOptions || !_priorityOptions.length) {
+            return [
+                { value: -2, label: '-2 Lowest' },
+                { value: -1, label: '-1 Low' },
+                { value: 0, label: '0 Normal' },
+                { value: 1, label: '1 High' },
+                { value: 2, label: '2 Highest' }
+            ];
+        }
+
+        return _priorityOptions;
+    }
+
+    function GetDefaultTags() {
+        return _metadataDefaults && $.isArray(_metadataDefaults.tags) && _metadataDefaults.tags.length ? _metadataDefaults.tags : ['all'];
+    }
+
+    function GetDefaultPriority() {
+        var priority = _metadataDefaults ? parseInt(_metadataDefaults.priority, 10) : 0;
+        return isNaN(priority) ? 0 : priority;
+    }
+
+    function FormatTagsForInput(tags) {
+        return CanonicalizeInputTags(tags).join(', ');
+    }
+
+    function ReadSelectedTags($target) {
+        return ParseTagsInputValue($target.find('.featured-admin-tag-input').val());
+    }
+
+    function ParseTagsInputValue(value) {
+        if ($.isArray(value)) {
+            return CanonicalizeInputTags(value);
+        }
+
+        if (typeof value !== 'string') {
+            return [];
+        }
+
+        return CanonicalizeInputTags(value.split(/[\n,]/));
+    }
+
+    function CanonicalizeInputTags(tags) {
+        var result = [];
+        var seen = {};
+        var aliasMap = BuildTagAliasMap();
+
+        tags = $.isArray(tags) && tags.length ? tags : [];
+
+        for (var i = 0; i < tags.length; ++i) {
+            var raw = String(tags[i] || '').trim();
+            var key = raw.toLowerCase();
+            var canonical = aliasMap[key] || raw;
+            var seenKey = canonical.toLowerCase();
+
+            if (!raw || seen[seenKey]) {
+                continue;
+            }
+
+            seen[seenKey] = true;
+            result.push(canonical);
+        }
+
+        return result;
+    }
+
+    function BuildTagAliasMap() {
+        var map = { all: 'all' };
+        var options = GetTagOptions();
+
+        for (var i = 0; i < options.length; ++i) {
+            var option = options[i] || {};
+            var value = String(option.value || '').trim();
+            var label = String(option.label || '').trim();
+
+            if (!value) {
+                continue;
+            }
+
+            map[value.toLowerCase()] = value;
+
+            if (label) {
+                map[label.toLowerCase()] = value;
+
+                var parts = label.split(/\s+-\s+/);
+                for (var j = 0; j < parts.length; ++j) {
+                    var part = parts[j].trim();
+                    if (part) {
+                        map[part.toLowerCase()] = value;
+                    }
+                }
+            }
+        }
+
+        return map;
+    }
+
+    function BuildAllowedTagsTitle() {
+        return 'Comma-separated featured collection tags. Allowed: ' + BuildAllowedTagsLabel();
+    }
+
+    function BuildAllowedTagsLabel() {
+        var values = [];
+        var options = GetTagOptions();
+
+        for (var i = 0; i < options.length; ++i) {
+            if (options[i] && options[i].value) {
+                values.push(options[i].value);
+            }
+        }
+
+        return values.join(', ');
+    }
+
     function SaveRow($row) {
         var collection = $row.data('collection') || {};
         var id = $row.attr('data-id');
         var name = $row.find('.featured-admin-row-name').val();
+        var tags = ReadSelectedTags($row.find('.featured-admin-row-tags'));
+        var priority = $row.find('.featured-admin-row-priority').val();
         var sortField = $row.find('.featured-admin-row-sort').val();
         var sortDirection = $row.find('.featured-admin-row-direction').val();
 
@@ -397,6 +616,8 @@ var cesDialogsFeaturedCollectionsAdmin = (function(_config, $el, $wrapper, args)
         ApiRequest('PATCH', '/admin/featured-collections/' + encodeURIComponent(id), {
             name: name,
             active: collection.active === true,
+            tags: tags,
+            priority: priority,
             sortField: sortField,
             sortDirection: sortDirection
         }, function(err) {
@@ -495,6 +716,8 @@ var cesDialogsFeaturedCollectionsAdmin = (function(_config, $el, $wrapper, args)
             importText: $import.val(),
             sortField: $sort.val(),
             sortDirection: $direction.val(),
+            tags: ReadSelectedTags($tags),
+            priority: $priority.val(),
             active: $published.prop('checked') === true
         };
 
@@ -514,6 +737,8 @@ var cesDialogsFeaturedCollectionsAdmin = (function(_config, $el, $wrapper, args)
             RenderImportResult(response.importResult);
             $title.val('');
             $import.val('');
+            RenderTagInput($tags, GetDefaultTags(), 'featured-admin-create-tag-input', true);
+            RenderPriorityOptions($priority, GetDefaultPriority());
             NotifyFeaturedChanged();
             LoadCollections();
         });

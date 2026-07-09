@@ -298,6 +298,10 @@ module.exports = new (function() {
         //settings defaults for client
         configdata['defaults'] = config.get('defaults');
 
+        configdata['collections'] = {
+            renderCollectionTabs: config.has('collections.renderCollectionTabs') && config.get('collections.renderCollectionTabs') === true
+        };
+
         if (config.has('normalSaveFiles')) {
             configdata['normalSaveFiles'] = config.get('normalSaveFiles');
         }

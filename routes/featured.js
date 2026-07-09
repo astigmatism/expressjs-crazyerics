@@ -15,7 +15,7 @@ function SendCompressedJson(res, payload) {
 function IsMissingFeaturedSchemaError(err) {
     var message = String(err && err.message || '');
 
-    return err && err.code === '42P01' && message.indexOf('featured_collections') >= 0;
+    return err && ((err.code === '42P01' && message.indexOf('featured_collections') >= 0) || (err.code === '42703' && (message.indexOf('tags') >= 0 || message.indexOf('priority') >= 0)));
 }
 
 function SendJsonError(res, status, message) {
@@ -131,7 +131,10 @@ router.post('/', Admin.RequireAdmin, function(req, res) {
     var name = req.body && req.body.name;
     var gks = req.body && req.body.gks;
     
-    FeaturedService.Create(name, gks, GetSortStateFromBody(req), (err, collection, action) => {
+    FeaturedService.Create(name, gks, GetSortStateFromBody(req), {
+        tags: req.body && req.body.tags,
+        priority: req.body && req.body.priority
+    }, (err, collection, action) => {
         if (err) { return HandleApiError(req, res, err); }
 
         SendCompressedJson(res, {

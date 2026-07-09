@@ -1,6 +1,9 @@
 'use strict';
 const pool = require('./pool.js');
 
+const DEFAULT_FEATURED_TAGS = ['all'];
+const DEFAULT_FEATURED_PRIORITY = 0;
+
 module.exports = new (function() {
 
     var _self = this;
@@ -47,11 +50,17 @@ module.exports = new (function() {
         });
     };
 
-    this.UpsertByName = function(name, gameKeys, sourceCollectionId, publishedByUserId, sortState, callback) {
+    this.UpsertByName = function(name, gameKeys, sourceCollectionId, publishedByUserId, sortState, metadata, callback) {
 
         if (typeof sortState === 'function') {
             callback = sortState;
             sortState = null;
+            metadata = null;
+        }
+
+        if (typeof metadata === 'function') {
+            callback = metadata;
+            metadata = null;
         }
 
         if (typeof callback !== 'function') {
@@ -62,15 +71,15 @@ module.exports = new (function() {
             if (err) { return callback(err); }
 
             if (existingRecord) {
-                return Update(existingRecord.featured_collection_id, name, gameKeys, sourceCollectionId, publishedByUserId, true, sortState, callback);
+                return Update(existingRecord.featured_collection_id, name, gameKeys, sourceCollectionId, publishedByUserId, true, sortState, MergeMetadata(metadata, existingRecord), callback);
             }
 
-            Insert(name, gameKeys, sourceCollectionId, publishedByUserId, true, sortState, (insertErr, insertedRecord) => {
+            Insert(name, gameKeys, sourceCollectionId, publishedByUserId, true, sortState, metadata, (insertErr, insertedRecord) => {
                 if (insertErr && insertErr.code === '23505') {
                     return _self.GetByName(name, (selectErr, collisionRecord) => {
                         if (selectErr) { return callback(selectErr); }
                         if (!collisionRecord) { return callback(insertErr); }
-                        Update(collisionRecord.featured_collection_id, name, gameKeys, sourceCollectionId, publishedByUserId, true, sortState, callback);
+                        Update(collisionRecord.featured_collection_id, name, gameKeys, sourceCollectionId, publishedByUserId, true, sortState, MergeMetadata(metadata, collisionRecord), callback);
                     });
                 }
 
@@ -80,20 +89,31 @@ module.exports = new (function() {
         });
     };
 
-    this.Insert = function(name, gameKeys, sourceCollectionId, publishedByUserId, active, sortState, callback) {
+    this.Insert = function(name, gameKeys, sourceCollectionId, publishedByUserId, active, sortState, metadata, callback) {
+
+        if (typeof metadata === 'function') {
+            callback = metadata;
+            metadata = null;
+        }
 
         if (typeof callback !== 'function') {
             throw new TypeError('FeaturedSQL.Insert requires a callback function.');
         }
 
-        Insert(name, gameKeys, sourceCollectionId, publishedByUserId, active, sortState, callback);
+        Insert(name, gameKeys, sourceCollectionId, publishedByUserId, active, sortState, metadata, callback);
     };
 
-    this.UpdateManagement = function(featuredCollectionId, name, gameKeys, active, sortState, callback) {
+    this.UpdateManagement = function(featuredCollectionId, name, gameKeys, active, sortState, metadata, callback) {
+
+        if (typeof metadata === 'function') {
+            callback = metadata;
+            metadata = null;
+        }
 
         active = active === false ? false : true;
+        metadata = NormalizeMetadataForDb(metadata);
 
-        pool.query('UPDATE featured_collections SET name=$1, game_keys=$2::jsonb, active=$3, updated=NOW() WHERE featured_collection_id=$4 RETURNING *', [name, BuildGameKeysJson(gameKeys, sortState), active, featuredCollectionId], (err, result) => {
+        pool.query('UPDATE featured_collections SET name=$1, game_keys=$2::jsonb, active=$3, tags=$4::jsonb, priority=$5, updated=NOW() WHERE featured_collection_id=$6 RETURNING *', [name, BuildGameKeysJson(gameKeys, sortState), active, metadata.tagsJson, metadata.priority, featuredCollectionId], (err, result) => {
             if (err) { return callback(err); }
 
             if (result.rows.length < 1) {
@@ -139,24 +159,95 @@ module.exports = new (function() {
         });
     };
 
-    var Insert = function(name, gameKeys, sourceCollectionId, publishedByUserId, active, sortState, callback) {
+    var Insert = function(name, gameKeys, sourceCollectionId, publishedByUserId, active, sortState, metadata, callback) {
 
         active = active === false ? false : true;
+        metadata = NormalizeMetadataForDb(metadata);
 
-        pool.query('INSERT INTO featured_collections (name, game_keys, source_collection_id, published_by_user_id, active) VALUES ($1, $2::jsonb, $3, $4, $5) RETURNING *', [name, BuildGameKeysJson(gameKeys, sortState), sourceCollectionId || null, publishedByUserId || null, active], (err, result) => {
+        pool.query('INSERT INTO featured_collections (name, game_keys, source_collection_id, published_by_user_id, active, tags, priority) VALUES ($1, $2::jsonb, $3, $4, $5, $6::jsonb, $7) RETURNING *', [name, BuildGameKeysJson(gameKeys, sortState), sourceCollectionId || null, publishedByUserId || null, active, metadata.tagsJson, metadata.priority], (err, result) => {
             if (err) { return callback(err); }
             callback(null, result.rows[0]);
         });
     };
 
-    var Update = function(featuredCollectionId, name, gameKeys, sourceCollectionId, publishedByUserId, active, sortState, callback) {
+    var Update = function(featuredCollectionId, name, gameKeys, sourceCollectionId, publishedByUserId, active, sortState, metadata, callback) {
 
         active = active === false ? false : true;
+        metadata = NormalizeMetadataForDb(metadata);
 
-        pool.query('UPDATE featured_collections SET name=$1, game_keys=$2::jsonb, source_collection_id=$3, published_by_user_id=$4, active=$5, updated=NOW() WHERE featured_collection_id=$6 RETURNING *', [name, BuildGameKeysJson(gameKeys, sortState), sourceCollectionId || null, publishedByUserId || null, active, featuredCollectionId], (err, result) => {
+        pool.query('UPDATE featured_collections SET name=$1, game_keys=$2::jsonb, source_collection_id=$3, published_by_user_id=$4, active=$5, tags=$6::jsonb, priority=$7, updated=NOW() WHERE featured_collection_id=$8 RETURNING *', [name, BuildGameKeysJson(gameKeys, sortState), sourceCollectionId || null, publishedByUserId || null, active, metadata.tagsJson, metadata.priority, featuredCollectionId], (err, result) => {
             if (err) { return callback(err); }
             callback(null, result.rows[0], 'update');
         });
+    };
+
+    var MergeMetadata = function(metadata, fallbackRecord) {
+
+        metadata = metadata || {};
+        fallbackRecord = fallbackRecord || {};
+
+        return {
+            tags: Object.prototype.hasOwnProperty.call(metadata, 'tags') ? metadata.tags : fallbackRecord.tags,
+            priority: Object.prototype.hasOwnProperty.call(metadata, 'priority') ? metadata.priority : fallbackRecord.priority
+        };
+    };
+
+    var NormalizeMetadataForDb = function(metadata) {
+
+        metadata = metadata || {};
+
+        return {
+            tagsJson: BuildTagsJson(metadata.tags),
+            priority: BuildPriority(metadata.priority)
+        };
+    };
+
+    var BuildTagsJson = function(tags) {
+
+        var result = [];
+        var seen = {};
+
+        if (typeof tags === 'string') {
+            try {
+                tags = JSON.parse(tags);
+            }
+            catch (err) {
+                tags = [];
+            }
+        }
+
+        if (!Array.isArray(tags)) {
+            tags = DEFAULT_FEATURED_TAGS;
+        }
+
+        for (var i = 0, len = tags.length; i < len; ++i) {
+            if (typeof tags[i] !== 'string') {
+                continue;
+            }
+
+            var tag = tags[i].trim();
+            if (tag && !seen[tag]) {
+                seen[tag] = true;
+                result.push(tag);
+            }
+        }
+
+        if (!result.length) {
+            result = DEFAULT_FEATURED_TAGS.slice(0);
+        }
+
+        return JSON.stringify(result);
+    };
+
+    var BuildPriority = function(priority) {
+
+        priority = parseInt(priority, 10);
+
+        if (isNaN(priority) || priority < -2 || priority > 2) {
+            return DEFAULT_FEATURED_PRIORITY;
+        }
+
+        return priority;
     };
 
     var BuildGameKeysJson = function(gameKeys, sortState) {

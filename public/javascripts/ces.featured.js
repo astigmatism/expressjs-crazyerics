@@ -26,6 +26,10 @@ var ReadAdminActive = function() {
 
 var CanRenderFeaturedCollection = function() {
 
+    if (!_collectionsGrid || !_collectionsGrid.length) {
+        return false;
+    }
+
     if (_Collections && _Collections.CanShowServerManagedCollections) {
         return _Collections.CanShowServerManagedCollections() === true;
     }
@@ -144,6 +148,8 @@ var NormalizeCollection = function(item, index) {
         titleMetadata: NormalizeTitleMetadata(item.titles),
         sort: NormalizeSortName(item.sort),
         asc: NormalizeSortAscending(item.asc),
+        tags: $.isArray(item.tags) ? item.tags.slice(0) : ['all'],
+        priority: typeof item.priority !== 'undefined' ? parseInt(item.priority, 10) || 0 : 0,
         type: 'featured',
         readOnly: true,
         editable: false,
@@ -159,6 +165,11 @@ var RemoveCurrentPill = function() {
     }
 
     _Tooltips.Destroy(_collection.gridItem);
+    if (!_collectionsGrid || !_collectionsGrid.length) {
+        delete _collection.gridItem;
+        return;
+    }
+
     _collectionsGrid.isotope('remove', _collection.gridItem);
     if (_Collections.LayoutCollectionTabs) {
         _Collections.LayoutCollectionTabs();

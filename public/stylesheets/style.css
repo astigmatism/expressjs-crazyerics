@@ -6497,6 +6497,10 @@ div.suggestionsbar input {
 	border-radius: 10px;
 }
 
+#collectionsWrapper.collection-tabs-disabled #openCollectionGrid {
+	border-radius: 10px;
+}
+
 #collectionsRail {
 	position: relative;
 	z-index: 2;

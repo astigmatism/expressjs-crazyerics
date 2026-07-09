@@ -155,7 +155,7 @@ function ParseAdminKeyUpload(req, res, next) {
 function IsMissingFeaturedSchemaError(err) {
     var message = String(err && err.message || '');
 
-    return err && err.code === '42P01' && message.indexOf('featured_collections') >= 0;
+    return err && ((err.code === '42P01' && message.indexOf('featured_collections') >= 0) || (err.code === '42703' && (message.indexOf('tags') >= 0 || message.indexOf('priority') >= 0)));
 }
 
 function SendFeaturedManagementError(req, res, err, status) {
@@ -351,6 +351,7 @@ router.get('/featured-collections', Admin.RequireAdmin, function(req, res) {
                 { value: 'asc', label: 'Ascending' },
                 { value: 'desc', label: 'Descending' }
             ],
+            metadata: FeaturedService.GetMetadataOptions(),
             import: FeaturedService.GetImportSettings(),
             masterInventory: GetMasterInventoryInfo()
         });
@@ -375,7 +376,10 @@ router.post('/featured-collections/parse-preview', Admin.RequireAdmin, RequireSa
 router.post('/featured-collections', Admin.RequireAdmin, RequireSameOriginWhenPresent, function(req, res) {
     var body = req.body || {};
 
-    FeaturedService.CreateFromImport(body.name || body.title, GetImportText(body), GetSortStateFromBody(body), GetActiveStateFromBody(body, true), (err, collection, action, importResult) => {
+    FeaturedService.CreateFromImport(body.name || body.title, GetImportText(body), GetSortStateFromBody(body), GetActiveStateFromBody(body, true), {
+        tags: body.tags,
+        priority: body.priority
+    }, (err, collection, action, importResult) => {
         if (err) { return SendFeaturedManagementError(req, res, err); }
 
         SendFeaturedManagementPayload(res, {

@@ -77,40 +77,56 @@ block content
             div(class="dialogwrapper")
                 div(class="FeaturedCollectionsAdmin dialog dialog-animation hide close")
                     h2 Manage Featured Collections
-                    p(class="featured-admin-intro") Rename, hide, sort, delete, or create featured collections. CSV imports are resolved against canonical Crazyerics game records before publishing. Download the master inventory TSV for exact system, title, and ROM values.
-                    div#featuredcollectionsadminstatus(class="featured-admin-status", aria-live="polite")
-                    div(class="featured-admin-body")
-                        section(class="featured-admin-section featured-admin-list-section")
-                            h3 Existing featured collections
-                            div#featuredcollectionsadminlist(class="featured-admin-list")
-                        section(class="featured-admin-section featured-admin-create-section")
-                            h3 Create from CSV
-                            div(class="featured-admin-inventory-tools")
-                                h4 Master inventory
-                                p Use #[code master-inventory.tsv] with an AI model or spreadsheet editor to build featured collection CSV imports from exact inventory rows.
-                                a#featuredcollectionsadmininventorydownload(href="/admin/featured-collections/master-inventory.tsv", class="button zoom noselect featured-admin-inventory-download", download="master-inventory.tsv", target="featuredcollectionsadmininventoryframe") Download master-inventory.tsv
-                                span#featuredcollectionsadmininventorynote(class="featured-admin-inventory-note")
-                                iframe#featuredcollectionsadmininventoryframe(name="featuredcollectionsadmininventoryframe", class="featured-admin-download-frame", title="Master inventory download")
-                            div(class="featured-admin-create-grid")
-                                label(for="featuredcollectionsadmintitle") Title
-                                input#featuredcollectionsadmintitle(type="text", maxlength="120")
-                                label(for="featuredcollectionsadminsort") Sort field
-                                select#featuredcollectionsadminsort
-                                label(for="featuredcollectionsadmindirection") Sort direction
-                                select#featuredcollectionsadmindirection
-                                label(class="featured-admin-checkbox", for="featuredcollectionsadminpublished")
-                                    input#featuredcollectionsadminpublished(type="checkbox", checked)
-                                    span Publish immediately
-                            label(class="featured-admin-textarea-label", for="featuredcollectionsadminimport") Game CSV
-                            textarea#featuredcollectionsadminimport(rows="8", spellcheck="false")
-                            pre#featuredcollectionsadminexample(class="featured-admin-example")
-                            div(class="featured-admin-create-actions")
-                                button#featuredcollectionsadminpreview(type="button", class="button zoom noselect") Preview import
-                                button#featuredcollectionsadmincreate(type="button", class="button play zoom noselect") Create featured collection
-                            div#featuredcollectionsadminpreviewresult(class="featured-admin-preview-result")
-                    div(class="featured-admin-footer")
-                        button#featuredcollectionsadminrefresh(type="button", class="button zoom noselect") Refresh
-                        button#featuredcollectionsadminclose(type="button", class="button remove zoom noselect") Close
+                    div(class="featured-admin-scroll")
+                        p(class="featured-admin-intro") Rename, hide, sort, delete, or create featured collections. CSV imports are resolved against canonical Crazyerics game records before publishing. Download the master inventory TSV for exact system, title, and ROM values.
+                        div#featuredcollectionsadminstatus(class="featured-admin-status", aria-live="polite")
+                        div(class="featured-admin-body")
+                            section(class="featured-admin-section featured-admin-list-section")
+                                h3 Existing featured collections
+                                div#featuredcollectionsadminlist(class="featured-admin-list")
+                            section(class="featured-admin-section featured-admin-create-section")
+                                h3 Create from CSV
+                                div(class="featured-admin-create-layout")
+                                    div(class="featured-admin-inventory-tools")
+                                        h4 Master inventory
+                                        p Use #[code master-inventory.tsv] with an AI model or spreadsheet editor to build featured collection CSV imports from exact inventory rows.
+                                        a#featuredcollectionsadmininventorydownload(href="/admin/featured-collections/master-inventory.tsv", class="button zoom noselect featured-admin-inventory-download", download="master-inventory.tsv", target="featuredcollectionsadmininventoryframe") Download master-inventory.tsv
+                                        span#featuredcollectionsadmininventorynote(class="featured-admin-inventory-note")
+                                        iframe#featuredcollectionsadmininventoryframe(name="featuredcollectionsadmininventoryframe", class="featured-admin-download-frame", title="Master inventory download")
+                                    div(class="featured-admin-create-main")
+                                        div(class="featured-admin-create-grid")
+                                            div(class="featured-admin-create-field featured-admin-create-field-title")
+                                                label(for="featuredcollectionsadmintitle") Title
+                                                input#featuredcollectionsadmintitle(type="text", maxlength="120")
+                                            div(class="featured-admin-create-field")
+                                                label(for="featuredcollectionsadminsort") Sort field
+                                                select#featuredcollectionsadminsort
+                                            div(class="featured-admin-create-field")
+                                                label(for="featuredcollectionsadmindirection") Sort direction
+                                                select#featuredcollectionsadmindirection
+                                            div(class="featured-admin-create-field featured-admin-create-field-tags")
+                                                label(for="featuredcollectionsadmintagsinput") Tags
+                                                div#featuredcollectionsadmintags(class="featured-admin-tags-control")
+                                            div(class="featured-admin-create-field featured-admin-create-field-priority")
+                                                label(for="featuredcollectionsadminpriority") Priority
+                                                select#featuredcollectionsadminpriority
+                                            label(class="featured-admin-checkbox featured-admin-create-published", for="featuredcollectionsadminpublished")
+                                                input#featuredcollectionsadminpublished(type="checkbox", checked)
+                                                span Publish immediately
+                                        div(class="featured-admin-import-grid")
+                                            div(class="featured-admin-import-field")
+                                                label(class="featured-admin-textarea-label", for="featuredcollectionsadminimport") Game CSV
+                                                textarea#featuredcollectionsadminimport(rows="8", spellcheck="false")
+                                            div(class="featured-admin-reference-field")
+                                                span(class="featured-admin-textarea-label") Import reference
+                                                pre#featuredcollectionsadminexample(class="featured-admin-example")
+                                        div(class="featured-admin-create-actions")
+                                            button#featuredcollectionsadminpreview(type="button", class="button zoom noselect") Preview import
+                                            button#featuredcollectionsadmincreate(type="button", class="button play zoom noselect") Create featured collection
+                                        div#featuredcollectionsadminpreviewresult(class="featured-admin-preview-result")
+                        div(class="featured-admin-footer")
+                            button#featuredcollectionsadminrefresh(type="button", class="button zoom noselect") Refresh
+                            button#featuredcollectionsadminclose(type="button", class="button remove zoom noselect") Close
 
 
         div#emulatorwrapper
@@ -209,11 +225,15 @@ block content
                             div#gamedetailsboxfronttitle
                             dl#gamedetailsboxfrontfacts
 
-    div#collectionsWrapper
+    - var shouldRenderCollectionTabs = typeof renderCollectionTabs !== 'undefined' && renderCollectionTabs === true
+    div#collectionsWrapper(class=shouldRenderCollectionTabs ? null : 'collection-tabs-disabled')
         //- div#collectionTitle(class="collection-library-header", aria-live="polite")
         div#openCollectionGrid(class="grid collection-library-grid", aria-label="Games in the selected collection")
-        div#collectionsRail(class="collection-rail-shell")
-            div#collectionsGrid(class="grid collection-tab-rail", role="tablist", aria-label="Game collections") 
+        if shouldRenderCollectionTabs
+            div#collectionsRail(class="collection-rail-shell")
+                div#collectionsGrid(class="grid collection-tab-rail", role="tablist", aria-label="Game collections") 
+        else
+            //- Collection tab controls are intentionally omitted from rendered HTML.
 
     div#suggestionswrapper
         div#suggestionsfilters

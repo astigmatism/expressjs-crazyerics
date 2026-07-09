@@ -14,11 +14,14 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
     var _externalActiveCollection = null;
     var _TitlesSort = null;
 
+    $collectionTitlesWrapper = $collectionTitlesWrapper && $collectionTitlesWrapper.length ? $collectionTitlesWrapper : $();
+    $collectionNamesWrapper = $collectionNamesWrapper && $collectionNamesWrapper.length ? $collectionNamesWrapper : $();
+
     var _activeCollectionTitles = [];
     var _collectionNames = [];
     var _collectionControls = null;
     var $collectionHeaderWrapper = $('#collectionTitle');
-    var $collectionsWrapper = $collectionNamesWrapper.closest('#collectionsWrapper');
+    var $collectionsWrapper = $collectionTitlesWrapper.closest('#collectionsWrapper');
     var _isCollectionNameEditorOpen = false;
 
     var _collectionEnterAnimationMs = 260;
@@ -56,6 +59,8 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
     var _collectionPanelHeightReleaseBufferMs = 80;
     var _collectionPanelImageReadyMaxMs = 700;
     var _collectionTabRightGroupGap = 16;
+    var _collectionTabsEnabledByConfig = !!(_config && _config.collections && _config.collections.renderCollectionTabs === true);
+    var _renderCollectionTabs = _collectionTabsEnabledByConfig && $collectionNamesWrapper.length > 0;
 
 	//public members
 
@@ -128,6 +133,10 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
         return CanShowCollectionRail();
     };
 
+    this.CanRenderCollectionTabs = function() {
+        return CanRenderCollectionTabs();
+    };
+
     this.CanShowServerManagedCollections = function() {
         return CanShowServerManagedCollections();
     };
@@ -170,12 +179,29 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
             });
     };
 
+    var CanRenderCollectionTabs = function() {
+
+        return _renderCollectionTabs && _collectionsGrid && _collectionsGrid.length > 0;
+    };
+
     var GetCollectionsWrapper = function() {
 
-        return $collectionsWrapper.length ? $collectionsWrapper : $collectionNamesWrapper.parent();
+        if ($collectionsWrapper.length) {
+            return $collectionsWrapper;
+        }
+
+        if ($collectionTitlesWrapper.length) {
+            return $collectionTitlesWrapper.parent();
+        }
+
+        return $collectionNamesWrapper.parent();
     };
 
     var GetCollectionRail = function() {
+
+        if (!_renderCollectionTabs || !$collectionNamesWrapper.length) {
+            return $();
+        }
 
         var $rail = $collectionNamesWrapper.closest('#collectionsRail');
         return $rail.length ? $rail : $collectionNamesWrapper.parent();
@@ -188,7 +214,7 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
 
     var GetOrderedCollectionTabElements = function() {
 
-        if (!_collectionsGrid || !_collectionsGrid.length) {
+        if (!CanRenderCollectionTabs()) {
             return [];
         }
 
@@ -257,7 +283,7 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
 
     var StabilizeCollectionTabsWidth = function() {
 
-        if (!_collectionsGrid || !_collectionsGrid.length) {
+        if (!CanRenderCollectionTabs()) {
             return;
         }
 
@@ -291,7 +317,7 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
 
     var AlignCollectionTabGroups = function() {
 
-        if (!_collectionsGrid || !_collectionsGrid.length) {
+        if (!CanRenderCollectionTabs()) {
             return;
         }
 
@@ -331,7 +357,7 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
 
     var LayoutCollectionTabs = function(options) {
 
-        if (!_collectionsGrid || !_collectionsGrid.length) {
+        if (!CanRenderCollectionTabs()) {
             return;
         }
 
@@ -733,12 +759,12 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
 
     var CanShowCollectionRail = function() {
 
-        return CanShowCollectionTools();
+        return CanRenderCollectionTabs() && CanShowCollectionTools();
     };
 
     var CanShowServerManagedCollections = function() {
 
-        return CanShowCollectionRail();
+        return CanRenderCollectionTabs() && CanShowCollectionRail();
     };
 
     var PublishServerManagedCollectionsVisibility = function() {
@@ -969,12 +995,14 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
     var ApplyCollectionToolsVisibility = function() {
 
         var showTools = CanShowCollectionTools();
-        var showRail = CanShowCollectionRail();
+        var tabsRendered = CanRenderCollectionTabs();
+        var showRail = tabsRendered && CanShowCollectionRail();
         var $wrapper = GetCollectionsWrapper();
         var $rail = $collectionNamesWrapper.closest('#collectionsRail');
         var wasLocked = $wrapper.length && $wrapper.hasClass(_collectionToolsLockedClass);
 
         if ($wrapper.length) {
+            $wrapper.toggleClass('collection-tabs-disabled', !tabsRendered);
             $wrapper.toggleClass('collection-featured-available', HasServerManagedCollectionsAvailable());
             $wrapper.toggleClass('collection-site-statistics-available', _siteStatisticCollectionsAvailable);
             $wrapper.toggleClass(_collectionToolsLockedClass, !showTools && !_self.IsEmpty());
@@ -986,7 +1014,7 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
 
         PublishServerManagedCollectionsVisibility();
 
-        if (!showTools) {
+        if (!showTools || !tabsRendered) {
             CloseCollectionOptionsMenus();
             if (_isCollectionNameEditorOpen || _openCollectionNameEditor) {
                 CloseCollectionNameEditor({ skipHeaderRender: true, skipControlsUpdate: true });
@@ -1347,6 +1375,10 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
 
     var BindCollectionOptionsDocumentHandlers = function() {
 
+        if (!CanRenderCollectionTabs()) {
+            return;
+        }
+
         $(document)
             .off('keyup' + _collectionOptionsDocumentNamespace)
             .off('keydown' + _collectionOptionsDocumentNamespace)
@@ -1373,11 +1405,14 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
                 PositionOpenCollectionOptionsDropdown();
             });
 
-        GetCollectionRail()
-            .off('scroll' + _collectionOptionsDocumentNamespace)
-            .on('scroll' + _collectionOptionsDocumentNamespace, function() {
-                PositionOpenCollectionOptionsDropdown();
-            });
+        var $rail = GetCollectionRail();
+        if ($rail.length) {
+            $rail
+                .off('scroll' + _collectionOptionsDocumentNamespace)
+                .on('scroll' + _collectionOptionsDocumentNamespace, function() {
+                    PositionOpenCollectionOptionsDropdown();
+                });
+        }
     };
 
     var BindCollectionOptionsTrigger = function(collection) {
@@ -1507,7 +1542,7 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
             return;
         }
 
-        if (!CanShowCollectionTools()) {
+        if (!CanRenderCollectionTabs() || !CanShowCollectionTools()) {
             DestroyTooltipsIn($collectionHeaderWrapper);
             $collectionHeaderWrapper.empty();
             return;
@@ -1642,7 +1677,7 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
 
     var OpenCollectionNameEditor = function(mode, collection, $anchor) {
 
-        if (!CanShowCollectionTools()) {
+        if (!CanRenderCollectionTabs() || !CanShowCollectionTools()) {
             return;
         }
 
@@ -1826,9 +1861,11 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
         CloseCollectionOptionsMenus();
         CloseCollectionNameEditor({ skipHeaderRender: true, skipControlsUpdate: true });
 
-        _Tooltips.Destroy(collection.gridItem);
-        _collectionsGrid.isotope('remove', collection.gridItem); //immediately remove from grid (i used to wait for response but why right?)
-        LayoutCollectionTabs();
+        if (CanRenderCollectionTabs() && collection.gridItem && collection.gridItem.length) {
+            _Tooltips.Destroy(collection.gridItem);
+            _collectionsGrid.isotope('remove', collection.gridItem); //immediately remove from grid (i used to wait for response but why right?)
+            LayoutCollectionTabs();
+        }
 
         //use sync for outgoing. will update this object on response
         var url = _baseUrl + '?c=' + encodeURIComponent(collection.id);
@@ -2009,6 +2046,19 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
 
     this.PopulateCollections = function()  {
 
+        if (!CanRenderCollectionTabs()) {
+            for (var dormantIndex = 0, dormantLen = _collectionNames.length; dormantIndex < dormantLen; ++dormantIndex) {
+                if (_collectionNames[dormantIndex].gridItem && _collectionNames[dormantIndex].gridItem.length) {
+                    _Tooltips.Destroy(_collectionNames[dormantIndex].gridItem);
+                }
+                _collectionNames[dormantIndex].gridItem = $();
+                _collectionNames[dormantIndex].optionsTrigger = null;
+            }
+
+            RenderCollectionHeader();
+            return;
+        }
+
         _collectionsGrid.find('.grid-item').removeClass('on').removeAttr('aria-current');
         _collectionsGrid.find('[role="tab"]').attr('aria-selected', 'false');
 
@@ -2154,6 +2204,10 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
     };
 
     var CreateCollectionGirdItem = function(collection) {
+
+        if (!CanRenderCollectionTabs()) {
+            return $();
+        }
         
         //create the grid item
         var $griditem = $('<div class="grid-item collection-tab" />');
@@ -2622,7 +2676,7 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
                 }
                 if (!found) {
                     CloseCollectionOptionsMenu(_collectionNames[k], { animate: false });
-                    if (_collectionNames[k].gridItem && _collectionNames[k].gridItem.length) {
+                    if (CanRenderCollectionTabs() && _collectionNames[k].gridItem && _collectionNames[k].gridItem.length) {
                         _Tooltips.Destroy(_collectionNames[k].gridItem);
                         _collectionsGrid.isotope('remove', _collectionNames[k].gridItem);
                     }
@@ -2756,43 +2810,48 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
             }
         });
 
-        _collectionsGrid = $collectionNamesWrapper.isotope({
-            layoutMode: 'fitRows',
-            transitionDuration: 0,
-            itemSelector: '.grid-item',
-            getSortData: {
-                type: function(item) {
-                    return $(item).data('type');
+        if (_renderCollectionTabs) {
+            _collectionsGrid = $collectionNamesWrapper.isotope({
+                layoutMode: 'fitRows',
+                transitionDuration: 0,
+                itemSelector: '.grid-item',
+                getSortData: {
+                    type: function(item) {
+                        return $(item).data('type');
+                    }
                 }
+            });
+
+            _collectionsGrid
+                .off('arrangeComplete.collectionTabAlignment layoutComplete.collectionTabAlignment')
+                .on('arrangeComplete.collectionTabAlignment layoutComplete.collectionTabAlignment', function() {
+                    AlignCollectionTabGroups();
+                });
+
+            $(window)
+                .off('resize.collectionTabAlignment')
+                .on('resize.collectionTabAlignment', function() {
+                    LayoutCollectionTabs();
+                });
+
+            BindCollectionOptionsDocumentHandlers();
+
+            var $add = CreateCollectionGirdItem({
+                name: '', 
+                type: 'z'
+            });
+            _collectionControls = new NewCollectionControls($add);
+
+            //will also disable on the server for prod
+            if (_copyToFeaturedButton && _isAdminActive) {
+                var $featureAdd = CreateCollectionGirdItem({
+                    name: '!', 
+                    type: 'y'
+                }); //! since this name cannot be entered by a user
             }
-        });
-
-        _collectionsGrid
-            .off('arrangeComplete.collectionTabAlignment layoutComplete.collectionTabAlignment')
-            .on('arrangeComplete.collectionTabAlignment layoutComplete.collectionTabAlignment', function() {
-                AlignCollectionTabGroups();
-            });
-
-        $(window)
-            .off('resize.collectionTabAlignment')
-            .on('resize.collectionTabAlignment', function() {
-                LayoutCollectionTabs();
-            });
-
-        BindCollectionOptionsDocumentHandlers();
-
-        var $add = CreateCollectionGirdItem({
-            name: '', 
-            type: 'z'
-        });
-        _collectionControls = new NewCollectionControls($add);
-
-        //will also disable on the server for prod
-        if (_copyToFeaturedButton && _isAdminActive) {
-            var $featureAdd = CreateCollectionGirdItem({
-                name: '!', 
-                type: 'y'
-            }); //! since this name cannot be entered by a user
+        }
+        else {
+            _collectionsGrid = $collectionNamesWrapper;
         }
 
         //parse the incoming sync data from server

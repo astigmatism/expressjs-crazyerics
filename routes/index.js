@@ -9,6 +9,10 @@ const ApplicationService = require('../services/application');
 const SearchService = require('../services/search');
 const UtilitiesService = require('../services/utilities')
 
+var ShouldRenderCollectionTabs = function() {
+    return config.has('collections.renderCollectionTabs') && config.get('collections.renderCollectionTabs') === true;
+};
+
 router.get('/', function(req, res, next) {
 
     //req.user will not be available here for instances where a new session (and new user) are inserted because they happen asynconously
@@ -23,7 +27,8 @@ router.get('/', function(req, res, next) {
         res.render('index', {
             layout: 'layout',
             data: compressed, //all data client needs. config and player data,
-            imagepath: data.config.paths.images
+            imagepath: data.config.paths.images,
+            renderCollectionTabs: ShouldRenderCollectionTabs()
         });
     });
 });
