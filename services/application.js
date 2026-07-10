@@ -25,16 +25,18 @@ module.exports = new (function() {
     this.ApplicationEntry = function(req, callback) {
 
         if (req.session) {
-            
+
             BuildComponentDataForEntry(req, (err, componentdata) => {
+                if (err) { return callback(err); }
 
                 BuildConfigForEntry((err, config) => {
+                    if (err) { return callback(err); }
 
                     var result = {
                         config: config,
                         components: componentdata
                     };
-    
+
                     return callback(null, result);
 
                 });
@@ -623,7 +625,7 @@ module.exports = new (function() {
                 });
             });
         } else {
-            res.error('user not on request object');
+            return callback('user not on request object');
         }
     };
 });

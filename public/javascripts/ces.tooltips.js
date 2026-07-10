@@ -20,6 +20,19 @@ var cesTooltips = (function(_config, _Media, _Logging, tooltipSelector, tooltipC
     var mediaSessionActiveDataName = 'cesMediaSessionActive';
     var mediaTransitionTimerDataName = 'cesMediaTransitionTimer';
 
+    var GetTooltipTargets = function($el) {
+
+        if (!$el || !$el.length) {
+            return $();
+        }
+
+        if ($el.hasClass(alreadyProcessedName)) {
+            return $el;
+        }
+
+        return $el.find(alreadyProcessedSelector);
+    };
+
     var FindGameTooltipBox = function($origin) {
 
         if (!$origin || !$origin.length) {
@@ -56,15 +69,18 @@ var cesTooltips = (function(_config, _Media, _Logging, tooltipSelector, tooltipC
     var SetGameTooltipOpenState = function($origin, isOpen) {
 
         var $box = FindGameTooltipBox($origin);
+        var $collectionGridItem = $origin.hasClass('collection-grid-item') ? $origin : $origin.closest('.collection-grid-item');
 
         if (isOpen) {
             $origin.addClass(gameTooltipOriginOpenClass);
+            $collectionGridItem.addClass(gameTooltipOriginOpenClass);
             $box
                 .removeClass('zoom-down')
                 .addClass(gameTooltipBoxOpenClass);
         }
         else {
             $origin.removeClass(gameTooltipOriginOpenClass);
+            $collectionGridItem.removeClass(gameTooltipOriginOpenClass);
             $box
                 .removeClass(gameTooltipBoxOpenClass)
                 .removeClass('zoom-down');
@@ -731,35 +747,41 @@ var cesTooltips = (function(_config, _Media, _Logging, tooltipSelector, tooltipC
     };
 
     this.Show = function($el) {
-        if ($el.hasClass(alreadyProcessedName)) {
-            $el.tooltipster('show');
-        }
+        GetTooltipTargets($el).each(function() {
+            $(this).tooltipster('show');
+        });
     }
 
     this.Hide = function($el) {
-        if ($el.hasClass(alreadyProcessedName)) {
-            CancelMediaSession($el.data('cesTooltipMediaWrapper'));
-            $el.tooltipster('hide');
-        }
+        GetTooltipTargets($el).each(function() {
+            var $target = $(this);
+
+            CancelMediaSession($target.data('cesTooltipMediaWrapper'));
+            $target.tooltipster('hide');
+        });
     }
 
     this.Close = function($el) {
-        if ($el.hasClass(alreadyProcessedName)) {
-            CancelMediaSession($el.data('cesTooltipMediaWrapper'));
-            $el.tooltipster('close');
-            SetGameTooltipOpenState($el, false);
-            $el.trigger('mouseleave');
-        }
+        GetTooltipTargets($el).each(function() {
+            var $target = $(this);
+
+            CancelMediaSession($target.data('cesTooltipMediaWrapper'));
+            $target.tooltipster('close');
+            SetGameTooltipOpenState($target, false);
+            $target.trigger('mouseleave');
+        });
     };
 
     this.Destroy = function($el) {
-        if ($el.hasClass(alreadyProcessedName)) {
-            CancelMediaSession($el.data('cesTooltipMediaWrapper'));
-            SetGameTooltipOpenState($el, false);
-            $el.find(alreadyProcessedSelector).tooltipster('destroy');
-            $el.tooltipster('destroy');
-            $el.removeData('cesTooltipMediaWrapper');
-        }
+        GetTooltipTargets($el).each(function() {
+            var $target = $(this);
+
+            CancelMediaSession($target.data('cesTooltipMediaWrapper'));
+            SetGameTooltipOpenState($target, false);
+            $target.find(alreadyProcessedSelector).tooltipster('destroy');
+            $target.tooltipster('destroy');
+            $target.removeData('cesTooltipMediaWrapper');
+        });
     };
     
     //constructor

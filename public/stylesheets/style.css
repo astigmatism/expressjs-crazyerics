@@ -7018,9 +7018,484 @@ div.suggestionsbar input {
 	}
 }
 
-/* collection game grid refinement: restore ten 116px game boxes across the desktop collection panel
-   The rendered game box is 116px wide. The existing .gamelink side margins add 10px,
-   so each reliable masonry column needs 126px. Ten columns therefore need 1260px. */
+/* collection bookshelf display: 10 outward-facing game boxes per desktop shelf row */
+#openCollectionGrid {
+	--collection-shelf-row-height: 206px;
+	--collection-shelf-card-width: 126px;
+	--collection-shelf-box-width: 116px;
+	--collection-shelf-box-max-height: none;
+	--collection-shelf-box-bottom: 40px;
+	isolation: isolate;
+	width: 100%;
+	max-width: 1260px;
+	min-height: var(--collection-shelf-row-height);
+	margin: 0px;
+	padding: 0px;
+	overflow: visible;
+	border: 0px;
+	border-radius: 12px 12px 0px 0px;
+	background-color: #070b10;
+	background-image: linear-gradient(to bottom, rgba(18,28,38,0.54) 0%, rgba(4,7,10,0.28) 100%), url('/images/collection-bookshelf-medium-back.svg');
+	background-repeat: no-repeat, repeat-y;
+	background-position: 0px 0px, 0px 0px;
+	background-size: 100% 100%, 100% var(--collection-shelf-row-height);
+	box-shadow: inset 0px 1px 0px rgba(255,255,255,0.06), inset 0px 0px 40px rgba(0,0,0,0.34), 0px 0px 0px 1px rgba(125,166,207,0.12), 0px 12px 26px rgba(0,0,0,0.22);
+}
+
+#openCollectionGrid:before {
+	content: '';
+	position: absolute;
+	z-index: 0;
+	top: 0px;
+	right: 0px;
+	bottom: 0px;
+	left: 0px;
+	pointer-events: none;
+	border-radius: inherit;
+	background: radial-gradient(ellipse at 50% 0%, rgba(125,166,207,0.14) 0%, rgba(125,166,207,0.035) 36%, rgba(0,0,0,0) 64%), linear-gradient(to right, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0) 12%, rgba(0,0,0,0) 88%, rgba(0,0,0,0.32) 100%);
+}
+
+/* Hide the bookshelf surface when the active collection has no rendered game boxes.
+   Keep the element measurable for Isotope so the shelf can reappear cleanly when the first game is added. */
+#openCollectionGrid:empty {
+	height: 0px !important;
+	min-height: 0px;
+	margin-top: 0px;
+	margin-bottom: 0px;
+	padding-top: 0px;
+	padding-bottom: 0px;
+	overflow: hidden;
+	pointer-events: none;
+	background-color: transparent;
+	background-image: none;
+	box-shadow: none;
+}
+
+#openCollectionGrid:empty:before {
+	content: none;
+	display: none;
+}
+
+#collectionsWrapper.collection-tools-locked #openCollectionGrid,
+#collectionsWrapper.collection-tabs-disabled #openCollectionGrid {
+	border-radius: 12px;
+}
+
+#openCollectionGrid .collection-grid-item {
+	position: relative;
+	z-index: 2;
+	box-sizing: border-box;
+	width: var(--collection-shelf-card-width);
+	min-width: var(--collection-shelf-card-width);
+	max-width: var(--collection-shelf-card-width);
+	height: var(--collection-shelf-row-height);
+	min-height: var(--collection-shelf-row-height);
+	padding: 0px;
+	overflow: visible;
+	text-align: center;
+}
+
+#openCollectionGrid .collection-grid-item .gamelink {
+	display: block;
+	position: absolute;
+	z-index: 2;
+	left: 0px;
+	right: 0px;
+	bottom: var(--collection-shelf-box-bottom);
+	box-sizing: border-box;
+	width: var(--collection-shelf-box-width);
+	min-width: var(--collection-shelf-box-width);
+	max-width: var(--collection-shelf-box-width);
+	height: auto;
+	min-height: 0px;
+	margin: 0px auto;
+	line-height: 0;
+	text-align: center;
+	pointer-events: none;
+	-webkit-perspective: 620px;
+	perspective: 620px;
+	-webkit-transform-style: preserve-3d;
+	transform-style: preserve-3d;
+	-webkit-transform-origin: 50% 100%;
+	-moz-transform-origin: 50% 100%;
+	-o-transform-origin: 50% 100%;
+	-ms-transform-origin: 50% 100%;
+	transform-origin: 50% 100%;
+}
+
+#openCollectionGrid .collection-grid-item .gamelink:before {
+	content: none;
+	display: none;
+}
+
+#openCollectionGrid .collection-grid-item .gamelink .box {
+	display: inline-block;
+	position: relative;
+	z-index: 2;
+	left: auto;
+	bottom: auto;
+	width: var(--collection-shelf-box-width);
+	min-width: var(--collection-shelf-box-width);
+	max-width: var(--collection-shelf-box-width);
+	vertical-align: bottom;
+	overflow: visible;
+	border-radius: 5px;
+	background: rgba(255,255,255,0.028);
+	box-shadow: none;
+	outline: 1px solid rgba(255,255,255,0.055);
+	outline-offset: -1px;
+	pointer-events: auto;
+	cursor: pointer;
+}
+
+#openCollectionGrid.collection-manual-reorder-enabled .collection-grid-item .gamelink .box {
+	cursor: pointer;
+}
+
+body.collection-reorder-active {
+	cursor: -webkit-grabbing;
+	cursor: grabbing;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}
+
+body.collection-reorder-active #openCollectionGrid .collection-grid-item .gamelink .box,
+#openCollectionGrid .collection-grid-item.collection-reorder-dragging .gamelink .box {
+	cursor: -webkit-grabbing;
+	cursor: grabbing;
+}
+
+#openCollectionGrid.collection-manual-reorder-enabled .collection-grid-item {
+	touch-action: none;
+}
+
+#openCollectionGrid .collection-grid-item.collection-reorder-placeholder {
+	visibility: hidden;
+}
+
+#openCollectionGrid .collection-grid-item.collection-reorder-drag-clone {
+	position: fixed !important;
+	z-index: 100000 !important;
+	left: 0px !important;
+	top: 0px !important;
+	margin: 0px !important;
+	pointer-events: none !important;
+	visibility: visible !important;
+	opacity: 1 !important;
+	-webkit-transition: none !important;
+	-moz-transition: none !important;
+	-o-transition: none !important;
+	transition: none !important;
+	will-change: transform;
+}
+
+#openCollectionGrid .collection-grid-item.collection-reorder-drag-clone,
+#openCollectionGrid .collection-grid-item.collection-reorder-drag-clone * {
+	pointer-events: none !important;
+}
+
+#openCollectionGrid .collection-grid-item.collection-reorder-drag-clone .gamelink,
+#openCollectionGrid .collection-grid-item.collection-reorder-drag-clone .gamelink .box,
+#openCollectionGrid .collection-grid-item.collection-reorder-drag-clone .gamelink .box img {
+	-webkit-transition: none !important;
+	-moz-transition: none !important;
+	-o-transition: none !important;
+	transition: none !important;
+}
+
+#openCollectionGrid .collection-grid-item.collection-reorder-drag-clone .gamelink .box,
+#openCollectionGrid .collection-grid-item.collection-reorder-drag-clone .gamelink:hover .box,
+#openCollectionGrid .collection-grid-item.collection-reorder-drag-clone .gamelink:focus .box {
+	cursor: -webkit-grabbing;
+	cursor: grabbing;
+	box-shadow: none;
+	-webkit-filter: none;
+	filter: none;
+	-webkit-transform: perspective(760px) rotateX(0deg) rotateY(-.4deg) translate3d(0px, -11px, 24px) scale(1.055);
+	-moz-transform: perspective(760px) rotateX(0deg) rotateY(-.4deg) translate3d(0px, -11px, 24px) scale(1.055);
+	-o-transform: perspective(760px) rotateX(0deg) rotateY(-.4deg) translate3d(0px, -11px, 24px) scale(1.055);
+	-ms-transform: perspective(760px) rotateX(0deg) rotateY(-.4deg) translate3d(0px, -11px, 24px) scale(1.055);
+	transform: perspective(760px) rotateX(0deg) rotateY(-.4deg) translate3d(0px, -11px, 24px) scale(1.055);
+}
+
+
+.collection-order-status {
+	display: none;
+	box-sizing: border-box;
+	max-width: 1260px;
+	margin: 0px 0px 8px 0px;
+	padding: 8px 10px;
+	font-size: 12px;
+	line-height: 1.4;
+	text-align: center;
+}
+
+.collection-order-status.collection-order-status-visible {
+	display: block;
+}
+
+.collection-order-status-error {
+	color: #d7b46a;
+}
+
+#openCollectionGrid .collection-grid-item .gamelink .box:before {
+	content: '';
+	position: absolute;
+	z-index: 1;
+	top: 7px;
+	right: calc(0px - var(--collection-shelf-side-depth));
+	bottom: 4px;
+	width: var(--collection-shelf-side-depth);
+	pointer-events: none;
+	border-radius: 0px 4px 4px 0px;
+	background: linear-gradient(to right, rgba(0,0,0,0.42) 0%, rgba(20,28,36,0.76) 58%, rgba(255,255,255,0.09) 100%);
+	box-shadow: none;
+	-webkit-transform: skewY(7deg);
+	-moz-transform: skewY(7deg);
+	-o-transform: skewY(7deg);
+	-ms-transform: skewY(7deg);
+	transform: skewY(7deg);
+	-webkit-transform-origin: 0% 50%;
+	transform-origin: 0% 50%;
+}
+
+#openCollectionGrid .collection-grid-item .gamelink .box:after {
+	z-index: 4;
+	opacity: .72;
+	border-radius: 5px;
+	background: linear-gradient(112deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.13) 32%, rgba(143,219,70,0.14) 50%, rgba(255,255,255,0) 68%), linear-gradient(to right, rgba(255,255,255,0.10) 0px, rgba(255,255,255,0.02) 5px, rgba(0,0,0,0) 22px, rgba(0,0,0,0.22) 100%);
+	-webkit-transform: none;
+	-moz-transform: none;
+	-o-transform: none;
+	-ms-transform: none;
+	transform: none;
+}
+
+#openCollectionGrid .collection-grid-item .gamelink .box img {
+	position: relative;
+	z-index: 3;
+	display: block;
+	width: var(--collection-shelf-box-width);
+	min-width: var(--collection-shelf-box-width);
+	max-width: var(--collection-shelf-box-width);
+	max-height: var(--collection-shelf-box-max-height);
+	height: auto;
+	margin: 0px auto;
+	border-radius: 5px;
+	background: rgba(255,255,255,0.035);
+	box-shadow: none;
+	outline: 1px solid rgba(0,0,0,0.22);
+	outline-offset: -1px;
+}
+
+#openCollectionGrid .collection-grid-item:hover,
+#openCollectionGrid .collection-grid-item.ces-game-tooltip-origin-open {
+	z-index: 12;
+}
+
+#openCollectionGrid .collection-grid-item .gamelink .box.zoom-on,
+#openCollectionGrid .collection-grid-item .gamelink .box:hover,
+#openCollectionGrid .collection-grid-item .gamelink:hover .box,
+#openCollectionGrid .collection-grid-item .gamelink:focus .box,
+#openCollectionGrid .collection-grid-item .gamelink:focus-visible .box {
+	z-index: 8;
+	box-shadow: none;
+	outline-color: rgba(125,166,207,0.26);
+	-webkit-filter: brightness(1.06) saturate(1.04);
+	filter: brightness(1.06) saturate(1.04);
+	-webkit-transform: perspective(760px) rotateX(0deg) rotateY(-.4deg) translate3d(0px, -11px, 24px) scale(1.055);
+	-moz-transform: perspective(760px) rotateX(0deg) rotateY(-.4deg) translate3d(0px, -11px, 24px) scale(1.055);
+	-o-transform: perspective(760px) rotateX(0deg) rotateY(-.4deg) translate3d(0px, -11px, 24px) scale(1.055);
+	-ms-transform: perspective(760px) rotateX(0deg) rotateY(-.4deg) translate3d(0px, -11px, 24px) scale(1.055);
+	transform: perspective(760px) rotateX(0deg) rotateY(-.4deg) translate3d(0px, -11px, 24px) scale(1.055);
+}
+
+#openCollectionGrid .collection-grid-item .gamelink .box.zoom-down {
+	-webkit-transform: perspective(760px) rotateX(7deg) rotateY(-1.75deg) translate3d(0px, 5px, 0px) scale(.97);
+	-moz-transform: perspective(760px) rotateX(7deg) rotateY(-1.75deg) translate3d(0px, 5px, 0px) scale(.97);
+	-o-transform: perspective(760px) rotateX(7deg) rotateY(-1.75deg) translate3d(0px, 5px, 0px) scale(.97);
+	-ms-transform: perspective(760px) rotateX(7deg) rotateY(-1.75deg) translate3d(0px, 5px, 0px) scale(.97);
+	transform: perspective(760px) rotateX(7deg) rotateY(-1.75deg) translate3d(0px, 5px, 0px) scale(.97);
+}
+
+#openCollectionGrid .collection-grid-item .gamelink .box.ces-game-tooltip-box-open {
+	z-index: 14;
+	box-shadow: none;
+	outline-color: rgba(125,166,207,0.38);
+	-webkit-filter: brightness(1.08) saturate(1.05);
+	filter: brightness(1.08) saturate(1.05);
+	-webkit-transform: perspective(760px) rotateX(0deg) rotateY(-.35deg) translate3d(0px, -13px, 28px) scale(1.08);
+	-moz-transform: perspective(760px) rotateX(0deg) rotateY(-.35deg) translate3d(0px, -13px, 28px) scale(1.08);
+	-o-transform: perspective(760px) rotateX(0deg) rotateY(-.35deg) translate3d(0px, -13px, 28px) scale(1.08);
+	-ms-transform: perspective(760px) rotateX(0deg) rotateY(-.35deg) translate3d(0px, -13px, 28px) scale(1.08);
+	transform: perspective(760px) rotateX(0deg) rotateY(-.35deg) translate3d(0px, -13px, 28px) scale(1.08);
+}
+
+#openCollectionGrid.collection-manual-reorder-enabled .collection-card-enter .gamelink,
+#openCollectionGrid.collection-drag-layout-primed .collection-card-enter .gamelink,
+#openCollectionGrid.collection-reorder-motion-quieted .collection-card-enter .gamelink {
+	/*
+	 * Personal shelves can be reordered. Keep the load-in effect opacity-only so
+	 * the card entry transform cannot be sampled by the first drag FLIP pass.
+	 */
+	will-change: opacity;
+	-webkit-animation-name: collection-library-card-fade-only !important;
+	animation-name: collection-library-card-fade-only !important;
+}
+
+@-webkit-keyframes collection-library-card-fade-only {
+	0% { opacity: 0; -webkit-transform: none; transform: none; }
+	100% { opacity: 1; -webkit-transform: none; transform: none; }
+}
+
+@keyframes collection-library-card-fade-only {
+	0% { opacity: 0; -webkit-transform: none; transform: none; }
+	100% { opacity: 1; -webkit-transform: none; transform: none; }
+}
+
+#openCollectionGrid.collection-reorder-motion-quieted .collection-grid-item:not(.collection-reorder-drag-clone) .gamelink,
+#openCollectionGrid.collection-reorder-motion-quieted .collection-grid-item:not(.collection-reorder-drag-clone) .gamelink .box {
+	-webkit-animation: none !important;
+	animation: none !important;
+	-webkit-animation-name: none !important;
+	animation-name: none !important;
+}
+
+body.collection-reorder-active #openCollectionGrid .collection-grid-item:not(.collection-reorder-drag-clone),
+body.collection-reorder-settling #openCollectionGrid .collection-grid-item:not(.collection-reorder-drag-clone) {
+	z-index: 2;
+	-webkit-backface-visibility: hidden;
+	backface-visibility: hidden;
+}
+
+body.collection-reorder-active #openCollectionGrid .collection-grid-item:not(.collection-reorder-drag-clone) .gamelink,
+body.collection-reorder-settling #openCollectionGrid .collection-grid-item:not(.collection-reorder-drag-clone) .gamelink {
+	/*
+	 * During reorder, Isotope only computes final shelf slots. The visible
+	 * movement is a controlled FLIP transform on .gamelink, so the older card
+	 * entry/keyframe animations cannot restart and add a second end snap.
+	 */
+	-webkit-animation: none !important;
+	animation: none !important;
+	-webkit-animation-name: none !important;
+	animation-name: none !important;
+	-webkit-transform-style: flat;
+	transform-style: flat;
+}
+
+body.collection-reorder-active #openCollectionGrid .collection-grid-item:not(.collection-reorder-drag-clone) .gamelink .box,
+body.collection-reorder-active #openCollectionGrid .collection-grid-item:not(.collection-reorder-drag-clone) .gamelink .box img,
+body.collection-reorder-active #openCollectionGrid .collection-grid-item:not(.collection-reorder-drag-clone) .gamelink .box:before,
+body.collection-reorder-active #openCollectionGrid .collection-grid-item:not(.collection-reorder-drag-clone) .gamelink .box:after,
+body.collection-reorder-settling #openCollectionGrid .collection-grid-item:not(.collection-reorder-drag-clone) .gamelink .box,
+body.collection-reorder-settling #openCollectionGrid .collection-grid-item:not(.collection-reorder-drag-clone) .gamelink .box img,
+body.collection-reorder-settling #openCollectionGrid .collection-grid-item:not(.collection-reorder-drag-clone) .gamelink .box:before,
+body.collection-reorder-settling #openCollectionGrid .collection-grid-item:not(.collection-reorder-drag-clone) .gamelink .box:after {
+	-webkit-animation: none !important;
+	animation: none !important;
+	-webkit-animation-name: none !important;
+	animation-name: none !important;
+}
+
+#openCollectionGrid .collection-grid-item.collection-reorder-visual-moving .gamelink {
+	will-change: transform;
+}
+
+body.collection-reorder-active #openCollectionGrid .collection-grid-item:not(.collection-reorder-drag-clone) .gamelink,
+body.collection-reorder-active #openCollectionGrid .collection-grid-item:not(.collection-reorder-drag-clone) .gamelink .box {
+	pointer-events: none !important;
+}
+
+body.collection-reorder-active #openCollectionGrid .collection-grid-item:not(.collection-reorder-drag-clone) .gamelink .box,
+body.collection-reorder-active #openCollectionGrid .collection-grid-item:not(.collection-reorder-drag-clone) .gamelink .box.zoom-on,
+body.collection-reorder-active #openCollectionGrid .collection-grid-item:not(.collection-reorder-drag-clone) .gamelink .box.zoom-down,
+body.collection-reorder-active #openCollectionGrid .collection-grid-item:not(.collection-reorder-drag-clone) .gamelink .box.ces-game-tooltip-box-open,
+body.collection-reorder-active #openCollectionGrid .collection-grid-item:not(.collection-reorder-drag-clone) .gamelink .box:hover,
+body.collection-reorder-active #openCollectionGrid .collection-grid-item:not(.collection-reorder-drag-clone) .gamelink:hover .box,
+body.collection-reorder-active #openCollectionGrid .collection-grid-item:not(.collection-reorder-drag-clone) .gamelink:focus .box,
+body.collection-reorder-active #openCollectionGrid .collection-grid-item:not(.collection-reorder-drag-clone) .gamelink:focus-visible .box,
+body.collection-reorder-settling #openCollectionGrid .collection-grid-item:not(.collection-reorder-drag-clone) .gamelink .box,
+body.collection-reorder-settling #openCollectionGrid .collection-grid-item:not(.collection-reorder-drag-clone) .gamelink .box.zoom-on,
+body.collection-reorder-settling #openCollectionGrid .collection-grid-item:not(.collection-reorder-drag-clone) .gamelink .box.zoom-down,
+body.collection-reorder-settling #openCollectionGrid .collection-grid-item:not(.collection-reorder-drag-clone) .gamelink .box.ces-game-tooltip-box-open,
+body.collection-reorder-settling #openCollectionGrid .collection-grid-item:not(.collection-reorder-drag-clone) .gamelink .box:hover,
+body.collection-reorder-settling #openCollectionGrid .collection-grid-item:not(.collection-reorder-drag-clone) .gamelink:hover .box,
+body.collection-reorder-settling #openCollectionGrid .collection-grid-item:not(.collection-reorder-drag-clone) .gamelink:focus .box,
+body.collection-reorder-settling #openCollectionGrid .collection-grid-item:not(.collection-reorder-drag-clone) .gamelink:focus-visible .box {
+	z-index: 2;
+	box-shadow: none !important;
+	outline-color: rgba(255,255,255,0.055) !important;
+	-webkit-filter: none !important;
+	filter: none !important;
+	-webkit-transform: none !important;
+	-moz-transform: none !important;
+	-o-transform: none !important;
+	-ms-transform: none !important;
+	transform: none !important;
+	-webkit-transition: none !important;
+	-moz-transition: none !important;
+	-o-transition: none !important;
+	transition: none !important;
+}
+
+body.collection-reorder-active #openCollectionGrid .collection-grid-item.collection-reorder-drag-clone .gamelink .box,
+body.collection-reorder-active #openCollectionGrid .collection-grid-item.collection-reorder-drag-clone .gamelink .box.zoom-on,
+body.collection-reorder-active #openCollectionGrid .collection-grid-item.collection-reorder-drag-clone .gamelink .box.collection-reorder-held-box,
+body.collection-reorder-active #openCollectionGrid .collection-grid-item.collection-reorder-drag-clone .gamelink .box:hover,
+body.collection-reorder-active #openCollectionGrid .collection-grid-item.collection-reorder-drag-clone .gamelink:hover .box,
+body.collection-reorder-active #openCollectionGrid .collection-grid-item.collection-reorder-drag-clone .gamelink:focus .box,
+body.collection-reorder-active #openCollectionGrid .collection-grid-item.collection-reorder-drag-clone .gamelink:focus-visible .box {
+	z-index: 8;
+	box-shadow: none !important;
+	outline-color: rgba(255,255,255,0.055) !important;
+	-webkit-filter: none !important;
+	filter: none !important;
+	-webkit-transform: perspective(760px) rotateX(0deg) rotateY(-.4deg) translate3d(0px, -11px, 24px) scale(1.055) !important;
+	-moz-transform: perspective(760px) rotateX(0deg) rotateY(-.4deg) translate3d(0px, -11px, 24px) scale(1.055) !important;
+	-o-transform: perspective(760px) rotateX(0deg) rotateY(-.4deg) translate3d(0px, -11px, 24px) scale(1.055) !important;
+	-ms-transform: perspective(760px) rotateX(0deg) rotateY(-.4deg) translate3d(0px, -11px, 24px) scale(1.055) !important;
+	transform: perspective(760px) rotateX(0deg) rotateY(-.4deg) translate3d(0px, -11px, 24px) scale(1.055) !important;
+	-webkit-transition: none !important;
+	-moz-transition: none !important;
+	-o-transition: none !important;
+	transition: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	#openCollectionGrid .collection-grid-item.collection-reorder-visual-moving .gamelink {
+		will-change: auto;
+	}
+}
+#openCollectionGrid .collection-card-enter .gamelink {
+	will-change: opacity, transform;
+	-webkit-animation-name: collection-library-card-lift;
+	animation-name: collection-library-card-lift;
+}
+
+#openCollectionGrid .collection-card-enter .gamelink .box:after {
+	-webkit-animation: none;
+	animation: none;
+}
+
+#openCollectionGrid .collection-card-enter.collection-card-enter-quiet .gamelink .box:after {
+	-webkit-animation-name: none;
+	animation-name: none;
+}
+
+@-webkit-keyframes collection-library-card-lift {
+	0% { opacity: 0; -webkit-transform: translate3d(0px, 18px, 0px) scale(.96); transform: translate3d(0px, 18px, 0px) scale(.96); }
+	68% { opacity: 1; -webkit-transform: translate3d(0px, -4px, 0px) scale(1.012); transform: translate3d(0px, -4px, 0px) scale(1.012); }
+	100% { opacity: 1; -webkit-transform: translate3d(0px, 0px, 0px) scale(1); transform: translate3d(0px, 0px, 0px) scale(1); }
+}
+
+@keyframes collection-library-card-lift {
+	0% { opacity: 0; -webkit-transform: translate3d(0px, 18px, 0px) scale(.96); transform: translate3d(0px, 18px, 0px) scale(.96); }
+	68% { opacity: 1; -webkit-transform: translate3d(0px, -4px, 0px) scale(1.012); transform: translate3d(0px, -4px, 0px) scale(1.012); }
+	100% { opacity: 1; -webkit-transform: translate3d(0px, 0px, 0px) scale(1); transform: translate3d(0px, 0px, 0px) scale(1); }
+}
+
 @media screen and (min-width: 621px) {
 	#collectionsWrapper {
 		padding-left: 10px;
@@ -7028,31 +7503,106 @@ div.suggestionsbar input {
 	}
 
 	#openCollectionGrid {
-		padding-left: 0px;
-		padding-right: 0px;
+		width: 1260px;
+		max-width: 100%;
+	}
+}
+
+@media screen and (max-width: 1260px) {
+	#openCollectionGrid {
+		width: calc(100vw - 20px);
+		max-width: 1260px;
+		margin-left: 0px;
+		margin-right: auto;
+	}
+}
+
+
+@media screen and (max-width: 620px) {
+	#openCollectionGrid {
+		width: calc(100vw - 16px);
+		padding: 0px;
+		border-radius: 10px;
 	}
 
-	#openCollectionGrid .collection-grid-item {
-		box-sizing: border-box;
-		width: 126px;
-		min-width: 126px;
-		max-width: 126px;
-	}
+}
 
-	#openCollectionGrid .collection-grid-item .gamelink {
-		box-sizing: border-box;
-		width: 116px;
-		margin-left: 5px;
-		margin-right: 5px;
+
+@media (prefers-reduced-motion: reduce) {
+	#openCollectionGrid .collection-card-enter .gamelink,
+	#openCollectionGrid .collection-card-enter .gamelink .box:after {
+		-webkit-animation: none;
+		animation: none;
 	}
 
 	#openCollectionGrid .collection-grid-item .gamelink .box {
-		width: 116px;
-		max-width: 116px;
+		transition: none;
+		-webkit-transition: none;
+		-moz-transition: none;
+		-o-transition: none;
 	}
+}
 
-	#openCollectionGrid .collection-grid-item .gamelink .box img {
-		max-width: 116px;
-		height: auto;
-	}
+
+
+/* Manual collection initial-load stabilizer.
+   The manual shelf is center-aligned after every inserted title. On a full
+   page/collection load, those intermediate centered offsets must not be visible. */
+#openCollectionGrid.collection-manual-shelf.collection-initial-layout-settling .collection-grid-item:not(.collection-reorder-drag-clone) .gamelink,
+#openCollectionGrid.collection-manual-shelf.collection-initial-layout-settling .collection-card-awaiting-entry .gamelink,
+#openCollectionGrid.collection-manual-shelf.collection-initial-layout-settling .collection-card-enter .gamelink {
+	visibility: hidden !important;
+	opacity: 0 !important;
+	-webkit-animation: none !important;
+	animation: none !important;
+	-webkit-animation-name: none !important;
+	animation-name: none !important;
+	-webkit-transition: none !important;
+	-moz-transition: none !important;
+	-o-transition: none !important;
+	transition: none !important;
+	-webkit-transform: none !important;
+	-moz-transform: none !important;
+	-o-transform: none !important;
+	-ms-transform: none !important;
+	transform: none !important;
+	will-change: auto !important;
+}
+
+#openCollectionGrid.collection-manual-shelf.collection-initial-layout-settling .collection-grid-item:not(.collection-reorder-drag-clone) .gamelink .box,
+#openCollectionGrid.collection-manual-shelf.collection-initial-layout-settling .collection-grid-item:not(.collection-reorder-drag-clone) .gamelink .box img,
+#openCollectionGrid.collection-manual-shelf.collection-initial-layout-settling .collection-grid-item:not(.collection-reorder-drag-clone) .gamelink .box:before,
+#openCollectionGrid.collection-manual-shelf.collection-initial-layout-settling .collection-grid-item:not(.collection-reorder-drag-clone) .gamelink .box:after {
+	-webkit-animation: none !important;
+	animation: none !important;
+	-webkit-animation-name: none !important;
+	animation-name: none !important;
+	-webkit-transition: none !important;
+	-moz-transition: none !important;
+	-o-transition: none !important;
+	transition: none !important;
+}
+
+#openCollectionGrid.collection-manual-shelf .collection-card-enter .gamelink,
+#openCollectionGrid.collection-manual-shelf.collection-manual-reorder-enabled .collection-card-enter .gamelink,
+#openCollectionGrid.collection-manual-shelf.collection-drag-layout-primed .collection-card-enter .gamelink,
+#openCollectionGrid.collection-manual-shelf.collection-reorder-motion-quieted .collection-card-enter .gamelink {
+	will-change: opacity !important;
+	-webkit-animation-name: collection-library-card-fade-only !important;
+	animation-name: collection-library-card-fade-only !important;
+	-webkit-transform: none !important;
+	-moz-transform: none !important;
+	-o-transform: none !important;
+	-ms-transform: none !important;
+	transform: none !important;
+}
+
+#openCollectionGrid.collection-manual-shelf .collection-card-enter .gamelink .box:after,
+#openCollectionGrid.collection-manual-shelf.collection-manual-reorder-enabled .collection-card-enter .gamelink .box:after,
+#openCollectionGrid.collection-manual-shelf.collection-drag-layout-primed .collection-card-enter .gamelink .box:after,
+#openCollectionGrid.collection-manual-shelf.collection-reorder-motion-quieted .collection-card-enter .gamelink .box:after {
+	-webkit-animation: none !important;
+	animation: none !important;
+	-webkit-animation-name: none !important;
+	animation-name: none !important;
 }

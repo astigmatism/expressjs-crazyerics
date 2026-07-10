@@ -25,18 +25,44 @@ module.exports = new (function() {
     };
 
     this.AddTitle = function(userId, gk, titleId, fileId, play_count, lastPlayed, isPlayingTopRanked, callback) {
-        
-        pool.query('ALTER TABLE ONLY users_titles ALTER COLUMN play_count SET DEFAULT 0', [], (err, result) => {
-            if (err) {
-                return callback(err);
-            }
-        });
 
-        pool.query('INSERT INTO users_titles (user_id, title_id, active_file, play_count, last_played, game_key, top_ranked) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *', [userId, titleId, fileId, play_count, lastPlayed, gk, isPlayingTopRanked], (err, result) => {
+        pool.query('ALTER TABLE ONLY users_titles ALTER COLUMN play_count SET DEFAULT 0', [], (err) => {
             if (err) {
                 return callback(err);
             }
-            return callback(null, result.rows[0]); //insert result
+
+            /*
+             * Add to Collection should be idempotent for a user/title. The
+             * collection membership table is title-based, so inserting duplicate
+             * users_titles rows for the same title later expands one shelf game
+             * into multiple rows during collection reads and breaks exact order
+             * validation. Preserve the existing user title record when present.
+             */
+            pool.query(
+                'SELECT * FROM users_titles WHERE user_id=$1 AND title_id=$2' +
+                ' ORDER BY last_played DESC NULLS LAST, play_count DESC NULLS LAST, active_file DESC NULLS LAST, ctid DESC LIMIT 1',
+                [userId, titleId],
+                (err, selectResult) => {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    if (selectResult.rows.length > 0) {
+                        return callback(null, selectResult.rows[0]);
+                    }
+
+                    pool.query(
+                        'INSERT INTO users_titles (user_id, title_id, active_file, play_count, last_played, game_key, top_ranked) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
+                        [userId, titleId, fileId, play_count, lastPlayed, gk, isPlayingTopRanked],
+                        (err, result) => {
+                            if (err) {
+                                return callback(err);
+                            }
+                            return callback(null, result.rows[0]); //insert result
+                        }
+                    );
+                }
+            );
         });
     };
 

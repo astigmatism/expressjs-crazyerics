@@ -20,6 +20,208 @@ module.exports = new (function() {
         return new CollectionEnvelope();
     };
 
+    var CollectionOrderError = function(message, status) {
+        var err = new Error(message);
+        err.safeStatus = status || 400;
+        err.safeMessage = message;
+        return err;
+    };
+
+    var NormalizeOrderTitleId = function(value) {
+
+        var n;
+
+        if (typeof value === 'number') {
+            n = value;
+        }
+        else if (typeof value === 'string' && value.trim() !== '') {
+            n = parseInt(value, 10);
+        }
+        else {
+            return null;
+        }
+
+        if (!isFinite(n) || n < 1 || Math.floor(n) !== n) {
+            return null;
+        }
+
+        return n;
+    };
+
+    var BuildCurrentCollectionOrderIndex = function(titleRecords) {
+
+        var result = {
+            titleIds: [],
+            gameKeys: [],
+            byTitleId: {},
+            byGameKey: {},
+            rawCount: 0
+        };
+        var record;
+        var titleId;
+        var gk;
+        var i;
+
+        titleRecords = titleRecords || [];
+        result.rawCount = titleRecords.length;
+
+        for (i = 0; i < titleRecords.length; ++i) {
+            record = titleRecords[i];
+            titleId = record ? NormalizeOrderTitleId(record.title_id) : null;
+            gk = record && record.game_key ? String(record.game_key) : null;
+
+            if (titleId !== null && !result.byTitleId.hasOwnProperty(titleId)) {
+                result.byTitleId[titleId] = record;
+                result.titleIds.push(titleId);
+            }
+
+            if (gk && !result.byGameKey.hasOwnProperty(gk)) {
+                result.byGameKey[gk] = record;
+                result.gameKeys.push(gk);
+            }
+        }
+
+        return result;
+    };
+
+    var LogCollectionOrderValidationFailure = function(reason, details) {
+
+        details = details || {};
+
+        console.log('Collection order validation failed: ' + reason, {
+            userId: details.userId,
+            collectionId: details.collectionId,
+            rawCurrentCount: details.rawCurrentCount,
+            currentTitleCount: details.currentTitleCount,
+            currentGameKeyCount: details.currentGameKeyCount,
+            requestedTitleCount: details.requestedTitleCount,
+            requestedGameKeyCount: details.requestedGameKeyCount
+        });
+    };
+
+    var ValidateCollectionOrderByTitleId = function(userId, collectionId, orderIndex, orderedTitleIds) {
+
+        var normalized = [];
+        var seen = {};
+        var titleId;
+        var i;
+
+        if (!Array.isArray(orderedTitleIds)) {
+            return { err: CollectionOrderError('Collection order must be an array of game identifiers.') };
+        }
+
+        if (orderedTitleIds.length !== orderIndex.titleIds.length) {
+            LogCollectionOrderValidationFailure('title id length mismatch', {
+                userId: userId,
+                collectionId: collectionId,
+                rawCurrentCount: orderIndex.rawCount,
+                currentTitleCount: orderIndex.titleIds.length,
+                currentGameKeyCount: orderIndex.gameKeys.length,
+                requestedTitleCount: orderedTitleIds.length
+            });
+            return { err: CollectionOrderError('Collection order must contain exactly the games already in this collection.') };
+        }
+
+        for (i = 0; i < orderedTitleIds.length; ++i) {
+            titleId = NormalizeOrderTitleId(orderedTitleIds[i]);
+
+            if (titleId === null) {
+                return { err: CollectionOrderError('Collection order contains an invalid game identifier.') };
+            }
+
+            if (seen[titleId]) {
+                return { err: CollectionOrderError('Collection order cannot contain duplicate games.') };
+            }
+
+            if (!orderIndex.byTitleId.hasOwnProperty(titleId)) {
+                return { err: CollectionOrderError('Collection order contains a game that is not in this collection.') };
+            }
+
+            seen[titleId] = true;
+            normalized.push(titleId);
+        }
+
+        for (i = 0; i < orderIndex.titleIds.length; ++i) {
+            if (!seen[orderIndex.titleIds[i]]) {
+                return { err: CollectionOrderError('Collection order is missing a game from this collection.') };
+            }
+        }
+
+        return { orderedTitleIds: normalized };
+    };
+
+    var ValidateCollectionOrderByGameKey = function(userId, collectionId, orderIndex, orderedGameKeys) {
+
+        var orderedTitleIds = [];
+        var requestedSeen = {};
+        var gk;
+        var record;
+        var titleId;
+        var i;
+
+        if (!Array.isArray(orderedGameKeys)) {
+            return { err: CollectionOrderError('Collection order must be an array of game identifiers.') };
+        }
+
+        if (orderedGameKeys.length !== orderIndex.gameKeys.length) {
+            LogCollectionOrderValidationFailure('game key length mismatch', {
+                userId: userId,
+                collectionId: collectionId,
+                rawCurrentCount: orderIndex.rawCount,
+                currentTitleCount: orderIndex.titleIds.length,
+                currentGameKeyCount: orderIndex.gameKeys.length,
+                requestedGameKeyCount: orderedGameKeys.length
+            });
+            return { err: CollectionOrderError('Collection order must contain exactly the games already in this collection.') };
+        }
+
+        for (i = 0; i < orderedGameKeys.length; ++i) {
+            gk = orderedGameKeys[i];
+
+            if (!gk || typeof gk !== 'string') {
+                return { err: CollectionOrderError('Collection order contains an invalid game identifier.') };
+            }
+
+            if (requestedSeen[gk]) {
+                return { err: CollectionOrderError('Collection order cannot contain duplicate games.') };
+            }
+
+            record = orderIndex.byGameKey[gk];
+
+            if (!record) {
+                return { err: CollectionOrderError('Collection order contains a game that is not in this collection.') };
+            }
+
+            titleId = NormalizeOrderTitleId(record.title_id);
+
+            if (titleId === null) {
+                return { err: CollectionOrderError('Collection order contains an invalid game identifier.') };
+            }
+
+            requestedSeen[gk] = true;
+            orderedTitleIds.push(titleId);
+        }
+
+        for (i = 0; i < orderIndex.gameKeys.length; ++i) {
+            if (!requestedSeen[orderIndex.gameKeys[i]]) {
+                return { err: CollectionOrderError('Collection order is missing a game from this collection.') };
+            }
+        }
+
+        return { orderedTitleIds: orderedTitleIds };
+    };
+
+    var NormalizeManualOrder = function(value, fallback) {
+        value = parseInt(value, 10);
+        fallback = parseInt(fallback, 10);
+
+        if (isNaN(value)) {
+            return isNaN(fallback) ? 0 : fallback;
+        }
+
+        return value;
+    };
+
     this.CreateCollection = function(userId, name, callback, opt_makeActive) {
 
         CollectionsSQL.CreateCollection(userId, name, (err, createResult) => {
@@ -342,6 +544,94 @@ module.exports = new (function() {
         });
     };
 
+    this.ReorderActiveCollection = function(userId, collectionId, orderedGameKeys, orderedTitleIds, callback) {
+
+        var useTitleIds;
+
+        if (typeof orderedTitleIds === 'function') {
+            callback = orderedTitleIds;
+            orderedTitleIds = null;
+        }
+
+        orderedGameKeys = orderedGameKeys || [];
+        useTitleIds = Array.isArray(orderedTitleIds) && orderedTitleIds.length > 0;
+
+        if (!useTitleIds && !Array.isArray(orderedGameKeys)) {
+            return callback(CollectionOrderError('Collection order must be an array of game identifiers.'));
+        }
+
+        DoesUserOwnCollection(userId, collectionId, (err, isOwner) => {
+            if (err) { return callback(err); }
+
+            if (!isOwner) {
+                return callback(CollectionOrderError('Only the owner can reorder this collection.', 403));
+            }
+
+            /*
+             * This is a write path, so validate against the current database
+             * state instead of the active-collection cache. The exact order is
+             * title-based because collections_titles stores title_id, while the
+             * client still sends game keys as a compatibility fallback.
+             */
+            CollectionsSQL.GetActiveCollectionId(userId, (err, activeCollectionId) => {
+                if (err) { return callback(err); }
+
+                if (parseInt(activeCollectionId, 10) !== parseInt(collectionId, 10)) {
+                    return callback(CollectionOrderError('The requested collection is not the active personal collection.'));
+                }
+
+                CollectionsSQL.GetCollectionTitles(userId, collectionId, (err, titleRecords) => {
+                    if (err) { return callback(err); }
+
+                    var orderIndex = BuildCurrentCollectionOrderIndex(titleRecords);
+                    var validation = useTitleIds ?
+                        ValidateCollectionOrderByTitleId(userId, collectionId, orderIndex, orderedTitleIds) :
+                        ValidateCollectionOrderByGameKey(userId, collectionId, orderIndex, orderedGameKeys);
+                    var orderedTitleIdsToSave;
+                    var updatedTitleIds;
+                    var updatedCount;
+                    var titleIdKey;
+                    var updateRows;
+                    var i;
+
+                    if (validation.err) {
+                        return callback(validation.err);
+                    }
+
+                    orderedTitleIdsToSave = validation.orderedTitleIds;
+
+                    CollectionsSQL.UpdateTitleOrder(collectionId, orderedTitleIdsToSave, (err, rows) => {
+                        if (err) { return callback(err); }
+
+                        updateRows = rows || [];
+                        updatedTitleIds = {};
+                        updatedCount = 0;
+
+                        for (i = 0; i < updateRows.length; ++i) {
+                            titleIdKey = String(updateRows[i].title_id);
+
+                            if (!updatedTitleIds[titleIdKey]) {
+                                updatedTitleIds[titleIdKey] = true;
+                                updatedCount++;
+                            }
+                        }
+
+                        if (updatedCount !== orderedTitleIdsToSave.length) {
+                            return callback(CollectionOrderError('Collection order could not be saved because one or more games were not updated.'));
+                        }
+
+                        _cacheActiveCollection.Delete([userId], (err) => {
+                            if (err) { return callback(err); }
+
+                            _self.Sync.ready = true;
+                            return callback(null, { ok: true });
+                        });
+                    });
+                });
+            });
+        });
+    };
+
     var EncodeClientCollectionId = function(collectionId, createDate) {
         return UtilitiesService.Compress.json({
             id: collectionId,
@@ -368,10 +658,12 @@ module.exports = new (function() {
             var record = titleRecords[index];
             var clientTitle = {
                 gk: record.game_key,
+                titleId: record.title_id,
                 lastPlayed: record.last_played,
                 playCount: record.play_count,
                 saveCount: record.save_count,
-                topRanked: record.top_ranked
+                topRanked: record.top_ranked,
+                manualOrder: NormalizeManualOrder(record.collection_position, index)
             };
 
             GetReleaseMetadata(record.game_key, (err, releaseMetadata) => {

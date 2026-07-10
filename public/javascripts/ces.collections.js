@@ -54,6 +54,7 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
     var _lastServerManagedCollectionsVisible = null;
     var _collectionPanelHeightReleaseTimer = null;
     var _collectionPanelImageReadyTimer = null;
+    var _collectionTitlesResizeTimer = null;
     var _collectionPanelHeightTransitionToken = 0;
     var _collectionPanelHeightAnimationMs = 300;
     var _collectionPanelHeightReleaseBufferMs = 80;
@@ -61,6 +62,187 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
     var _collectionTabRightGroupGap = 16;
     var _collectionTabsEnabledByConfig = !!(_config && _config.collections && _config.collections.renderCollectionTabs === true);
     var _renderCollectionTabs = _collectionTabsEnabledByConfig && $collectionNamesWrapper.length > 0;
+    var _manualCollectionSort = 'manualOrder';
+    var _collectionDragNamespace = '.collectionManualReorder';
+    var _collectionDragState = null;
+    var _collectionDragThreshold = 6;
+    var _collectionDragHoldMs = 240;
+    var _collectionDefaultLayoutDuration = 120;
+    var _collectionDragLayoutDuration = 460;
+    var _collectionDragSettleLayoutDuration = 320;
+    var _collectionDragReflowMinInterval = 96;
+    var _collectionDragLayoutThrottleMs = 90;
+    var _collectionDragMoveEasing = 'cubic-bezier(.28,.08,.32,1)';
+    var _collectionDragAdjacentDeadZoneRatio = 0.58;
+    var _collectionDragFirstMoveGuardRatio = 0.42;
+    var _collectionDragLayoutFrame = null;
+    var _collectionDragLayoutTimer = null;
+    var _collectionDragLastLayoutAt = 0;
+    var _collectionDragVisualAnimationToken = 0;
+    var _collectionDragVisualCleanupTimer = null;
+    var _collectionDragSettleTimer = null;
+    var _collectionDragPrimeTimer = null;
+    var _manualCollectionInitialLayoutTimer = null;
+    var _manualCollectionInitialLayoutToken = 0;
+    var _manualCollectionInitialLayoutClass = 'collection-initial-layout-settling';
+    var _manualCollectionShelfClass = 'collection-manual-shelf';
+    var _suppressNextCollectionClick = false;
+    var _suppressNextCollectionClickTimer = null;
+    var _collectionOrderErrorTimer = null;
+    var _collectionOrderSaveToken = 0;
+
+    var RegisterCollectionShelfRowsLayout = function() {
+
+        var IsotopeLayoutMode;
+        var ShelfRows;
+        var proto;
+
+        if (!window.Isotope || !window.Isotope.LayoutMode) {
+            return false;
+        }
+
+        IsotopeLayoutMode = window.Isotope.LayoutMode;
+
+        if (IsotopeLayoutMode.modes && IsotopeLayoutMode.modes.collectionShelfRows) {
+            return true;
+        }
+
+        ShelfRows = IsotopeLayoutMode.create('collectionShelfRows');
+        proto = ShelfRows.prototype;
+
+        proto._resetLayout = function() {
+
+            this.x = 0;
+            this.y = 0;
+            this.maxY = 0;
+            this.collectionShelfItemPositions = {};
+            this.collectionShelfSequentialPositions = [];
+            this.collectionShelfPositionIndex = 0;
+            this._getMeasurement('gutter', 'outerWidth');
+            this._measureCollectionShelfRows();
+        };
+
+        proto._measureCollectionShelfRows = function() {
+
+            var items = (this.isotope && this.isotope.filteredItems) ? this.isotope.filteredItems : [];
+            var containerWidth = (this.isotope && this.isotope.size) ? this.isotope.size.innerWidth : 0;
+            var gutter = this.gutter || 0;
+            var containerWithGutter = containerWidth + gutter;
+            var maxItemsPerRow = parseInt(this.options && this.options.maxItemsPerRow, 10);
+            var row = [];
+            var rowX = 0;
+            var rowY = 0;
+            var rowHeight = 0;
+            var flushRow;
+            var item;
+            var itemWidth;
+            var itemHeight;
+            var itemAdvance;
+            var i;
+
+            containerWidth = Math.max(0, containerWidth || 0);
+            containerWithGutter = containerWidth + gutter;
+            maxItemsPerRow = isNaN(maxItemsPerRow) || maxItemsPerRow < 1 ? 0 : maxItemsPerRow;
+
+            flushRow = function(layoutMode) {
+
+                var usedWidth;
+                var rowOffset;
+                var rowItem;
+                var position;
+                var j;
+
+                if (!row.length) {
+                    return;
+                }
+
+                usedWidth = rowX - gutter;
+                usedWidth = usedWidth > 0 ? usedWidth : rowX;
+                rowOffset = Math.max(0, Math.floor((containerWidth - usedWidth) / 2));
+
+                for (j = 0; j < row.length; ++j) {
+                    rowItem = row[j];
+                    position = {
+                        x: rowItem.x + rowOffset,
+                        y: rowY
+                    };
+
+                    if (typeof rowItem.item.id !== 'undefined') {
+                        layoutMode.collectionShelfItemPositions[rowItem.item.id] = position;
+                    }
+
+                    layoutMode.collectionShelfSequentialPositions.push(position);
+                }
+
+                rowY += rowHeight;
+                layoutMode.maxY = Math.max(layoutMode.maxY, rowY);
+                row = [];
+                rowX = 0;
+                rowHeight = 0;
+            };
+
+            for (i = 0; i < items.length; ++i) {
+
+                item = items[i];
+
+                item.getSize();
+                itemWidth = item.size && item.size.outerWidth ? item.size.outerWidth : 0;
+                itemHeight = item.size && item.size.outerHeight ? item.size.outerHeight : 0;
+                itemAdvance = itemWidth + gutter;
+
+                if (row.length && maxItemsPerRow && row.length >= maxItemsPerRow) {
+                    flushRow(this);
+                }
+
+                if (row.length && rowX + itemAdvance > containerWithGutter) {
+                    flushRow(this);
+                }
+
+                row.push({
+                    item: item,
+                    x: rowX
+                });
+
+                rowX += itemAdvance;
+                rowHeight = Math.max(rowHeight, itemHeight);
+            }
+
+            flushRow(this);
+        };
+
+        proto._getItemLayoutPosition = function(item) {
+
+            var position = null;
+
+            if (item && typeof item.id !== 'undefined' && this.collectionShelfItemPositions) {
+                position = this.collectionShelfItemPositions[item.id];
+            }
+
+            if (!position && this.collectionShelfSequentialPositions) {
+                position = this.collectionShelfSequentialPositions[this.collectionShelfPositionIndex];
+                this.collectionShelfPositionIndex++;
+            }
+
+            return position || {
+                x: 0,
+                y: 0
+            };
+        };
+
+        proto._getContainerSize = function() {
+
+            return {
+                height: this.maxY
+            };
+        };
+
+        return true;
+    };
+
+    var GetCollectionTitlesLayoutMode = function() {
+
+        return RegisterCollectionShelfRowsLayout() ? 'collectionShelfRows' : 'fitRows';
+    };
 
 	//public members
 
@@ -114,6 +296,7 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
     this.SetActiveCollectionId = function(id, opt_collection) {
         _activeCollectionId = id;
         _externalActiveCollection = opt_collection || null;
+        RefreshManualReorderState();
         RenderCollectionHeader();
     };
 
@@ -410,9 +593,19 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
 
     var LayoutCollectionPanel = function() {
 
-        if (_titlesGrid && _titlesGrid.length) {
-            _titlesGrid.isotope('layout');
+        if (!_titlesGrid || !_titlesGrid.length) {
+            return;
         }
+
+        if (IsActiveCollectionManualPersonalCollection()) {
+            ApplyManualSortAndLayout({
+                transitionDuration: IsManualCollectionInitialLayoutSettling() ? 0 : _collectionDefaultLayoutDuration,
+                skipActiveTitleUpdate: true
+            });
+            return;
+        }
+
+        _titlesGrid.isotope('layout');
     };
 
     var CompleteCollectionPanelHeightRelease = function(token) {
@@ -794,6 +987,10 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
 
     var GetOrderedActiveCollectionGameKeys = function() {
 
+        if (IsActiveCollectionManualPersonalCollection()) {
+            return GetPersonalCollectionOrderFromDom();
+        }
+
         var gridTitles = _titlesGrid ? _titlesGrid.isotope('getItemElements') : [];
         var gks = [];
         var seen = {};
@@ -821,6 +1018,10 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
     };
 
     var GetCurrentCollectionSortState = function() {
+
+        if (IsActiveCollectionManualPersonalCollection()) {
+            return {};
+        }
 
         if (!_TitlesSort || !_TitlesSort.Get) {
             return {};
@@ -1513,6 +1714,1986 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
         return null;
     };
 
+    var IsActiveCollectionManualPersonalCollection = function() {
+
+        var collection = FindActiveCollection();
+
+        return !!(_activeCollectionId && !_externalActiveCollection && IsEditableCollection(collection));
+    };
+
+    var GetManualOrderValue = function(value, fallback) {
+
+        value = parseInt(value, 10);
+        fallback = parseInt(fallback, 10);
+
+        if (isNaN(value)) {
+            return isNaN(fallback) ? 0 : fallback;
+        }
+
+        return value;
+    };
+
+    var ApplyManualOrderDataToGridItem = function($griditem, manualOrder) {
+
+        manualOrder = GetManualOrderValue(manualOrder, 0);
+
+        $griditem
+            .data('manualOrder', manualOrder)
+            .attr('data-manual-order', manualOrder);
+    };
+
+    var SortActiveCollectionTitlesByManualOrder = function() {
+
+        _activeCollectionTitles.sort(function(a, b) {
+
+            var aOrder = GetManualOrderValue(a.manualOrder, 0);
+            var bOrder = GetManualOrderValue(b.manualOrder, 0);
+            var aTie = GetManualOrderValue(a.manualTieBreak, aOrder);
+            var bTie = GetManualOrderValue(b.manualTieBreak, bOrder);
+
+            if (aOrder !== bOrder) {
+                return aOrder - bOrder;
+            }
+
+            return aTie - bTie;
+        });
+    };
+
+    var ApplyManualSortAndLayout = function(options) {
+
+        var layoutOptions;
+
+        if (!_titlesGrid || !$collectionTitlesWrapper.length) {
+            return;
+        }
+
+        options = options || {};
+        layoutOptions = {
+            sortBy: _manualCollectionSort,
+            sortAscending: true,
+            transitionDuration: typeof options.transitionDuration !== 'undefined' ? options.transitionDuration : _collectionDefaultLayoutDuration
+        };
+
+        if (_collectionDragState && _collectionDragState.dragging) {
+            layoutOptions.transitionDuration = 0;
+        }
+
+        if (IsManualCollectionInitialLayoutSettling()) {
+            layoutOptions.transitionDuration = 0;
+        }
+
+        _titlesGrid.isotope('updateSortData');
+        _titlesGrid.isotope(layoutOptions);
+    };
+
+    var GetPersonalCollectionItemsInDomOrder = function() {
+
+        if (!$collectionTitlesWrapper.length) {
+            return $();
+        }
+
+        return $collectionTitlesWrapper.children('.collection-grid-item').not('.collection-reorder-drag-clone').filter(function() {
+            var $item = $(this);
+
+            /*
+             * Isotope can leave just-removed items in the DOM while removal
+             * transitions finish. PopulateTitles marks those nodes active=0, so
+             * exclude them from the persisted order payload.
+             */
+            return $item.data('type') === 'personal' && $item.data('active') !== 0;
+        });
+    };
+
+    var NormalizeClientTitleId = function(value) {
+
+        var n;
+
+        if (typeof value === 'number') {
+            n = value;
+        }
+        else if (typeof value === 'string' && $.trim(value) !== '') {
+            n = parseInt(value, 10);
+        }
+        else {
+            return null;
+        }
+
+        if (!isFinite(n) || n < 1 || Math.floor(n) !== n) {
+            return null;
+        }
+
+        return n;
+    };
+
+    var GetActiveCollectionOrderInfo = function() {
+
+        var result = {
+            gameKeys: [],
+            titleIds: [],
+            gameKeySet: {},
+            titleIdSet: {}
+        };
+        var activeTitle;
+        var gk;
+        var titleId;
+
+        for (var i = 0, len = _activeCollectionTitles.length; i < len; ++i) {
+            activeTitle = _activeCollectionTitles[i];
+            gk = activeTitle && activeTitle.gameKey && activeTitle.gameKey.gk;
+            titleId = NormalizeClientTitleId(activeTitle && activeTitle.titleId);
+
+            if (gk && !result.gameKeySet[gk]) {
+                result.gameKeySet[gk] = true;
+                result.gameKeys.push(gk);
+            }
+
+            if (titleId !== null && !result.titleIdSet[titleId]) {
+                result.titleIdSet[titleId] = true;
+                result.titleIds.push(titleId);
+            }
+        }
+
+        return result;
+    };
+
+    var GetPersonalCollectionOrderFromDom = function(options) {
+
+        var gks = [];
+        var seen = {};
+        var activeInfo;
+        var filterToActive;
+        var appendMissingActive;
+
+        options = options || {};
+        activeInfo = GetActiveCollectionOrderInfo();
+        filterToActive = options.filterToActive !== false && activeInfo.gameKeys.length > 0;
+        appendMissingActive = options.appendMissingActive !== false;
+
+        GetPersonalCollectionItemsInDomOrder().each(function() {
+
+            var gk = $(this).data('gk');
+
+            if (!gk || seen[gk]) {
+                return;
+            }
+
+            if (filterToActive && !activeInfo.gameKeySet[gk]) {
+                return;
+            }
+
+            seen[gk] = true;
+            gks.push(gk);
+        });
+
+        if (appendMissingActive) {
+            for (var i = 0, len = activeInfo.gameKeys.length; i < len; ++i) {
+                if (!seen[activeInfo.gameKeys[i]]) {
+                    seen[activeInfo.gameKeys[i]] = true;
+                    gks.push(activeInfo.gameKeys[i]);
+                }
+            }
+        }
+
+        return gks;
+    };
+
+    var GetPersonalCollectionTitleIdOrderFromDom = function(options) {
+
+        var titleIds = [];
+        var seen = {};
+        var activeInfo;
+        var filterToActive;
+        var appendMissingActive;
+        var titleId;
+
+        options = options || {};
+        activeInfo = GetActiveCollectionOrderInfo();
+        filterToActive = options.filterToActive !== false && activeInfo.titleIds.length > 0;
+        appendMissingActive = options.appendMissingActive !== false;
+
+        GetPersonalCollectionItemsInDomOrder().each(function() {
+            titleId = NormalizeClientTitleId($(this).data('titleId'));
+
+            if (titleId === null || seen[titleId]) {
+                return;
+            }
+
+            if (filterToActive && !activeInfo.titleIdSet[titleId]) {
+                return;
+            }
+
+            seen[titleId] = true;
+            titleIds.push(titleId);
+        });
+
+        if (appendMissingActive) {
+            for (var i = 0, len = activeInfo.titleIds.length; i < len; ++i) {
+                if (!seen[activeInfo.titleIds[i]]) {
+                    seen[activeInfo.titleIds[i]] = true;
+                    titleIds.push(activeInfo.titleIds[i]);
+                }
+            }
+        }
+
+        return titleIds;
+    };
+
+    var AreCollectionOrdersEqual = function(first, second) {
+
+        first = first || [];
+        second = second || [];
+
+        if (first.length !== second.length) {
+            return false;
+        }
+
+        for (var i = 0, len = first.length; i < len; ++i) {
+            if (first[i] !== second[i]) {
+                return false;
+            }
+        }
+
+        return true;
+    };
+
+    var ApplyManualOrderToActiveTitlesFromDom = function() {
+
+        var order = GetPersonalCollectionOrderFromDom();
+        var orderByGk = {};
+        var activeTitle;
+        var i;
+
+        for (i = 0; i < order.length; ++i) {
+            orderByGk[order[i]] = i;
+        }
+
+        for (i = 0; i < _activeCollectionTitles.length; ++i) {
+            activeTitle = _activeCollectionTitles[i];
+
+            if (activeTitle.gameKey && orderByGk.hasOwnProperty(activeTitle.gameKey.gk)) {
+                activeTitle.manualOrder = orderByGk[activeTitle.gameKey.gk];
+                activeTitle.manualTieBreak = orderByGk[activeTitle.gameKey.gk];
+            }
+        }
+
+        SortActiveCollectionTitlesByManualOrder();
+    };
+
+    var UpdateManualOrderDataFromDomOnly = function() {
+
+        GetPersonalCollectionItemsInDomOrder().each(function(index) {
+            ApplyManualOrderDataToGridItem($(this), index);
+        });
+    };
+
+    var ApplyManualOrderDataFromDom = function(options) {
+
+        options = options || {};
+
+        UpdateManualOrderDataFromDomOnly();
+
+        if (!options.skipActiveTitleUpdate) {
+            ApplyManualOrderToActiveTitlesFromDom();
+        }
+
+        ApplyManualSortAndLayout(options);
+    };
+
+    var GetCollectionDragNow = function() {
+
+        return Date.now ? Date.now() : new Date().getTime();
+    };
+
+    var GetCollectionDragAnimationItems = function($scope) {
+
+        var $items;
+
+        if (!$collectionTitlesWrapper || !$collectionTitlesWrapper.length) {
+            return $();
+        }
+
+        if ($scope && $scope.length) {
+            $items = $scope.filter('.collection-grid-item').add($scope.find('.collection-grid-item'));
+        }
+        else {
+            $items = GetPersonalCollectionItemsInDomOrder();
+        }
+
+        return $items
+            .not('.collection-reorder-drag-clone')
+            .not('.collection-reorder-placeholder')
+            .filter(function() {
+                return $(this).data('type') === 'personal';
+            });
+    };
+
+    var GetCollectionDragVisualElement = function(item) {
+
+        var $item = $(item);
+        var $visual = $item.find('.gamelink').first();
+
+        return $visual.length ? $visual : $item;
+    };
+
+    var CaptureCollectionDragVisualRects = function($scope) {
+
+        var rects = {};
+
+        GetCollectionDragAnimationItems($scope).each(function() {
+
+            var $item = $(this);
+            var gk = $item.data('gk');
+            var visual = GetCollectionDragVisualElement(this)[0];
+
+            if (!gk || !visual || !visual.getBoundingClientRect) {
+                return;
+            }
+
+            rects[gk] = visual.getBoundingClientRect();
+        });
+
+        return rects;
+    };
+
+    var ClearCollectionDragVisualCleanupTimer = function() {
+
+        if (_collectionDragVisualCleanupTimer) {
+            clearTimeout(_collectionDragVisualCleanupTimer);
+            _collectionDragVisualCleanupTimer = null;
+        }
+    };
+
+    var ClearCollectionDragVisualAnimationStyles = function() {
+
+        ClearCollectionDragVisualCleanupTimer();
+
+        if (!$collectionTitlesWrapper || !$collectionTitlesWrapper.length) {
+            return;
+        }
+
+        $collectionTitlesWrapper
+            .find('.collection-grid-item:not(.collection-reorder-drag-clone)')
+            .removeClass('collection-reorder-visual-moving')
+            .find('.gamelink')
+            .css({
+                '-webkit-transition': '',
+                '-moz-transition': '',
+                '-o-transition': '',
+                transition: '',
+                '-webkit-transform': '',
+                '-moz-transform': '',
+                '-o-transform': '',
+                '-ms-transform': '',
+                transform: '',
+                willChange: ''
+            });
+    };
+
+    var ForceCollectionDragReflow = function() {
+
+        var element = $collectionTitlesWrapper && $collectionTitlesWrapper.length ? $collectionTitlesWrapper[0] : null;
+        var unused;
+
+        if (!element) {
+            return;
+        }
+
+        unused = element.offsetHeight;
+        return unused;
+    };
+
+    var ClearManualCollectionInitialLayoutTimer = function() {
+
+        if (_manualCollectionInitialLayoutTimer) {
+            clearTimeout(_manualCollectionInitialLayoutTimer);
+            _manualCollectionInitialLayoutTimer = null;
+        }
+    };
+
+    var ScheduleCollectionFrame = function(callback) {
+
+        var schedule = window.requestAnimationFrame || function(fn) {
+            return setTimeout(fn, 16);
+        };
+
+        return schedule(callback);
+    };
+
+    var UpdateManualCollectionShelfClass = function(isManualPersonalCollection) {
+
+        if (!$collectionTitlesWrapper || !$collectionTitlesWrapper.length) {
+            return;
+        }
+
+        $collectionTitlesWrapper.toggleClass(_manualCollectionShelfClass, !!isManualPersonalCollection);
+    };
+
+    var IsManualCollectionInitialLayoutSettling = function() {
+
+        return !!($collectionTitlesWrapper && $collectionTitlesWrapper.length && $collectionTitlesWrapper.hasClass(_manualCollectionInitialLayoutClass));
+    };
+
+    var CountManualCollectionGridMatches = function(gridTitles) {
+
+        var activeKeys = {};
+        var matches = 0;
+        var activeTitle;
+        var gk;
+        var i;
+
+        gridTitles = gridTitles || [];
+
+        for (i = 0; i < _activeCollectionTitles.length; ++i) {
+            activeTitle = _activeCollectionTitles[i];
+            gk = activeTitle && activeTitle.gameKey && activeTitle.gameKey.gk;
+
+            if (gk) {
+                activeKeys[gk] = true;
+            }
+        }
+
+        for (i = 0; i < gridTitles.length; ++i) {
+            gk = $(gridTitles[i]).data('gk');
+
+            if ($(gridTitles[i]).data('type') === 'personal' && gk && activeKeys[gk]) {
+                matches++;
+            }
+        }
+
+        return matches;
+    };
+
+    var ShouldSettleManualCollectionInitialLayout = function(gridTitles) {
+
+        var matchingItems;
+
+        if (!IsActiveCollectionManualPersonalCollection() || !$collectionTitlesWrapper.length) {
+            return false;
+        }
+
+        if (!_activeCollectionTitles.length) {
+            return false;
+        }
+
+        gridTitles = gridTitles || [];
+        matchingItems = CountManualCollectionGridMatches(gridTitles);
+
+        /*
+         * On initial load, collection items are inserted one at a time. The
+         * shelf row is centered after every insert, so the row offset changes
+         * repeatedly while cards are being made visible. That produces the
+         * one-time load "fan out / contract" spasm. Keep the manual shelf
+         * hidden and transition-free when this render is a full hydration or a
+         * collection replacement. Do not use it for a normal one-game append,
+         * where most existing DOM items already match the active collection.
+         */
+        return matchingItems === 0 || matchingItems < Math.max(1, Math.floor(_activeCollectionTitles.length / 2));
+    };
+
+    var BeginManualCollectionInitialLayoutSettling = function() {
+
+        if (!$collectionTitlesWrapper || !$collectionTitlesWrapper.length || !_titlesGrid) {
+            return;
+        }
+
+        ClearManualCollectionInitialLayoutTimer();
+        _manualCollectionInitialLayoutToken++;
+
+        $collectionTitlesWrapper
+            .addClass(_manualCollectionShelfClass)
+            .addClass(_manualCollectionInitialLayoutClass)
+            .addClass('collection-reorder-motion-quieted');
+
+        ClearCollectionDragVisualAnimationStyles();
+        _titlesGrid.isotope({ transitionDuration: 0 });
+
+        _manualCollectionInitialLayoutTimer = setTimeout(function() {
+            _manualCollectionInitialLayoutTimer = null;
+            EndManualCollectionInitialLayoutSettling($(), _manualCollectionInitialLayoutToken, { force: true });
+        }, 1600);
+    };
+
+    var StartDeferredCollectionEntryAnimations = function($items) {
+
+        if (!$items || !$items.length) {
+            return;
+        }
+
+        $items.each(function() {
+
+            var $item = $(this);
+            var batchIndex = $item.data('collectionEntryBatchIndex');
+
+            $item.removeData('collectionEntryDeferred');
+            $item.removeData('collectionEntryBatchIndex');
+
+            if ($item.data('collectionEntryComplete')) {
+                return;
+            }
+
+            StartCollectionEntryWhenReady($item, batchIndex);
+        });
+    };
+
+    var EndManualCollectionInitialLayoutSettling = function($deferredEntryItems, token, options) {
+
+        options = options || {};
+
+        if (!$collectionTitlesWrapper || !$collectionTitlesWrapper.length) {
+            return;
+        }
+
+        if (!options.force && token && token !== _manualCollectionInitialLayoutToken) {
+            return;
+        }
+
+        ClearManualCollectionInitialLayoutTimer();
+
+        if ((!$deferredEntryItems || !$deferredEntryItems.length) && $collectionTitlesWrapper.length) {
+            $deferredEntryItems = $collectionTitlesWrapper.find('.collection-grid-item').filter(function() {
+                return $(this).data('collectionEntryDeferred') === true;
+            });
+        }
+
+        if (IsActiveCollectionManualPersonalCollection() && _titlesGrid) {
+            ApplyManualSortAndLayout({
+                transitionDuration: 0,
+                skipActiveTitleUpdate: true
+            });
+            ForceCollectionDragReflow();
+            ClearCollectionDragVisualAnimationStyles();
+            $collectionTitlesWrapper.addClass('collection-drag-layout-primed');
+        }
+
+        $collectionTitlesWrapper
+            .removeClass(_manualCollectionInitialLayoutClass)
+            .removeClass('collection-reorder-motion-quieted');
+
+        StartDeferredCollectionEntryAnimations($deferredEntryItems);
+    };
+
+    var FinishManualCollectionInitialLayoutSettling = function($deferredEntryItems) {
+
+        var token = _manualCollectionInitialLayoutToken;
+
+        ScheduleCollectionFrame(function() {
+            ScheduleCollectionFrame(function() {
+                EndManualCollectionInitialLayoutSettling($deferredEntryItems, token);
+            });
+        });
+    };
+
+    var ClearManualCollectionDragPrimeTimer = function() {
+
+        if (_collectionDragPrimeTimer) {
+            clearTimeout(_collectionDragPrimeTimer);
+            _collectionDragPrimeTimer = null;
+        }
+    };
+
+    var PrimeManualCollectionDragLayout = function(options) {
+
+        options = options || {};
+
+        if (!IsActiveCollectionManualPersonalCollection() || !_titlesGrid || !$collectionTitlesWrapper.length) {
+            return;
+        }
+
+        if (_collectionDragState && _collectionDragState.dragging && !options.allowDuringDrag) {
+            return;
+        }
+
+        if (!options.allowDuringDrag && $collectionTitlesWrapper.find('.collection-grid-item.collection-card-awaiting-entry, .collection-grid-item.collection-card-enter').length) {
+            ScheduleManualCollectionDragPrime(120);
+            return;
+        }
+
+        ClearManualCollectionDragPrimeTimer();
+        ClearCollectionDragVisualAnimationStyles();
+
+        /*
+         * First drag after a page load used to sample the cards while the
+         * collection entry/lift animation and Isotope's first layout state were
+         * still settling. That made the first FLIP pass animate every card from
+         * stale positions, producing the one-time horizontal "spasm". Prime the
+         * manual shelf by cancelling entry transforms and committing the current
+         * Isotope slots without transition before drag hit-testing begins.
+         */
+        QuiesceCollectionDragChildAnimations(GetPersonalCollectionItemsInDomOrder(), { quietWrapper: false });
+        ResetCollectionDragHoverState();
+        ApplyManualSortAndLayout({
+            transitionDuration: 0,
+            skipActiveTitleUpdate: true
+        });
+        ForceCollectionDragReflow();
+        ClearCollectionDragVisualAnimationStyles();
+        $collectionTitlesWrapper.addClass('collection-drag-layout-primed');
+    };
+
+    var ScheduleManualCollectionDragPrime = function(delay) {
+
+        if (!IsActiveCollectionManualPersonalCollection() || !$collectionTitlesWrapper.length) {
+            ClearManualCollectionDragPrimeTimer();
+            return;
+        }
+
+        ClearManualCollectionDragPrimeTimer();
+
+        delay = typeof delay === 'number' ? delay : (_collectionStaggerMaxDelayMs + _collectionEnterAnimationMs + 180);
+
+        _collectionDragPrimeTimer = setTimeout(function() {
+            _collectionDragPrimeTimer = null;
+            PrimeManualCollectionDragLayout();
+        }, Math.max(0, delay));
+    };
+
+    var ApplyCollectionDragInstantLayout = function() {
+
+        ApplyManualSortAndLayout({
+            transitionDuration: 0,
+            skipActiveTitleUpdate: true
+        });
+    };
+
+    var AnimateCollectionDragVisualReflow = function(previousRects, options) {
+
+        var duration;
+        var token;
+        var animations = [];
+        var $animationItems;
+
+        if (!$collectionTitlesWrapper || !$collectionTitlesWrapper.length) {
+            return;
+        }
+
+        options = options || {};
+        duration = PrefersReducedCollectionMotion() ? 0 : (options.duration || _collectionDragLayoutDuration);
+        token = ++_collectionDragVisualAnimationToken;
+        $animationItems = options.items && options.items.length ? options.items : GetCollectionDragAnimationItems();
+
+        ClearCollectionDragVisualCleanupTimer();
+
+        GetCollectionDragAnimationItems($animationItems).each(function() {
+
+            var $item = $(this);
+            var gk = $item.data('gk');
+            var previous = gk ? previousRects[gk] : null;
+            var $visual = GetCollectionDragVisualElement(this);
+            var current;
+            var deltaX;
+            var deltaY;
+            var transform;
+
+            if (!$visual.length) {
+                return;
+            }
+
+            $item.removeClass('collection-reorder-visual-moving');
+            $visual.css({
+                '-webkit-transition': 'none',
+                '-moz-transition': 'none',
+                '-o-transition': 'none',
+                transition: 'none',
+                '-webkit-transform': 'none',
+                '-moz-transform': 'none',
+                '-o-transform': 'none',
+                '-ms-transform': 'none',
+                transform: 'none',
+                willChange: ''
+            });
+
+            if (!previous || duration < 1) {
+                return;
+            }
+
+            current = $visual[0].getBoundingClientRect();
+            deltaX = previous.left - current.left;
+            deltaY = previous.top - current.top;
+
+            if (Math.abs(deltaX) < 0.5 && Math.abs(deltaY) < 0.5) {
+                return;
+            }
+
+            transform = 'translate3d(' + Math.round(deltaX) + 'px, ' + Math.round(deltaY) + 'px, 0px)';
+
+            $item.addClass('collection-reorder-visual-moving');
+            $visual.css({
+                '-webkit-transform': transform,
+                '-moz-transform': transform,
+                '-o-transform': transform,
+                '-ms-transform': transform,
+                transform: transform,
+                willChange: 'transform'
+            });
+
+            animations.push($visual);
+        });
+
+        if (!animations.length || duration < 1) {
+            return;
+        }
+
+        ForceCollectionDragReflow();
+
+        for (var i = 0; i < animations.length; ++i) {
+            animations[i].css({
+                '-webkit-transition': '-webkit-transform ' + duration + 'ms ' + _collectionDragMoveEasing,
+                '-moz-transition': '-moz-transform ' + duration + 'ms ' + _collectionDragMoveEasing,
+                '-o-transition': '-o-transform ' + duration + 'ms ' + _collectionDragMoveEasing,
+                transition: 'transform ' + duration + 'ms ' + _collectionDragMoveEasing,
+                '-webkit-transform': 'translate3d(0px, 0px, 0px)',
+                '-moz-transform': 'translate3d(0px, 0px, 0px)',
+                '-o-transform': 'translate3d(0px, 0px, 0px)',
+                '-ms-transform': 'translate3d(0px, 0px, 0px)',
+                transform: 'translate3d(0px, 0px, 0px)'
+            });
+        }
+
+        _collectionDragVisualCleanupTimer = setTimeout(function() {
+            if (token === _collectionDragVisualAnimationToken) {
+                ClearCollectionDragVisualAnimationStyles();
+            }
+        }, duration + 80);
+    };
+
+    var BeginCollectionDragSettling = function(duration) {
+
+        duration = PrefersReducedCollectionMotion() ? 0 : (duration || _collectionDragSettleLayoutDuration);
+
+        if (_collectionDragSettleTimer) {
+            clearTimeout(_collectionDragSettleTimer);
+            _collectionDragSettleTimer = null;
+        }
+
+        $('body').addClass('collection-reorder-settling');
+        $collectionTitlesWrapper.addClass('collection-reorder-settling');
+
+        _collectionDragSettleTimer = setTimeout(function() {
+            $('body').removeClass('collection-reorder-settling');
+            $collectionTitlesWrapper.removeClass('collection-reorder-settling');
+            _collectionDragSettleTimer = null;
+        }, duration + 90);
+    };
+
+    var ClearCollectionDragSettling = function() {
+
+        if (_collectionDragSettleTimer) {
+            clearTimeout(_collectionDragSettleTimer);
+            _collectionDragSettleTimer = null;
+        }
+
+        $('body').removeClass('collection-reorder-settling');
+        $collectionTitlesWrapper.removeClass('collection-reorder-settling');
+    };
+
+    var RemoveCollectionRuntimeAnimationClasses = function($element) {
+
+        if (!$element || !$element.length) {
+            return;
+        }
+
+        $element.each(function() {
+
+            var $target = $(this);
+            var classList = $target.attr('class') ? $target.attr('class').split(/\s+/) : [];
+            var remove = [];
+
+            $.each(classList, function(index, item) {
+                if (/^anim-/.test(item)) {
+                    remove.push(item);
+                }
+            });
+
+            if (remove.length) {
+                $target.removeClass(remove.join(' '));
+            }
+
+            if (this.style) {
+                this.style.webkitAnimation = '';
+                this.style.animation = '';
+                this.style.webkitAnimationName = '';
+                this.style.animationName = '';
+                this.style.webkitAnimationDuration = '';
+                this.style.animationDuration = '';
+                this.style.webkitAnimationDelay = '';
+                this.style.animationDelay = '';
+                this.style.webkitAnimationIterationCount = '';
+                this.style.animationIterationCount = '';
+                this.style.webkitAnimationFillMode = '';
+                this.style.animationFillMode = '';
+            }
+        });
+    };
+
+    var QuiesceCollectionDragChildAnimations = function($scope, options) {
+
+        var $items;
+
+        if (!$collectionTitlesWrapper || !$collectionTitlesWrapper.length) {
+            return;
+        }
+
+        options = options || {};
+        $scope = $scope && $scope.length ? $scope : GetPersonalCollectionItemsInDomOrder();
+        $items = $scope.filter('.collection-grid-item').add($scope.find('.collection-grid-item'));
+
+        if (options.quietWrapper !== false) {
+            $collectionTitlesWrapper.addClass('collection-reorder-motion-quieted');
+        }
+
+        $items
+            .removeClass('collection-card-awaiting-entry collection-card-enter collection-card-enter-quiet')
+            .each(function() {
+                if (this.style && this.style.removeProperty) {
+                    this.style.removeProperty('--collection-entry-delay');
+                    this.style.removeProperty('--collection-sheen-delay');
+                }
+                $(this).data('collectionEntryComplete', true);
+            });
+
+        RemoveCollectionRuntimeAnimationClasses($scope.add($scope.find('*')));
+    };
+
+    var QueueCollectionDragLayoutFrame = function() {
+
+        var schedule = window.requestAnimationFrame || function(callback) {
+            return setTimeout(callback, 16);
+        };
+
+        if (_collectionDragLayoutFrame) {
+            return;
+        }
+
+        _collectionDragLayoutFrame = schedule(function() {
+            _collectionDragLayoutFrame = null;
+
+            if (!_collectionDragState || !_collectionDragState.dragging) {
+                return;
+            }
+
+            _collectionDragLastLayoutAt = GetCollectionDragNow();
+            ApplyManualSortAndLayout({
+                transitionDuration: PrefersReducedCollectionMotion() ? 0 : _collectionDragLayoutDuration
+            });
+        });
+    };
+
+    var CancelCollectionDragLayout = function() {
+
+        if (_collectionDragLayoutFrame) {
+            if (window.cancelAnimationFrame) {
+                window.cancelAnimationFrame(_collectionDragLayoutFrame);
+            }
+            else {
+                clearTimeout(_collectionDragLayoutFrame);
+            }
+
+            _collectionDragLayoutFrame = null;
+        }
+
+        if (_collectionDragLayoutTimer) {
+            clearTimeout(_collectionDragLayoutTimer);
+            _collectionDragLayoutTimer = null;
+        }
+    };
+
+    var ScheduleCollectionDragLayout = function() {
+
+        var now = GetCollectionDragNow();
+        var elapsed = _collectionDragLastLayoutAt ? now - _collectionDragLastLayoutAt : _collectionDragLayoutThrottleMs;
+        var delay = Math.max(0, _collectionDragLayoutThrottleMs - elapsed);
+
+        if (_collectionDragLayoutFrame || _collectionDragLayoutTimer) {
+            return;
+        }
+
+        if (delay > 0) {
+            _collectionDragLayoutTimer = setTimeout(function() {
+                _collectionDragLayoutTimer = null;
+                QueueCollectionDragLayoutFrame();
+            }, delay);
+            return;
+        }
+
+        QueueCollectionDragLayoutFrame();
+    };
+
+    var ApplyManualOrderDataFromActiveTitles = function(options) {
+
+        var itemsByGameKey = {};
+        var activeTitle;
+        var $griditem;
+        var gk;
+        var i;
+
+        SortActiveCollectionTitlesByManualOrder();
+
+        GetPersonalCollectionItemsInDomOrder().each(function() {
+            var $item = $(this);
+            var itemGameKey = $item.data('gk');
+
+            if (itemGameKey) {
+                itemsByGameKey[itemGameKey] = $item;
+            }
+        });
+
+        for (i = 0; i < _activeCollectionTitles.length; ++i) {
+            activeTitle = _activeCollectionTitles[i];
+            gk = activeTitle.gameKey && activeTitle.gameKey.gk;
+
+            if (!gk || !itemsByGameKey[gk]) {
+                continue;
+            }
+
+            activeTitle.manualOrder = GetManualOrderValue(activeTitle.manualOrder, i);
+            activeTitle.manualTieBreak = i;
+            $griditem = itemsByGameKey[gk];
+            ApplyManualOrderDataToGridItem($griditem, activeTitle.manualOrder);
+            $collectionTitlesWrapper.append($griditem);
+        }
+
+        ApplyManualSortAndLayout(options);
+    };
+
+    var ReorderPersonalCollectionDom = function(order, options) {
+
+        var applyOrder;
+
+        options = options || {};
+        order = order || [];
+
+        applyOrder = function() {
+            var itemsByGameKey = {};
+            var appended = {};
+            var $item;
+            var gk;
+            var i;
+
+            GetPersonalCollectionItemsInDomOrder().each(function() {
+                var $existing = $(this);
+                var existingGameKey = $existing.data('gk');
+
+                if (existingGameKey) {
+                    itemsByGameKey[existingGameKey] = $existing;
+                }
+            });
+
+            for (i = 0; i < order.length; ++i) {
+                gk = order[i];
+                $item = itemsByGameKey[gk];
+
+                if ($item && $item.length && !appended[gk]) {
+                    $collectionTitlesWrapper.append($item);
+                    appended[gk] = true;
+                }
+            }
+
+            GetPersonalCollectionItemsInDomOrder().each(function() {
+                var $remaining = $(this);
+                var remainingGameKey = $remaining.data('gk');
+
+                if (remainingGameKey && !appended[remainingGameKey]) {
+                    $collectionTitlesWrapper.append($remaining);
+                    appended[remainingGameKey] = true;
+                }
+            });
+
+            UpdateManualOrderDataFromDomOnly();
+            ApplyManualOrderToActiveTitlesFromDom();
+        };
+
+        if (options.animate) {
+            var previousRects = CaptureCollectionDragVisualRects();
+            ClearCollectionDragVisualAnimationStyles();
+            applyOrder();
+            ApplyCollectionDragInstantLayout();
+            AnimateCollectionDragVisualReflow(previousRects, {
+                duration: typeof options.duration !== 'undefined' ? options.duration : _collectionDragSettleLayoutDuration
+            });
+            return;
+        }
+
+        applyOrder();
+        ApplyManualSortAndLayout({
+            transitionDuration: typeof options.transitionDuration !== 'undefined' ? options.transitionDuration : _collectionDefaultLayoutDuration
+        });
+    };
+
+    var ShowCollectionOrderSaveError = function(message) {
+
+        var $status;
+
+        if (_collectionOrderErrorTimer) {
+            clearTimeout(_collectionOrderErrorTimer);
+            _collectionOrderErrorTimer = null;
+        }
+
+        if ($collectionsWrapper && $collectionsWrapper.length) {
+            $status = $collectionsWrapper.find('#collectionOrderStatus');
+
+            if (!$status.length) {
+                $status = $('<div id="collectionOrderStatus" class="collection-order-status collection-order-status-error" role="status" aria-live="polite" />');
+                $collectionTitlesWrapper.before($status);
+            }
+
+            $status.text(message).addClass('collection-order-status-visible');
+
+            _collectionOrderErrorTimer = setTimeout(function() {
+                $status.removeClass('collection-order-status-visible').empty();
+                _collectionOrderErrorTimer = null;
+            }, 4200);
+        }
+
+        if (_Logging && typeof _Logging.Console === 'function') {
+            _Logging.Console('ces.collections', message);
+        }
+        else if (window.console && window.console.log) {
+            window.console.log(message);
+        }
+    };
+
+    var SaveManualCollectionOrder = function(previousOrder) {
+
+        var order = GetPersonalCollectionOrderFromDom();
+        var titleIdOrder = GetPersonalCollectionTitleIdOrderFromDom();
+        var saveToken = ++_collectionOrderSaveToken;
+
+        $.ajax({
+            url: _baseUrl + '/order',
+            type: 'PATCH',
+            contentType: 'application/json',
+            dataType: 'json',
+            data: JSON.stringify({
+                c: _activeCollectionId,
+                gks: order,
+                tids: titleIdOrder
+            })
+        }).done(function(response) {
+            if (!response || response.ok !== true) {
+                if (saveToken === _collectionOrderSaveToken) {
+                    ReorderPersonalCollectionDom(previousOrder, {
+                        animate: true,
+                        duration: _collectionDragSettleLayoutDuration
+                    });
+                    ShowCollectionOrderSaveError('Collection order could not be saved. The previous order was restored.');
+                }
+            }
+        }).fail(function(xhr) {
+            if (saveToken !== _collectionOrderSaveToken) {
+                return;
+            }
+
+            ReorderPersonalCollectionDom(previousOrder, {
+                animate: true,
+                duration: _collectionDragSettleLayoutDuration
+            });
+            ShowCollectionOrderSaveError('Collection order could not be saved. The previous order was restored.');
+        });
+    };
+
+    var SuppressNextCollectionClick = function() {
+
+        _suppressNextCollectionClick = true;
+
+        if (_suppressNextCollectionClickTimer) {
+            clearTimeout(_suppressNextCollectionClickTimer);
+        }
+
+        _suppressNextCollectionClickTimer = setTimeout(function() {
+            _suppressNextCollectionClick = false;
+            _suppressNextCollectionClickTimer = null;
+        }, 450);
+    };
+
+    var RefreshManualReorderState = function() {
+
+        var manualPersonalCollection = IsActiveCollectionManualPersonalCollection();
+        var enabled = manualPersonalCollection && _activeCollectionTitles.length > 1;
+
+        if (!$collectionTitlesWrapper.length) {
+            return;
+        }
+
+        UpdateManualCollectionShelfClass(manualPersonalCollection);
+        $collectionTitlesWrapper.toggleClass('collection-manual-reorder-enabled', enabled);
+
+        if (enabled) {
+            ScheduleManualCollectionDragPrime();
+        }
+        else {
+            ClearManualCollectionDragPrimeTimer();
+            $collectionTitlesWrapper.removeClass('collection-drag-layout-primed');
+        }
+
+        if (!manualPersonalCollection) {
+            ClearManualCollectionInitialLayoutTimer();
+            $collectionTitlesWrapper
+                .removeClass(_manualCollectionInitialLayoutClass)
+                .removeClass('collection-reorder-motion-quieted');
+        }
+
+        if (!enabled && _collectionDragState) {
+            FinishCollectionDrag(null, true);
+        }
+    };
+
+    var BindManualCollectionClickSuppressor = function() {
+
+        if (!$collectionTitlesWrapper.length || $collectionTitlesWrapper.data('collectionClickSuppressorBound')) {
+            return;
+        }
+
+        $collectionTitlesWrapper[0].addEventListener('click', function(e) {
+            if (!_suppressNextCollectionClick) {
+                return;
+            }
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            if (e.stopImmediatePropagation) {
+                e.stopImmediatePropagation();
+            }
+
+            _suppressNextCollectionClick = false;
+        }, true);
+
+        $collectionTitlesWrapper.data('collectionClickSuppressorBound', true);
+    };
+
+    var GetCollectionDragEventCoordinates = function(e) {
+
+        var original = e.originalEvent || e;
+        var doc = document.documentElement || document.body;
+        var body = document.body || { scrollLeft: 0, scrollTop: 0 };
+        var pageX = original.pageX;
+        var pageY = original.pageY;
+        var clientX = original.clientX;
+        var clientY = original.clientY;
+
+        if ((pageX === undefined || pageY === undefined) && clientX !== undefined && clientY !== undefined) {
+            pageX = clientX + (window.pageXOffset || doc.scrollLeft || body.scrollLeft || 0);
+            pageY = clientY + (window.pageYOffset || doc.scrollTop || body.scrollTop || 0);
+        }
+
+        return {
+            pageX: pageX || 0,
+            pageY: pageY || 0,
+            clientX: clientX || 0,
+            clientY: clientY || 0
+        };
+    };
+
+    var ResetCollectionDragHoverState = function() {
+
+        if (!$collectionTitlesWrapper || !$collectionTitlesWrapper.length) {
+            return;
+        }
+
+        $collectionTitlesWrapper.find('.collection-grid-item:not(.collection-reorder-drag-clone) .gamelink .box')
+            .removeClass('zoom-on zoom-down ces-game-tooltip-box-open');
+        $collectionTitlesWrapper.find('.collection-grid-item:not(.collection-reorder-drag-clone)')
+            .removeClass('ces-game-tooltip-origin-open');
+    };
+
+    var CanStartManualCollectionDrag = function($item, e) {
+
+        var original = e.originalEvent || e;
+
+        if (!IsActiveCollectionManualPersonalCollection()) {
+            return false;
+        }
+
+        if (!$item || !$item.length || $item.data('type') !== 'personal' || $item.hasClass('collection-reorder-drag-clone')) {
+            return false;
+        }
+
+        if (GetPersonalCollectionItemsInDomOrder().length < 2) {
+            return false;
+        }
+
+        if (original.isPrimary === false) {
+            return false;
+        }
+
+        if ((original.button !== undefined && original.button !== 0) || (e.which && e.which !== 1)) {
+            return false;
+        }
+
+        if ($(e.target).closest('button, input, textarea, select, option, .button, .collection-options-trigger, .collection-options-dropdown').length) {
+            return false;
+        }
+
+        return true;
+    };
+
+    var GetCollectionDragItemIndex = function($item) {
+
+        var index = -1;
+
+        if (!$item || !$item.length) {
+            return index;
+        }
+
+        GetPersonalCollectionItemsInDomOrder().each(function(i) {
+            if (this === $item[0]) {
+                index = i;
+                return false;
+            }
+        });
+
+        return index;
+    };
+
+    var GetCollectionDragPointerCenter = function(coords) {
+
+        var state = _collectionDragState;
+        var itemWidth = state ? state.itemWidth || 0 : 0;
+        var itemHeight = state ? state.itemHeight || 0 : 0;
+        var offsetX = state ? state.pointerOffsetX || 0 : 0;
+        var offsetY = state ? state.pointerOffsetY || 0 : 0;
+
+        coords = coords || { clientX: 0, clientY: 0 };
+
+        return {
+            x: coords.clientX - offsetX + (itemWidth / 2),
+            y: coords.clientY - offsetY + (itemHeight / 2)
+        };
+    };
+
+    var GetCollectionDragSiblingElements = function() {
+
+        var state = _collectionDragState;
+        var items = [];
+
+        GetPersonalCollectionItemsInDomOrder().each(function() {
+            if (state && state.$item && this === state.$item[0]) {
+                return;
+            }
+
+            items.push(this);
+        });
+
+        return items;
+    };
+
+    var GetCollectionDragShelfMetrics = function() {
+
+        var state = _collectionDragState;
+        var gridElement = $collectionTitlesWrapper && $collectionTitlesWrapper.length ? $collectionTitlesWrapper[0] : null;
+        var gridRect = gridElement ? gridElement.getBoundingClientRect() : { left: 0, top: 0, width: 0 };
+        var containerWidth = $collectionTitlesWrapper && $collectionTitlesWrapper.length ? ($collectionTitlesWrapper.innerWidth() || gridRect.width || 0) : 0;
+        var itemWidth = state && state.itemWidth ? state.itemWidth : 0;
+        var itemHeight = state && state.itemHeight ? state.itemHeight : 0;
+        var itemsPerRow;
+
+        if ((!itemWidth || itemWidth < 1) && state && state.$item && state.$item.length) {
+            itemWidth = state.$item.outerWidth() || 1;
+        }
+
+        if ((!itemHeight || itemHeight < 1) && state && state.$item && state.$item.length) {
+            itemHeight = state.$item.outerHeight() || 1;
+        }
+
+        itemWidth = itemWidth || 1;
+        itemHeight = itemHeight || 1;
+        containerWidth = containerWidth || itemWidth;
+        itemsPerRow = Math.floor(containerWidth / itemWidth);
+        itemsPerRow = Math.max(1, Math.min(10, itemsPerRow || 1));
+
+        return {
+            left: gridRect.left || 0,
+            top: gridRect.top || 0,
+            width: containerWidth,
+            itemWidth: itemWidth,
+            itemHeight: itemHeight,
+            itemsPerRow: itemsPerRow
+        };
+    };
+
+    var GetCollectionDragSlotCenter = function(index, totalItems, metrics) {
+
+        var rowIndex;
+        var rowStart;
+        var rowItemCount;
+        var rowOffset;
+        var slotInRow;
+
+        if (!metrics || totalItems < 1) {
+            return { x: 0, y: 0, rowIndex: 0 };
+        }
+
+        if (index < 0) {
+            index = 0;
+        }
+
+        if (index >= totalItems) {
+            index = totalItems - 1;
+        }
+
+        rowIndex = Math.floor(index / metrics.itemsPerRow);
+        rowStart = rowIndex * metrics.itemsPerRow;
+        rowItemCount = Math.min(metrics.itemsPerRow, totalItems - rowStart);
+        rowOffset = Math.max(0, Math.floor((metrics.width - (rowItemCount * metrics.itemWidth)) / 2));
+        slotInRow = index - rowStart;
+
+        return {
+            x: metrics.left + rowOffset + (slotInRow * metrics.itemWidth) + (metrics.itemWidth / 2),
+            y: metrics.top + (rowIndex * metrics.itemHeight) + (metrics.itemHeight / 2),
+            rowIndex: rowIndex
+        };
+    };
+
+    var ApplyCollectionDragInsertionDeadZone = function(insertionIndex, coords, metrics, totalItems) {
+
+        var state = _collectionDragState;
+        var currentIndex;
+        var center;
+        var currentSlot;
+        var targetSlot;
+        var moveX;
+        var moveY;
+        var moveDistance;
+        var adjacentThreshold;
+        var firstMoveThreshold;
+
+        if (!state || !state.dragging || !metrics || totalItems < 2) {
+            return insertionIndex;
+        }
+
+        currentIndex = state.currentInsertionIndex;
+
+        if (currentIndex === null || typeof currentIndex === 'undefined' || currentIndex < 0) {
+            return insertionIndex;
+        }
+
+        if (insertionIndex < 0) {
+            insertionIndex = 0;
+        }
+
+        if (insertionIndex >= totalItems) {
+            insertionIndex = totalItems - 1;
+        }
+
+        if (insertionIndex === currentIndex) {
+            return insertionIndex;
+        }
+
+        center = GetCollectionDragPointerCenter(coords);
+        currentSlot = GetCollectionDragSlotCenter(currentIndex, totalItems, metrics);
+        targetSlot = GetCollectionDragSlotCenter(insertionIndex, totalItems, metrics);
+
+        moveX = coords.pageX - state.startX;
+        moveY = coords.pageY - state.startY;
+        moveDistance = Math.sqrt((moveX * moveX) + (moveY * moveY));
+
+        /*
+         * A one-pixel first movement should never generate a reorder. If a tiny
+         * initial delta resolves as a multi-slot jump, that is stale first-load
+         * geometry rather than user intent; holding the current slot prevents
+         * the post-refresh shelf spasm.
+         */
+        firstMoveThreshold = Math.max(12, metrics.itemWidth * _collectionDragFirstMoveGuardRatio);
+        if (!state.hasMovedPlaceholder && Math.abs(insertionIndex - currentIndex) > 1 && moveDistance < firstMoveThreshold) {
+            return currentIndex;
+        }
+
+        if (Math.abs(insertionIndex - currentIndex) !== 1 || currentSlot.rowIndex !== targetSlot.rowIndex) {
+            return insertionIndex;
+        }
+
+        adjacentThreshold = Math.max(18, metrics.itemWidth * _collectionDragAdjacentDeadZoneRatio);
+
+        if (insertionIndex > currentIndex && center.x < currentSlot.x + adjacentThreshold) {
+            return currentIndex;
+        }
+
+        if (insertionIndex < currentIndex && center.x > currentSlot.x - adjacentThreshold) {
+            return currentIndex;
+        }
+
+        return insertionIndex;
+    };
+
+    var GetCollectionDragInsertionIndex = function(coords) {
+
+        var center = GetCollectionDragPointerCenter(coords);
+        var totalItems = GetPersonalCollectionItemsInDomOrder().length;
+        var metrics;
+        var rowCount;
+        var rowIndex;
+        var rowStart;
+        var rowItemCount;
+        var rowOffset;
+        var slotCenterX;
+        var rawInsertionIndex;
+        var i;
+
+        if (totalItems < 2) {
+            return 0;
+        }
+
+        metrics = GetCollectionDragShelfMetrics();
+        rowCount = Math.ceil(totalItems / metrics.itemsPerRow);
+
+        if (center.y < metrics.top) {
+            rowIndex = 0;
+        }
+        else {
+            rowIndex = Math.floor((center.y - metrics.top) / metrics.itemHeight);
+        }
+
+        if (rowIndex < 0) {
+            rowIndex = 0;
+        }
+
+        if (rowIndex >= rowCount) {
+            rawInsertionIndex = totalItems - 1;
+            return ApplyCollectionDragInsertionDeadZone(rawInsertionIndex, coords, metrics, totalItems);
+        }
+
+        rowStart = rowIndex * metrics.itemsPerRow;
+        rowItemCount = Math.min(metrics.itemsPerRow, totalItems - rowStart);
+        rowOffset = Math.max(0, Math.floor((metrics.width - (rowItemCount * metrics.itemWidth)) / 2));
+
+        for (i = 0; i < rowItemCount; ++i) {
+            slotCenterX = metrics.left + rowOffset + (i * metrics.itemWidth) + (metrics.itemWidth / 2);
+
+            if (center.x < slotCenterX) {
+                rawInsertionIndex = Math.min(totalItems - 1, rowStart + i);
+                return ApplyCollectionDragInsertionDeadZone(rawInsertionIndex, coords, metrics, totalItems);
+            }
+        }
+
+        rawInsertionIndex = Math.min(totalItems - 1, rowStart + rowItemCount);
+        return ApplyCollectionDragInsertionDeadZone(rawInsertionIndex, coords, metrics, totalItems);
+    };
+
+    var CreateCollectionDragClone = function(state, coords) {
+
+        var $clone;
+
+        if (!state || !state.$item || !state.$item.length || !$collectionTitlesWrapper.length) {
+            return;
+        }
+
+        $clone = state.$item.clone(false, false);
+        QuiesceCollectionDragChildAnimations($clone);
+
+        $clone.find('[id]').removeAttr('id');
+        $clone.find('.zoom-down, .ces-game-tooltip-box-open')
+            .removeClass('zoom-down ces-game-tooltip-box-open');
+        $clone.find('.gamelink .box').first()
+            .removeClass('zoom-down ces-game-tooltip-box-open')
+            .addClass('zoom-on collection-reorder-held-box');
+
+        $clone
+            .removeClass('grid-item collection-card-awaiting-entry collection-card-enter collection-card-enter-quiet collection-reorder-placeholder collection-reorder-dragging ces-game-tooltip-origin-open')
+            .addClass('collection-reorder-drag-clone')
+            .attr('aria-hidden', 'true')
+            .removeAttr('id')
+            .removeAttr('aria-grabbed')
+            .removeData('type')
+            .removeData('gk')
+            .removeData('manualOrder')
+            .css({
+                width: state.itemWidth + 'px',
+                height: state.itemHeight + 'px',
+                position: 'fixed',
+                left: '0px',
+                top: '0px',
+                margin: '0px',
+                zIndex: 100000,
+                pointerEvents: 'none',
+                visibility: 'visible'
+            });
+
+        $collectionTitlesWrapper.append($clone);
+        state.$clone = $clone;
+        MoveCollectionDragClone(coords);
+    };
+
+    var MoveCollectionDragClone = function(coords) {
+
+        var state = _collectionDragState;
+        var left;
+        var top;
+        var transform;
+
+        if (!state || !state.$clone || !state.$clone.length || !coords) {
+            return;
+        }
+
+        left = coords.clientX - state.pointerOffsetX;
+        top = coords.clientY - state.pointerOffsetY;
+        transform = 'translate3d(' + Math.round(left) + 'px, ' + Math.round(top) + 'px, 0px)';
+
+        state.$clone.css({
+            '-webkit-transform': transform,
+            '-moz-transform': transform,
+            '-o-transform': transform,
+            '-ms-transform': transform,
+            transform: transform
+        });
+    };
+
+    var BeginCollectionDrag = function(coords) {
+
+        var state = _collectionDragState;
+        var rect;
+
+        if (!state || state.dragging) {
+            return;
+        }
+
+        coords = coords || state.lastCoords || {
+            clientX: state.startClientX,
+            clientY: state.startClientY,
+            pageX: state.startX,
+            pageY: state.startY
+        };
+
+        PrimeManualCollectionDragLayout({ allowDuringDrag: true });
+        rect = state.$item[0].getBoundingClientRect();
+
+        state.dragging = true;
+        state.itemWidth = rect.width || rect.right - rect.left || state.$item.outerWidth();
+        state.itemHeight = rect.height || rect.bottom - rect.top || state.$item.outerHeight();
+        state.pointerOffsetX = coords.clientX - rect.left;
+        state.pointerOffsetY = coords.clientY - rect.top;
+        state.currentInsertionIndex = GetCollectionDragItemIndex(state.$item);
+
+        if (state.pointerOffsetX < 0 || state.pointerOffsetX > state.itemWidth) {
+            state.pointerOffsetX = state.itemWidth / 2;
+        }
+
+        if (state.pointerOffsetY < 0 || state.pointerOffsetY > state.itemHeight) {
+            state.pointerOffsetY = state.itemHeight / 2;
+        }
+
+        if (state.holdTimer) {
+            clearTimeout(state.holdTimer);
+            state.holdTimer = null;
+        }
+
+        SuppressNextCollectionClick();
+
+        try {
+            _Tooltips.Close(state.$item);
+        }
+        catch (err) {
+
+        }
+
+        _collectionDragLastLayoutAt = 0;
+        CancelCollectionDragLayout();
+        ClearCollectionDragSettling();
+        ClearCollectionDragVisualAnimationStyles();
+        QuiesceCollectionDragChildAnimations();
+        ResetCollectionDragHoverState();
+        CreateCollectionDragClone(state, coords);
+
+        $('body').addClass('collection-reorder-active');
+        $collectionTitlesWrapper.addClass('collection-reorder-active');
+        state.$item
+            .addClass('collection-reorder-placeholder collection-reorder-dragging')
+            .attr('aria-grabbed', 'true');
+    };
+
+    var GetCollectionDragAffectedElements = function(siblingItems, fromIndex, toIndex) {
+
+        var affected = [];
+        var start;
+        var end;
+        var i;
+
+        siblingItems = siblingItems || [];
+        fromIndex = parseInt(fromIndex, 10);
+        toIndex = parseInt(toIndex, 10);
+
+        if (isNaN(fromIndex) || isNaN(toIndex) || fromIndex === toIndex) {
+            return $(affected);
+        }
+
+        start = Math.min(fromIndex, toIndex);
+        end = Math.max(fromIndex, toIndex) - 1;
+
+        if (start < 0) {
+            start = 0;
+        }
+
+        if (end >= siblingItems.length) {
+            end = siblingItems.length - 1;
+        }
+
+        for (i = start; i <= end; ++i) {
+            if (siblingItems[i]) {
+                affected.push(siblingItems[i]);
+            }
+        }
+
+        return $(affected);
+    };
+
+    var PlaceCollectionDragPlaceholder = function(insertionIndex) {
+
+        var state = _collectionDragState;
+        var siblingItems;
+        var target;
+        var previousRects;
+        var $affectedItems;
+
+        if (!state || !state.dragging) {
+            return;
+        }
+
+        siblingItems = GetCollectionDragSiblingElements();
+
+        if (insertionIndex < 0) {
+            insertionIndex = 0;
+        }
+
+        if (insertionIndex > siblingItems.length) {
+            insertionIndex = siblingItems.length;
+        }
+
+        if (state.currentInsertionIndex === insertionIndex) {
+            return;
+        }
+
+        $affectedItems = GetCollectionDragAffectedElements(siblingItems, state.currentInsertionIndex, insertionIndex);
+        previousRects = CaptureCollectionDragVisualRects($affectedItems);
+        target = siblingItems[insertionIndex];
+
+        if (target) {
+            $(target).before(state.$item);
+        }
+        else {
+            $collectionTitlesWrapper.append(state.$item);
+        }
+
+        state.currentInsertionIndex = insertionIndex;
+        state.hasMovedPlaceholder = true;
+        ResetCollectionDragHoverState();
+        UpdateManualOrderDataFromDomOnly();
+
+        /*
+         * Drag reflow is animated with a FLIP pass on the visible .gamelink
+         * layer. Isotope still computes the shelf slots, but it is applied
+         * instantly during drag so Outlayer's parent transform cleanup and the
+         * game-link appearance animations cannot create a second end snap.
+         */
+        ApplyCollectionDragInstantLayout();
+        AnimateCollectionDragVisualReflow(previousRects, {
+            duration: _collectionDragLayoutDuration,
+            items: $affectedItems
+        });
+    };
+
+    var FlushCollectionDragPlaceholder = function() {
+
+        var state = _collectionDragState;
+        var insertionIndex;
+
+        if (!state || !state.dragging) {
+            return;
+        }
+
+        if (state.reflowTimer) {
+            clearTimeout(state.reflowTimer);
+            state.reflowTimer = null;
+        }
+
+        if (typeof state.pendingInsertionIndex === 'undefined' || state.pendingInsertionIndex === null) {
+            return;
+        }
+
+        insertionIndex = state.pendingInsertionIndex;
+        state.pendingInsertionIndex = null;
+        state.lastReflowAt = GetCollectionDragNow();
+        PlaceCollectionDragPlaceholder(insertionIndex);
+    };
+
+    var QueueCollectionDragPlaceholder = function(insertionIndex) {
+
+        var state = _collectionDragState;
+        var now;
+        var elapsed;
+        var delay;
+
+        if (!state || !state.dragging) {
+            return;
+        }
+
+        if (state.currentInsertionIndex === insertionIndex && !state.reflowTimer) {
+            state.pendingInsertionIndex = null;
+            return;
+        }
+
+        state.pendingInsertionIndex = insertionIndex;
+
+        if (state.reflowTimer) {
+            return;
+        }
+
+        now = GetCollectionDragNow();
+        elapsed = state.lastReflowAt ? now - state.lastReflowAt : _collectionDragReflowMinInterval;
+        delay = Math.max(0, _collectionDragReflowMinInterval - elapsed);
+
+        if (delay < 12) {
+            FlushCollectionDragPlaceholder();
+            return;
+        }
+
+        state.reflowTimer = setTimeout(function() {
+            FlushCollectionDragPlaceholder();
+        }, delay);
+    };
+
+    var CancelCollectionDragReflow = function() {
+
+        if (!_collectionDragState) {
+            return;
+        }
+
+        if (_collectionDragState.reflowTimer) {
+            clearTimeout(_collectionDragState.reflowTimer);
+            _collectionDragState.reflowTimer = null;
+        }
+
+        _collectionDragState.pendingInsertionIndex = null;
+    };
+
+    var MoveCollectionDraggedItem = function(coords) {
+
+        var insertionIndex;
+
+        if (!_collectionDragState || !_collectionDragState.dragging || !coords) {
+            return;
+        }
+
+        MoveCollectionDragClone(coords);
+        insertionIndex = GetCollectionDragInsertionIndex(coords);
+        QueueCollectionDragPlaceholder(insertionIndex);
+    };
+
+    var CleanupCollectionDrag = function() {
+
+        var wasDragging = _collectionDragState && _collectionDragState.dragging;
+
+        CancelCollectionDragReflow();
+        CancelCollectionDragLayout();
+        ClearManualCollectionDragPrimeTimer();
+        $(document).off(_collectionDragNamespace);
+        $('body').removeClass('collection-reorder-active');
+        $collectionTitlesWrapper.removeClass('collection-reorder-active collection-reorder-motion-quieted');
+
+        if (wasDragging) {
+            BeginCollectionDragSettling(_collectionDragLayoutDuration);
+        }
+        else {
+            ClearCollectionDragVisualAnimationStyles();
+        }
+
+        if (_collectionDragState && _collectionDragState.holdTimer) {
+            clearTimeout(_collectionDragState.holdTimer);
+            _collectionDragState.holdTimer = null;
+        }
+
+        if (_collectionDragState && _collectionDragState.$clone) {
+            _collectionDragState.$clone.remove();
+            _collectionDragState.$clone = null;
+        }
+
+        if (_collectionDragState && _collectionDragState.$item) {
+            _collectionDragState.$item
+                .removeClass('collection-reorder-placeholder collection-reorder-dragging')
+                .removeAttr('aria-grabbed');
+        }
+    };
+
+    var FinishCollectionDrag = function(e, cancel) {
+
+        var state = _collectionDragState;
+        var newOrder;
+        var previousOrder;
+
+        if (!state) {
+            return;
+        }
+
+        if (e && e.preventDefault && state.dragging) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        previousOrder = state.originalOrder ? state.originalOrder.slice(0) : [];
+
+        if (state.dragging) {
+            FlushCollectionDragPlaceholder();
+        }
+
+        CleanupCollectionDrag();
+        _collectionDragState = null;
+
+        if (!state.dragging) {
+            return;
+        }
+
+        SuppressNextCollectionClick();
+
+        if (cancel) {
+            ReorderPersonalCollectionDom(previousOrder, {
+                animate: true,
+                duration: _collectionDragSettleLayoutDuration
+            });
+            return;
+        }
+
+        UpdateManualOrderDataFromDomOnly();
+        ApplyManualOrderToActiveTitlesFromDom();
+
+        if (_titlesGrid && $.fn && $.fn.isotope) {
+            _titlesGrid.isotope('updateSortData');
+        }
+
+        newOrder = GetPersonalCollectionOrderFromDom();
+
+        if (!AreCollectionOrdersEqual(previousOrder, newOrder)) {
+            SaveManualCollectionOrder(previousOrder);
+        }
+    };
+
+    var ContinueCollectionDrag = function(e) {
+
+        var state = _collectionDragState;
+        var original = e.originalEvent || e;
+        var coords;
+        var deltaX;
+        var deltaY;
+
+        if (!state) {
+            return;
+        }
+
+        if (state.pointerId !== null && state.pointerId !== undefined && original.pointerId !== undefined && state.pointerId !== original.pointerId) {
+            return;
+        }
+
+        coords = GetCollectionDragEventCoordinates(e);
+        state.lastCoords = coords;
+        deltaX = coords.pageX - state.startX;
+        deltaY = coords.pageY - state.startY;
+
+        if (!state.dragging) {
+            if (Math.sqrt((deltaX * deltaX) + (deltaY * deltaY)) < _collectionDragThreshold) {
+                return;
+            }
+
+            BeginCollectionDrag(coords);
+        }
+
+        e.preventDefault();
+        e.stopPropagation();
+        MoveCollectionDraggedItem(coords);
+    };
+
+    var CancelCollectionDragOnEscape = function(e) {
+
+        var key = e.which || e.keyCode;
+
+        if (!_collectionDragState || key !== 27) {
+            return;
+        }
+
+        FinishCollectionDrag(e, true);
+    };
+
+    var StartCollectionDragPointer = function(e) {
+
+        var $item = $(e.currentTarget);
+        var original = e.originalEvent || e;
+        var coords;
+        var sourceIndex;
+
+        if (e.type === 'mousedown' && window.PointerEvent) {
+            return;
+        }
+
+        if (!CanStartManualCollectionDrag($item, e)) {
+            return;
+        }
+
+        coords = GetCollectionDragEventCoordinates(e);
+        sourceIndex = GetCollectionDragItemIndex($item);
+
+        _collectionDragState = {
+            $item: $item,
+            $clone: null,
+            startX: coords.pageX,
+            startY: coords.pageY,
+            startClientX: coords.clientX,
+            startClientY: coords.clientY,
+            lastCoords: coords,
+            pointerId: original.pointerId,
+            originalOrder: GetPersonalCollectionOrderFromDom(),
+            dragging: false,
+            holdTimer: null,
+            currentInsertionIndex: sourceIndex,
+            itemWidth: 0,
+            itemHeight: 0,
+            pointerOffsetX: 0,
+            pointerOffsetY: 0,
+            pendingInsertionIndex: null,
+            reflowTimer: null,
+            lastReflowAt: 0,
+            hasMovedPlaceholder: false
+        };
+
+        _collectionDragState.holdTimer = setTimeout(function() {
+            if (_collectionDragState && _collectionDragState.$item && _collectionDragState.$item[0] === $item[0] && !_collectionDragState.dragging) {
+                BeginCollectionDrag(_collectionDragState.lastCoords);
+            }
+        }, _collectionDragHoldMs);
+
+        $(document)
+            .off(_collectionDragNamespace)
+            .on('pointermove' + _collectionDragNamespace, ContinueCollectionDrag)
+            .on('pointerup' + _collectionDragNamespace, function(event) {
+                FinishCollectionDrag(event, false);
+            })
+            .on('pointercancel' + _collectionDragNamespace, function(event) {
+                FinishCollectionDrag(event, true);
+            })
+            .on('mousemove' + _collectionDragNamespace, ContinueCollectionDrag)
+            .on('mouseup' + _collectionDragNamespace, function(event) {
+                FinishCollectionDrag(event, false);
+            })
+            .on('keydown' + _collectionDragNamespace, CancelCollectionDragOnEscape);
+    };
+
+    var BindManualCollectionDragHandlers = function() {
+
+        if (!$collectionTitlesWrapper.length) {
+            return;
+        }
+
+        BindManualCollectionClickSuppressor();
+
+        $collectionTitlesWrapper
+            .off('pointerdown' + _collectionDragNamespace)
+            .on('pointerdown' + _collectionDragNamespace, '.collection-grid-item:not(.collection-reorder-drag-clone)', StartCollectionDragPointer)
+            .off('mousedown' + _collectionDragNamespace)
+            .on('mousedown' + _collectionDragNamespace, '.collection-grid-item:not(.collection-reorder-drag-clone)', StartCollectionDragPointer)
+            .off('dragstart' + _collectionDragNamespace)
+            .on('dragstart' + _collectionDragNamespace, '.collection-grid-item img', function(e) {
+                if (IsActiveCollectionManualPersonalCollection()) {
+                    e.preventDefault();
+                    return false;
+                }
+            });
+    };
+
     var GetCollectionCountText = function(count) {
         return count + ' ' + (count === 1 ? 'game' : 'games');
     };
@@ -1877,13 +4058,50 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
         });
     };
 
+    var InsertCollectionTitleBatch = function($items, options) {
+
+        var iso;
+        var previousDuration;
+        var duration;
+
+        options = options || {};
+
+        if (!$items || !$items.length || !_titlesGrid || !_titlesGrid.length) {
+            return;
+        }
+
+        duration = typeof options.transitionDuration === 'number' ? options.transitionDuration : _collectionDefaultLayoutDuration;
+        iso = _titlesGrid.data('isotope');
+        previousDuration = iso && iso.options ? iso.options.transitionDuration : null;
+
+        if (iso && iso.options) {
+            iso.options.transitionDuration = duration;
+        }
+
+        _titlesGrid.isotope('insert', $items);
+
+        if (iso && iso.options && previousDuration !== null) {
+            iso.options.transitionDuration = previousDuration;
+        }
+    };
+
     //examines the local cache about the active collection and populates the grid as needed
     this.PopulateTitles = function() {
 
         HoldCollectionPanelHeight();
 
         var gridTitles = _titlesGrid.isotope('getItemElements');
-        
+        var manualPersonalCollection = IsActiveCollectionManualPersonalCollection();
+        var settleInitialManualLayout = ShouldSettleManualCollectionInitialLayout(gridTitles);
+        var $deferredEntryItems = $();
+        var $deferredInsertItems = $();
+
+        UpdateManualCollectionShelfClass(manualPersonalCollection);
+
+        if (settleInitialManualLayout) {
+            BeginManualCollectionInitialLayoutSettling();
+        }
+
         //put a flag in each grid item saying this is not in the current collection (unless we find a match later)
         for (var x = 0, xlen = gridTitles.length; x < xlen; ++x) {
             $(gridTitles[x]).data('active', 0);
@@ -1911,16 +4129,27 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
                     $gridTitle.data('active', 1);
 
                     //found this title in the grid, update its attributes to keep it up to date
+                    $gridTitle.data('titleId', activeTitle.titleId).attr('data-title-id', activeTitle.titleId || '');
                     $gridTitle.attr('data-lastPlayed', activeTitle.lastPlayed); //store as epoch time for sorting
                     $gridTitle.attr('data-playCount', activeTitle.playCount);
                     $gridTitle.attr('data-topRanked', activeTitle.topRanked);
+                    ApplyManualOrderDataToGridItem($gridTitle, activeTitle.manualOrder);
                     ApplyReleaseSortData($gridTitle, activeTitle.releaseSort);
                 }
             }
 
             if (!foundInGrid) {
-                activeTitle.gridItem = AddTitle(activeTitle, newTitleBatchIndex);
+                activeTitle.gridItem = AddTitle(activeTitle, newTitleBatchIndex, {
+                    deferEntry: settleInitialManualLayout,
+                    deferInsert: settleInitialManualLayout
+                });
                 activeTitle.gridItem.data('active', 1);
+
+                if (settleInitialManualLayout) {
+                    $deferredEntryItems = $deferredEntryItems.add(activeTitle.gridItem);
+                    $deferredInsertItems = $deferredInsertItems.add(activeTitle.gridItem);
+                }
+
                 newTitleBatchIndex++;
             }
 
@@ -1936,30 +4165,65 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
             }
         }
 
-        _TitlesSort.Sort();
+        if (settleInitialManualLayout && $deferredInsertItems.length) {
+            InsertCollectionTitleBatch($deferredInsertItems, {
+                transitionDuration: 0
+            });
+        }
+
+        if (manualPersonalCollection) {
+            ApplyManualOrderDataFromActiveTitles({
+                transitionDuration: settleInitialManualLayout ? 0 : _collectionDefaultLayoutDuration
+            });
+        }
+        else {
+            _TitlesSort.Sort();
+        }
+
+        RefreshManualReorderState();
+
+        if (settleInitialManualLayout) {
+            FinishManualCollectionInitialLayoutSettling($deferredEntryItems);
+        }
+
         ReleaseCollectionPanelHeight();
     };
 
-    var AddTitle = function(activeTitle, batchIndex) {
+    var AddTitle = function(activeTitle, batchIndex, options) {
         
+        options = options || {};
+
         //create the grid item
         var $griditem = $('<div class="grid-item collection-grid-item collection-card-awaiting-entry" />');
 
         //place sorting data on grid item
         $griditem.data('gk', activeTitle.gameKey.gk);
+        $griditem.data('titleId', activeTitle.titleId).attr('data-title-id', activeTitle.titleId || '');
         $griditem.data('lastPlayed', activeTitle.lastPlayed); //store as epoch time for sorting
         $griditem.data('name', activeTitle.gameKey.title);
         $griditem.data('system', activeTitle.gameKey.system);
         $griditem.data('playCount', activeTitle.playCount);
         $griditem.data('type', 'personal'); //to denote collection type (personal/featured)
         $griditem.data('topRanked', activeTitle.topRanked); //bool. is this the top ranked file (true) or an alternate version?
+        ApplyManualOrderDataToGridItem($griditem, activeTitle.manualOrder);
         ApplyReleaseSortData($griditem, activeTitle.releaseSort);
 
         $griditem.append(activeTitle.gameLink.GetDOM()); //add all visual content from gamelink to grid
 
+        if (options.deferEntry) {
+            $griditem.data('collectionEntryDeferred', true);
+            $griditem.data('collectionEntryBatchIndex', batchIndex);
+        }
+
+        if (options.deferInsert) {
+            return $griditem;
+        }
+
         _titlesGrid.isotope('insert', $griditem[0]);
 
-        StartCollectionEntryWhenReady($griditem, batchIndex);
+        if (!options.deferEntry) {
+            StartCollectionEntryWhenReady($griditem, batchIndex);
+        }
 
         return $griditem;
     };
@@ -1986,7 +4250,17 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
 
         $images.imagesLoaded()
             .progress(function(imgLoad, image) {
-                _TitlesSort.Sort();
+                if (IsActiveCollectionManualPersonalCollection()) {
+                    ApplyManualSortAndLayout({
+                        transitionDuration: 0
+                    });
+                }
+                else if (_externalActiveCollection) {
+                    _titlesGrid.isotope('layout');
+                }
+                else {
+                    _TitlesSort.Sort();
+                }
             })
             .always(function() {
                 clearTimeout(timeout);
@@ -2004,6 +4278,18 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
         var element = $griditem[0];
 
         $griditem.data('collectionEntryComplete', true);
+
+        if (_collectionDragState && _collectionDragState.dragging) {
+            $griditem.removeClass('collection-card-awaiting-entry collection-card-enter collection-card-enter-quiet');
+
+            if (element && element.style && element.style.removeProperty) {
+                element.style.removeProperty('--collection-entry-delay');
+                element.style.removeProperty('--collection-sheen-delay');
+            }
+
+            ScheduleManualCollectionDragPrime(0);
+            return;
+        }
 
         if (element && element.style && element.style.setProperty) {
             element.style.setProperty('--collection-entry-delay', delay + 'ms');
@@ -2024,6 +4310,10 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
             if (element && element.style && element.style.removeProperty) {
                 element.style.removeProperty('--collection-entry-delay');
                 element.style.removeProperty('--collection-sheen-delay');
+            }
+
+            if (IsActiveCollectionManualPersonalCollection()) {
+                ScheduleManualCollectionDragPrime(0);
             }
         }, delay + _collectionEnterAnimationMs + 140);
     };
@@ -2275,6 +4565,25 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
         return $griditem;
     };
 
+    var GetTitleTooltipOrigin = function(activeTitle) {
+
+        if (!activeTitle || !activeTitle.gridItem || !activeTitle.gridItem.length) {
+            return $();
+        }
+
+        var $origin = activeTitle.gridItem.find('.gamelink .box').first();
+
+        if (!$origin.length) {
+            $origin = activeTitle.gridItem.find('.gamelink').first();
+        }
+
+        if (!$origin.length) {
+            $origin = activeTitle.gridItem;
+        }
+
+        return $origin;
+    };
+
     var GenerateTitleTooltipContent = function(activeTitle) {
 
         //create the tooltip content
@@ -2318,7 +4627,8 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
         $actions.append($remove);
         $tooltipContent.append($actions);
 
-        _Tooltips.SingleHTMLWithTitleScreen(activeTitle.gridItem, $tooltipContent, $mediawrapper, activeTitle.gameKey, true, false, null, ['top']);
+        activeTitle.tooltipOrigin = GetTitleTooltipOrigin(activeTitle);
+        _Tooltips.SingleHTMLWithTitleScreen(activeTitle.tooltipOrigin, $tooltipContent, $mediawrapper, activeTitle.gameKey, true, false, null, ['top']);
     };
 
     var GenerateCollectionOptionsDropdownContent = function(collection) {
@@ -2356,31 +4666,9 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
 
         // $menu.append($title);
 
-        $lastPlayed = CreateMenuItem('Sort: Last Played', 'collection-options-menu-item-sort', function(e) {
-            CloseCollectionOptionsMenu(collection);
-            _TitlesSort.Change('lastPlayed', false);
-        });
-        $menu.append($lastPlayed);
-
-        $nameSort = CreateMenuItem('Sort: Name', 'collection-options-menu-item-sort', function(e) {
-            CloseCollectionOptionsMenu(collection);
-            _TitlesSort.Change('name', false);
-        });
-        $menu.append($nameSort);
-
-        $releaseDateSort = CreateMenuItem('Sort: Release Date', 'collection-options-menu-item-sort', function(e) {
-            CloseCollectionOptionsMenu(collection);
-            _TitlesSort.Change('releaseDate', true);
-        });
-        $menu.append($releaseDateSort);
-
-        $playCountSort = CreateMenuItem('Sort: Play Count', 'collection-options-menu-item-sort', function(e) {
-            CloseCollectionOptionsMenu(collection);
-            _TitlesSort.Change('playCount', false);
-        });
-        $menu.append($playCountSort);
-
-        AppendSeparator();
+        // Personal collections now preserve manual shelf order. The old personal
+        // sort controls are intentionally not rendered here so name/date/play-count
+        // preferences cannot override the saved manual order.
 
         $rename = CreateMenuItem('Rename', 'collection-options-menu-item-rename', function(e) {
             CloseCollectionOptionsMenu(collection);
@@ -2487,31 +4775,15 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
     var TitleSortHelper = (function() {
 
         var __self = this;
-        var _sort = 'lastPlayed';
-        var _asc = false;
+        var _sort = _manualCollectionSort;
+        var _asc = true;
         var _name = '';
 
         this.Set = function(payload) {
             
             _name = payload.name;
-
-            var userPreferece = _Preferences.Get('collections.sort.' + _name);
-
-            //first get user preferences for sorting
-            if (userPreferece && userPreferece.hasOwnProperty('sort')) {
-                _sort = userPreferece.sort;
-            }
-            //next the default value (if exists)
-            else if (payload.hasOwnProperty('sort') && payload.sort != null) {
-                _sort = payload.sort;
-            }
-
-            if (userPreferece && userPreferece.hasOwnProperty('asc')) {
-                _asc = userPreferece.asc;
-            }
-            else if (payload.hasOwnProperty('asc') && payload.asc != null) {
-                _asc = payload.asc;
-            }
+            _sort = _manualCollectionSort;
+            _asc = true;
 
             return __self.Get();
         };
@@ -2524,11 +4796,16 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
         };
 
         this.Reset = function() {
-            _sort = 'lastPlayed';
-            _asc = false;
+            _sort = _manualCollectionSort;
+            _asc = true;
         };
 
         this.Sort = function() {
+
+            if (IsActiveCollectionManualPersonalCollection() || _sort === _manualCollectionSort) {
+                ApplyManualSortAndLayout();
+                return;
+            }
             
             if (_sort === 'releaseDate') {
                 _self.SortBy(['releaseMissing', 'releaseDate', 'name'], {
@@ -2545,6 +4822,13 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
         };
 
         this.Change = function(sort, asc) {
+
+            if (IsActiveCollectionManualPersonalCollection()) {
+                _sort = _manualCollectionSort;
+                _asc = true;
+                ApplyManualSortAndLayout();
+                return;
+            }
             
             //if already set to this, change the sort order
             if (_sort === sort) {
@@ -2594,6 +4878,7 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
 
             //handle other collection names data
             ParseCollectionNames(payload.collections);
+            UpdateManualCollectionShelfClass(IsActiveCollectionManualPersonalCollection());
 
             //unlock collection-management affordances only after the user has a real
             //collection, then keep that state for this user in local browser storage.
@@ -2695,6 +4980,7 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
                 var utcDate = new Date(payload[i].lastPlayed);
                 var utcTime = utcDate.getTime();
                 var lastPlayed = utcTime - timezoneOffset;
+                var manualOrder = GetManualOrderValue(payload[i].manualOrder, i);
 
                 //does this title already exist in local cache?
                 var newTitle = true;
@@ -2703,11 +4989,14 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
                         newTitle = false;
 
                         //update these details in local cache to whatever the server says
+                        _activeCollectionTitles[j].titleId = payload[i].titleId;
                         _activeCollectionTitles[j].lastPlayed = lastPlayed;
                         _activeCollectionTitles[j].playCount = payload[i].playCount;
                         _activeCollectionTitles[j].saveCount = payload[i].saveCount;
                         _activeCollectionTitles[j].releaseSort = payload[i].releaseSort;
                         _activeCollectionTitles[j].releaseLabel = payload[i].releaseLabel;
+                        _activeCollectionTitles[j].manualOrder = manualOrder;
+                        _activeCollectionTitles[j].manualTieBreak = i;
 
                     }
                 }
@@ -2718,9 +5007,20 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
                     //decompress gk
                     var gameKey = _Compression.Decompress.gamekey(payload[i].gk);
 
-                    //if the box image fails to load, resync this grid to make room for the error images
+                    //if the box image finishes/fails after initial render, resync this grid.
+                    //For personal collections, keep image-load layout on the
+                    //manual-order path so late image events cannot replay a raw
+                    //Isotope arrangement during the first drag after refresh.
                     var OnImageLoaded = function(image) {
-                        _titlesGrid.isotope('layout');
+                        if (IsActiveCollectionManualPersonalCollection()) {
+                            ApplyManualSortAndLayout({
+                                transitionDuration: 0
+                            });
+                            ScheduleManualCollectionDragPrime(0);
+                        }
+                        else {
+                            _titlesGrid.isotope('layout');
+                        }
                     };
 
                     //generate gamelink
@@ -2729,6 +5029,7 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
                     //push to our local cache
                     _activeCollectionTitles.push({
                         gameKey: gameKey,
+                        titleId: payload[i].titleId,
                         lastPlayed: lastPlayed,
                         lastPlayedServerDate: utcDate,
                         playCount: payload[i].playCount,
@@ -2736,6 +5037,8 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
                         topRanked: payload[i].topRanked,
                         releaseSort: payload[i].releaseSort,
                         releaseLabel: payload[i].releaseLabel,
+                        manualOrder: manualOrder,
+                        manualTieBreak: i,
                         gameLink: gameLink
                     });
                 }
@@ -2756,6 +5059,8 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
                     _activeCollectionTitles.splice(k, 1); //remove title from local cache if not found in payload
                 }
             }
+
+            SortActiveCollectionTitlesByManualOrder();
         };
 
         return this;
@@ -2777,14 +5082,22 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
 
         //first, build the grid
         _titlesGrid = $collectionTitlesWrapper.isotope({
-            layoutMode: 'masonry',
-            transitionDuration: 120,
-            masonry: {
-                columnWidth: 126,
-                horizontalOrder: true
+            layoutMode: GetCollectionTitlesLayoutMode(),
+            transitionDuration: _collectionDefaultLayoutDuration,
+            fitRows: {
+                gutter: 0
+            },
+            collectionShelfRows: {
+                gutter: 0,
+                maxItemsPerRow: 10
             },
             itemSelector: '.grid-item',
             getSortData: {
+                manualOrder: function(item) {
+                    var manualOrder = $(item).data('manualOrder');
+                    manualOrder = parseInt(manualOrder, 10);
+                    return isNaN(manualOrder) ? 0 : manualOrder;
+                },
                 lastPlayed: function(item) {
                     var played = $(item).data('lastPlayed');
                     return parseInt(played, 10);
@@ -2809,6 +5122,22 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
                 }
             }
         });
+
+        BindManualCollectionDragHandlers();
+        RefreshManualReorderState();
+
+        $(window)
+            .off('resize.collectionTitlesBookshelf')
+            .on('resize.collectionTitlesBookshelf', function() {
+                if (_collectionTitlesResizeTimer) {
+                    clearTimeout(_collectionTitlesResizeTimer);
+                }
+
+                _collectionTitlesResizeTimer = setTimeout(function() {
+                    _collectionTitlesResizeTimer = null;
+                    LayoutCollectionPanel();
+                }, 80);
+            });
 
         if (_renderCollectionTabs) {
             _collectionsGrid = $collectionNamesWrapper.isotope({

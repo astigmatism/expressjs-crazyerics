@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1260 206" preserveAspectRatio="none" role="img" aria-label="Dark wooden display shelf">
+  <defs>
+    <linearGradient id="back" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#162330"/>
+      <stop offset="0.42" stop-color="#101923"/>
+      <stop offset="0.78" stop-color="#090e14"/>
+      <stop offset="1" stop-color="#05080c"/>
+    </linearGradient>
+    <radialGradient id="backGlow" cx="50%" cy="20%" r="78%">
+      <stop offset="0" stop-color="#6f879f" stop-opacity="0.14"/>
+      <stop offset="0.46" stop-color="#24384a" stop-opacity="0.065"/>
+      <stop offset="1" stop-color="#000000" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="plank" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#7b5435"/>
+      <stop offset="0.22" stop-color="#5d3d25"/>
+      <stop offset="0.58" stop-color="#352114"/>
+      <stop offset="1" stop-color="#170e08"/>
+    </linearGradient>
+    <linearGradient id="frontLip" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#926941"/>
+      <stop offset="0.36" stop-color="#59371f"/>
+      <stop offset="1" stop-color="#150c07"/>
+    </linearGradient>
+    <linearGradient id="topEdge" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#d3a06a" stop-opacity="0.58"/>
+      <stop offset="0.5" stop-color="#624028" stop-opacity="0.36"/>
+      <stop offset="1" stop-color="#000000" stop-opacity="0"/>
+    </linearGradient>
+    <pattern id="grain" width="220" height="38" patternUnits="userSpaceOnUse">
+      <path d="M0 7 C38 0 70 13 112 7 S181 4 220 12" fill="none" stroke="#b58a5f" stroke-opacity="0.18" stroke-width="1.4"/>
+      <path d="M0 20 C31 14 62 26 99 20 S172 15 220 24" fill="none" stroke="#24150c" stroke-opacity="0.34" stroke-width="1.2"/>
+      <path d="M18 31 C57 26 82 35 125 29 S184 28 218 32" fill="none" stroke="#d2a06f" stroke-opacity="0.10" stroke-width="1"/>
+      <path d="M68 16 C78 11 91 11 100 16 C89 20 78 21 68 16Z" fill="#180d07" opacity="0.16"/>
+      <path d="M151 27 C161 22 176 23 186 28 C174 31 161 32 151 27Z" fill="#9c704c" opacity="0.08"/>
+    </pattern>
+    <filter id="softShadow" x="-10%" y="-70%" width="120%" height="220%">
+      <feGaussianBlur stdDeviation="7"/>
+    </filter>
+  </defs>
+
+  <rect width="1260" height="206" fill="url(#back)"/>
+  <rect width="1260" height="158" fill="url(#backGlow)"/>
+  <rect x="0" y="0" width="1260" height="1" fill="#d4e5f5" opacity="0.13"/>
+  <rect x="0" y="142" width="1260" height="18" fill="#000000" opacity="0.16"/>
+
+  <ellipse cx="630" cy="162" rx="625" ry="19" fill="#000000" opacity="0.30" filter="url(#softShadow)"/>
+  <rect x="0" y="156" width="1260" height="50" fill="url(#plank)"/>
+  <rect x="0" y="156" width="1260" height="50" fill="url(#grain)" opacity="0.90"/>
+  <rect x="0" y="153" width="1260" height="7" fill="url(#topEdge)"/>
+  <rect x="0" y="161" width="1260" height="2" fill="#ffffff" opacity="0.10"/>
+  <rect x="0" y="174" width="1260" height="32" fill="url(#frontLip)" opacity="0.93"/>
+  <rect x="0" y="176" width="1260" height="1" fill="#d0a16f" opacity="0.20"/>
+  <rect x="0" y="188" width="1260" height="1" fill="#000000" opacity="0.16"/>
+  <rect x="0" y="204" width="1260" height="2" fill="#000000" opacity="0.58"/>
+</svg>

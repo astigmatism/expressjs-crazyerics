@@ -99,6 +99,60 @@ router.post('/rename', function(req, res, next) {
     }
 });
 
+var RespondCollectionOrderError = function(res, err) {
+
+    var status = err && err.safeStatus ? err.safeStatus : 500;
+    var message = err && err.safeMessage ? err.safeMessage : 'Collection order could not be saved.';
+
+    if (status >= 500) {
+        console.log('Collection order API failed:', err && err.stack ? err.stack : err);
+
+        if (!err || !err.safeMessage) {
+            message = 'Collection order could not be saved.';
+        }
+    }
+
+    return res.status(status).json({
+        ok: false,
+        error: message
+    });
+};
+
+//persists the manual order of the active personal collection
+router.patch('/order', function(req, res, next) {
+
+    var clientCollectionId = req.body && req.body.c ? req.body.c : null;
+    var orderedGameKeys = req.body ? req.body.gks : null;
+    var orderedTitleIds = req.body ? req.body.tids : null;
+    var collectionId;
+
+    try {
+        clientCollectionId = clientCollectionId ? decodeURIComponent(clientCollectionId) : null;
+        collectionId = clientCollectionId ? CollectionsService.DecodeClientCollectionId(clientCollectionId) : null;
+    }
+    catch (e) {
+        return RespondCollectionOrderError(res, {
+            safeStatus: 400,
+            safeMessage: 'The collection identifier could not be parsed.'
+        });
+    }
+
+    if (!req.user || !collectionId || (!Array.isArray(orderedGameKeys) && !Array.isArray(orderedTitleIds))) {
+        return RespondCollectionOrderError(res, {
+            safeStatus: 400,
+            safeMessage: 'Missing collection order parameters.'
+        });
+    }
+
+    CollectionsService.ReorderActiveCollection(req.user.user_id, collectionId, orderedGameKeys, orderedTitleIds, (err) => {
+        if (err) {
+            return RespondCollectionOrderError(res, err);
+        }
+
+        res.json({ ok: true });
+    });
+});
+
 //put's title into current collection 
 router.put('/', function(req, res, next) {
     var gk = decodeURIComponent(req.query.gk);

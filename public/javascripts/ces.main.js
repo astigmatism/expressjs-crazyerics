@@ -62,6 +62,13 @@ var cesMain = (function() {
         //unpack client data
         var clientdata = _Compression.Out.json(c20); //this name is only used for obfiscation
 
+        clientdata = clientdata || {};
+        clientdata.components = clientdata.components || {};
+        clientdata.components.c = clientdata.components.c || {};
+        clientdata.components.p = clientdata.components.p || {};
+        clientdata.components.f = clientdata.components.f || {};
+        clientdata.components.sc = clientdata.components.sc || {};
+
         _config = clientdata.config;
 
         _Logging = new cesLogging(_config);
