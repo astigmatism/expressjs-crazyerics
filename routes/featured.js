@@ -15,7 +15,7 @@ function SendCompressedJson(res, payload) {
 function IsMissingFeaturedSchemaError(err) {
     var message = String(err && err.message || '');
 
-    return err && ((err.code === '42P01' && message.indexOf('featured_collections') >= 0) || (err.code === '42703' && (message.indexOf('tags') >= 0 || message.indexOf('priority') >= 0)));
+    return err && ((err.code === '42P01' && message.indexOf('featured_collections') >= 0) || (err.code === '42703' && (message.indexOf('tags') >= 0 || message.indexOf('weight') >= 0 || message.indexOf('category') >= 0)));
 }
 
 function SendJsonError(res, status, message) {
@@ -32,7 +32,15 @@ function HandleApiError(req, res, err, status) {
         return SendJsonError(res, 503, 'Featured collection storage is not ready. Run the featured collections database migration before using this feature.');
     }
 
-    SendJsonError(res, status || (typeof err === 'string' ? 400 : 500), typeof err === 'string' ? err : 'Featured collection request failed.');
+    if (typeof err === 'string') {
+        return SendJsonError(res, status || 400, err);
+    }
+
+    if (err && err.isValidation) {
+        return SendJsonError(res, status || 400, err.message || 'Featured collection request failed.');
+    }
+
+    SendJsonError(res, status || 500, 'Featured collection request failed.');
 }
 
 function DecodeCollectionIdFromBody(req) {
@@ -133,7 +141,8 @@ router.post('/', Admin.RequireAdmin, function(req, res) {
     
     FeaturedService.Create(name, gks, GetSortStateFromBody(req), {
         tags: req.body && req.body.tags,
-        priority: req.body && req.body.priority
+        weight: req.body && req.body.weight,
+        category: req.body && req.body.category
     }, (err, collection, action) => {
         if (err) { return HandleApiError(req, res, err); }
 

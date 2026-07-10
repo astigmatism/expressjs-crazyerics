@@ -4,10 +4,19 @@ var cesDialogsFeaturedCollectionsAdmin = (function(_config, $el, $wrapper, args)
     var _sortFields = [];
     var _sortDirections = [];
     var _tagOptions = [];
-    var _priorityOptions = [];
+    var _weightSettings = {
+        minExclusive: 0,
+        max: 100,
+        step: 0.1,
+        helper: '1 = normal, 2 = double, 0.5 = half'
+    };
+    var _categorySettings = {
+        maxLength: 120
+    };
     var _metadataDefaults = {
         tags: ['all'],
-        priority: 0
+        weight: 1,
+        category: ''
     };
     var _importSettings = null;
     var _masterInventory = null;
@@ -20,7 +29,8 @@ var cesDialogsFeaturedCollectionsAdmin = (function(_config, $el, $wrapper, args)
     var $sort = null;
     var $direction = null;
     var $tags = null;
-    var $priority = null;
+    var $weight = null;
+    var $category = null;
     var $published = null;
     var $import = null;
     var $example = null;
@@ -60,7 +70,8 @@ var cesDialogsFeaturedCollectionsAdmin = (function(_config, $el, $wrapper, args)
         $sort = $el.find('#featuredcollectionsadminsort');
         $direction = $el.find('#featuredcollectionsadmindirection');
         $tags = $el.find('#featuredcollectionsadmintags');
-        $priority = $el.find('#featuredcollectionsadminpriority');
+        $weight = $el.find('#featuredcollectionsadminweight');
+        $category = $el.find('#featuredcollectionsadmincategory');
         $published = $el.find('#featuredcollectionsadminpublished');
         $import = $el.find('#featuredcollectionsadminimport');
         $example = $el.find('#featuredcollectionsadminexample');
@@ -178,7 +189,8 @@ var cesDialogsFeaturedCollectionsAdmin = (function(_config, $el, $wrapper, args)
             _sortFields = response.sortFields || [];
             _sortDirections = response.sortDirections || [];
             _tagOptions = response.metadata && response.metadata.tags ? response.metadata.tags : [];
-            _priorityOptions = response.metadata && response.metadata.priorities ? response.metadata.priorities : [];
+            _weightSettings = response.metadata && response.metadata.weight ? response.metadata.weight : _weightSettings;
+            _categorySettings = response.metadata && response.metadata.category ? response.metadata.category : _categorySettings;
             _metadataDefaults = response.metadata && response.metadata.defaults ? response.metadata.defaults : _metadataDefaults;
             _importSettings = response.import || null;
             _masterInventory = response.masterInventory || null;
@@ -193,7 +205,8 @@ var cesDialogsFeaturedCollectionsAdmin = (function(_config, $el, $wrapper, args)
         RenderSortOptions($sort, '');
         RenderDirectionOptions($direction, 'asc');
         RenderTagInput($tags, GetDefaultTags(), 'featured-admin-create-tag-input', true);
-        RenderPriorityOptions($priority, GetDefaultPriority());
+        RenderWeightInput($weight, GetDefaultWeight(), true);
+        RenderCategoryInput($category, GetDefaultCategory());
         RenderMasterInventoryDownload();
 
         if (_importSettings && _importSettings.example) {
@@ -269,7 +282,7 @@ var cesDialogsFeaturedCollectionsAdmin = (function(_config, $el, $wrapper, args)
         var $table = $('<table class="featured-admin-table" />');
         var $thead = $('<thead />').appendTo($table);
         var $headRow = $('<tr />').appendTo($thead);
-        var headers = ['Name', 'Status', 'Games', 'Tags', 'Order', 'Actions'];
+        var headers = ['Name', 'Status', 'Games', 'Tags', 'Metadata / Order', 'Actions'];
 
         for (var h = 0; h < headers.length; ++h) {
             $('<th />').text(headers[h]).appendTo($headRow);
@@ -290,7 +303,8 @@ var cesDialogsFeaturedCollectionsAdmin = (function(_config, $el, $wrapper, args)
             .data('collection', collection);
         var $nameInput = $('<input type="text" class="featured-admin-row-name" maxlength="120" />').val(collection.name || '');
         var $tagControl = $('<div class="featured-admin-tags-control featured-admin-row-tags" />');
-        var $prioritySelect = $('<select class="featured-admin-row-priority" />');
+        var $weightInput = $('<input type="number" class="featured-admin-row-weight" inputmode="decimal" />');
+        var $categoryInput = $('<input type="text" class="featured-admin-row-category" autocomplete="off" spellcheck="false" />');
         var $sortSelect = $('<select class="featured-admin-row-sort" />');
         var $directionSelect = $('<select class="featured-admin-row-direction" />');
         var $statusBadge = $('<span class="featured-admin-status-badge" />')
@@ -300,7 +314,8 @@ var cesDialogsFeaturedCollectionsAdmin = (function(_config, $el, $wrapper, args)
         var $actions = $('<div class="featured-admin-row-actions" />');
 
         RenderTagInput($tagControl, collection.tags || GetDefaultTags(), 'featured-admin-row-tag-input', false);
-        RenderPriorityOptions($prioritySelect, typeof collection.priority !== 'undefined' ? collection.priority : GetDefaultPriority());
+        RenderWeightInput($weightInput, typeof collection.weight !== 'undefined' ? collection.weight : GetDefaultWeight(), false);
+        RenderCategoryInput($categoryInput, typeof collection.category !== 'undefined' ? collection.category : GetDefaultCategory());
         RenderSortOptions($sortSelect, collection.sortField || collection.sort || '');
         RenderDirectionOptions($directionSelect, collection.sortDirection || (collection.asc === false ? 'desc' : 'asc'));
 
@@ -331,7 +346,8 @@ var cesDialogsFeaturedCollectionsAdmin = (function(_config, $el, $wrapper, args)
 
         $('<td class="featured-admin-tags-cell" />').append($tagControl).appendTo($row);
         $('<td class="featured-admin-order-cell" />')
-            .append(BuildCompactField('Priority', $prioritySelect))
+            .append(BuildCompactField('Weight', $weightInput))
+            .append(BuildCompactField('Category', $categoryInput))
             .append(BuildCompactField('Sort', $sortSelect))
             .append(BuildCompactField('Direction', $directionSelect))
             .appendTo($row);
@@ -454,23 +470,43 @@ var cesDialogsFeaturedCollectionsAdmin = (function(_config, $el, $wrapper, args)
         return $field;
     }
 
-    function RenderPriorityOptions($select, selected) {
-        var options = GetPriorityOptions();
-
-        selected = parseInt(selected, 10);
-        if (isNaN(selected)) {
-            selected = GetDefaultPriority();
+    function RenderWeightInput($input, value, allowEmptyDefault) {
+        if (!$input || !$input.length) {
+            return;
         }
 
-        $select.empty();
+        $input
+            .attr('min', '0.0001')
+            .attr('max', String(GetWeightMax()))
+            .attr('step', String(GetWeightStep()))
+            .attr('autocomplete', 'off')
+            .attr('title', GetWeightHelper())
+            .val(FormatWeightForInput(value))
+            .off('blur.featuredAdminWeight')
+            .on('blur.featuredAdminWeight', function() {
+                var parsed = ReadWeightInput($(this), allowEmptyDefault === true);
+                if (!parsed.error) {
+                    $(this).val(FormatWeightForInput(parsed.weight));
+                }
+            });
+    }
 
-        for (var i = 0; i < options.length; ++i) {
-            $('<option />')
-                .attr('value', options[i].value)
-                .text(options[i].label)
-                .prop('selected', parseInt(options[i].value, 10) === selected)
-                .appendTo($select);
+    function RenderCategoryInput($input, value) {
+        if (!$input || !$input.length) {
+            return;
         }
+
+        $input
+            .attr('maxlength', String(GetCategoryMaxLength()))
+            .attr('title', 'Optional free-text category. ' + GetCategoryMaxLength() + ' characters maximum.')
+            .val(FormatCategoryForInput(value))
+            .off('blur.featuredAdminCategory')
+            .on('blur.featuredAdminCategory', function() {
+                var parsed = ReadCategoryInput($(this));
+                if (!parsed.error) {
+                    $(this).val(parsed.category);
+                }
+            });
     }
 
     function GetTagOptions() {
@@ -483,27 +519,36 @@ var cesDialogsFeaturedCollectionsAdmin = (function(_config, $el, $wrapper, args)
         return _tagOptions;
     }
 
-    function GetPriorityOptions() {
-        if (!_priorityOptions || !_priorityOptions.length) {
-            return [
-                { value: -2, label: '-2 Lowest' },
-                { value: -1, label: '-1 Low' },
-                { value: 0, label: '0 Normal' },
-                { value: 1, label: '1 High' },
-                { value: 2, label: '2 Highest' }
-            ];
-        }
-
-        return _priorityOptions;
-    }
-
     function GetDefaultTags() {
         return _metadataDefaults && $.isArray(_metadataDefaults.tags) && _metadataDefaults.tags.length ? _metadataDefaults.tags : ['all'];
     }
 
-    function GetDefaultPriority() {
-        var priority = _metadataDefaults ? parseInt(_metadataDefaults.priority, 10) : 0;
-        return isNaN(priority) ? 0 : priority;
+    function GetDefaultWeight() {
+        var weight = _metadataDefaults ? ParseWeightValue(_metadataDefaults.weight) : null;
+        return weight === null ? 1 : weight;
+    }
+
+    function GetDefaultCategory() {
+        return _metadataDefaults && typeof _metadataDefaults.category === 'string' ? _metadataDefaults.category : '';
+    }
+
+    function GetWeightMax() {
+        var max = _weightSettings ? ParseWeightValue(_weightSettings.max) : null;
+        return max === null || max <= 0 ? 100 : max;
+    }
+
+    function GetWeightStep() {
+        var step = _weightSettings ? ParseWeightValue(_weightSettings.step) : null;
+        return step === null || step <= 0 ? 0.1 : step;
+    }
+
+    function GetWeightHelper() {
+        return _weightSettings && _weightSettings.helper ? String(_weightSettings.helper) : '1 = normal, 2 = double, 0.5 = half';
+    }
+
+    function GetCategoryMaxLength() {
+        var max = _categorySettings ? parseInt(_categorySettings.maxLength, 10) : 120;
+        return isNaN(max) || max < 1 ? 120 : max;
     }
 
     function FormatTagsForInput(tags) {
@@ -512,6 +557,80 @@ var cesDialogsFeaturedCollectionsAdmin = (function(_config, $el, $wrapper, args)
 
     function ReadSelectedTags($target) {
         return ParseTagsInputValue($target.find('.featured-admin-tag-input').val());
+    }
+
+    function ReadWeightInput($input, allowEmptyDefault) {
+        var raw = String($input && $input.length ? $input.val() : '').trim();
+        var weight;
+
+        if (!raw && allowEmptyDefault) {
+            weight = GetDefaultWeight();
+            return { weight: weight };
+        }
+
+        weight = ParseWeightValue(raw);
+
+        if (weight === null || weight <= 0 || weight > GetWeightMax()) {
+            return { error: 'Weight must be a number greater than 0 and no more than ' + GetWeightMax() + '. Use 1 for normal, 2 for double, or 0.5 for half.' };
+        }
+
+        return { weight: Math.round(weight * 10000) / 10000 };
+    }
+
+    function ReadCategoryInput($input) {
+        var category = String($input && $input.length ? $input.val() : '').trim();
+
+        if (HasControlCharacters(category)) {
+            return { error: 'Category cannot contain control characters.' };
+        }
+
+        if (category.length > GetCategoryMaxLength()) {
+            return { error: 'Category must be ' + GetCategoryMaxLength() + ' characters or fewer.' };
+        }
+
+        return { category: category };
+    }
+
+    function FormatWeightForInput(value) {
+        var weight = ParseWeightValue(value);
+
+        if (weight === null || weight <= 0 || weight > GetWeightMax()) {
+            weight = GetDefaultWeight();
+        }
+
+        return String(Math.round(weight * 10000) / 10000);
+    }
+
+    function FormatCategoryForInput(value) {
+        if (typeof value !== 'string') {
+            return '';
+        }
+
+        return value.replace(/[\x00-\x1F\x7F]/g, '').trim().substring(0, GetCategoryMaxLength());
+    }
+
+    function ParseWeightValue(value) {
+        if (typeof value === 'number') {
+            return isFinite(value) ? value : null;
+        }
+
+        if (typeof value !== 'string') {
+            return null;
+        }
+
+        value = value.trim();
+
+        if (!value.match(/^[+-]?(?:(?:\d+\.?\d*)|(?:\.\d+))$/)) {
+            return null;
+        }
+
+        value = parseFloat(value);
+
+        return isFinite(value) ? value : null;
+    }
+
+    function HasControlCharacters(value) {
+        return /[\x00-\x1F\x7F]/.test(String(value || ''));
     }
 
     function ParseTagsInputValue(value) {
@@ -603,7 +722,10 @@ var cesDialogsFeaturedCollectionsAdmin = (function(_config, $el, $wrapper, args)
         var id = $row.attr('data-id');
         var name = $row.find('.featured-admin-row-name').val();
         var tags = ReadSelectedTags($row.find('.featured-admin-row-tags'));
-        var priority = $row.find('.featured-admin-row-priority').val();
+        var $weightInput = $row.find('.featured-admin-row-weight');
+        var $categoryInput = $row.find('.featured-admin-row-category');
+        var weightResult = ReadWeightInput($weightInput, false);
+        var categoryResult = ReadCategoryInput($categoryInput);
         var sortField = $row.find('.featured-admin-row-sort').val();
         var sortDirection = $row.find('.featured-admin-row-direction').val();
 
@@ -611,13 +733,27 @@ var cesDialogsFeaturedCollectionsAdmin = (function(_config, $el, $wrapper, args)
             return;
         }
 
+        if (weightResult.error) {
+            ShowStatus(weightResult.error, true);
+            return;
+        }
+
+        if (categoryResult.error) {
+            ShowStatus(categoryResult.error, true);
+            return;
+        }
+
+        $weightInput.val(FormatWeightForInput(weightResult.weight));
+        $categoryInput.val(categoryResult.category);
+
         SetRowBusy($row, true);
 
         ApiRequest('PATCH', '/admin/featured-collections/' + encodeURIComponent(id), {
             name: name,
             active: collection.active === true,
             tags: tags,
-            priority: priority,
+            weight: weightResult.weight,
+            category: categoryResult.category,
             sortField: sortField,
             sortDirection: sortDirection
         }, function(err) {
@@ -711,13 +847,30 @@ var cesDialogsFeaturedCollectionsAdmin = (function(_config, $el, $wrapper, args)
     }
 
     function CreateCollection() {
+        var weightResult = ReadWeightInput($weight, true);
+        var categoryResult = ReadCategoryInput($category);
+
+        if (weightResult.error) {
+            ShowStatus(weightResult.error, true);
+            return;
+        }
+
+        if (categoryResult.error) {
+            ShowStatus(categoryResult.error, true);
+            return;
+        }
+
+        $weight.val(FormatWeightForInput(weightResult.weight));
+        $category.val(categoryResult.category);
+
         var payload = {
             name: $title.val(),
             importText: $import.val(),
             sortField: $sort.val(),
             sortDirection: $direction.val(),
             tags: ReadSelectedTags($tags),
-            priority: $priority.val(),
+            weight: weightResult.weight,
+            category: categoryResult.category,
             active: $published.prop('checked') === true
         };
 
@@ -738,7 +891,8 @@ var cesDialogsFeaturedCollectionsAdmin = (function(_config, $el, $wrapper, args)
             $title.val('');
             $import.val('');
             RenderTagInput($tags, GetDefaultTags(), 'featured-admin-create-tag-input', true);
-            RenderPriorityOptions($priority, GetDefaultPriority());
+            RenderWeightInput($weight, GetDefaultWeight(), true);
+            RenderCategoryInput($category, GetDefaultCategory());
             NotifyFeaturedChanged();
             LoadCollections();
         });

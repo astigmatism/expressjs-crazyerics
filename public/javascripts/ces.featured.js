@@ -124,6 +124,34 @@ var NormalizeTitleMetadata = function(titles) {
     return result;
 };
 
+var NormalizeWeight = function(value) {
+
+    if (typeof value === 'number') {
+        value = isFinite(value) ? value : null;
+    }
+    else if (typeof value === 'string' && value.trim().match(/^[+-]?(?:(?:\d+\.?\d*)|(?:\.\d+))$/)) {
+        value = parseFloat(value);
+    }
+    else {
+        value = null;
+    }
+
+    if (value === null || !isFinite(value) || value <= 0 || value > 100) {
+        return 1;
+    }
+
+    return Math.round(value * 10000) / 10000;
+};
+
+var NormalizeCategory = function(value) {
+
+    if (typeof value !== 'string') {
+        return '';
+    }
+
+    return value.replace(/[\x00-\x1F\x7F]/g, '').trim().substring(0, 120);
+};
+
 var GetTitleMetadata = function(collection, gk) {
 
     if (!collection || !collection.titleMetadata || !gk) {
@@ -149,7 +177,8 @@ var NormalizeCollection = function(item, index) {
         sort: NormalizeSortName(item.sort),
         asc: NormalizeSortAscending(item.asc),
         tags: $.isArray(item.tags) ? item.tags.slice(0) : ['all'],
-        priority: typeof item.priority !== 'undefined' ? parseInt(item.priority, 10) || 0 : 0,
+        weight: NormalizeWeight(item.weight),
+        category: NormalizeCategory(item.category),
         type: 'featured',
         readOnly: true,
         editable: false,

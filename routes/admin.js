@@ -155,7 +155,7 @@ function ParseAdminKeyUpload(req, res, next) {
 function IsMissingFeaturedSchemaError(err) {
     var message = String(err && err.message || '');
 
-    return err && ((err.code === '42P01' && message.indexOf('featured_collections') >= 0) || (err.code === '42703' && (message.indexOf('tags') >= 0 || message.indexOf('priority') >= 0)));
+    return err && ((err.code === '42P01' && message.indexOf('featured_collections') >= 0) || (err.code === '42703' && (message.indexOf('tags') >= 0 || message.indexOf('weight') >= 0 || message.indexOf('category') >= 0)));
 }
 
 function SendFeaturedManagementError(req, res, err, status) {
@@ -378,7 +378,8 @@ router.post('/featured-collections', Admin.RequireAdmin, RequireSameOriginWhenPr
 
     FeaturedService.CreateFromImport(body.name || body.title, GetImportText(body), GetSortStateFromBody(body), GetActiveStateFromBody(body, true), {
         tags: body.tags,
-        priority: body.priority
+        weight: body.weight,
+        category: body.category
     }, (err, collection, action, importResult) => {
         if (err) { return SendFeaturedManagementError(req, res, err); }
 

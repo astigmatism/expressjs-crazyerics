@@ -2,7 +2,9 @@
 const pool = require('./pool.js');
 
 const DEFAULT_FEATURED_TAGS = ['all'];
-const DEFAULT_FEATURED_PRIORITY = 0;
+const DEFAULT_FEATURED_WEIGHT = 1;
+const DEFAULT_FEATURED_CATEGORY = '';
+const MAX_FEATURED_CATEGORY_LENGTH = 120;
 
 module.exports = new (function() {
 
@@ -113,7 +115,7 @@ module.exports = new (function() {
         active = active === false ? false : true;
         metadata = NormalizeMetadataForDb(metadata);
 
-        pool.query('UPDATE featured_collections SET name=$1, game_keys=$2::jsonb, active=$3, tags=$4::jsonb, priority=$5, updated=NOW() WHERE featured_collection_id=$6 RETURNING *', [name, BuildGameKeysJson(gameKeys, sortState), active, metadata.tagsJson, metadata.priority, featuredCollectionId], (err, result) => {
+        pool.query('UPDATE featured_collections SET name=$1, game_keys=$2::jsonb, active=$3, tags=$4::jsonb, weight=$5, category=$6, updated=NOW() WHERE featured_collection_id=$7 RETURNING *', [name, BuildGameKeysJson(gameKeys, sortState), active, metadata.tagsJson, metadata.weight, metadata.category, featuredCollectionId], (err, result) => {
             if (err) { return callback(err); }
 
             if (result.rows.length < 1) {
@@ -164,7 +166,7 @@ module.exports = new (function() {
         active = active === false ? false : true;
         metadata = NormalizeMetadataForDb(metadata);
 
-        pool.query('INSERT INTO featured_collections (name, game_keys, source_collection_id, published_by_user_id, active, tags, priority) VALUES ($1, $2::jsonb, $3, $4, $5, $6::jsonb, $7) RETURNING *', [name, BuildGameKeysJson(gameKeys, sortState), sourceCollectionId || null, publishedByUserId || null, active, metadata.tagsJson, metadata.priority], (err, result) => {
+        pool.query('INSERT INTO featured_collections (name, game_keys, source_collection_id, published_by_user_id, active, tags, weight, category) VALUES ($1, $2::jsonb, $3, $4, $5, $6::jsonb, $7, $8) RETURNING *', [name, BuildGameKeysJson(gameKeys, sortState), sourceCollectionId || null, publishedByUserId || null, active, metadata.tagsJson, metadata.weight, metadata.category], (err, result) => {
             if (err) { return callback(err); }
             callback(null, result.rows[0]);
         });
@@ -175,7 +177,7 @@ module.exports = new (function() {
         active = active === false ? false : true;
         metadata = NormalizeMetadataForDb(metadata);
 
-        pool.query('UPDATE featured_collections SET name=$1, game_keys=$2::jsonb, source_collection_id=$3, published_by_user_id=$4, active=$5, tags=$6::jsonb, priority=$7, updated=NOW() WHERE featured_collection_id=$8 RETURNING *', [name, BuildGameKeysJson(gameKeys, sortState), sourceCollectionId || null, publishedByUserId || null, active, metadata.tagsJson, metadata.priority, featuredCollectionId], (err, result) => {
+        pool.query('UPDATE featured_collections SET name=$1, game_keys=$2::jsonb, source_collection_id=$3, published_by_user_id=$4, active=$5, tags=$6::jsonb, weight=$7, category=$8, updated=NOW() WHERE featured_collection_id=$9 RETURNING *', [name, BuildGameKeysJson(gameKeys, sortState), sourceCollectionId || null, publishedByUserId || null, active, metadata.tagsJson, metadata.weight, metadata.category, featuredCollectionId], (err, result) => {
             if (err) { return callback(err); }
             callback(null, result.rows[0], 'update');
         });
@@ -188,7 +190,8 @@ module.exports = new (function() {
 
         return {
             tags: Object.prototype.hasOwnProperty.call(metadata, 'tags') ? metadata.tags : fallbackRecord.tags,
-            priority: Object.prototype.hasOwnProperty.call(metadata, 'priority') ? metadata.priority : fallbackRecord.priority
+            weight: Object.prototype.hasOwnProperty.call(metadata, 'weight') ? metadata.weight : fallbackRecord.weight,
+            category: Object.prototype.hasOwnProperty.call(metadata, 'category') ? metadata.category : fallbackRecord.category
         };
     };
 
@@ -198,7 +201,8 @@ module.exports = new (function() {
 
         return {
             tagsJson: BuildTagsJson(metadata.tags),
-            priority: BuildPriority(metadata.priority)
+            weight: BuildWeight(metadata.weight),
+            category: BuildCategory(metadata.category)
         };
     };
 
@@ -239,15 +243,48 @@ module.exports = new (function() {
         return JSON.stringify(result);
     };
 
-    var BuildPriority = function(priority) {
+    var BuildWeight = function(weight) {
 
-        priority = parseInt(priority, 10);
+        weight = ParseStrictNumber(weight);
 
-        if (isNaN(priority) || priority < -2 || priority > 2) {
-            return DEFAULT_FEATURED_PRIORITY;
+        if (weight === null || weight <= 0 || weight > 100) {
+            return DEFAULT_FEATURED_WEIGHT;
         }
 
-        return priority;
+        return Math.round(weight * 10000) / 10000;
+    };
+
+    var ParseStrictNumber = function(value) {
+
+        if (typeof value === 'number') {
+            return isFinite(value) ? value : null;
+        }
+
+        if (typeof value !== 'string') {
+            return null;
+        }
+
+        value = value.trim();
+
+        if (!value.match(/^[+-]?(?:(?:\d+\.?\d*)|(?:\.\d+))$/)) {
+            return null;
+        }
+
+        value = parseFloat(value);
+
+        return isFinite(value) ? value : null;
+    };
+
+    var BuildCategory = function(category) {
+
+        category = typeof category === 'string' ? category : DEFAULT_FEATURED_CATEGORY;
+        category = category.replace(/[\x00-\x1F\x7F]/g, '').trim();
+
+        if (category.length > MAX_FEATURED_CATEGORY_LENGTH) {
+            category = category.substring(0, MAX_FEATURED_CATEGORY_LENGTH);
+        }
+
+        return category;
     };
 
     var BuildGameKeysJson = function(gameKeys, sortState) {

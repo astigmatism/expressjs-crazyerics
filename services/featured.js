@@ -33,16 +33,12 @@ module.exports = new (function() {
         { value: 'playCount', label: 'Play count' }
     ];
     const _defaultTags = ['all'];
-    const _defaultPriority = 0;
-    const _priorityMin = -2;
-    const _priorityMax = 2;
-    const _priorityOptions = [
-        { value: -2, label: '-2 Lowest' },
-        { value: -1, label: '-1 Low' },
-        { value: 0, label: '0 Normal' },
-        { value: 1, label: '1 High' },
-        { value: 2, label: '2 Highest' }
-    ];
+    const _defaultWeight = 1;
+    const _weightMinExclusive = 0;
+    const _weightMax = 100;
+    const _weightStep = 0.1;
+    const _defaultCategory = '';
+    const _maxCategoryLength = 120;
     var _systemAliasMap = null;
     var _systemTagMap = null;
     var _tagOptions = null;
@@ -187,10 +183,19 @@ module.exports = new (function() {
     this.GetMetadataOptions = function() {
         return {
             tags: GetTagOptions(),
-            priorities: _priorityOptions.slice(0),
+            weight: {
+                minExclusive: _weightMinExclusive,
+                max: _weightMax,
+                step: _weightStep,
+                helper: '1 = normal, 2 = double, 0.5 = half'
+            },
+            category: {
+                maxLength: _maxCategoryLength
+            },
             defaults: {
                 tags: _defaultTags.slice(0),
-                priority: _defaultPriority
+                weight: _defaultWeight,
+                category: _defaultCategory
             }
         };
     };
@@ -234,7 +239,8 @@ module.exports = new (function() {
             var hasActiveChange = Object.prototype.hasOwnProperty.call(changes, 'active') || Object.prototype.hasOwnProperty.call(changes, 'published') || Object.prototype.hasOwnProperty.call(changes, 'hidden');
             var hasSortChange = Object.prototype.hasOwnProperty.call(changes, 'sort') || Object.prototype.hasOwnProperty.call(changes, 'sortField') || Object.prototype.hasOwnProperty.call(changes, 'sortDirection') || Object.prototype.hasOwnProperty.call(changes, 'asc') || Object.prototype.hasOwnProperty.call(changes, 'sortState');
             var hasTagsChange = Object.prototype.hasOwnProperty.call(changes, 'tags') || Object.prototype.hasOwnProperty.call(changes, 'metadataTags') || Object.prototype.hasOwnProperty.call(changes, 'visibilityTags');
-            var hasPriorityChange = Object.prototype.hasOwnProperty.call(changes, 'priority') || Object.prototype.hasOwnProperty.call(changes, 'displayPriority') || Object.prototype.hasOwnProperty.call(changes, 'suggestionPriority');
+            var hasWeightChange = Object.prototype.hasOwnProperty.call(changes, 'weight') || Object.prototype.hasOwnProperty.call(changes, 'metadataWeight');
+            var hasCategoryChange = Object.prototype.hasOwnProperty.call(changes, 'category') || Object.prototype.hasOwnProperty.call(changes, 'metadataCategory');
 
             if (hasNameChange) {
                 name = NormalizeCollectionName(changes.name);
@@ -262,12 +268,20 @@ module.exports = new (function() {
                 metadata.tags = normalizedTags.tags;
             }
 
-            if (hasPriorityChange) {
-                var normalizedPriority = NormalizePriorityForMutation(GetPriorityFromChanges(changes));
-                if (normalizedPriority.error) {
-                    return callback(normalizedPriority.error);
+            if (hasWeightChange) {
+                var normalizedWeight = NormalizeWeightForMutation(GetWeightFromChanges(changes), false);
+                if (normalizedWeight.error) {
+                    return callback(normalizedWeight.error);
                 }
-                metadata.priority = normalizedPriority.priority;
+                metadata.weight = normalizedWeight.weight;
+            }
+
+            if (hasCategoryChange) {
+                var normalizedCategory = NormalizeCategoryForMutation(GetCategoryFromChanges(changes));
+                if (normalizedCategory.error) {
+                    return callback(normalizedCategory.error);
+                }
+                metadata.category = normalizedCategory.category;
             }
 
             FeaturedSQL.GetByName(name, (err, sameNameRecord) => {
@@ -768,7 +782,8 @@ module.exports = new (function() {
 
         return {
             tags: NormalizeStoredTags(GetRecordTagsValue(record)),
-            priority: NormalizeStoredPriority(GetRecordPriorityValue(record))
+            weight: NormalizeStoredWeight(GetRecordWeightValue(record)),
+            category: NormalizeStoredCategory(GetRecordCategoryValue(record))
         };
     };
 
@@ -777,7 +792,8 @@ module.exports = new (function() {
         metadata = metadata || {};
 
         var tags = _defaultTags.slice(0);
-        var priority = _defaultPriority;
+        var weight = _defaultWeight;
+        var category = _defaultCategory;
 
         if (HasDefinedProperty(metadata, 'tags') || HasDefinedProperty(metadata, 'metadataTags') || HasDefinedProperty(metadata, 'visibilityTags')) {
             var normalizedTags = NormalizeTagsForMutation(GetTagsFromChanges(metadata));
@@ -787,18 +803,27 @@ module.exports = new (function() {
             tags = normalizedTags.tags;
         }
 
-        if (HasDefinedProperty(metadata, 'priority') || HasDefinedProperty(metadata, 'displayPriority') || HasDefinedProperty(metadata, 'suggestionPriority')) {
-            var normalizedPriority = NormalizePriorityForMutation(GetPriorityFromChanges(metadata));
-            if (normalizedPriority.error) {
-                return { error: normalizedPriority.error };
+        if (HasDefinedProperty(metadata, 'weight') || HasDefinedProperty(metadata, 'metadataWeight')) {
+            var normalizedWeight = NormalizeWeightForMutation(GetWeightFromChanges(metadata), true);
+            if (normalizedWeight.error) {
+                return { error: normalizedWeight.error };
             }
-            priority = normalizedPriority.priority;
+            weight = normalizedWeight.weight;
+        }
+
+        if (HasDefinedProperty(metadata, 'category') || HasDefinedProperty(metadata, 'metadataCategory')) {
+            var normalizedCategory = NormalizeCategoryForMutation(GetCategoryFromChanges(metadata));
+            if (normalizedCategory.error) {
+                return { error: normalizedCategory.error };
+            }
+            category = normalizedCategory.category;
         }
 
         return {
             metadata: {
                 tags: tags,
-                priority: priority
+                weight: weight,
+                category: category
             }
         };
     };
@@ -820,18 +845,23 @@ module.exports = new (function() {
         return null;
     };
 
-    var GetRecordPriorityValue = function(record) {
+    var GetRecordWeightValue = function(record) {
 
-        if (HasDefinedProperty(record, 'priority')) {
-            return record.priority;
+        if (HasDefinedProperty(record, 'weight')) {
+            return record.weight;
         }
 
-        if (HasDefinedProperty(record, 'display_priority')) {
-            return record.display_priority;
+        if (HasDefinedProperty(record, 'selection_weight')) {
+            return record.selection_weight;
         }
 
-        if (HasDefinedProperty(record, 'suggestion_priority')) {
-            return record.suggestion_priority;
+        return null;
+    };
+
+    var GetRecordCategoryValue = function(record) {
+
+        if (HasDefinedProperty(record, 'category')) {
+            return record.category;
         }
 
         return null;
@@ -852,19 +882,26 @@ module.exports = new (function() {
         return changes.visibilityTags;
     };
 
-    var GetPriorityFromChanges = function(changes) {
+    var GetWeightFromChanges = function(changes) {
 
         changes = changes || {};
 
-        if (HasDefinedProperty(changes, 'priority')) {
-            return changes.priority;
+        if (HasDefinedProperty(changes, 'weight')) {
+            return changes.weight;
         }
 
-        if (HasDefinedProperty(changes, 'displayPriority')) {
-            return changes.displayPriority;
+        return changes.metadataWeight;
+    };
+
+    var GetCategoryFromChanges = function(changes) {
+
+        changes = changes || {};
+
+        if (HasDefinedProperty(changes, 'category')) {
+            return changes.category;
         }
 
-        return changes.suggestionPriority;
+        return changes.metadataCategory;
     };
 
     var NormalizeTagsForMutation = function(value) {
@@ -972,35 +1009,78 @@ module.exports = new (function() {
         return { error: CreateValidationError('Unknown featured collection tag "' + raw.substring(0, 80) + '". Allowed tags: ' + BuildAllowedTagsLabel() + '.') };
     };
 
-    var NormalizePriorityForMutation = function(value) {
+    var NormalizeWeightForMutation = function(value, allowEmptyDefault) {
 
-        var priority = ParseStrictInteger(value);
-
-        if (priority === null || priority < _priorityMin || priority > _priorityMax) {
-            return { error: CreateValidationError('Featured collection priority must be an integer from ' + _priorityMin + ' through ' + _priorityMax + '.') };
+        if (allowEmptyDefault && IsEmptyInput(value)) {
+            return { weight: _defaultWeight };
         }
 
-        return { priority: priority };
-    };
+        var weight = ParseStrictNumber(value);
 
-    var NormalizeStoredPriority = function(value) {
-
-        var priority = ParseStrictInteger(value);
-
-        if (priority === null || priority < _priorityMin || priority > _priorityMax) {
-            return _defaultPriority;
+        if (weight === null || weight <= _weightMinExclusive || weight > _weightMax) {
+            return { error: CreateValidationError('Featured collection weight must be a number greater than 0 and no more than ' + _weightMax + '.') };
         }
 
-        return priority;
+        return { weight: NormalizeWeightPrecision(weight) };
     };
 
-    var ParseStrictInteger = function(value) {
+    var NormalizeStoredWeight = function(value) {
+
+        var weight = ParseStrictNumber(value);
+
+        if (weight === null || weight <= _weightMinExclusive || weight > _weightMax) {
+            return _defaultWeight;
+        }
+
+        return NormalizeWeightPrecision(weight);
+    };
+
+    var NormalizeCategoryForMutation = function(value) {
+
+        var category = value === null || typeof value === 'undefined' ? _defaultCategory : String(value);
+
+        category = category.trim();
+
+        if (HasControlCharacters(category)) {
+            return { error: CreateValidationError('Featured collection category cannot contain control characters.') };
+        }
+
+        if (category.length > _maxCategoryLength) {
+            return { error: CreateValidationError('Featured collection category must be ' + _maxCategoryLength + ' characters or fewer.') };
+        }
+
+        return { category: category };
+    };
+
+    var NormalizeStoredCategory = function(value) {
+
+        var category = value === null || typeof value === 'undefined' ? _defaultCategory : String(value);
+
+        category = category.replace(/[\x00-\x1F\x7F]/g, '').trim();
+
+        if (category.length > _maxCategoryLength) {
+            category = category.substring(0, _maxCategoryLength);
+        }
+
+        return category;
+    };
+
+    var NormalizeWeightPrecision = function(value) {
+        return Math.round(value * 10000) / 10000;
+    };
+
+    var IsEmptyInput = function(value) {
+        return value === null || typeof value === 'undefined' || (typeof value === 'string' && value.trim() === '');
+    };
+
+    var HasControlCharacters = function(value) {
+        return /[\x00-\x1F\x7F]/.test(String(value || ''));
+    };
+
+    var ParseStrictNumber = function(value) {
 
         if (typeof value === 'number') {
-            if (!isFinite(value) || Math.floor(value) !== value) {
-                return null;
-            }
-            return value;
+            return isFinite(value) ? value : null;
         }
 
         if (typeof value !== 'string') {
@@ -1009,11 +1089,13 @@ module.exports = new (function() {
 
         value = value.trim();
 
-        if (!value.match(/^-?\d+$/)) {
+        if (!value.match(/^[+-]?(?:(?:\d+\.?\d*)|(?:\.\d+))$/)) {
             return null;
         }
 
-        return parseInt(value, 10);
+        value = parseFloat(value);
+
+        return isFinite(value) ? value : null;
     };
 
     var GetTagOptions = function() {
@@ -1301,7 +1383,8 @@ module.exports = new (function() {
             name: record.name,
             gks: NormalizeRecordGameKeys(record),
             tags: metadata.tags,
-            priority: metadata.priority,
+            weight: metadata.weight,
+            category: metadata.category,
             sort: sortState.sort,
             asc: sortState.asc,
             type: 'featured',
@@ -1321,7 +1404,8 @@ module.exports = new (function() {
             gks: NormalizeGameKeyList(collection.gks),
             titles: CloneClientTitles(collection.titles),
             tags: NormalizeStoredTags(collection.tags),
-            priority: NormalizeStoredPriority(collection.priority),
+            weight: NormalizeStoredWeight(collection.weight),
+            category: NormalizeStoredCategory(collection.category),
             sort: NormalizeSortName(collection.sort),
             asc: NormalizeSortAscending(collection.asc),
             type: 'featured',
@@ -1382,7 +1466,8 @@ module.exports = new (function() {
                 invalidGameCount: hydration.invalid.length,
                 duplicateGameCount: hydration.duplicates.length,
                 tags: metadata.tags,
-                priority: metadata.priority,
+                weight: metadata.weight,
+                category: metadata.category,
                 sort: sortState.sort || '',
                 sortField: sortState.sort || '',
                 asc: sortState.asc === false ? false : true,

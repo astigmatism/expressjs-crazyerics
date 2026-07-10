@@ -107,9 +107,13 @@ block content
                                             div(class="featured-admin-create-field featured-admin-create-field-tags")
                                                 label(for="featuredcollectionsadmintagsinput") Tags
                                                 div#featuredcollectionsadmintags(class="featured-admin-tags-control")
-                                            div(class="featured-admin-create-field featured-admin-create-field-priority")
-                                                label(for="featuredcollectionsadminpriority") Priority
-                                                select#featuredcollectionsadminpriority
+                                            div(class="featured-admin-create-field featured-admin-create-field-weight")
+                                                label(for="featuredcollectionsadminweight") Weight
+                                                input#featuredcollectionsadminweight(type="number", min="0.0001", max="100", step="0.1", value="1", inputmode="decimal")
+                                                span#featuredcollectionsadminweighthelp(class="featured-admin-weight-help") 1 = normal, 2 = double, 0.5 = half
+                                            div(class="featured-admin-create-field featured-admin-create-field-category")
+                                                label(for="featuredcollectionsadmincategory") Category
+                                                input#featuredcollectionsadmincategory(type="text", maxlength="120", autocomplete="off", spellcheck="false")
                                             label(class="featured-admin-checkbox featured-admin-create-published", for="featuredcollectionsadminpublished")
                                                 input#featuredcollectionsadminpublished(type="checkbox", checked)
                                                 span Publish immediately

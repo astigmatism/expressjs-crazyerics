@@ -39,6 +39,12 @@ var cesSuggestions = (function(_config, _Media, _Compression, _Tooltips, _Collec
     var _scrollHandler = null;
     var _resizeHandler = null;
     var _layoutRefreshHandler = null;
+    var _suggestionDragNamespace = '.cesSuggestionDrag';
+    var _suggestionDragState = null;
+    var _suggestionDragThreshold = 6;
+    var _suggestionDragHoldMs = 240;
+    var _suppressNextSuggestionClick = false;
+    var _suppressNextSuggestionClickTimer = null;
 
     this.Load = function(recipe, callback, opt_canned, _opt_alphaHelper) {
 
@@ -256,6 +262,7 @@ var cesSuggestions = (function(_config, _Media, _Compression, _Tooltips, _Collec
 
     var Clear = function() {
 
+        CancelActiveSuggestionDrag();
         DestroyGridTooltips();
 
         for (var i = 0, len = _currentGameLinks.length; i < len; i++) {
@@ -359,8 +366,10 @@ var cesSuggestions = (function(_config, _Media, _Compression, _Tooltips, _Collec
 
         var $griditem = $('<div class="grid-item suggestion-grid-item" />');
         $griditem.attr('data-gk', gameKey.gk);
+        $griditem.attr('draggable', 'false');
         $griditem.data('suggestionSequence', _renderSequence++);
         $griditem.data('suggestionLoadGeneration', loadGeneration);
+        $griditem.data('gameKey', gameKey);
 
         var onImageLoaded = function() {
             if (IsCurrentSuggestionItem($griditem, loadGeneration) && $griditem.parent().length) {
@@ -770,6 +779,491 @@ var cesSuggestions = (function(_config, _Media, _Compression, _Tooltips, _Collec
         };
     };
 
+    var RefreshSuggestionDragConfig = function() {
+
+        var config;
+        var threshold;
+        var holdMs;
+
+        if (!_Collections || typeof _Collections.GetSuggestionDragConfig !== 'function') {
+            return;
+        }
+
+        config = _Collections.GetSuggestionDragConfig() || {};
+        threshold = parseInt(config.threshold, 10);
+        holdMs = parseInt(config.holdMs, 10);
+
+        if (!isNaN(threshold) && threshold > 0) {
+            _suggestionDragThreshold = threshold;
+        }
+
+        if (!isNaN(holdMs) && holdMs > 0) {
+            _suggestionDragHoldMs = holdMs;
+        }
+    };
+
+    var GetSuggestionDragEventCoordinates = function(e) {
+
+        var original = e && (e.originalEvent || e) || {};
+        var doc = document.documentElement || document.body;
+        var body = document.body || { scrollLeft: 0, scrollTop: 0 };
+        var pageX = original.pageX;
+        var pageY = original.pageY;
+        var clientX = original.clientX;
+        var clientY = original.clientY;
+
+        if ((pageX === undefined || pageY === undefined) && clientX !== undefined && clientY !== undefined) {
+            pageX = clientX + (window.pageXOffset || doc.scrollLeft || body.scrollLeft || 0);
+            pageY = clientY + (window.pageYOffset || doc.scrollTop || body.scrollTop || 0);
+        }
+
+        return {
+            pageX: pageX || 0,
+            pageY: pageY || 0,
+            clientX: clientX || 0,
+            clientY: clientY || 0
+        };
+    };
+
+    var GetSuggestionGameKey = function($item) {
+
+        var gameKey;
+        var gk;
+
+        if (!$item || !$item.length) {
+            return null;
+        }
+
+        gameKey = $item.data('gameKey');
+
+        if (gameKey && gameKey.gk) {
+            return gameKey;
+        }
+
+        gk = $item.data('gk') || $item.attr('data-gk');
+
+        if (!gk) {
+            return null;
+        }
+
+        return {
+            gk: gk
+        };
+    };
+
+    var IsSuggestionDragInteractiveTarget = function(target) {
+
+        return $(target).closest('button, input, textarea, select, option, .button, .game-tooltip-action, .tooltipster-box, .tooltipster-content').length > 0;
+    };
+
+    var CanStartSuggestionDrag = function($item, e) {
+
+        var original = e.originalEvent || e;
+        var pointerType = original.pointerType;
+
+        if (_suggestionDragState) {
+            return false;
+        }
+
+        if (!_Collections || typeof _Collections.CommitSuggestionDrop !== 'function' || typeof _Collections.UpdateSuggestionDropPreview !== 'function') {
+            return false;
+        }
+
+        if (!$item || !$item.length || !$item.hasClass('suggestion-grid-item')) {
+            return false;
+        }
+
+        if (!GetSuggestionGameKey($item)) {
+            return false;
+        }
+
+        if (original.isPrimary === false) {
+            return false;
+        }
+
+        if (pointerType && pointerType !== 'mouse' && pointerType !== 'pen') {
+            return false;
+        }
+
+        if ((original.button !== undefined && original.button !== 0) || (e.which && e.which !== 1)) {
+            return false;
+        }
+
+        if (IsSuggestionDragInteractiveTarget(e.target)) {
+            return false;
+        }
+
+        return true;
+    };
+
+    var SuppressNextSuggestionClick = function() {
+
+        _suppressNextSuggestionClick = true;
+
+        if (_suppressNextSuggestionClickTimer) {
+            clearTimeout(_suppressNextSuggestionClickTimer);
+        }
+
+        _suppressNextSuggestionClickTimer = setTimeout(function() {
+            _suppressNextSuggestionClick = false;
+            _suppressNextSuggestionClickTimer = null;
+        }, 450);
+    };
+
+    var BindSuggestionClickSuppressor = function() {
+
+        if (!_grid || !_grid.length || _grid.data('suggestionClickSuppressorBound')) {
+            return;
+        }
+
+        _grid[0].addEventListener('click', function(e) {
+            if (!_suppressNextSuggestionClick) {
+                return;
+            }
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            if (e.stopImmediatePropagation) {
+                e.stopImmediatePropagation();
+            }
+
+            _suppressNextSuggestionClick = false;
+        }, true);
+
+        _grid.data('suggestionClickSuppressorBound', true);
+    };
+
+    var ClearSuggestionDragHoldTimer = function() {
+
+        if (_suggestionDragState && _suggestionDragState.holdTimer) {
+            clearTimeout(_suggestionDragState.holdTimer);
+            _suggestionDragState.holdTimer = null;
+        }
+    };
+
+    var MoveSuggestionDragClone = function(coords) {
+
+        var state = _suggestionDragState;
+        var left;
+        var top;
+        var transform;
+
+        if (!state || !state.$clone || !state.$clone.length || !coords) {
+            return;
+        }
+
+        left = coords.clientX - state.pointerOffsetX;
+        top = coords.clientY - state.pointerOffsetY;
+        transform = 'translate3d(' + Math.round(left) + 'px, ' + Math.round(top) + 'px, 0px)';
+
+        state.$clone.css({
+            '-webkit-transform': transform,
+            '-moz-transform': transform,
+            '-o-transform': transform,
+            '-ms-transform': transform,
+            transform: transform
+        });
+    };
+
+    var CreateSuggestionDragClone = function(state, coords) {
+
+        var $clone;
+
+        if (!state || !state.$item || !state.$item.length || !_grid || !_grid.length) {
+            return;
+        }
+
+        $clone = state.$item.clone(false, false);
+        $clone.find('[id]').removeAttr('id');
+        $clone.find('.zoom-down, .ces-game-tooltip-box-open')
+            .removeClass('zoom-down ces-game-tooltip-box-open');
+        $clone.find('.gamelink .box').first()
+            .removeClass('zoom-down ces-game-tooltip-box-open')
+            .addClass('zoom-on suggestion-drag-held-box');
+
+        $clone
+            .removeClass('suggestion-grid-item suggestion-card-enter ces-game-tooltip-origin-open')
+            .addClass('suggestion-drag-clone')
+            .attr('aria-hidden', 'true')
+            .removeAttr('id')
+            .removeAttr('aria-grabbed')
+            .removeAttr('data-gk')
+            .removeData('gameKey')
+            .css({
+                width: state.itemWidth + 'px',
+                height: state.itemHeight + 'px',
+                position: 'fixed',
+                left: '0px',
+                top: '0px',
+                margin: '0px',
+                zIndex: 100000,
+                pointerEvents: 'none',
+                visibility: 'visible'
+            });
+
+        _grid.append($clone);
+        state.$clone = $clone;
+        MoveSuggestionDragClone(coords);
+    };
+
+    var BeginSuggestionDrag = function(coords) {
+
+        var state = _suggestionDragState;
+        var rect;
+
+        if (!state || state.dragging) {
+            return;
+        }
+
+        coords = coords || state.lastCoords || {
+            clientX: state.startClientX,
+            clientY: state.startClientY,
+            pageX: state.startX,
+            pageY: state.startY
+        };
+
+        rect = state.$item[0].getBoundingClientRect();
+        state.dragging = true;
+        state.itemWidth = rect.width || rect.right - rect.left || state.$item.outerWidth();
+        state.itemHeight = rect.height || rect.bottom - rect.top || state.$item.outerHeight();
+        state.pointerOffsetX = coords.clientX - rect.left;
+        state.pointerOffsetY = coords.clientY - rect.top;
+
+        if (state.pointerOffsetX < 0 || state.pointerOffsetX > state.itemWidth) {
+            state.pointerOffsetX = state.itemWidth / 2;
+        }
+
+        if (state.pointerOffsetY < 0 || state.pointerOffsetY > state.itemHeight) {
+            state.pointerOffsetY = state.itemHeight / 2;
+        }
+
+        ClearSuggestionDragHoldTimer();
+        SuppressNextSuggestionClick();
+
+        try {
+            _Tooltips.Close(state.$item.find('.gamelink .box').first());
+        }
+        catch (err) {
+
+        }
+
+        $('body').addClass('suggestion-drag-active');
+        state.$item
+            .addClass('suggestion-drag-source')
+            .attr('aria-grabbed', 'true')
+            .find('.gamelink .box')
+            .removeClass('zoom-on zoom-down ces-game-tooltip-box-open');
+
+        CreateSuggestionDragClone(state, coords);
+
+        if (_Collections && typeof _Collections.UpdateSuggestionDropPreview === 'function') {
+            _Collections.UpdateSuggestionDropPreview(state.gameKey, coords);
+        }
+    };
+
+    var CleanupSuggestionDrag = function(options) {
+
+        var state = _suggestionDragState;
+
+        options = options || {};
+
+        if (!state) {
+            return;
+        }
+
+        ClearSuggestionDragHoldTimer();
+        $(document).off(_suggestionDragNamespace);
+
+        if (state.$clone) {
+            state.$clone.remove();
+            state.$clone = null;
+        }
+
+        if (state.$item && state.$item.length) {
+            state.$item
+                .removeClass('suggestion-drag-source')
+                .removeAttr('aria-grabbed');
+        }
+
+        $('body').removeClass('suggestion-drag-active');
+
+        if (!options.skipDropPreviewCleanup && _Collections && typeof _Collections.CancelSuggestionDropPreview === 'function') {
+            _Collections.CancelSuggestionDropPreview();
+        }
+
+        _suggestionDragState = null;
+    };
+
+    var FinishSuggestionDrag = function(e, cancel) {
+
+        var state = _suggestionDragState;
+        var wasDragging;
+        var committed = false;
+        var coords;
+
+        if (!state) {
+            return;
+        }
+
+        wasDragging = state.dragging;
+        coords = e && e.type !== 'keydown' ? GetSuggestionDragEventCoordinates(e) : state.lastCoords;
+        state.lastCoords = coords || state.lastCoords;
+
+        if (e && e.preventDefault && wasDragging) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        if (wasDragging && !cancel && _Collections && typeof _Collections.CommitSuggestionDrop === 'function') {
+            committed = _Collections.CommitSuggestionDrop(state.gameKey, state.lastCoords);
+        }
+
+        if (wasDragging) {
+            SuppressNextSuggestionClick();
+        }
+
+        CleanupSuggestionDrag({
+            skipDropPreviewCleanup: committed
+        });
+    };
+
+    var ContinueSuggestionDrag = function(e) {
+
+        var state = _suggestionDragState;
+        var original = e.originalEvent || e;
+        var coords;
+        var deltaX;
+        var deltaY;
+
+        if (!state) {
+            return;
+        }
+
+        if (state.pointerId !== null && state.pointerId !== undefined && original.pointerId !== undefined && state.pointerId !== original.pointerId) {
+            return;
+        }
+
+        coords = GetSuggestionDragEventCoordinates(e);
+        state.lastCoords = coords;
+        deltaX = coords.pageX - state.startX;
+        deltaY = coords.pageY - state.startY;
+
+        if (!state.dragging) {
+            if (Math.sqrt((deltaX * deltaX) + (deltaY * deltaY)) < _suggestionDragThreshold) {
+                return;
+            }
+
+            BeginSuggestionDrag(coords);
+        }
+
+        e.preventDefault();
+        e.stopPropagation();
+        MoveSuggestionDragClone(coords);
+
+        if (_Collections && typeof _Collections.UpdateSuggestionDropPreview === 'function') {
+            _Collections.UpdateSuggestionDropPreview(state.gameKey, coords);
+        }
+    };
+
+    var CancelSuggestionDragOnEscape = function(e) {
+
+        var key = e.which || e.keyCode;
+
+        if (!_suggestionDragState || key !== 27) {
+            return;
+        }
+
+        FinishSuggestionDrag(e, true);
+    };
+
+    var CancelActiveSuggestionDrag = function() {
+
+        if (_suggestionDragState) {
+            FinishSuggestionDrag(null, true);
+        }
+        else if (_Collections && typeof _Collections.CancelSuggestionDropPreview === 'function') {
+            _Collections.CancelSuggestionDropPreview();
+        }
+    };
+
+    var StartSuggestionDragPointer = function(e) {
+
+        var $item = $(e.currentTarget);
+        var original = e.originalEvent || e;
+        var coords;
+
+        if (e.type === 'mousedown' && window.PointerEvent) {
+            return;
+        }
+
+        if (!CanStartSuggestionDrag($item, e)) {
+            return;
+        }
+
+        RefreshSuggestionDragConfig();
+        coords = GetSuggestionDragEventCoordinates(e);
+
+        _suggestionDragState = {
+            $item: $item,
+            $clone: null,
+            gameKey: GetSuggestionGameKey($item),
+            startX: coords.pageX,
+            startY: coords.pageY,
+            startClientX: coords.clientX,
+            startClientY: coords.clientY,
+            lastCoords: coords,
+            pointerId: original.pointerId,
+            dragging: false,
+            holdTimer: null,
+            itemWidth: 0,
+            itemHeight: 0,
+            pointerOffsetX: 0,
+            pointerOffsetY: 0
+        };
+
+        _suggestionDragState.holdTimer = setTimeout(function() {
+            if (_suggestionDragState && _suggestionDragState.$item && _suggestionDragState.$item[0] === $item[0] && !_suggestionDragState.dragging) {
+                BeginSuggestionDrag(_suggestionDragState.lastCoords);
+            }
+        }, _suggestionDragHoldMs);
+
+        $(document)
+            .off(_suggestionDragNamespace)
+            .on('pointermove' + _suggestionDragNamespace, ContinueSuggestionDrag)
+            .on('pointerup' + _suggestionDragNamespace, function(event) {
+                FinishSuggestionDrag(event, false);
+            })
+            .on('pointercancel' + _suggestionDragNamespace, function(event) {
+                FinishSuggestionDrag(event, true);
+            })
+            .on('mousemove' + _suggestionDragNamespace, ContinueSuggestionDrag)
+            .on('mouseup' + _suggestionDragNamespace, function(event) {
+                FinishSuggestionDrag(event, false);
+            })
+            .on('keydown' + _suggestionDragNamespace, CancelSuggestionDragOnEscape);
+    };
+
+    var BindSuggestionDragHandlers = function() {
+
+        if (!_grid || !_grid.length) {
+            return;
+        }
+
+        BindSuggestionClickSuppressor();
+
+        _grid
+            .off('pointerdown' + _suggestionDragNamespace)
+            .on('pointerdown' + _suggestionDragNamespace, '.suggestion-grid-item', StartSuggestionDragPointer)
+            .off('mousedown' + _suggestionDragNamespace)
+            .on('mousedown' + _suggestionDragNamespace, '.suggestion-grid-item', StartSuggestionDragPointer)
+            .off('dragstart' + _suggestionDragNamespace)
+            .on('dragstart' + _suggestionDragNamespace, '.suggestion-grid-item, .suggestion-grid-item img', function(e) {
+                e.preventDefault();
+                return false;
+            });
+    };
+
     var SetupLoadTrigger = function() {
 
         if (window.IntersectionObserver && $loading.length) {
@@ -820,6 +1314,8 @@ var cesSuggestions = (function(_config, _Media, _Compression, _Tooltips, _Collec
         ResetLoadingState();
         EnsureColumns();
         SetupLoadTrigger();
+        RefreshSuggestionDragConfig();
+        BindSuggestionDragHandlers();
 
         var $checkbox = $('#browse-show-obscure');
 

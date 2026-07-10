@@ -7020,7 +7020,7 @@ div.suggestionsbar input {
 
 /* collection bookshelf display: 10 outward-facing game boxes per desktop shelf row */
 #openCollectionGrid {
-	--collection-shelf-row-height: 206px;
+	--collection-shelf-row-height: 216px;
 	--collection-shelf-card-width: 126px;
 	--collection-shelf-box-width: 116px;
 	--collection-shelf-box-max-height: none;
@@ -7218,6 +7218,110 @@ body.collection-reorder-active #openCollectionGrid .collection-grid-item .gameli
 	-o-transform: perspective(760px) rotateX(0deg) rotateY(-.4deg) translate3d(0px, -11px, 24px) scale(1.055);
 	-ms-transform: perspective(760px) rotateX(0deg) rotateY(-.4deg) translate3d(0px, -11px, 24px) scale(1.055);
 	transform: perspective(760px) rotateX(0deg) rotateY(-.4deg) translate3d(0px, -11px, 24px) scale(1.055);
+}
+
+body.suggestion-drag-active {
+	cursor: -webkit-grabbing;
+	cursor: grabbing;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}
+
+body.suggestion-drag-active #openCollectionGrid:empty {
+	height: var(--collection-shelf-row-height) !important;
+	min-height: var(--collection-shelf-row-height);
+	margin-top: 0px;
+	margin-bottom: 0px;
+	overflow: visible;
+	pointer-events: auto;
+	background-color: #070b10;
+	background-image: linear-gradient(to bottom, rgba(18,28,38,0.54) 0%, rgba(4,7,10,0.28) 100%), url('/images/collection-bookshelf-medium-back.svg');
+	background-repeat: no-repeat, repeat-y;
+	background-position: 0px 0px, 0px 0px;
+	background-size: 100% 100%, 100% var(--collection-shelf-row-height);
+	box-shadow: inset 0px 1px 0px rgba(255,255,255,0.06), inset 0px 0px 40px rgba(0,0,0,0.34), 0px 0px 0px 1px rgba(125,166,207,0.12), 0px 12px 26px rgba(0,0,0,0.22);
+}
+
+body.suggestion-drag-active #openCollectionGrid:empty:before {
+	content: '';
+	display: block;
+}
+
+#openCollectionGrid.collection-suggestion-drop-active {
+	box-shadow: inset 0px 1px 0px rgba(255,255,255,0.08), inset 0px 0px 42px rgba(0,0,0,0.32), 0px 0px 0px 1px rgba(125,166,207,0.18), 0px 12px 26px rgba(0,0,0,0.22);
+}
+
+#openCollectionGrid .collection-grid-item.collection-suggestion-drop-placeholder {
+	visibility: hidden !important;
+}
+
+body.suggestion-drag-active #suggestionsgrid .suggestion-grid-item,
+body.suggestion-drag-active #suggestionsgrid .suggestion-grid-item *,
+#suggestionsgrid .suggestion-drag-clone,
+#suggestionsgrid .suggestion-drag-clone * {
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+	-webkit-user-drag: none;
+}
+
+#suggestionsgrid .suggestion-drag-source .gamelink .box,
+#suggestionsgrid .suggestion-drag-source .gamelink:hover .box,
+#suggestionsgrid .suggestion-drag-source .gamelink:focus .box {
+	cursor: -webkit-grabbing;
+	cursor: grabbing;
+}
+
+body.suggestion-drag-active #suggestionsgrid .suggestion-drag-source .gamelink .box,
+body.suggestion-drag-active #suggestionsgrid .suggestion-drag-source .gamelink .box.zoom-on,
+body.suggestion-drag-active #suggestionsgrid .suggestion-drag-source .gamelink .box.zoom-down,
+body.suggestion-drag-active #suggestionsgrid .suggestion-drag-source .gamelink:hover .box,
+body.suggestion-drag-active #suggestionsgrid .suggestion-drag-source .gamelink:focus .box {
+	-webkit-transform: none;
+	-moz-transform: none;
+	-o-transform: none;
+	-ms-transform: none;
+	transform: none;
+}
+
+#suggestionsgrid .suggestion-drag-clone {
+	position: fixed !important;
+	z-index: 100000 !important;
+	left: 0px !important;
+	top: 0px !important;
+	margin: 0px !important;
+	pointer-events: none !important;
+	visibility: visible !important;
+	opacity: .96;
+	-webkit-transition: none !important;
+	-moz-transition: none !important;
+	-o-transition: none !important;
+	transition: none !important;
+	will-change: transform;
+}
+
+#suggestionsgrid .suggestion-drag-clone,
+#suggestionsgrid .suggestion-drag-clone * {
+	pointer-events: none !important;
+}
+
+#suggestionsgrid .suggestion-drag-clone .gamelink,
+#suggestionsgrid .suggestion-drag-clone .gamelink .box,
+#suggestionsgrid .suggestion-drag-clone .gamelink .box img {
+	-webkit-transition: none !important;
+	-moz-transition: none !important;
+	-o-transition: none !important;
+	transition: none !important;
+}
+
+#suggestionsgrid .suggestion-drag-clone .gamelink .box,
+#suggestionsgrid .suggestion-drag-clone .gamelink:hover .box,
+#suggestionsgrid .suggestion-drag-clone .gamelink:focus .box {
+	cursor: -webkit-grabbing;
+	cursor: grabbing;
 }
 
 
