@@ -4133,6 +4133,7 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
                     $gridTitle.attr('data-lastPlayed', activeTitle.lastPlayed); //store as epoch time for sorting
                     $gridTitle.attr('data-playCount', activeTitle.playCount);
                     $gridTitle.attr('data-topRanked', activeTitle.topRanked);
+                    $gridTitle.data('topRanked', activeTitle.topRanked);
                     ApplyManualOrderDataToGridItem($gridTitle, activeTitle.manualOrder);
                     ApplyReleaseSortData($gridTitle, activeTitle.releaseSort);
                 }
@@ -4584,6 +4585,23 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
         return $origin;
     };
 
+    var IsTitleUsingAlternateVersion = function(activeTitle) {
+
+        if (!activeTitle) {
+            return false;
+        }
+
+        if (activeTitle.defaultFile && activeTitle.gameKey && activeTitle.gameKey.file) {
+            return activeTitle.gameKey.file !== activeTitle.defaultFile;
+        }
+
+        if (activeTitle.defaultFile && activeTitle.selectedFile) {
+            return activeTitle.selectedFile !== activeTitle.defaultFile;
+        }
+
+        return activeTitle.topRanked === false;
+    };
+
     var GenerateTitleTooltipContent = function(activeTitle) {
 
         //create the tooltip content
@@ -4593,7 +4611,7 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
         var $mediawrapper = $('<div class="mediawrapper game-tooltip-media" />');
         $tooltipContent.append($mediawrapper);
         //if playing an alternate version, append the tooltip with that info
-        if (!activeTitle.topRanked) {
+        if (IsTitleUsingAlternateVersion(activeTitle)) {
             $tooltipContent.append($('<div class="tooltipfile" />').text('You are playing an alternate version: ' + activeTitle.gameKey.file));
         }
 
@@ -4993,6 +5011,9 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
                         _activeCollectionTitles[j].lastPlayed = lastPlayed;
                         _activeCollectionTitles[j].playCount = payload[i].playCount;
                         _activeCollectionTitles[j].saveCount = payload[i].saveCount;
+                        _activeCollectionTitles[j].topRanked = payload[i].topRanked;
+                        _activeCollectionTitles[j].selectedFile = payload[i].selectedFile;
+                        _activeCollectionTitles[j].defaultFile = payload[i].defaultFile;
                         _activeCollectionTitles[j].releaseSort = payload[i].releaseSort;
                         _activeCollectionTitles[j].releaseLabel = payload[i].releaseLabel;
                         _activeCollectionTitles[j].manualOrder = manualOrder;
@@ -5035,6 +5056,8 @@ var cesCollections = (function(_config, _Compression, _Preferences, _Media, _Syn
                         playCount: payload[i].playCount,
                         saveCount: payload[i].saveCount,
                         topRanked: payload[i].topRanked,
+                        selectedFile: payload[i].selectedFile,
+                        defaultFile: payload[i].defaultFile,
                         releaseSort: payload[i].releaseSort,
                         releaseLabel: payload[i].releaseLabel,
                         manualOrder: manualOrder,

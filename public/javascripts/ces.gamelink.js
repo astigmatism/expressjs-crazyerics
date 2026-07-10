@@ -6,6 +6,7 @@ var cesGameLink = (function(_config, _Media, _Tooltips, _Collections, gameKey, c
     var _imageAnimation = opt_ImageAnimation === undefined ? 'flipInY' : opt_ImageAnimation;
     var _gameTooltipOriginClass = 'ces-game-tooltip-origin';
     var _gameTooltipBoxOpenClass = 'ces-game-tooltip-box-open';
+    var _collectionGameTooltipOpenClass = 'ces-collection-game-tooltip-open';
 
     //public members
 
@@ -33,6 +34,20 @@ var cesGameLink = (function(_config, _Media, _Tooltips, _Collections, gameKey, c
             return $imagewrapper.hasClass(_gameTooltipBoxOpenClass);
         };
 
+        var IsCollectionPopoverLockingAdjacentBoxes = function() {
+
+            var $collectionGrid = $imagewrapper.closest('#openCollectionGrid');
+
+            return $collectionGrid.length > 0 &&
+                $collectionGrid.hasClass(_collectionGameTooltipOpenClass) &&
+                !KeepPopoverBoxLifted();
+        };
+
+        var ClearBoxZoomState = function() {
+            $imagewrapper.removeClass('zoom-on');
+            $imagewrapper.removeClass('zoom-down');
+        };
+
         //zoom on click, if zoomed (selected, trigger play)
         $div.on('click', function() {
 
@@ -40,6 +55,11 @@ var cesGameLink = (function(_config, _Media, _Tooltips, _Collections, gameKey, c
             //     _Tooltips.Close($imagewrapper); //sometimes the tooltip was staying up after clicking
             //     opt_PlayGame(gameKey);
             // }
+
+            if (IsCollectionPopoverLockingAdjacentBoxes()) {
+                ClearBoxZoomState();
+                return;
+            }
 
             if (HasGamePopover()) {
                 $imagewrapper.removeClass('zoom-down');
@@ -51,18 +71,21 @@ var cesGameLink = (function(_config, _Media, _Tooltips, _Collections, gameKey, c
             $imagewrapper.addClass('zoom-down');
 
         }).on('mouseenter', function() {
+            if (IsCollectionPopoverLockingAdjacentBoxes()) {
+                ClearBoxZoomState();
+                return;
+            }
+
             $imagewrapper.removeClass('zoom-down');
             $imagewrapper.addClass('zoom-on');
         })
         .on('mouseleave', function() {
             if (KeepPopoverBoxLifted()) {
-                $imagewrapper.removeClass('zoom-on');
-                $imagewrapper.removeClass('zoom-down');
+                ClearBoxZoomState();
                 return;
             }
 
-            $imagewrapper.removeClass('zoom-on');
-            $imagewrapper.removeClass('zoom-down');
+            ClearBoxZoomState();
         });
 
         var $img = _Media.$BoxFront(gameKey, cdnPathValue);

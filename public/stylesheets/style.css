@@ -7333,6 +7333,33 @@ body.collection-reorder-active #openCollectionGrid .collection-grid-item .gameli
 	transform: perspective(760px) rotateX(0deg) rotateY(-.35deg) translate3d(0px, -13px, 28px) scale(1.08);
 }
 
+#openCollectionGrid.ces-collection-game-tooltip-open .collection-grid-item:not(.ces-game-tooltip-origin-open):not(.collection-reorder-drag-clone):hover {
+	z-index: 2;
+}
+
+#openCollectionGrid.ces-collection-game-tooltip-open .collection-grid-item:not(.ces-game-tooltip-origin-open):not(.collection-reorder-drag-clone) .gamelink .box,
+#openCollectionGrid.ces-collection-game-tooltip-open .collection-grid-item:not(.ces-game-tooltip-origin-open):not(.collection-reorder-drag-clone) .gamelink .box.zoom-on,
+#openCollectionGrid.ces-collection-game-tooltip-open .collection-grid-item:not(.ces-game-tooltip-origin-open):not(.collection-reorder-drag-clone) .gamelink .box.zoom-down,
+#openCollectionGrid.ces-collection-game-tooltip-open .collection-grid-item:not(.ces-game-tooltip-origin-open):not(.collection-reorder-drag-clone) .gamelink .box:hover,
+#openCollectionGrid.ces-collection-game-tooltip-open .collection-grid-item:not(.ces-game-tooltip-origin-open):not(.collection-reorder-drag-clone) .gamelink:hover .box,
+#openCollectionGrid.ces-collection-game-tooltip-open .collection-grid-item:not(.ces-game-tooltip-origin-open):not(.collection-reorder-drag-clone) .gamelink:focus .box,
+#openCollectionGrid.ces-collection-game-tooltip-open .collection-grid-item:not(.ces-game-tooltip-origin-open):not(.collection-reorder-drag-clone) .gamelink:focus-visible .box {
+	z-index: 2;
+	box-shadow: none !important;
+	outline-color: rgba(255,255,255,0.055) !important;
+	-webkit-filter: none !important;
+	filter: none !important;
+	-webkit-transform: none !important;
+	-moz-transform: none !important;
+	-o-transform: none !important;
+	-ms-transform: none !important;
+	transform: none !important;
+	-webkit-transition: none !important;
+	-moz-transition: none !important;
+	-o-transition: none !important;
+	transition: none !important;
+}
+
 #openCollectionGrid.collection-manual-reorder-enabled .collection-card-enter .gamelink,
 #openCollectionGrid.collection-drag-layout-primed .collection-card-enter .gamelink,
 #openCollectionGrid.collection-reorder-motion-quieted .collection-card-enter .gamelink {

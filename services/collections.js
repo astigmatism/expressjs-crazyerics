@@ -4,6 +4,7 @@ const CollectionsSQL = require('../db/collections');
 const Cache = require('../services/cache/cache.redis.js');
 const UtilitiesService = require('./utilities');
 const FileService = require('./files');
+const GameService = require('./games');
 
 module.exports = new (function() {
 
@@ -662,26 +663,61 @@ module.exports = new (function() {
                 lastPlayed: record.last_played,
                 playCount: record.play_count,
                 saveCount: record.save_count,
-                topRanked: record.top_ranked,
+                topRanked: null,
+                selectedFile: null,
+                defaultFile: null,
                 manualOrder: NormalizeManualOrder(record.collection_position, index)
             };
 
-            GetReleaseMetadata(record.game_key, (err, releaseMetadata) => {
+            GetVersionMetadata(record.game_key, (err, versionMetadata) => {
                 if (err) {
-                    console.log('Collection release metadata lookup failed:', err && err.message ? err.message : err);
+                    console.log('Collection version metadata lookup failed:', err && err.message ? err.message : err);
                 }
 
-                if (releaseMetadata) {
-                    clientTitle.releaseSort = releaseMetadata.sort;
-                    clientTitle.releaseLabel = releaseMetadata.label;
+                if (versionMetadata) {
+                    clientTitle.topRanked = versionMetadata.isTopRanked;
+                    clientTitle.selectedFile = versionMetadata.selectedFile;
+                    clientTitle.defaultFile = versionMetadata.defaultFile;
+                }
+                else if (record.top_ranked === true || record.top_ranked === false) {
+                    clientTitle.topRanked = record.top_ranked;
                 }
 
-                result.push(clientTitle);
-                next(index + 1);
+                GetReleaseMetadata(record.game_key, (err, releaseMetadata) => {
+                    if (err) {
+                        console.log('Collection release metadata lookup failed:', err && err.message ? err.message : err);
+                    }
+
+                    if (releaseMetadata) {
+                        clientTitle.releaseSort = releaseMetadata.sort;
+                        clientTitle.releaseLabel = releaseMetadata.label;
+                    }
+
+                    result.push(clientTitle);
+                    next(index + 1);
+                });
             });
         };
 
         next(0);
+    };
+
+    var GetVersionMetadata = function(gk, callback) {
+
+        var gameKey;
+
+        try {
+            gameKey = UtilitiesService.Decompress.gamekey(gk);
+        }
+        catch (err) {
+            return callback(null, null);
+        }
+
+        if (!gameKey || !gameKey.system || !gameKey.title || !gameKey.file) {
+            return callback(null, null);
+        }
+
+        GameService.GetVersionInfo(gameKey, callback);
     };
 
     var GetReleaseMetadata = function(gk, callback) {

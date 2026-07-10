@@ -45,6 +45,37 @@ module.exports = new (function() {
         });
     };
 
+    this.GetVersionInfo = function(gameKey, callback) {
+
+        if (!gameKey || !gameKey.system || !gameKey.title || !gameKey.file) {
+            return callback(null, null);
+        }
+
+        FileService.Get('/data/' + gameKey.system + '_master', function(err, masterFile) {
+            if (err) {
+                return callback(err);
+            }
+
+            if (!masterFile || !masterFile[gameKey.title] || !masterFile[gameKey.title].f) {
+                return callback(null, null);
+            }
+
+            var titleRecord = masterFile[gameKey.title];
+            var files = titleRecord.f;
+            var defaultFile = titleRecord.b;
+
+            if (!defaultFile || !Object.prototype.hasOwnProperty.call(files, gameKey.file)) {
+                return callback(null, null);
+            }
+
+            return callback(null, {
+                selectedFile: gameKey.file,
+                defaultFile: defaultFile,
+                isTopRanked: gameKey.file === defaultFile
+            });
+        });
+    };
+
     //appends a regular gamekey with id's, for use on server only
     this.EnhancedGameKey = function(gameKey, callback) {
         

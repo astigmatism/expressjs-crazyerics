@@ -4,6 +4,7 @@ const async = require('async');
 const config = require('config');
 const UsersSQL = require('../db/users');
 const UserTitlesSQL = require('../db/usertitles');
+const GameService = require('./games');
 const UtilitiesService = require('./utilities');
 
 module.exports = new (function() {
@@ -79,11 +80,19 @@ module.exports = new (function() {
     //for adding a title to a user's collection without playing it right away
     this.AddTitle = function(userId, eGameKey, callback) {
 
-        UserTitlesSQL.AddTitle(userId, eGameKey.gk, eGameKey.titleId, eGameKey.fileId, 0, null, null, (err, userTitle) => {
-            if (err) {
-                return callback(err);
+        GameService.GetVersionInfo(eGameKey, (versionErr, versionInfo) => {
+            if (versionErr) {
+                console.log('Could not resolve top-ranked version while adding title for user_id=' + userId + ', gk=' + eGameKey.gk + ':', versionErr);
             }
-            callback(null, userTitle);
+
+            var isPlayingTopRanked = versionInfo ? versionInfo.isTopRanked : null;
+
+            UserTitlesSQL.AddTitle(userId, eGameKey.gk, eGameKey.titleId, eGameKey.fileId, 0, null, isPlayingTopRanked, (err, userTitle) => {
+                if (err) {
+                    return callback(err);
+                }
+                callback(null, userTitle);
+            });
         });
     }
 

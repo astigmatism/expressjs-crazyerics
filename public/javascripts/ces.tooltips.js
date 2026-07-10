@@ -12,6 +12,7 @@ var cesTooltips = (function(_config, _Media, _Logging, tooltipSelector, tooltipC
     var gameTooltipOriginClass = 'ces-game-tooltip-origin';
     var gameTooltipOriginOpenClass = 'ces-game-tooltip-origin-open';
     var gameTooltipBoxOpenClass = 'ces-game-tooltip-box-open';
+    var collectionGameTooltipOpenClass = 'ces-collection-game-tooltip-open';
     var gameTooltipKeyupNamespace = 'keyup.cesGameTooltip';
     var gameTooltipMouseNamespace = '.cesGameTooltipMouse';
     var gameTooltipActionNamespace = '.cesGameTooltipAction';
@@ -66,10 +67,56 @@ var cesTooltips = (function(_config, _Media, _Logging, tooltipSelector, tooltipC
         }
     };
 
+    var GetCollectionTooltipGrid = function($origin) {
+
+        if (!$origin || !$origin.length) {
+            return $();
+        }
+
+        return $origin.closest('#openCollectionGrid');
+    };
+
+    var ResetInactiveCollectionTooltipHoverState = function($grid) {
+
+        if (!$grid || !$grid.length) {
+            return;
+        }
+
+        $grid
+            .find('.collection-grid-item:not(.' + gameTooltipOriginOpenClass + '):not(.collection-reorder-drag-clone) .gamelink .box')
+            .removeClass('zoom-on zoom-down');
+    };
+
+    var HasOpenCollectionGameTooltip = function($grid) {
+
+        if (!$grid || !$grid.length) {
+            return false;
+        }
+
+        return $grid.find('.' + gameTooltipOriginClass + '.' + gameTooltipOriginOpenClass).length > 0;
+    };
+
+    var UpdateCollectionTooltipLockState = function($grid) {
+
+        var hasOpenTooltip;
+
+        if (!$grid || !$grid.length) {
+            return;
+        }
+
+        hasOpenTooltip = HasOpenCollectionGameTooltip($grid);
+        $grid.toggleClass(collectionGameTooltipOpenClass, hasOpenTooltip);
+
+        if (hasOpenTooltip) {
+            ResetInactiveCollectionTooltipHoverState($grid);
+        }
+    };
+
     var SetGameTooltipOpenState = function($origin, isOpen) {
 
         var $box = FindGameTooltipBox($origin);
         var $collectionGridItem = $origin.hasClass('collection-grid-item') ? $origin : $origin.closest('.collection-grid-item');
+        var $collectionGrid = GetCollectionTooltipGrid($origin);
 
         if (isOpen) {
             $origin.addClass(gameTooltipOriginOpenClass);
@@ -77,6 +124,7 @@ var cesTooltips = (function(_config, _Media, _Logging, tooltipSelector, tooltipC
             $box
                 .removeClass('zoom-down')
                 .addClass(gameTooltipBoxOpenClass);
+            UpdateCollectionTooltipLockState($collectionGrid);
         }
         else {
             $origin.removeClass(gameTooltipOriginOpenClass);
@@ -88,6 +136,8 @@ var cesTooltips = (function(_config, _Media, _Logging, tooltipSelector, tooltipC
             if (!IsGameTooltipBoxHovered($box)) {
                 $box.removeClass('zoom-on');
             }
+
+            UpdateCollectionTooltipLockState($collectionGrid);
         }
     };
 
