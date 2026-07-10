@@ -11,6 +11,17 @@ function SendCompressedJson(res, payload) {
     res.json(UtilitiesService.Compress.json(payload || {}));
 }
 
+function SendMutationResponseWithPublicSnapshot(req, res, payload) {
+    FeaturedService.GetPublicCollections((err, collections) => {
+        if (err) { return HandleApiError(req, res, err); }
+
+        payload = payload || {};
+        payload._c = payload._c || {};
+        payload._c.f = collections || [];
+        SendCompressedJson(res, payload);
+    });
+}
+
 
 function IsMissingFeaturedSchemaError(err) {
     var message = String(err && err.message || '');
@@ -83,12 +94,22 @@ function GetFeaturedCollectionId(req) {
     return id;
 }
 
-// Request one featured collection. With ?i=, this preserves the old "next featured" behavior.
-// Without ?i=, it returns one random collection for the current page/request.
+// With ?all=1, return the safe cached public snapshot used by the browser.
+// With ?i=, preserve the older "next featured" behavior for legacy callers.
+// Without either option, preserve the older one-random-collection response.
 router.get('/', function(req, res) {
 
+    var wantsAll = req.query.all === '1' || req.query.all === 'true';
     var hasIndex = typeof req.query.i !== 'undefined';
     var index = parseInt(req.query.i, 10);
+
+    if (wantsAll) {
+        res.set('Cache-Control', 'no-store');
+        return FeaturedService.GetPublicCollections((err, result) => {
+            if (err) { return HandleApiError(req, res, err); }
+            SendCompressedJson(res, result || []);
+        });
+    }
 
     if (hasIndex && !isNaN(index)) {
         return FeaturedService.GetNext(index + 1, 1, (err, result) => {
@@ -122,13 +143,10 @@ router.post('/publish', Admin.RequireAdmin, function(req, res) {
     FeaturedService.PublishUserCollection(req.user.user_id, collectionId, req.body && req.body.gks, GetSortStateFromBody(req), (err, collection, action) => {
         if (err) { return HandleApiError(req, res, err); }
 
-        SendCompressedJson(res, {
+        SendMutationResponseWithPublicSnapshot(req, res, {
             ok: true,
             action: action,
-            collection: collection,
-            _c: {
-                f: collection ? [collection] : []
-            }
+            collection: collection
         });
     });
 });
@@ -146,13 +164,10 @@ router.post('/', Admin.RequireAdmin, function(req, res) {
     }, (err, collection, action) => {
         if (err) { return HandleApiError(req, res, err); }
 
-        SendCompressedJson(res, {
+        SendMutationResponseWithPublicSnapshot(req, res, {
             ok: true,
             action: action,
-            collection: collection,
-            _c: {
-                f: collection ? [collection] : []
-            }
+            collection: collection
         });
     });
 });
@@ -168,16 +183,9 @@ function DeleteFeaturedCollection(req, res) {
     FeaturedService.Delete(featuredCollectionId, (err, deletedCollection) => {
         if (err) { return HandleApiError(req, res, err); }
 
-        FeaturedService.GetRandom(1, (err, nextSelection) => {
-            if (err) { return HandleApiError(req, res, err); }
-
-            SendCompressedJson(res, {
-                ok: true,
-                deleted: deletedCollection,
-                _c: {
-                    f: nextSelection || []
-                }
-            });
+        SendMutationResponseWithPublicSnapshot(req, res, {
+            ok: true,
+            deleted: deletedCollection
         });
     });
 }

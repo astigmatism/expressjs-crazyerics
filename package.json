@@ -3,7 +3,8 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node ./bin/www"
+    "start": "node ./bin/www",
+    "test": "node ./test/featured-collection-selection.test.js && node ./test/featured-collection-transition.test.js && node ./test/featured-collection-header.test.js && node ./test/featured-collection-navigation-controls.test.js && node ./test/featured-collection-shortcut-menu.test.js"
   },
   "dependencies": {
     "async": "^2.6.1",

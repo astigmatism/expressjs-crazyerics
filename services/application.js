@@ -216,7 +216,9 @@ module.exports = new (function() {
 
         //build the server-persisted featured collections cache at startup
         FeaturedService.ApplicationStart((err) => {
-            if (err) console.log(err);
+            if (err) {
+                console.log('featured: startup cache warm failed; public featured collections are disabled until a successful refresh:', err && err.message ? err.message : err);
+            }
         });
 
         //build cached dynamic site statistic collections at startup

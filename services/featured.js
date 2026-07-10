@@ -332,11 +332,22 @@ module.exports = new (function() {
 
         callback = callback || function() {};
 
+        var FailRefresh = function(refreshError) {
+            console.log('featured: public cache refresh failed; the public featured area will remain unavailable:', refreshError && refreshError.message ? refreshError.message : refreshError);
+
+            // Keep unrelated page entry and application startup usable. An empty cache
+            // is a valid public snapshot and prevents each request from retrying a
+            // known-failing database/hydration operation until the next explicit refresh.
+            FeaturedCache.Set([], [], (cacheError) => {
+                callback(refreshError || cacheError || null);
+            });
+        };
+
         FeaturedSQL.GetActive((err, records) => {
-            if (err) { return callback(err); }
+            if (err) { return FailRefresh(err); }
 
             BuildClientCollections(records || [], (err, collections) => {
-                if (err) { return callback(err); }
+                if (err) { return FailRefresh(err); }
 
                 FeaturedCache.Set([], collections, (err) => {
                     if (err) { return callback(err); }
@@ -355,7 +366,41 @@ module.exports = new (function() {
                 return callback(null, cache);
             }
 
-            _self.RefreshCache(callback);
+            _self.RefreshCache((refreshError, collections) => {
+                if (refreshError) {
+                    // Public page entry should remain available when featured storage is
+                    // unavailable; RefreshCache has already installed an empty snapshot.
+                    return callback(null, []);
+                }
+
+                callback(null, collections || []);
+            });
+        });
+    };
+
+    this.GetPublicCollections = function(callback) {
+
+        _self.GetAllCached((err, collections) => {
+            if (err) { return callback(err); }
+
+            var result = [];
+            collections = Array.isArray(collections) ? collections : [];
+
+            for (var i = 0, len = collections.length; i < len; ++i) {
+                if (!collections[i] || collections[i].active === false) {
+                    continue;
+                }
+
+                var collection = CloneCollection(collections[i]);
+
+                if (!collection.name || !collection.gks.length) {
+                    continue;
+                }
+
+                result.push(collection);
+            }
+
+            callback(null, result);
         });
     };
 
@@ -437,16 +482,15 @@ module.exports = new (function() {
             return;
         };
 
-        //outgoing is how we package one random featured collection on the server side to the client
+        // Package one safe snapshot of every cached public featured collection.
+        // The client filters and navigates this snapshot without per-arrow API calls.
         this.Outgoing = function(callback) {
 
-            _self.GetRandom(1, (err, selection) => {
+            _self.GetPublicCollections((err, collections) => {
                 if (err) return callback(err);
 
-                // Featured collections should be selected per page load or explicit admin action,
-                // not re-randomized on every unrelated sync response.
                 __self.ready = false;
-                callback(null, selection || []);
+                callback(null, collections || []);
             });
         };
 
@@ -949,7 +993,10 @@ module.exports = new (function() {
             }
         }
 
-        return result.length ? result : _defaultTags.slice(0);
+        // Legacy rows without usable tags are intentionally ineligible for the
+        // public browser. Creation still defaults new records to the canonical
+        // `all` tag, but reading must not silently mutate legacy visibility.
+        return result;
     };
 
     var ParseTagInput = function(value) {
