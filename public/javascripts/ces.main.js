@@ -282,6 +282,8 @@ var cesMain = (function() {
 
         _Suggestions = new cesSuggestions(_config, _Media, _Compression, _Tooltips, _Collections, PlayGame, $('#suggestionsgrid'), $('#suggestionswrapper'));
 
+        _Suggestions.RegisterCollectionAddDragSource($('#featuredCollectionsWrapper'));
+
         //begin by showing all console suggestions
         _Suggestions.Load('all', function() {
             _Tooltips.Any();

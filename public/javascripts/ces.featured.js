@@ -1075,8 +1075,11 @@ var CreateGameItem = function(game, renderGeneration, nextGameLinks) {
         return null;
     }
 
-    var $griditem = $('<div class="featured-collection-game" role="listitem" />');
-    $griditem.attr('data-gk', game.gk);
+    var $griditem = $('<div class="featured-collection-game collection-add-drag-source" role="listitem" />');
+    $griditem
+        .attr('data-gk', game.gk)
+        .attr('draggable', 'false')
+        .data('gameKey', game.gameKey);
 
     var OnImageLoaded = function() {
         if (renderGeneration !== _renderGeneration || !$griditem.parent().length) {

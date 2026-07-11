@@ -43,7 +43,9 @@ var cesSuggestions = (function(_config, _Media, _Compression, _Tooltips, _Collec
     var _suggestionDragState = null;
     var _suggestionDragThreshold = 6;
     var _suggestionDragHoldMs = 240;
+    var _collectionAddDragSourceSelector = '.collection-add-drag-source';
     var _suppressNextSuggestionClick = false;
+    var _suppressNextSuggestionClickItem = null;
     var _suppressNextSuggestionClickTimer = null;
 
     this.Load = function(recipe, callback, opt_canned, _opt_alphaHelper) {
@@ -118,6 +120,10 @@ var cesSuggestions = (function(_config, _Media, _Compression, _Tooltips, _Collec
 
     this.RefreshLayout = function() {
         RelayoutExistingItems();
+    };
+
+    this.RegisterCollectionAddDragSource = function($sourceRoot) {
+        return BindSuggestionDragSource($sourceRoot);
     };
 
     var FetchAndBuild = function(recipe, opt_canned, callback, loadGeneration) {
@@ -364,7 +370,7 @@ var cesSuggestions = (function(_config, _Media, _Compression, _Tooltips, _Collec
 
         _renderedKeys[gameKey.gk] = true;
 
-        var $griditem = $('<div class="grid-item suggestion-grid-item" />');
+        var $griditem = $('<div class="grid-item suggestion-grid-item collection-add-drag-source" />');
         $griditem.attr('data-gk', gameKey.gk);
         $griditem.attr('draggable', 'false');
         $griditem.data('suggestionSequence', _renderSequence++);
@@ -869,7 +875,7 @@ var cesSuggestions = (function(_config, _Media, _Compression, _Tooltips, _Collec
             return false;
         }
 
-        if (!$item || !$item.length || !$item.hasClass('suggestion-grid-item')) {
+        if (!$item || !$item.length || !$item.is(_collectionAddDragSourceSelector)) {
             return false;
         }
 
@@ -896,9 +902,10 @@ var cesSuggestions = (function(_config, _Media, _Compression, _Tooltips, _Collec
         return true;
     };
 
-    var SuppressNextSuggestionClick = function() {
+    var SuppressNextSuggestionClick = function($item) {
 
         _suppressNextSuggestionClick = true;
+        _suppressNextSuggestionClickItem = $item && $item.length ? $item[0] : null;
 
         if (_suppressNextSuggestionClickTimer) {
             clearTimeout(_suppressNextSuggestionClickTimer);
@@ -906,18 +913,27 @@ var cesSuggestions = (function(_config, _Media, _Compression, _Tooltips, _Collec
 
         _suppressNextSuggestionClickTimer = setTimeout(function() {
             _suppressNextSuggestionClick = false;
+            _suppressNextSuggestionClickItem = null;
             _suppressNextSuggestionClickTimer = null;
         }, 450);
     };
 
-    var BindSuggestionClickSuppressor = function() {
+    var BindSuggestionClickSuppressor = function($sourceRoot) {
 
-        if (!_grid || !_grid.length || _grid.data('suggestionClickSuppressorBound')) {
+        if (!$sourceRoot || !$sourceRoot.length || $sourceRoot.data('suggestionClickSuppressorBound')) {
             return;
         }
 
-        _grid[0].addEventListener('click', function(e) {
+        $sourceRoot[0].addEventListener('click', function(e) {
+            var $clickedItem;
+
             if (!_suppressNextSuggestionClick) {
+                return;
+            }
+
+            $clickedItem = $(e.target).closest(_collectionAddDragSourceSelector);
+
+            if (!$clickedItem.length || (_suppressNextSuggestionClickItem && $clickedItem[0] !== _suppressNextSuggestionClickItem)) {
                 return;
             }
 
@@ -929,9 +945,15 @@ var cesSuggestions = (function(_config, _Media, _Compression, _Tooltips, _Collec
             }
 
             _suppressNextSuggestionClick = false;
+            _suppressNextSuggestionClickItem = null;
+
+            if (_suppressNextSuggestionClickTimer) {
+                clearTimeout(_suppressNextSuggestionClickTimer);
+                _suppressNextSuggestionClickTimer = null;
+            }
         }, true);
 
-        _grid.data('suggestionClickSuppressorBound', true);
+        $sourceRoot.data('suggestionClickSuppressorBound', true);
     };
 
     var ClearSuggestionDragHoldTimer = function() {
@@ -970,7 +992,7 @@ var cesSuggestions = (function(_config, _Media, _Compression, _Tooltips, _Collec
 
         var $clone;
 
-        if (!state || !state.$item || !state.$item.length || !_grid || !_grid.length) {
+        if (!state || !state.$item || !state.$item.length || !state.$sourceRoot || !state.$sourceRoot.length) {
             return;
         }
 
@@ -983,7 +1005,7 @@ var cesSuggestions = (function(_config, _Media, _Compression, _Tooltips, _Collec
             .addClass('zoom-on suggestion-drag-held-box');
 
         $clone
-            .removeClass('suggestion-grid-item suggestion-card-enter ces-game-tooltip-origin-open')
+            .removeClass('suggestion-grid-item featured-collection-game collection-add-drag-source suggestion-card-enter ces-game-tooltip-origin-open')
             .addClass('suggestion-drag-clone')
             .attr('aria-hidden', 'true')
             .removeAttr('id')
@@ -1002,7 +1024,7 @@ var cesSuggestions = (function(_config, _Media, _Compression, _Tooltips, _Collec
                 visibility: 'visible'
             });
 
-        _grid.append($clone);
+        state.$sourceRoot.append($clone);
         state.$clone = $clone;
         MoveSuggestionDragClone(coords);
     };
@@ -1039,7 +1061,7 @@ var cesSuggestions = (function(_config, _Media, _Compression, _Tooltips, _Collec
         }
 
         ClearSuggestionDragHoldTimer();
-        SuppressNextSuggestionClick();
+        SuppressNextSuggestionClick(state.$item);
 
         try {
             _Tooltips.Close(state.$item.find('.gamelink .box').first());
@@ -1120,7 +1142,7 @@ var cesSuggestions = (function(_config, _Media, _Compression, _Tooltips, _Collec
         }
 
         if (wasDragging) {
-            SuppressNextSuggestionClick();
+            SuppressNextSuggestionClick(state.$item);
         }
 
         CleanupSuggestionDrag({
@@ -1206,6 +1228,7 @@ var cesSuggestions = (function(_config, _Media, _Compression, _Tooltips, _Collec
 
         _suggestionDragState = {
             $item: $item,
+            $sourceRoot: $(e.delegateTarget),
             $clone: null,
             gameKey: GetSuggestionGameKey($item),
             startX: coords.pageX,
@@ -1244,24 +1267,31 @@ var cesSuggestions = (function(_config, _Media, _Compression, _Tooltips, _Collec
             .on('keydown' + _suggestionDragNamespace, CancelSuggestionDragOnEscape);
     };
 
-    var BindSuggestionDragHandlers = function() {
+    var BindSuggestionDragSource = function($sourceRoot) {
 
-        if (!_grid || !_grid.length) {
-            return;
+        if (!$sourceRoot || !$sourceRoot.length) {
+            return false;
         }
 
-        BindSuggestionClickSuppressor();
+        BindSuggestionClickSuppressor($sourceRoot);
 
-        _grid
+        $sourceRoot
             .off('pointerdown' + _suggestionDragNamespace)
-            .on('pointerdown' + _suggestionDragNamespace, '.suggestion-grid-item', StartSuggestionDragPointer)
+            .on('pointerdown' + _suggestionDragNamespace, _collectionAddDragSourceSelector, StartSuggestionDragPointer)
             .off('mousedown' + _suggestionDragNamespace)
-            .on('mousedown' + _suggestionDragNamespace, '.suggestion-grid-item', StartSuggestionDragPointer)
+            .on('mousedown' + _suggestionDragNamespace, _collectionAddDragSourceSelector, StartSuggestionDragPointer)
             .off('dragstart' + _suggestionDragNamespace)
-            .on('dragstart' + _suggestionDragNamespace, '.suggestion-grid-item, .suggestion-grid-item img', function(e) {
+            .on('dragstart' + _suggestionDragNamespace, _collectionAddDragSourceSelector + ', ' + _collectionAddDragSourceSelector + ' img', function(e) {
                 e.preventDefault();
                 return false;
             });
+
+        return true;
+    };
+
+    var BindSuggestionDragHandlers = function() {
+
+        BindSuggestionDragSource(_grid);
     };
 
     var SetupLoadTrigger = function() {
